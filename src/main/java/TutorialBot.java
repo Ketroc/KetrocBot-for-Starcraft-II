@@ -235,12 +235,12 @@ public class TutorialBot {
                         break;
                     //===== 4 ===== build 1st depot
                     case 4:
-                        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_SUPPLY_DEPOT, Point2d.of(145, 50)));
-                        //actions().unitCommand(scv1Tag, Abilities.BUILD_SUPPLY_DEPOT, Point2d.of(145, 50), false);
+                        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
+                        //actions().unitCommand(scv1Tag, Abilities.BUILD_SUPPLY_DEPOT, LocationConstants.DEPOT1, false);
                         break;
                     //===== 5 ===== build 1st barracks after first depot
                     case 5:
-                        actions().unitCommand(scv1Tag, Abilities.BUILD_BARRACKS, Point2d.of(145.5f, 59.5f), false);
+                        actions().unitCommand(scv1Tag, Abilities.BUILD_BARRACKS, LocationConstants.BARRACKS, false);
                         actions().unitCommand(scv1Tag, Abilities.MOVE, Point2d.of(128.5f, 51.5f), true);
                         break;
                     //===== 6 ===== rally cc to expansion location
@@ -373,8 +373,8 @@ public class TutorialBot {
 
         //return true if going to build
         private boolean buildStructure(StructureToCreate buildMe) {
-            Abilities buildAction = StructureToCreate.structureToActionMap.get(buildMe.structureType);
             UnitTypeData structureData = observation().getUnitTypeData(false).get(buildMe.structureType);
+            Ability buildAction = structureData.getAbility().get();
             if (observation().getMinerals() >= structureData.getMineralCost().get() && observation().getVespene() >= structureData.getVespeneCost().get()) {
                 actions()
                         .unitCommand(buildMe.getScv(), buildAction, buildMe.position, false)
@@ -628,4 +628,14 @@ public class TutorialBot {
             return Optional.ofNullable(target);
         }
     } //end StructureToCreate class
-}
+
+/*    private static class MapCoordinates {
+        public MapCoordinates(String mapName, String spawm) {
+            if mapName.equals(MapNames.TRITON) {
+                //TODO: spawn location
+
+            }
+        }
+    }
+*/
+    }
