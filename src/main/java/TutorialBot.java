@@ -58,7 +58,7 @@ public class TutorialBot {
                         S2Coordinator.createParticipant(Race.TERRAN, bot),
                         S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY))
                 .launchStarcraft()
-                .startGame(BattlenetMap.of("Triton LE"));
+                .startGame(BattlenetMap.of(MapNames.TRITON));
 
         while (s2Coordinator.update()) {
         }
@@ -140,13 +140,15 @@ public class TutorialBot {
         @Override
         public void onGameStart() {
             Unit cc1Unit = observation().getUnits(Alliance.SELF, c -> c.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
+            boolean isTopSpawn = (cc1Unit.getPosition().getY() > 100) ? true : false;
+            LocationConstants.init(MapNames.TRITON, isTopSpawn);
 
-            //===== 1 ===== save closest mineral patch
+            //===== 1 ===== save closest mineral patch to: mineralPatch
             findNearestMineralPatch(cc1Unit.getPosition().toPoint2d()).ifPresent(mineralPatch ->
                     actions().unitCommand(cc1Unit, Abilities.RALLY_COMMAND_CENTER, mineralPatch, false));
 
             //===== 1 ===== rally cc to ramp
-            actions().unitCommand(cc1Unit, Abilities.RALLY_COMMAND_CENTER, Point2d.of(145, 50), false);
+            actions().unitCommand(cc1Unit, Abilities.RALLY_COMMAND_CENTER, LocationConstants.DEPOT1, false);
 
             //===== 1 ===== save cc1Tag
             cc1Tag = cc1Unit.getTag();
@@ -214,11 +216,11 @@ public class TutorialBot {
             else if (step == 14 && observation().getMinerals() >= 100) {
                 stepReady = true;
             }
-//            //===== 15 ===== build 2nd bunker
-//            else if (step == 15 && observation().getMinerals() >= 100) {
-//                actions().unitCommand(scv1Tag, Abilities.BUILD_BUNKER, Point2d.of(128.5f, 51.5f), false);
-//                step = 16;
-//            }
+            //===== 15 ===== build 2nd bunker
+            else if (step == 15 && observation().getMinerals() >= 100) {
+                actions().unitCommand(scv1Tag, Abilities.BUILD_BUNKER, LocationConstants.BUNKER2, false);
+                step = 16;
+            }
 
             if (stepReady) {
                 stepReady = false;
@@ -241,11 +243,11 @@ public class TutorialBot {
                     //===== 5 ===== build 1st barracks after first depot
                     case 5:
                         actions().unitCommand(scv1Tag, Abilities.BUILD_BARRACKS, LocationConstants.BARRACKS, false);
-                        actions().unitCommand(scv1Tag, Abilities.MOVE, Point2d.of(128.5f, 51.5f), true);
+                        actions().unitCommand(scv1Tag, Abilities.MOVE, LocationConstants.BUNKER1, true);
                         break;
                     //===== 6 ===== rally cc to expansion location
                     case 6:
-                        actions().unitCommand(cc1Tag, Abilities.RALLY_COMMAND_CENTER, Point2d.of(133.5f, 43.5f), false);
+                        actions().unitCommand(cc1Tag, Abilities.RALLY_COMMAND_CENTER, LocationConstants.CC2, false);
                         break;
                     //===== 7 ===== rally cc back to mineral patch
                     case 7:
@@ -257,12 +259,12 @@ public class TutorialBot {
                         break;
                     //===== 9 ===== build command center at natural
                     case 9:
-                        actions().unitCommand(tempTag, Abilities.BUILD_COMMAND_CENTER, Point2d.of(133.5f, 43.5f),false);
+                        actions().unitCommand(tempTag, Abilities.BUILD_COMMAND_CENTER, LocationConstants.CC2,false);
                         tempTag = null;
                         break;
                    //===== 10 ===== waiting for scv to finish to start OC, and rally barracks to natural ramp
                     case 10:
-                        actions().unitCommand(barracksTag, Abilities.RALLY_UNITS, Point2d.of(128.5f, 51.5f), false);
+                        actions().unitCommand(barracksTag, Abilities.RALLY_UNITS, LocationConstants.BUNKER1, false);
                         break;
                     //===== 11 ===== build OC
                     case 11:
@@ -271,7 +273,7 @@ public class TutorialBot {
                         break;
                     //===== 12 ===== waiting for 100min to build first bunker
                     case 12:
-                        actions().unitCommand(scv1Tag, Abilities.BUILD_BUNKER, Point2d.of(128.5f, 51.5f), false);
+                        actions().unitCommand(scv1Tag, Abilities.BUILD_BUNKER, LocationConstants.BUNKER1, false);
                         break;
                     //===== 13 ===== rally all marines and barracks to the bunker, and save bunker tag
                     case 13:
@@ -288,7 +290,7 @@ public class TutorialBot {
                     case 14:
                         Unit scv = findScvNearestBase(observation().getUnit(cc1Tag).unit());
                         actions().unitCommand(scv, Abilities.HARVEST_RETURN, false)
-                                .unitCommand(scv, Abilities.BUILD_BUNKER, Point2d.of(128.5f, 51.5f), true);
+                                .unitCommand(scv, Abilities.BUILD_BUNKER, LocationConstants.BUNKER2, true);
                         break;
                 } //end switch
                 step++;
