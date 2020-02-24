@@ -181,7 +181,7 @@ class Bot_Hardcoded extends S2Agent {
                     break;
                 //===== 4 ===== build 1st depot
                 case 4:
-                    toBuild.add(new StructureToCreate(observation(), Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
+                    toBuild.add(new StructureToCreate(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
                     //actions().unitCommand(scv1Tag, Abilities.BUILD_SUPPLY_DEPOT, LocationConstants.DEPOT1, false);
                     break;
                 //===== 5 ===== build 1st barracks after first depot
@@ -191,19 +191,19 @@ class Bot_Hardcoded extends S2Agent {
                     break;
                 //===== 6 ===== rally cc to expansion location
                 case 6:
-                    actions().unitCommand(cc1Tag, Abilities.RALLY_COMMAND_CENTER, LocationConstants.CC2, false);
+//                    actions().unitCommand(cc1Tag, Abilities.RALLY_COMMAND_CENTER, LocationConstants.CC2, false);
                     break;
                 //===== 7 ===== rally cc back to mineral patch
                 case 7:
                     Unit mineralPatchUnit = observation().getUnit(mineralPatch1Tag).unit();
-                    actions().unitCommand(cc1Tag, Abilities.SMART, mineralPatchUnit, false);
+//                    actions().unitCommand(cc1Tag, Abilities.SMART, mineralPatchUnit, false);
                     break;
                 //===== 8 ===== waiting for 400min for cc
                 case 8:
                     break;
                 //===== 9 ===== build command center at natural
                 case 9:
-                    actions().unitCommand(tempTag, Abilities.BUILD_COMMAND_CENTER, LocationConstants.CC2,false);
+ //                   actions().unitCommand(tempTag, Abilities.BUILD_COMMAND_CENTER, LocationConstants.CC2,false);
                     tempTag = null;
                     break;
                //===== 10 ===== waiting for scv to finish to start OC, and rally barracks to natural ramp

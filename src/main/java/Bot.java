@@ -1,4 +1,5 @@
 import com.github.ocraft.s2client.bot.S2Agent;
+import com.github.ocraft.s2client.bot.gateway.ObservationInterface;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.game.raw.StartRaw;
@@ -14,30 +15,27 @@ import java.util.function.Predicate;
 
 class Bot extends S2Agent {
     LinkedList<StructureToCreate> toBuild = new LinkedList<StructureToCreate>();
-
+    public static ObservationInterface OBS;
+    boolean makeGas = true; //TODO: delete, for testing only
 
 
     @Override
     public void onGameStart() {
+        OBS = observation();
 
         //set map and spawn location
         Unit cc1Unit = observation().getUnits(Alliance.SELF, c -> c.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
         LocationConstants.init(MapNames.TRITON, (cc1Unit.getPosition().getY() > 100) ? true : false);
 
-//        //save closest mineral patch
-//        findNearestMineralPatch(cc1Unit.getPosition().toPoint2d()).ifPresent(mineralPatch ->
-//                actions().unitCommand(cc1Unit, Abilities.RALLY_COMMAND_CENTER, mineralPatch, false));
 
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_BARRACKS, LocationConstants.BARRACKS));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_COMMAND_CENTER, LocationConstants.CC2));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_BUNKER, LocationConstants.BUNKER1));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT2));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_BUNKER, LocationConstants.BUNKER2));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_REFINERY, LocationConstants.GAS1));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_REFINERY, LocationConstants.GAS2));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_REFINERY, LocationConstants.GAS3));
-        toBuild.add(new StructureToCreate(observation(), Units.TERRAN_REFINERY, LocationConstants.GAS4));
+        toBuild.add(new StructureToCreate(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
+        toBuild.add(new StructureToCreate(Units.TERRAN_BARRACKS, LocationConstants.BARRACKS));
+        toBuild.add(new StructureToCreate(Units.TERRAN_COMMAND_CENTER, LocationConstants.BASE2.getLocation()));
+        toBuild.add(new StructureToCreate(Units.TERRAN_BUNKER, LocationConstants.BUNKER1));
+        toBuild.add(new StructureToCreate(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT2));
+        toBuild.add(new StructureToCreate(Units.TERRAN_BUNKER, LocationConstants.BUNKER2));
+        toBuild.add(new StructureToCreate(Units.TERRAN_REFINERY, LocationConstants.BASE2.getGas1()));
+        toBuild.add(new StructureToCreate(Units.TERRAN_REFINERY, LocationConstants.BASE2.getGas2()));
 
     }
 
@@ -57,10 +55,18 @@ class Bot extends S2Agent {
     public void onStep() {
         if (!toBuild.isEmpty()) {
             if (toBuild.getFirst().buildStructure(actions())) {
+                LocationConstants.BASE2.initGases();
                 toBuild.removeFirst();
             }
         }
-    } // end method
+//
+//        if (OBS.getMinerals() > 75 && makeGas) {
+//            List<UnitInPool> scvList = OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV);
+//            List<UnitInPool> gasList = Bot.OBS.getUnits(Alliance.NEUTRAL, gas -> gas.unit().getType() == Units.NEUTRAL_VESPENE_GEYSER);
+//            actions().unitCommand(scvList.get(0).unit(), Abilities.BUILD_REFINERY, gasList.get(0).unit(), false);
+//            makeGas = false;
+//        }
+    } // end onStep()
 
     @Override
     public void onUnitIdle(UnitInPool unitInPool) {

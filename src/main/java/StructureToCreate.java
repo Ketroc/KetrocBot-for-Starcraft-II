@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.github.ocraft.s2client.protocol.unit.UnitOrder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -16,7 +16,10 @@ public class StructureToCreate { //TODO: add rally point
     private Unit rallyUnit; //what to rally to afterwards (typically a mineral patch)
     private Point2d position;
     private boolean isPositionImportant;
-    private ObservationInterface obs;
+
+    public void setRallyUnit(Unit rallyUnit) {
+        this.rallyUnit = rallyUnit;
+    }
 
     public static final Map<Units, Abilities> structureToActionMap;
     static {
@@ -38,32 +41,31 @@ public class StructureToCreate { //TODO: add rally point
     }
 
     //===== Constructors =====
-    public StructureToCreate(ObservationInterface obs, Units structureType, Unit rallyUnit, Point2d position) {
-        this(obs, null, structureType, rallyUnit, position, true);
+    public StructureToCreate(Units structureType, Unit rallyUnit, Point2d position) {
+        this(null, structureType, rallyUnit, position, true);
     }
-    public StructureToCreate(ObservationInterface obs, Units structureType, Point2d position) {
-        this(obs, null, structureType, null, position, true);
+    public StructureToCreate(Units structureType, Point2d position) {
+        this(null, structureType, null, position, true);
     }
-    public StructureToCreate(ObservationInterface obs, Units structureType, Unit rallyUnit) {
-        this(obs, null, structureType, rallyUnit, null, false);
+    public StructureToCreate(Units structureType, Unit rallyUnit) {
+        this(null, structureType, rallyUnit, null, false);
     }
-    public StructureToCreate(ObservationInterface obs, Units structureType) {
-        this(obs, null, structureType, null, null, false);
+    public StructureToCreate(Units structureType) {
+        this(null, structureType, null, null, false);
     }
-    public StructureToCreate(ObservationInterface obs, Unit scv, Units structureType, Point2d position) {
-        this(obs, scv, structureType, null, position, true);
+    public StructureToCreate(Unit scv, Units structureType, Point2d position) {
+        this(scv, structureType, null, position, true);
     }
-    public StructureToCreate(ObservationInterface obs, Unit scv, Units structureType, Unit rallyUnit) {
-        this(obs, scv, structureType, rallyUnit, null, false);
+    public StructureToCreate(Unit scv, Units structureType, Unit rallyUnit) {
+        this(scv, structureType, rallyUnit, null, false);
     }
-    public StructureToCreate(ObservationInterface obs, Unit scv, Units structureType) {
-        this(obs, scv, structureType, null, null, false);
+    public StructureToCreate(Unit scv, Units structureType) {
+        this(scv, structureType, null, null, false);
     }
-    public StructureToCreate(ObservationInterface obs, Unit scv, Units structureType, Unit rallyUnit, Point2d position) {
-        this(obs, scv, structureType, rallyUnit, position, true);
+    public StructureToCreate(Unit scv, Units structureType, Unit rallyUnit, Point2d position) {
+        this(scv, structureType, rallyUnit, position, true);
     }
-    public StructureToCreate(ObservationInterface obs, Unit scv, Units structureType, Unit rallyUnit, Point2d position, boolean isPositionImportant) {
-        this.obs = obs;
+    public StructureToCreate(Unit scv, Units structureType, Unit rallyUnit, Point2d position, boolean isPositionImportant) {
         this.scv = scv;
         this.structureType = structureType;
         this.rallyUnit = rallyUnit;
@@ -129,23 +131,22 @@ public class StructureToCreate { //TODO: add rally point
         else { //return true if scv target is a mineral node
             List<Units> mineralPatchTypes = Arrays.asList(Units.NEUTRAL_MINERAL_FIELD,
                     Units.NEUTRAL_MINERAL_FIELD750, Units.NEUTRAL_RICH_MINERAL_FIELD, Units.NEUTRAL_RICH_MINERAL_FIELD750);
-            return mineralPatchTypes.contains(obs.getUnit(scvTargetTag.get()).unit().getType());
+            return mineralPatchTypes.contains(Bot.OBS.getUnit(scvTargetTag.get()).unit().getType());
 
         }
     }
 
     //sets this.scv and this.rallyUnit fields if null in constructor
 
-    private void findNearestScv() {  //TODO: null handling
-        List<UnitInPool> scvList;
-        scvList = obs.getUnits(Alliance.SELF, scv -> {
+    private void selectAScv() {  //TODO: null handling
+        List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv -> {
             return scv.unit().getType() == Units.TERRAN_SCV && //is scv
-                !scv.unit().getOrders().isEmpty() && //not idle
-                scv.unit().getOrders().get(0).getAbility() != Abilities.HARVEST_RETURN && // is not returning minerals
-                isMiningMinerals(scv); //is mining minerals
+                    !scv.unit().getOrders().isEmpty() && //not idle
+                    scv.unit().getOrders().get(0).getAbility() != Abilities.HARVEST_RETURN && // is not returning minerals
+                    isMiningMinerals(scv); //is mining minerals
         });
 
-        UnitInPool closestScv = scvList.get(0);
+        UnitInPool closestScv = scvList.get(0); //TODO: null handling
         double closestDistance = this.position.distance(closestScv.unit().getPosition().toPoint2d());
         scvList.remove(0);
         for (UnitInPool scv : scvList) {
@@ -156,20 +157,23 @@ public class StructureToCreate { //TODO: add rally point
             }
         }
         this.scv = closestScv.unit();
+    }
 
-        if (closestScv.unit().getOrders().isEmpty()) {
-            this.rallyUnit = findNearestMineralPatch(obs).get();
-        }
-        else {
-            this.rallyUnit = obs.getUnit(
-                    closestScv.unit().getOrders().get(0).getTargetedUnitTag().get()
-            ).unit();
+    private void selectARallyUnit() {
+        if (this.rallyUnit == null) {
+            if (this.scv.getOrders().isEmpty()) {
+                this.rallyUnit = findNearestMineralPatch().get();
+            } else {
+                this.rallyUnit = Bot.OBS.getUnit(
+                        this.scv.getOrders().get(0).getTargetedUnitTag().get()
+                ).unit();
+            }
         }
     }
 
     //finds nearest mineral patch to the structure position
-    private Optional<Unit> findNearestMineralPatch(ObservationInterface obs) {
-        List<UnitInPool> units = obs.getUnits(Alliance.NEUTRAL);
+    private Optional<Unit> findNearestMineralPatch() {
+        List<UnitInPool> units = Bot.OBS.getUnits(Alliance.NEUTRAL);
         double distance = Double.MAX_VALUE;
         Unit target = null;
         for (UnitInPool unitInPool : units) {
@@ -187,18 +191,27 @@ public class StructureToCreate { //TODO: add rally point
 
     //return true if going to build
     public boolean buildStructure(ActionInterface action) {
-        UnitTypeData structureData = obs.getUnitTypeData(false).get(this.structureType);
+        UnitTypeData structureData = Bot.OBS.getUnitTypeData(false).get(this.structureType);
         Ability buildAction = structureData.getAbility().get();
         //if resources available and prerequisite structure done
-        if (obs.getMinerals() >= structureData.getMineralCost().get() &&
-                obs.getVespene() >= structureData.getVespeneCost().get() &&
+        if (Bot.OBS.getMinerals() > structureData.getMineralCost().get() &&
+                Bot.OBS.getVespene() >= structureData.getVespeneCost().get() &&
                 (!structureData.getTechRequirement().isPresent() ||
-                countUnitType(structureData.getTechRequirement().get()) > 0)) { //TODO: it shouldn't count in progress structures
-            if (this.scv == null) {
-                findNearestScv();
+                countUnitType(structureData.getTechRequirement().get()) > 0)) {
+            if (this.scv == null) { //select an scv if none was provided
+                selectAScv();
             }
-            action.unitCommand(this.scv, buildAction, this.position, false)
-                    .unitCommand(this.scv, Abilities.SMART, this.rallyUnit, true);
+            if (this.rallyUnit == null) {  //select a rally point for the scv if none is provided
+                selectARallyUnit();
+            }
+            if (buildAction == Abilities.BUILD_REFINERY) {
+                Unit gas = LocationConstants.BASE2.getGasUnit(this.position);
+                action.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas, false);
+            }
+            else {
+                action.unitCommand(this.scv, buildAction, this.position, false)
+                        .unitCommand(this.scv, Abilities.SMART, this.rallyUnit, true);
+            }
             return true;
         }
         else {
@@ -207,7 +220,7 @@ public class StructureToCreate { //TODO: add rally point
     }
 
     private int countUnitType(UnitType unitType) {
-        return obs.getUnits(Alliance.SELF,
+        return Bot.OBS.getUnits(Alliance.SELF,
                 unitInPool -> unitInPool.unit().getType() == unitType && unitInPool.unit().getBuildProgress() == 1.0f).size();
     }
 
