@@ -1,15 +1,9 @@
+package com.ketroc.terranbot;
+
 import com.github.ocraft.s2client.bot.S2Coordinator;
-import com.github.ocraft.s2client.bot.gateway.ObservationInterface;
-import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.game.BattlenetMap;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.Unit;
-
-import java.util.*;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -40,19 +34,29 @@ onNydusDetected()
 20 = (126.5, 40.5) gas
  */
 
-public class TutorialBot {
+public class Ketroc {
 
 
 
     public static void main(String[] args) {
-        Bot bot = new Bot();
+        Bot bot = new Bot(MapNames.TRITON);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
+                .setRealtime(false)
+                .setWindowLocation(900, 0)
+                .setNeedsSupportDir(true)
+                .setShowCloaked(true)
+                .setRawAffectsSelection(true)
+                .setTimeoutMS(600 * 1000)
+                //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
                 .setParticipants(
+                        //S2Coordinator.createParticipant(choice, bot2),
                         S2Coordinator.createParticipant(Race.TERRAN, bot),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
                 .launchStarcraft()
-                .startGame(BattlenetMap.of("Triton LE"));
+                .startGame(BattlenetMap.of(LocationConstants.MAP));
+
+
 
         while (s2Coordinator.update()) {
         }
@@ -63,7 +67,7 @@ public class TutorialBot {
 
     /*    private static class MapCoordinates {
         public MapCoordinates(String mapName, String spawm) {
-            if mapName.equals(MapNames.TRITON) {
+            if mapName.equals(com.ketroc.terranbot.MapNames.TRITON) {
                 //TODO: spawn location
 
             }
