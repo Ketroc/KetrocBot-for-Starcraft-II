@@ -29,17 +29,17 @@ public class ArmyManager {
 
 
 
-        //position siege tanks
-        for(UnitInPool tank : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SIEGE_TANK, Collections.emptyList())) {
-            //if tank is idle
-            if (tank.unit().getOrders().isEmpty()) {
-                Point2d pos = setTankLocation();
-                if (pos != null) {
-                    Bot.ACTION.unitCommand(tank.unit(), Abilities.ATTACK, pos, false)
-                            .unitCommand(tank.unit(), Abilities.MORPH_SIEGE_MODE, true);
-                }
-            }
-        }
+//        //position siege tanks
+//        for(UnitInPool tank : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SIEGE_TANK, Collections.emptyList())) {
+//            //if tank is idle
+//            if (tank.unit().getOrders().isEmpty()) {
+//                Point2d pos = setTankLocation();
+//                if (pos != null) {
+//                    Bot.ACTION.unitCommand(tank.unit(), Abilities.ATTACK, pos, false)
+//                            .unitCommand(tank.unit(), Abilities.MORPH_SIEGE_MODE, true);
+//                }
+//            }
+//        }
 
         //position marines
         for(UnitInPool marine : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_MARINE, Collections.emptyList())) {

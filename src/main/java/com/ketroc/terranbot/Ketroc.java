@@ -35,9 +35,6 @@ onNydusDetected()
  */
 
 public class Ketroc {
-
-
-
     public static void main(String[] args) {
         Bot bot = new Bot(MapNames.TRITON);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
@@ -52,15 +49,13 @@ public class Ketroc {
                 .setParticipants(
                         //S2Coordinator.createParticipant(choice, bot2),
                         S2Coordinator.createParticipant(Race.TERRAN, bot),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.HARD))
                 .launchStarcraft()
                 .startGame(BattlenetMap.of(LocationConstants.MAP));
 
-
-
         while (s2Coordinator.update()) {
-        }
 
+        }
         s2Coordinator.quit();
     }
 

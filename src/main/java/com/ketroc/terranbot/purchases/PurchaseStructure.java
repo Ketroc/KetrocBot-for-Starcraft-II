@@ -157,7 +157,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         if (this.position == null) {  //no position was given.  Find one.
             //TODO: set random nearby and available location to build
             if (!selectStructurePosition()) { //if no position can be set, just remove this structure from the queue
-                System.out.println("no position set for building a " + structureType);
+                System.out.println("cancelled " + structureType + " because no position set");
                 return PurchaseResult.CANCEL;
             }
         }
@@ -165,6 +165,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         if (this.scv == null) { //select an scv if none was provided
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
             if (availableScvs.isEmpty()) {
+                System.out.println("cancelled " + structureType + " because no scv available");
                 return PurchaseResult.CANCEL;
             }
             this.scv = availableScvs.get(0).unit();

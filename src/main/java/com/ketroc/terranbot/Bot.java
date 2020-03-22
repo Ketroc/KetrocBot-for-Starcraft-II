@@ -53,7 +53,7 @@ public class Bot extends S2Agent {
             });
         });
 
-//        UnitTypeData unitData = com.ketroc.terranbot.Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_ENGINEERING_BAY);
+//        UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_ENGINEERING_BAY);
 //        UpgradeData upgradeData = OBS.getUpgradeData(false).get(Upgrades.HISEC_AUTO_TRACKING);
 //        AbilityData abilityData = OBS.getAbilityData(false).get(Abilities.RESEARCH_HISEC_AUTOTRACKING);
 
@@ -63,8 +63,8 @@ public class Bot extends S2Agent {
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.BARRACKS));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER1));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT2));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER2));
+        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT2));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
@@ -87,11 +87,6 @@ public class Bot extends S2Agent {
                     DEBUG.debugTextOut(Bot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
                 }
 
-                BuildManager.onStep();
-                WorkerManager.onStep();
-                ArmyManager.onStep();
-                LocationConstants.onStep();
-
                 purchaseLoop: for (int i=0; i<purchaseQueue.size(); i++) {
                     PurchaseResult result = purchaseQueue.get(i).build();
                     switch (result) {
@@ -105,6 +100,12 @@ public class Bot extends S2Agent {
                             break;
                     }
                 }
+
+                BuildManager.onStep();
+                WorkerManager.onStep();
+                ArmyManager.onStep();
+                LocationConstants.onStep();
+
                 Bot.ACTION.sendActions();
             }
             if (System.currentTimeMillis() - start > 30)
@@ -128,16 +129,11 @@ public class Bot extends S2Agent {
                     purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.FACTORY));
                     break;
-    //            case TERRAN_COMMAND_CENTER:
-    //                if (UnitUtils.getNumUnitsOfType(Units.TERRAN_ENGINEERING_BAY) > 0) {
-    //                    purchaseQueue.add(new com.ketroc.terranbot.purchases.PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, com.ketroc.terranbot.GameState.baseList.get(1).getCc()));
-    //                }
-    //                break;
                 case TERRAN_FACTORY:
 //                    if (GameState.baseList.size() > 1 && GameState.baseList.get(1).getCc() != null) {
 //                        purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, GameState.baseList.get(1).getCc()));
 //                    } // TODO: remove if first PF timing is good
-                    purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unitInPool));
+                    //purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unitInPool)); //TODO: turned off cuz no siege tanks
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT, LocationConstants.STARPORTS.remove(0)));
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
@@ -181,7 +177,7 @@ public class Bot extends S2Agent {
 
     @Override
     public void onUnitIdle(UnitInPool unitInPool) {
-        //com.ketroc.terranbot.WorkerManager.onUnitIdle(unitInPool);
+        //WorkerManager.onUnitIdle(unitInPool);
     }
 
     @Override
@@ -209,11 +205,11 @@ public class Bot extends S2Agent {
                             //if scv was building a structure (or on the way to start building one)
                             if (!unit.getOrders().isEmpty() && BuildManager.BUILD_ACTIONS.contains((Abilities) unit.getOrders().get(0).getAbility())) {
                                 //get structure at scv target position
-                                Point targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get(); //TODO: no target possible (should be handled??)
+                                Point2d targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d(); //TODO: no target possible (should be handled??)
                                 for (Unit structure : GameState.inProductionList) {
-                                    if (structure.getPosition().distance(targetPos) < 1) {
+                                    if (structure.getPosition().toPoint2d().distance(targetPos) < 1) {
                                         //send scv
-                                        List<UnitInPool> scvs = WorkerManager.getAvailableScvs(targetPos.toPoint2d());
+                                        List<UnitInPool> scvs = WorkerManager.getAvailableScvs(targetPos);
                                         if (!scvs.isEmpty()) {
                                             Bot.ACTION.unitCommand(scvs.get(0).unit(), Abilities.SMART, structure, false);
                                             break;

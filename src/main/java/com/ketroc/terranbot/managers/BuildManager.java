@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
@@ -13,6 +14,7 @@ import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.purchases.PurchaseStructureMorph;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,18 +46,20 @@ public class BuildManager {
             if (!cc.getActive().get()) {
                 switch ((Units)cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
-                        if (GameState.baseList.get(0).getCc().getTag().equals(cc.getTag())) { //if main base cc
-                            if (isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND) && //if OC morph is next in queue
-                                    UnitUtils.canAfford(Units.TERRAN_ORBITAL_COMMAND)) { //if OC is affordable
-                                break; //don't produce scv
+                        if (ccToBeOC(cc.getPosition())) {
+                            if (UnitUtils.hasTechToBuild(Units.TERRAN_ORBITAL_COMMAND) && UnitUtils.canAfford(Units.TERRAN_ORBITAL_COMMAND)) {
+                                if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                    Bot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                }
+                                break; //don't queue scv
                             }
                         }
                         else { //if base that will become a PF TODO: use same logic as OC
-                            if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) { //if engbay complete
-                                if (UnitUtils.canAfford(Units.TERRAN_PLANETARY_FORTRESS) && !isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) { //if affordable and not already in queue
+                            if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS) && UnitUtils.canAfford(Units.TERRAN_PLANETARY_FORTRESS)) {
+                                if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) { //if affordable and not already in queue
                                     Bot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
-                                    break; //add PF morph to queue and don't produce scv
                                 }
+                                break; //don't queue scv
                             }
                         }
                     case TERRAN_ORBITAL_COMMAND:
@@ -87,17 +91,17 @@ public class BuildManager {
             }
         }
 
-        //build siege tanks
-        if (!GameState.factoryList.isEmpty()) {
-            Unit factory = GameState.factoryList.get(0).unit();
-            if (!factory.getActive().get() && factory.getAddOnTag().isPresent()) {
-                //1 tank per expansion base
-                if (GameState.siegeTankList.size() < GameState.baseList.size()-1 && UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                    Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                    Cost.updateBank(Units.TERRAN_SIEGE_TANK);
-                }
-            }
-        }
+//        //build siege tanks
+//        if (!GameState.factoryList.isEmpty()) {
+//            Unit factory = GameState.factoryList.get(0).unit();
+//            if (!factory.getActive().get() && factory.getAddOnTag().isPresent()) {
+//                //1 tank per expansion base
+//                if (GameState.siegeTankList.size() < GameState.baseList.size()-1 && UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+//                    Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+//                    Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+//                }
+//            }
+//        }
 
         //build starport units
         for (UnitInPool starport : GameState.starportList) {
@@ -117,11 +121,30 @@ public class BuildManager {
         }
 
         //build command center logic
-        if (GameState.baseList.size() < LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND && GameState.mineralBank > 500 &&
-                (!isStructureQueued(Units.TERRAN_COMMAND_CENTER))) {
-            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        if (GameState.baseList.size() < LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND &&
+                GameState.mineralBank > 500 && !isStructureQueued(Units.TERRAN_COMMAND_CENTER)) {
+            //if on 6 bases, try to build a macro OC
+            if (GameState.baseList.size() >= 5) {
+                if (!LocationConstants.MACRO_OCS.isEmpty()) {
+                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0))); //TODO: if purchase is cancelled we need to re-add this entry to MACRO_OCS
+                }
+                else {
+                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                }
+            }
+            else {
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+            }
         }
+    }
 
+    public static boolean ccToBeOC(Point ccPos) {
+        for (Point point : LocationConstants.myExpansionLocations) {
+            if (ccPos.distance(point) < 1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean checkIfDepotNeeded() {

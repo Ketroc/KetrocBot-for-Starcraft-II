@@ -300,7 +300,7 @@ public class GameState {
         for (int x = xMin; x <= xMax; x++) {
             for (int y = yMin; y <= yMax; y++) {
                 if (threatToAir[x][y] != 0) {
-                    Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x,y, z), Color.RED, 12);
+                    //Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x,y, z), Color.RED, 12);
                 }
             }
         }
@@ -330,5 +330,4 @@ public class GameState {
         float height = Math.abs(y2 - y1);
         return (float)Math.sqrt(width*width + height*height);
     }
-
 }

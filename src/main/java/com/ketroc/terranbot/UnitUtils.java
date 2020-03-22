@@ -143,7 +143,7 @@ public class UnitUtils {
                     return Integer.MAX_VALUE;
                 }
             case TERRAN_MISSILE_TURRET: case TERRAN_SIEGE_TANK_SIEGED:
-                return 5;
+                return 6;
         }
         return 0;
     }

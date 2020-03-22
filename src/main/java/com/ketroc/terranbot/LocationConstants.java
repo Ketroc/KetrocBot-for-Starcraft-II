@@ -24,6 +24,7 @@ public class LocationConstants {
     public static List<Point2d> extraDepots = new ArrayList<>();
     public static List<Point2d> STARPORTS = new ArrayList<>();
     public static List<Point2d> TURRETS = new ArrayList<>();
+    public static List<Point2d> MACRO_OCS = new ArrayList<>();
 
 
     public static List<Point> myExpansionLocations;
@@ -76,18 +77,18 @@ public class LocationConstants {
 
         //TODO: delete later.  temporary banshee positions
         ArmyManager.retreatPos = bansheeRallyPos;
-        //com.ketroc.terranbot.ArmyManager.attackPos = myExpansionLocations.get(myExpansionLocations.size()-2).toPoint2d();
+        //ArmyManager.attackPos = myExpansionLocations.get(myExpansionLocations.size()-2).toPoint2d();
 
 //        //hidden expansions
 //        hiddenExpansionLocations = new ArrayList<Point>(myExpansionLocations);
 //        hiddenExpansionLocations.sort((Point p1, Point p2) -> {
 //            return (int)(
 //                    Math.min(
-//                        com.ketroc.terranbot.Bot.QUERY.pathingDistance(mainCC.unit().getPosition().toPoint2d(), p2.toPoint2d()),
-//                        com.ketroc.terranbot.Bot.QUERY.pathingDistance(enemyMainPosition.toPoint2d(), p2.toPoint2d())) -
+//                        Bot.QUERY.pathingDistance(mainCC.unit().getPosition().toPoint2d(), p2.toPoint2d()),
+//                        Bot.QUERY.pathingDistance(enemyMainPosition.toPoint2d(), p2.toPoint2d())) -
 //                    Math.min(
-//                            com.ketroc.terranbot.Bot.QUERY.pathingDistance(mainCC.unit().getPosition().toPoint2d(), p1.toPoint2d()),
-//                            com.ketroc.terranbot.Bot.QUERY.pathingDistance(enemyMainPosition.toPoint2d(), p1.toPoint2d())
+//                            Bot.QUERY.pathingDistance(mainCC.unit().getPosition().toPoint2d(), p1.toPoint2d()),
+//                            Bot.QUERY.pathingDistance(enemyMainPosition.toPoint2d(), p1.toPoint2d())
 //                    ));
 //        });
 
@@ -123,6 +124,10 @@ public class LocationConstants {
                     ARMORY_ARMOR = Point2d.of(48.5f, 148.5f);
                     TURRETS.add(Point2d.of(51.0f, 157.0f));
                     TURRETS.add(Point2d.of(57.0f, 162.0f));
+                    MACRO_OCS.add(Point2d.of(66.5f, 163.5f));
+                    MACRO_OCS.add(Point2d.of(66.5f, 158.5f));
+                    MACRO_OCS.add(Point2d.of(66.5f, 153.5f));
+                    MACRO_OCS.add(Point2d.of(66.5f, 148.5f));
                     extraDepots.add(Point2d.of(42.0f, 161.0f));
                     extraDepots.add(Point2d.of(44.0f, 163.0f));
                     extraDepots.add(Point2d.of(44.0f, 161.0f));
@@ -168,8 +173,12 @@ public class LocationConstants {
                     ARMORY_ARMOR = Point2d.of(167.5f, 55.5f);
                     TURRETS.add(Point2d.of(165.0f, 47.0f));
                     TURRETS.add(Point2d.of(159.0f, 42.0f));
+                    MACRO_OCS.add(Point2d.of(149.5f, 40.5f));
+                    MACRO_OCS.add(Point2d.of(149.5f, 45.5f));
+                    MACRO_OCS.add(Point2d.of(149.5f, 50.5f));
+                    MACRO_OCS.add(Point2d.of(149.5f, 55.5f));
                     extraDepots.add(Point2d.of(174.0f, 53.0f));
-                    extraDepots.add(Point2d.of(172.0f, 57.0f)); //172, 57
+                    extraDepots.add(Point2d.of(172.0f, 57.0f));
                     extraDepots.add(Point2d.of(172.0f, 53.0f));
                     extraDepots.add(Point2d.of(172.0f, 55.0f));
                     extraDepots.add(Point2d.of(170.0f, 53.0f));
