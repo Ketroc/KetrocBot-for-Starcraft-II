@@ -38,7 +38,7 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
-        Bot bot = new Bot();
+        Bot bot = new Bot(false);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setRawAffectsSelection(true)
                 .loadLadderSettings(args)

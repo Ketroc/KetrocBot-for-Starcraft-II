@@ -54,11 +54,13 @@ public class EnemyUnit {
             case SCANNER_SWEEP:
                 isDetector = true;
                 detectRange = 13f;
+                break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
                 detectRange = 3.5f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
                 threatLevel = 20;
                 airAttackRange = 3.5f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                break;
         }
         calcMaxRange();
     }

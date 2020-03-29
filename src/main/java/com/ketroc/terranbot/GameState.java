@@ -2,6 +2,7 @@ package com.ketroc.terranbot;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -9,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
+import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.EnemyUnit;
@@ -273,8 +275,19 @@ public class GameState {
             System.out.println("mapTheMap() time: " + resultTime);
     } //end onStep()
 
-    private static void updateDiverStatus() {
+    private static void updateDiverStatus() { //TODO: make method callable with unit type rather than hardcoded viking and banshee
         //banshees
+        //find dive target
+        if (Switches.bansheeDiveTarget == null) {
+            for (Unit detector : GameState.enemyDetector) {
+                if (!detector.getFlying().orElse(true)) {
+                    if (ArmyManager.shouldDive(Units.TERRAN_BANSHEE, detector)) {
+                        Switches.bansheeDiveTarget = Bot.OBS.getUnit(detector.getTag());
+                        break;
+                    }
+                }
+            }
+        }
         if (Switches.bansheeDiveTarget != null) {
             //cancel if target is gone
             if (!Switches.bansheeDiveTarget.isAlive() || Switches.bansheeDiveTarget.getLastSeenGameLoop() != Bot.OBS.getGameLoop()) {
@@ -295,6 +308,16 @@ public class GameState {
         }
 
         //vikings
+        if (Switches.vikingDiveTarget == null) {
+            for (Unit detector : GameState.enemyDetector) {
+                if (detector.getFlying().orElse(false)) {
+                    if (ArmyManager.shouldDive(Units.TERRAN_VIKING_FIGHTER, detector)) {
+                        Switches.vikingDiveTarget = Bot.OBS.getUnit(detector.getTag());
+                        break;
+                    }
+                }
+            }
+        }
         if (Switches.vikingDiveTarget != null) {
             //cancel if target is gone
             if (!Switches.vikingDiveTarget.isAlive() || Switches.vikingDiveTarget.getLastSeenGameLoop() != Bot.OBS.getGameLoop()) {
@@ -342,7 +365,7 @@ public class GameState {
                     float distance = distance(x, y, enemy.x, enemy.y);
                     if (enemy.isDetector && distance < enemy.detectRange) {
                         pointDetected[x][y] = true;
-                        //Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
+                        //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
                     }
                     if (enemy.isAir) {
                         if (distance < Strategy.VIKING_RANGE) {
@@ -351,7 +374,7 @@ public class GameState {
                         if (distance < enemy.airAttackRange) {
 //                            pointUnsafeFromAir[x][y] = true;
                             threatToAir[x][y] += enemy.threatLevel;
-                            //Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.PURPLE);
+                            //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.PURPLE);
                         }
                     }
                     else { //ground unit or effect
@@ -361,41 +384,23 @@ public class GameState {
                         if (distance < enemy.airAttackRange) {
 //                            pointUnsafeFromGround[x][y] = true;
                             threatToAir[x][y] += enemy.threatLevel;
-                            //Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.2f,y+0.2f, z), Color.RED);
+                            //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.2f,y+0.2f, z), Color.RED);
                         }
                     }
                 }
             }
         }
 
-//        //add scans
-//        for (EffectLocations effect : Bot.OBS.getEffects()) {
-//            if (effect.getEffect() == Effects.SCANNER_SWEEP) {
-//                Point2d scanPos = effect.getPositions().iterator().next();
-//                int xStart = Math.max((int)scanPos.getX() - 13, xMin);
-//                int yStart = Math.max((int)scanPos.getY() - 13, yMin);
-//                int xEnd = Math.min((int)scanPos.getX() + 13, xMax);
-//                int yEnd = Math.min((int)scanPos.getY() + 13, yMax);
-//                for (int x = xStart; x <= xEnd; x++) {
-//                    for (int y = yStart; y <= yEnd; y++) {
-//                        if (!pointDetected[x][y] && inRange(x, y, scanPos.getX(), scanPos.getY(), 13f)) {
-//                            pointDetected[x][y] = true;
-//                            Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
-//
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         //debug threat text
-//        for (int x = xMin; x <= xMax; x++) {
-//            for (int y = yMin; y <= yMax; y++) {
-//                if (threatToAir[x][y] != 0) {
-//                    Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x, y, z), Color.RED, 12);
-//                }
-//            }
-//        }
+        if (Bot.isDebugOn) {
+            for (int x = xMin; x <= xMax; x++) {
+                for (int y = yMin; y <= yMax; y++) {
+                    if (threatToAir[x][y] != 0) {
+                        Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x, y, z), Color.RED, 12);
+                    }
+                }
+            }
+        }
 
 
         if (System.currentTimeMillis() - start > 20) {

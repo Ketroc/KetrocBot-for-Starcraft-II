@@ -23,8 +23,11 @@ public class Bot extends S2Agent {
     public static QueryInterface QUERY;
     public static DebugInterface DEBUG;
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
+    public static boolean isDebugOn;
 
-    public Bot() { }
+    public Bot(boolean isDebugOn) {
+        this.isDebugOn = isDebugOn;
+    }
 
     @Override
     public void onGameStart() {
@@ -66,7 +69,6 @@ public class Bot extends S2Agent {
                 break;
             }
         }
-        LocationConstants.opponentRace = Race.ZERG; //TODO: delete - for testing
 
         //set build order
         switch (LocationConstants.opponentRace) {
@@ -114,11 +116,13 @@ public class Bot extends S2Agent {
                 GameState.onStep();
 
                 int lines = 0;
-                DEBUG.debugTextOut("banshees: " + GameState.bansheeList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
-                DEBUG.debugTextOut("vikings: " + GameState.vikingList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
-                DEBUG.debugTextOut("Purchase Queue: " + Bot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
-                for (int i=0; i<purchaseQueue.size() && i<5; i++) {
-                    DEBUG.debugTextOut(Bot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
+                if (isDebugOn) {
+                    DEBUG.debugTextOut("banshees: " + GameState.bansheeList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
+                    DEBUG.debugTextOut("vikings: " + GameState.vikingList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
+                    DEBUG.debugTextOut("Purchase Queue: " + Bot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
+                    for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
+                        DEBUG.debugTextOut(Bot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
+                    }
                 }
 
                 if (Switches.TvtFastStart) {
@@ -155,7 +159,7 @@ public class Bot extends S2Agent {
             }
             if (System.currentTimeMillis() - start > 30)
                 System.out.println("bot.onStep() = " + (System.currentTimeMillis() - start));
-            Bot.DEBUG.sendDebug(); //draw the screen debug
+            if (isDebugOn) Bot.DEBUG.sendDebug(); //draw the screen debug
         }
         catch (Exception e) {
             System.out.println("At " + OBS.getGameLoop());
@@ -248,29 +252,29 @@ public class Bot extends S2Agent {
                             //if scv was building a structure (or on the way to start building one)
                             if (!unit.getOrders().isEmpty() && BuildManager.BUILD_ACTIONS.contains((Abilities) unit.getOrders().get(0).getAbility())) {
                                 //get structure at scv target position
-                                Point2d targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d(); //TODO: no target possible (should be handled??) getTargetedWorldSpacePosition throws nosuchelementexception
-                                for (Unit structure : GameState.inProductionList) {
-                                    if (structure.getPosition().toPoint2d().distance(targetPos) < 1) {
-                                        //send scv
-                                        List<UnitInPool> scvs = WorkerManager.getAvailableScvs(targetPos);
-                                        if (!scvs.isEmpty()) {
-                                            Bot.ACTION.unitCommand(scvs.get(0).unit(), Abilities.SMART, structure, false);
-                                            break;
+                                if (unit.getOrders().get(0).getTargetedUnitTag().isPresent()) {
+                                    Unit structure = Bot.OBS.getUnit(unit.getOrders().get(0).getTargetedUnitTag().get()).unit();
+                                    List<UnitInPool> scvs = WorkerManager.getAvailableScvs(structure.getPosition().toPoint2d());
+                                    if (!scvs.isEmpty()) {
+                                        Bot.ACTION.unitCommand(scvs.get(0).unit(), Abilities.SMART, structure, false);
+                                        break;
+                                    }
+                                }
+                                else if (unit.getOrders().get(0).getTargetedWorldSpacePosition().isPresent()) {
+                                    Point2d targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d();
+                                    for (Unit structure : GameState.inProductionList) {
+                                        if (structure.getPosition().toPoint2d().distance(targetPos) < 1) {
+                                            //send scv
+                                            List<UnitInPool> scvs = WorkerManager.getAvailableScvs(targetPos);
+                                            if (!scvs.isEmpty()) {
+                                                Bot.ACTION.unitCommand(scvs.get(0).unit(), Abilities.SMART, structure, false);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
                             break;
-                    }
-                    break;
-                case ENEMY:
-                    if (unitInPool.equals(Switches.bansheeDiveTarget)) {
-                        Switches.bansheeDiveTarget = null;
-                        GameState.bansheeDivers.clear();
-                    }
-                    else if (unitInPool.equals(Switches.vikingDiveTarget)) {
-                        Switches.vikingDiveTarget = null;
-                        GameState.vikingDivers.clear();
                     }
                     break;
             }

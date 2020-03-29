@@ -39,7 +39,8 @@ onNydusDetected()
 
 public class Ketroc {
     public static void main(String[] args) {
-        Bot bot = new Bot();
+
+        Bot bot = new Bot(true);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(false)
@@ -54,13 +55,6 @@ public class Ketroc {
                         S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
                 .launchStarcraft()
                 .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
-
-//        S2Coordinator s2Coordinator = S2Coordinator.setup()
-//                .setRawAffectsSelection(true)
-//                .loadLadderSettings(args)
-//                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot))
-//                .connectToLadder()
-//                .joinGame();
 
         while (s2Coordinator.update()) {
 

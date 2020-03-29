@@ -118,7 +118,7 @@ public class UnitUtils {
         for (UnitInPool scv : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SCV, Collections.emptyList())) {
             if (!scv.unit().getOrders().isEmpty()) {
                 UnitOrder order = scv.unit().getOrders().get(0);
-                if (order.getAbility() == Abilities.EFFECT_REPAIR && order.getTargetedUnitTag().get().equals(repairTarget.getTag())) {
+                if (order.getAbility() == Abilities.EFFECT_REPAIR && order.getTargetedUnitTag().isPresent() && order.getTargetedUnitTag().get().equals(repairTarget.getTag())) {
                     repairingScvs++;
                 }
             }

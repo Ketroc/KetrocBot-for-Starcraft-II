@@ -67,19 +67,7 @@ public class ArmyManager {
 
         //=== Attack Banshees
 
-        //find dive target
-        if (Switches.bansheeDiveTarget == null) {
-            for (Unit detector : GameState.enemyDetector) {
-                if (!detector.getFlying().orElse(false)) {
-                    if (shouldDive(Units.TERRAN_BANSHEE, detector)) {
-                        Switches.bansheeDiveTarget = Bot.OBS.getUnit(detector.getTag());
-                        break;
-                    }
-                }
-            }
-        }
-
-        //give banshee divers commands
+        //give banshee divers command
         if (Switches.bansheeDiveTarget != null) {
             Bot.ACTION.unitCommand(GameState.bansheeDivers, Abilities.ATTACK, Switches.bansheeDiveTarget.unit(), false);
         }
@@ -90,18 +78,6 @@ public class ArmyManager {
         }
 
         //=== Attack Vikings
-
-        //find dive target
-        if (Switches.vikingDiveTarget == null) {
-            for (Unit detector : GameState.enemyDetector) {
-                if (detector.getFlying().orElse(false)) {
-                    if (shouldDive(Units.TERRAN_VIKING_FIGHTER, detector)) {
-                        Switches.vikingDiveTarget = Bot.OBS.getUnit(detector.getTag());
-                        break;
-                    }
-                }
-            }
-        }
 
         //give viking divers commands
         if (Switches.vikingDiveTarget != null) {
@@ -214,8 +190,8 @@ public class ArmyManager {
                     break;
             }
         }
-        answer = Math.max((float)numDetectors*4, answer); //at least 4 vikings per raven
-        answer = Math.max(answer, GameState.bansheeList.size() / 4);
+        answer = Math.max((float)numDetectors*3, answer); //at least 3 vikings per raven/obs/overseer
+        answer = Math.max(answer, GameState.bansheeList.size() / 4); //at least 1 safety viking for every 4 banshees
         return (int)answer;
     }
 
@@ -339,7 +315,7 @@ public class ArmyManager {
         }
     }
 
-    private static boolean shouldDive(Units unitType, Unit detector) {
+    public static boolean shouldDive(Units unitType, Unit detector) {
         int numAttackersNearby = UnitUtils.getUnitsNearbyOfType(unitType, detector.getPosition().toPoint2d(), Strategy.DIVE_RANGE).size();
         if (numAttackersNearby < 2) {
             return false;
