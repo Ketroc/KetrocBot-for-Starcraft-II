@@ -40,7 +40,7 @@ public class EnemyUnit {
                 airAttackRange -= 0.5;
                 break;
             case PROTOSS_TEMPEST: case TERRAN_VIKING_FIGHTER:
-                airAttackRange = 8; //hack so my vikings will fight, but this hack is bad for banshees
+                airAttackRange = 6; //hack so my vikings will fight, but this hack is bad for banshees
         }
         calcMaxRange();
     }

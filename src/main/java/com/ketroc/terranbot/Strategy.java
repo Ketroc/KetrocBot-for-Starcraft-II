@@ -10,7 +10,7 @@ import com.ketroc.terranbot.purchases.PurchaseStructure;
 
 public class Strategy {
     public static final int MAX_SCVS = 90;
-    public static final float KITING_BUFFER = 3f;
+    public static final float KITING_BUFFER = 2.5f;
     public static final int NUM_SCVS_BEFORE_GAS = 12; //number of scvs on minerals at a base before taking refineries
     public static final int RETREAT_HEALTH = 20; //% health of mech unit to go home to get repaired
     public static final int SKIP_FRAMES = 2;
