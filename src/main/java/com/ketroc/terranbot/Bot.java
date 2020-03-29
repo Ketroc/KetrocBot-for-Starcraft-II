@@ -4,7 +4,8 @@ import com.github.ocraft.s2client.bot.S2Agent;
 import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.spatial.Point;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -23,9 +24,7 @@ public class Bot extends S2Agent {
     public static DebugInterface DEBUG;
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
 
-    public Bot(String mapName) {
-        LocationConstants.MAP = mapName;
-    }
+    public Bot() { }
 
     @Override
     public void onGameStart() {
@@ -34,17 +33,23 @@ public class Bot extends S2Agent {
         QUERY = query();
         DEBUG = debug();
 
+        //set map
+        System.out.println("OBS.getGameInfo().getMapName() = " + OBS.getGameInfo().getMapName());
+        LocationConstants.MAP = OBS.getGameInfo().getMapName();
 
         //DEBUG.debugShowMap(); //TODO: debug
         //get map, get hardcoded map locations
-        UnitInPool mainCC = OBS.getUnits(Alliance.SELF, c -> c.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
+        UnitInPool mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
+        ACTION.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
+        ACTION.sendActions();
+
         GameState.z = Bot.OBS.terrainHeight(mainCC.unit().getPosition().toPoint2d()) + 0.5f;
         LocationConstants.init(mainCC);
 
         //build lists
         GameState.onStep();
 
-        //load abilityToUnitType map TODO: move this elsewhere
+        //load abilityToUnitType map
         Bot.OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {
             unitTypeData.getAbility().ifPresent(ability -> {
                 if (ability instanceof Abilities && unitType instanceof Units) {
@@ -53,24 +58,53 @@ public class Bot extends S2Agent {
             });
         });
 
-//        UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_ENGINEERING_BAY);
-//        UpgradeData upgradeData = OBS.getUpgradeData(false).get(Upgrades.HISEC_AUTO_TRACKING);
-//        AbilityData abilityData = OBS.getAbilityData(false).get(Abilities.RESEARCH_HISEC_AUTOTRACKING);
+        //set enemy race
+        Set<PlayerInfo> players = OBS.getGameInfo().getPlayersInfo();
+        for (PlayerInfo player : players) {
+            if (player.getRequestedRace() != Race.TERRAN) {
+                LocationConstants.opponentRace = player.getRequestedRace();
+                break;
+            }
+        }
+        LocationConstants.opponentRace = Race.ZERG; //TODO: delete - for testing
 
         //set build order
-        purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SCV, mainCC));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT1));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.BARRACKS));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER1));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER2));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.DEPOT2));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.ENGINEERING_BAY));
+        switch (LocationConstants.opponentRace) {
+            case TERRAN:
+                Switches.TvtFastStart = true;
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.WALL_3x3));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.MID_WALL_3x3));
+                break;
+            case ZERG:
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.MID_WALL_3x3));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.WALL_3x3));
+                purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
+                //purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, GameState.baseList.get(1).getCc()));
+                break;
+            case PROTOSS:
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.MID_WALL_3x3));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.WALL_3x3));
+                purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
+                //purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, GameState.baseList.get(1).getCc()));
+                break;
+        }
 
-        WorkerManager.onGameStart();
+
     }
     @Override
     public void onStep() {
@@ -87,24 +121,35 @@ public class Bot extends S2Agent {
                     DEBUG.debugTextOut(Bot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 15);
                 }
 
-                purchaseLoop: for (int i=0; i<purchaseQueue.size(); i++) {
-                    PurchaseResult result = purchaseQueue.get(i).build();
-                    switch (result) {
-                        case SUCCESS:
-                            purchaseQueue.remove(i);
-                            break purchaseLoop;
-                        case WAITING:
-                            break;
-                        case CANCEL:
-                            purchaseQueue.remove(i--);
-                            break;
+                if (Switches.TvtFastStart) {
+                    Strategy.onStep_TvtFaststart();
+                }
+                else {
+                    purchaseLoop:
+                    for (int i = 0; i < purchaseQueue.size(); i++) {
+                        PurchaseResult result = purchaseQueue.get(i).build();
+                        switch (result) {
+                            case SUCCESS:
+                                purchaseQueue.remove(i);
+                                break purchaseLoop;
+                            case WAITING:
+                                break;
+                            case CANCEL:
+                                purchaseQueue.remove(i--);
+                                break;
+                        }
                     }
                 }
 
+                long start1 = System.currentTimeMillis();
                 BuildManager.onStep();
                 WorkerManager.onStep();
                 ArmyManager.onStep();
                 LocationConstants.onStep();
+                long resultTime = System.currentTimeMillis() - start1;
+                if (resultTime > 12)
+                    System.out.println("managers' onsteps time: " + resultTime);
+
 
                 Bot.ACTION.sendActions();
             }
@@ -127,13 +172,11 @@ public class Bot extends S2Agent {
             switch((Units)unit.getType()) {
                 case TERRAN_BARRACKS:
                     purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.FACTORY));
+                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size() - 1)));
                     break;
                 case TERRAN_FACTORY:
-//                    if (GameState.baseList.size() > 1 && GameState.baseList.get(1).getCc() != null) {
-//                        purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, GameState.baseList.get(1).getCc()));
-//                    } // TODO: remove if first PF timing is good
                     //purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unitInPool)); //TODO: turned off cuz no siege tanks
+                    ACTION.unitCommand(unit, Abilities.LIFT_FACTORY, false);
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT, LocationConstants.STARPORTS.remove(0)));
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
@@ -148,13 +191,13 @@ public class Bot extends S2Agent {
                     break;
                 case TERRAN_STARPORT_TECHLAB:
                     purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, unitInPool));
-                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, unitInPool));
+                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, GameState.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0))); //TODO: null check
                     break;
                 case TERRAN_ARMORY:
-                    if (LocationConstants.ARMORY_WEAPONS.distance(unit.getPosition().toPoint2d()) < 1) { //if ARMORY1
+                    if (LocationConstants.ARMORY_WEAPONS.distance(unit.getPosition().toPoint2d()) < 1) {
                         purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1, unitInPool));
                     }
-                    else { //if ARMORY2
+                    else {
                         purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1, unitInPool));
                     }
                     break;
@@ -205,7 +248,7 @@ public class Bot extends S2Agent {
                             //if scv was building a structure (or on the way to start building one)
                             if (!unit.getOrders().isEmpty() && BuildManager.BUILD_ACTIONS.contains((Abilities) unit.getOrders().get(0).getAbility())) {
                                 //get structure at scv target position
-                                Point2d targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d(); //TODO: no target possible (should be handled??)
+                                Point2d targetPos = unit.getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d(); //TODO: no target possible (should be handled??) getTargetedWorldSpacePosition throws nosuchelementexception
                                 for (Unit structure : GameState.inProductionList) {
                                     if (structure.getPosition().toPoint2d().distance(targetPos) < 1) {
                                         //send scv
@@ -221,8 +264,13 @@ public class Bot extends S2Agent {
                     }
                     break;
                 case ENEMY:
-                    if (unitInPool.equals(Switches.BansheeDiveTarget)) {
-                        Switches.BansheeDiveTarget = null;
+                    if (unitInPool.equals(Switches.bansheeDiveTarget)) {
+                        Switches.bansheeDiveTarget = null;
+                        GameState.bansheeDivers.clear();
+                    }
+                    else if (unitInPool.equals(Switches.vikingDiveTarget)) {
+                        Switches.vikingDiveTarget = null;
+                        GameState.vikingDivers.clear();
                     }
                     break;
             }

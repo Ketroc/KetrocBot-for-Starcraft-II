@@ -23,6 +23,7 @@ public class Base {
     private List<Gas> gases = new ArrayList<>();
     private List<UnitInPool> mineralPatches = new ArrayList<>();
     private UnitInPool rallyNode; //mineral node this cc is rallied to
+    private int extraScvs;
 
     // ============= CONSTRUCTORS ============
 
@@ -81,6 +82,13 @@ public class Base {
         this.turrets = turrets;
     }
 
+    public int getExtraScvs() {
+        return extraScvs;
+    }
+
+    public void setExtraScvs(int extraScvs) {
+        this.extraScvs = extraScvs;
+    }
 
     // ============ METHODS ==============
 

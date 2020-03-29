@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UnitUtils {
     public static void onFrame() {
@@ -136,13 +137,13 @@ public class UnitUtils {
                 if (pfHealthPercentage > 95) {
                     return 5;
                 }
-                else if (pfHealthPercentage > 80) {
+                else if (pfHealthPercentage > 70) {
                     return 10;
                 }
                 else {
                     return Integer.MAX_VALUE;
                 }
-            case TERRAN_MISSILE_TURRET: case TERRAN_SIEGE_TANK_SIEGED:
+            case TERRAN_MISSILE_TURRET: case TERRAN_BUNKER: case TERRAN_SIEGE_TANK_SIEGED:
                 return 6;
         }
         return 0;
@@ -166,5 +167,13 @@ public class UnitUtils {
             }
         }
         return 0;
+    }
+
+    public static float getDistance(Unit unit1, Unit unit2) {
+        return (float)unit1.getPosition().toPoint2d().distance(unit2.getPosition().toPoint2d());
+    }
+
+    public static List<Unit> unitInPoolToUnitList(List<UnitInPool> unitInPoolList) {
+        return unitInPoolList.stream().map(UnitInPool::unit).collect(Collectors.toList());
     }
 }

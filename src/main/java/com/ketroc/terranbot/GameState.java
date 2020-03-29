@@ -2,7 +2,6 @@ package com.ketroc.terranbot;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -25,8 +24,8 @@ public class GameState {
     public static final Point2d SCREEN_BOTTOM_LEFT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP0().toPoint2d();
     public static final Point2d SCREEN_TOP_RIGHT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP1().toPoint2d();
     public static boolean[][] pointDetected = null;
-    public static boolean[][] pointUnsafeFromGround = null;
-    public static boolean[][] pointUnsafeFromAir = null;
+//    public static boolean[][] pointUnsafeFromGround = null;
+//    public static boolean[][] pointUnsafeFromAir = null;
     public static boolean[][] pointInBansheeRange = null;
     public static boolean[][] pointInVikingRange = null;
     public static byte[][] threatToAir = null;
@@ -43,6 +42,8 @@ public class GameState {
     public static final List<UnitInPool> siegeTankList = new ArrayList<>();
     public static final List<Unit> bansheeList = new ArrayList<>();
     public static final List<Unit> vikingList = new ArrayList<>();
+    public static final List<Unit> bansheeDivers = new ArrayList<>();
+    public static final List<Unit> vikingDivers = new ArrayList<>();
     public static final List<UnitInPool> mineralNodeList = new ArrayList<>();
     public static final List<UnitInPool> geyserList = new ArrayList<>();
     public static final List<Base> baseList = new ArrayList<>();
@@ -73,6 +74,8 @@ public class GameState {
         vikingList.clear();
         siegeTankList.clear();
         bansheeList.clear();
+        bansheeDivers.clear();
+        vikingDivers.clear();
         starportList.clear();
         factoryList.clear();
         barracksList.clear();
@@ -88,6 +91,8 @@ public class GameState {
         enemyIsGround.clear();
         enemyIsAir.clear();
         enemyMappingList.clear();
+
+        long start1 = System.currentTimeMillis();
 
         for (UnitInPool unitInPool: Bot.OBS.getUnits()) {
             Unit unit = unitInPool.unit();
@@ -118,18 +123,19 @@ public class GameState {
 
                     switch (unitType) {
                         case TERRAN_COMMAND_CENTER: case TERRAN_PLANETARY_FORTRESS: case TERRAN_ORBITAL_COMMAND:
+                        case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
                             ccList.add(unit);
                             break;
                         case TERRAN_REFINERY:
                             refineryList.add(unitInPool);
                             break;
-                        case TERRAN_BARRACKS:
+                        case TERRAN_BARRACKS: case TERRAN_BARRACKS_FLYING:
                             barracksList.add(unitInPool);
                             break;
-                        case TERRAN_FACTORY:
+                        case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
                             factoryList.add(unitInPool);
                             break;
-                        case TERRAN_STARPORT:
+                        case TERRAN_STARPORT: case TERRAN_STARPORT_FLYING:
                             starportList.add(unitInPool);
                             break;
 
@@ -189,8 +195,12 @@ public class GameState {
 
             } //end alliance switch statement
         } //end unit loop
+        long resultTime = System.currentTimeMillis() - start1;
+        if (resultTime > 12)
+            System.out.println("GameState.getUnits loop time: " + resultTime);
 
         //build base list
+        start1 = System.currentTimeMillis();
         for (Point p : LocationConstants.myExpansionLocations) {
             //set cc
             for (Unit cc : ccList) {
@@ -233,9 +243,77 @@ public class GameState {
                 }
             } //end loop through cc list
         } //end loop through expansionLocations
+        resultTime = System.currentTimeMillis() - start1;
+        if (resultTime > 12)
+            System.out.println("GameState baseList loop: " + resultTime);
 
-        mapTheMap(); //set detected and air attack cells on the map
+        //loop through effects
+        start1 = System.currentTimeMillis();
+        for (EffectLocations effect : Bot.OBS.getEffects()) {
+            switch ((Effects) effect.getEffect()) {
+                case SCANNER_SWEEP:
+                case RAVAGER_CORROSIVE_BILE_CP:
+                    enemyMappingList.add(new EnemyUnit(effect));
+                    break;
+            }
+        }
+        resultTime = System.currentTimeMillis() - start1;
+        if (resultTime > 12)
+            System.out.println("GameState effects loop time: " + resultTime);
+
+        //set detected and air attack cells on the map
+        start1 = System.currentTimeMillis();
+        mapTheMap();
+
+        //update lists of vikings and banshees that are to dive on detectors
+        updateDiverStatus();
+
+        resultTime = System.currentTimeMillis() - start1;
+        if (resultTime > 12)
+            System.out.println("mapTheMap() time: " + resultTime);
     } //end onStep()
+
+    private static void updateDiverStatus() {
+        //banshees
+        if (Switches.bansheeDiveTarget != null) {
+            //cancel if target is gone
+            if (!Switches.bansheeDiveTarget.isAlive() || Switches.bansheeDiveTarget.getLastSeenGameLoop() != Bot.OBS.getGameLoop()) {
+                Switches.bansheeDiveTarget = null;
+            }
+            else {
+                //build diverList
+                for (int i = 0; i < bansheeList.size(); i++) {
+                    if (UnitUtils.getDistance(bansheeList.get(i), Switches.bansheeDiveTarget.unit()) < 15) {
+                        bansheeDivers.add(bansheeList.remove(i--));
+                    }
+                }
+                //cancel if no banshees left nearby
+                if (bansheeDivers.isEmpty()) {
+                    Switches.bansheeDiveTarget = null;
+                }
+            }
+        }
+
+        //vikings
+        if (Switches.vikingDiveTarget != null) {
+            //cancel if target is gone
+            if (!Switches.vikingDiveTarget.isAlive() || Switches.vikingDiveTarget.getLastSeenGameLoop() != Bot.OBS.getGameLoop()) {
+                Switches.vikingDiveTarget = null;
+            }
+            else {
+                //build diverList
+                for (int i = 0; i < vikingList.size(); i++) {
+                    if (UnitUtils.getDistance(vikingList.get(i), Switches.vikingDiveTarget.unit()) < 1) {
+                        vikingDivers.add(vikingList.remove(i--));
+                    }
+                }
+                //cancel if no banshees left nearby
+                if (vikingDivers.isEmpty()) {
+                    Switches.vikingDiveTarget = null;
+                }
+            }
+        }
+    }
 
     public static void mapTheMap() {
         long start = System.currentTimeMillis();
@@ -243,37 +321,45 @@ public class GameState {
         int xMax = (int)SCREEN_TOP_RIGHT.getX();
         int yMin = (int)SCREEN_BOTTOM_LEFT.getY();
         int yMax = (int)SCREEN_TOP_RIGHT.getY();
+
         pointDetected = new boolean[400][400];
-        pointUnsafeFromGround = new boolean[400][400];
-        pointUnsafeFromAir = new boolean[400][400];
+//        pointUnsafeFromGround = new boolean[400][400];
+//        pointUnsafeFromAir = new boolean[400][400];
         pointInBansheeRange = new boolean[400][400];
         pointInVikingRange = new boolean[400][400];
         threatToAir = new byte[400][400];
 
         for (EnemyUnit enemy : enemyMappingList) {
-            for (int x = xMin; x <= xMax; x++) {
-                for (int y = yMin; y <= yMax; y++) {
+            //only look at box of max range around the enemy
+            int xStart = Math.max((int)(enemy.x - enemy.maxRange), xMin);
+            int yStart = Math.max((int)(enemy.y - enemy.maxRange), yMin);
+            int xEnd = Math.min((int)(enemy.x + enemy.maxRange), xMax);
+            int yEnd = Math.min((int)(enemy.y + enemy.maxRange), yMax);
+
+            //loop through box
+            for (int x = xStart; x <= xEnd; x++) {
+                for (int y = yStart; y <= yEnd; y++) {
                     float distance = distance(x, y, enemy.x, enemy.y);
                     if (enemy.isDetector && distance < enemy.detectRange) {
                         pointDetected[x][y] = true;
-                        Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
+                        //Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
                     }
                     if (enemy.isAir) {
-                        if (distance < 10) {
+                        if (distance < Strategy.VIKING_RANGE) {
                             pointInVikingRange[x][y] = true;
-                            if (distance < 7) {
-                                pointInBansheeRange[x][y] = true;
-                            }
                         }
                         if (distance < enemy.airAttackRange) {
-                            pointUnsafeFromAir[x][y] = true;
+//                            pointUnsafeFromAir[x][y] = true;
                             threatToAir[x][y] += enemy.threatLevel;
                             //Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.PURPLE);
                         }
                     }
-                    else { //ground unit
+                    else { //ground unit or effect
+                        if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect) {
+                            pointInBansheeRange[x][y] = true;
+                        }
                         if (distance < enemy.airAttackRange) {
-                            pointUnsafeFromGround[x][y] = true;
+//                            pointUnsafeFromGround[x][y] = true;
                             threatToAir[x][y] += enemy.threatLevel;
                             //Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.2f,y+0.2f, z), Color.RED);
                         }
@@ -282,28 +368,34 @@ public class GameState {
             }
         }
 
-        //add scans
-        for (EffectLocations effect : Bot.OBS.getEffects()) {
-            if (effect.getEffect() == Effects.SCANNER_SWEEP) {
-                Point2d scanPos = effect.getPositions().iterator().next();
-                for (int x = xMin; x <= xMax; x++) {
-                    for (int y = yMin; y <= yMax; y++) {
-                        if (!pointDetected[x][y] && inRange(x, y, scanPos.getX(), scanPos.getY(), 13f)) {
-                            pointDetected[x][y] = true;
-                            //Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
+//        //add scans
+//        for (EffectLocations effect : Bot.OBS.getEffects()) {
+//            if (effect.getEffect() == Effects.SCANNER_SWEEP) {
+//                Point2d scanPos = effect.getPositions().iterator().next();
+//                int xStart = Math.max((int)scanPos.getX() - 13, xMin);
+//                int yStart = Math.max((int)scanPos.getY() - 13, yMin);
+//                int xEnd = Math.min((int)scanPos.getX() + 13, xMax);
+//                int yEnd = Math.min((int)scanPos.getY() + 13, yMax);
+//                for (int x = xStart; x <= xEnd; x++) {
+//                    for (int y = yStart; y <= yEnd; y++) {
+//                        if (!pointDetected[x][y] && inRange(x, y, scanPos.getX(), scanPos.getY(), 13f)) {
+//                            pointDetected[x][y] = true;
+//                            Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
+//
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
-                        }
-                    }
-                }
-            }
-        }
-        for (int x = xMin; x <= xMax; x++) {
-            for (int y = yMin; y <= yMax; y++) {
-                if (threatToAir[x][y] != 0) {
-                    //Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x,y, z), Color.RED, 12);
-                }
-            }
-        }
+        //debug threat text
+//        for (int x = xMin; x <= xMax; x++) {
+//            for (int y = yMin; y <= yMax; y++) {
+//                if (threatToAir[x][y] != 0) {
+//                    Bot.DEBUG.debugTextOut(String.valueOf(threatToAir[x][y]), Point.of(x, y, z), Color.RED, 12);
+//                }
+//            }
+//        }
 
 
         if (System.currentTimeMillis() - start > 20) {

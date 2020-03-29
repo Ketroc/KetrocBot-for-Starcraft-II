@@ -34,12 +34,14 @@ public class BuildManager {
             Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
 
-        //cancel logic
-//        for (Unit structure : com.ketroc.terranbot.GameState.inProductionList) {
-//            if (structure.getBuildProgress() < 0.9) {
-//                if (structure.)
-//            }
-//        }
+        //cancel structure logic
+        for (Unit structure : GameState.inProductionList) {
+            if (structure.getBuildProgress() < 1) {
+                if (UnitUtils.getHealthPercentage(structure) < 8) {
+                    Bot.ACTION.unitCommand(structure, Abilities.CANCEL_BUILD_IN_PROGRESS, false);
+                }
+            }
+        }
 
         //keep CCs active (make scvs, morph ccs, call mules)
         for (Unit cc : GameState.ccList) {
@@ -55,7 +57,7 @@ public class BuildManager {
                             }
                         }
                         else { //if base that will become a PF TODO: use same logic as OC
-                            if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS) && UnitUtils.canAfford(Units.TERRAN_PLANETARY_FORTRESS)) {
+                            if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) { //&& UnitUtils.canAfford(Units.TERRAN_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) { //if affordable and not already in queue
                                     Bot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                 }
@@ -115,27 +117,25 @@ public class BuildManager {
             }
         }
 
-        //build starport logic
-        if (GameState.gasBank > 300 && UnitUtils.hasTechToBuild(Units.TERRAN_STARPORT) && !isAlreadyBuilding(Abilities.BUILD_STARPORT) && !LocationConstants.STARPORTS.isEmpty()) {
-            Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_STARPORT));
-        }
-
         //build command center logic
         if (GameState.baseList.size() < LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND &&
-                GameState.mineralBank > 500 && !isStructureQueued(Units.TERRAN_COMMAND_CENTER)) {
+                GameState.mineralBank > 500 && !isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
+                GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0) < 1) {
             //if on 6 bases, try to build a macro OC
-            if (GameState.baseList.size() >= 5) {
-                if (!LocationConstants.MACRO_OCS.isEmpty()) {
-                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0))); //TODO: if purchase is cancelled we need to re-add this entry to MACRO_OCS
-                }
-                else {
-                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-                }
+            if (GameState.baseList.size() >= 7 && !LocationConstants.MACRO_OCS.isEmpty()) {
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0))); //TODO: if purchase is cancelled we need to re-add this entry to MACRO_OCS
             }
             else {
                 Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
             }
         }
+
+        //build starport logic
+        if (GameState.gasBank > 400 && GameState.mineralBank > 150 && UnitUtils.hasTechToBuild(Units.TERRAN_STARPORT) && !isAlreadyBuilding(Abilities.BUILD_STARPORT) && !LocationConstants.STARPORTS.isEmpty()) {
+            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        }
+
+
     }
 
     public static boolean ccToBeOC(Point ccPos) {

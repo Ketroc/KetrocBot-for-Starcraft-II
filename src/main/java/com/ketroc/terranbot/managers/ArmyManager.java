@@ -4,12 +4,11 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.models.Base;
 
@@ -47,7 +46,7 @@ public class ArmyManager {
                 Unit bunker1 = null;
                 Unit bunker2 = null;
                 for (UnitInPool bunker : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_BUNKER, Collections.emptyList())) {
-                    if (bunker.unit().getPosition().toPoint2d().distance(LocationConstants.BUNKER1) < 1) { //if BUNKER1
+                    if (bunker.unit().getPosition().toPoint2d().distance(LocationConstants.BUNKER_NATURAL) < 1) { //if BUNKER1
                         bunker1 = bunker.unit();
                     }
                     else {
@@ -66,33 +65,50 @@ public class ArmyManager {
             }
         }
 
-        //attack banshees
-        if (Switches.BansheeDiveTarget == null) { //TODO: doesn't handle a failed dive (always be reassessing??)
+        //=== Attack Banshees
+
+        //find dive target
+        if (Switches.bansheeDiveTarget == null) {
             for (Unit detector : GameState.enemyDetector) {
                 if (!detector.getFlying().orElse(false)) {
-                    if (shouldBansheesDive(detector)) {
-                        Switches.BansheeDiveTarget = Bot.OBS.getUnit(detector.getTag());
+                    if (shouldDive(Units.TERRAN_BANSHEE, detector)) {
+                        Switches.bansheeDiveTarget = Bot.OBS.getUnit(detector.getTag());
                         break;
                     }
                 }
             }
         }
-        if (Switches.BansheeDiveTarget != null) {
-            if (GameState.bansheeList.size() < 2) { //turn off the dive switch if it failed
-                Switches.BansheeDiveTarget = null;
-            }
-            Bot.ACTION.unitCommand(GameState.bansheeList, Abilities.ATTACK, Switches.BansheeDiveTarget.unit(), false);
-        }
-        else {
-            for (Unit banshee : GameState.bansheeList) {
-                giveBansheeCommand(banshee);
-            }
-        }
-//        if (attackPosViking == null) { //set viking attack position back home if no banshees are engaging TODO: delete me if viking doesn't need new attack point
-//            attackPosViking = retreatPos;
-//        }
 
-        //attack vikings
+        //give banshee divers commands
+        if (Switches.bansheeDiveTarget != null) {
+            Bot.ACTION.unitCommand(GameState.bansheeDivers, Abilities.ATTACK, Switches.bansheeDiveTarget.unit(), false);
+        }
+
+        //give normal banshees their commands
+        for (Unit banshee : GameState.bansheeList) {
+            giveBansheeCommand(banshee);
+        }
+
+        //=== Attack Vikings
+
+        //find dive target
+        if (Switches.vikingDiveTarget == null) {
+            for (Unit detector : GameState.enemyDetector) {
+                if (detector.getFlying().orElse(false)) {
+                    if (shouldDive(Units.TERRAN_VIKING_FIGHTER, detector)) {
+                        Switches.vikingDiveTarget = Bot.OBS.getUnit(detector.getTag());
+                        break;
+                    }
+                }
+            }
+        }
+
+        //give viking divers commands
+        if (Switches.vikingDiveTarget != null) {
+            Bot.ACTION.unitCommand(GameState.vikingList, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
+        }
+
+        //give normal banshees their commands
         for (Unit viking : GameState.vikingList) {
             giveVikingCommand(viking);
         }
@@ -111,7 +127,7 @@ public class ArmyManager {
             }).size();  //TODO: move this to com.ketroc.terranbot.GameState.startFrame() ??
             int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs; //decide 5 or 10 total scvs to repair at dock
             if (numScvsToSend > 1) {
-                List<Unit> availableScvs = WorkerManager.unitInPoolToUnitList(WorkerManager.getAvailableScvs(retreatPos, 30, false));
+                List<Unit> availableScvs = UnitUtils.unitInPoolToUnitList(WorkerManager.getAvailableScvs(retreatPos, 30, false));
                 if (availableScvs.size() > numScvsToSend) {
                     availableScvs = availableScvs.subList(0, numScvsToSend);
                 }
@@ -121,8 +137,8 @@ public class ArmyManager {
                             Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV);
                         }
                     }
-                    Bot.ACTION.unitCommand(availableScvs, Abilities.ATTACK, retreatPos, false) //a-move scvs to repair station and queue up mining minerals afterwards
-                            .unitCommand(availableScvs, Abilities.SMART, GameState.mineralNodeRally.unit(), true);
+                    Bot.ACTION.unitCommand(availableScvs, Abilities.ATTACK, retreatPos, false); //a-move scvs to repair station and queue up mining minerals afterwards
+                            //.unitCommand(availableScvs, Abilities.SMART, GameState.mineralNodeRally.unit(), true);
                 }
             }
         }
@@ -130,8 +146,8 @@ public class ArmyManager {
 
     private static Point2d setTankLocation() {
 //        //if tank at eng base - REMOVED: skipping tank at main ramp
-//        if (!com.ketroc.terranbot.UnitUtils.isUnitTypeNearby(Units.TERRAN_SIEGE_TANK_SIEGED, com.ketroc.terranbot.LocationConstants.DEPOT2, 5)) {
-//            return com.ketroc.terranbot.LocationConstants.DEPOT2;
+//        if (!UnitUtils.isUnitTypeNearby(Units.TERRAN_SIEGE_TANK_SIEGED, LocationConstants.DEPOT2, 5)) {
+//            return LocationConstants.DEPOT2;
 //        }
         //loop through bases looking for tank
         for (Base base : GameState.baseList) {
@@ -171,7 +187,7 @@ public class ArmyManager {
         return Point2d.of(xCC + xMove, yCC + yMove);
     }
 
-    public static Abilities decideStarportUnit() { //TODO: move to com.ketroc.terranbot.BuildManager??
+    public static Abilities decideStarportUnit() { //TODO: move to BuildManager??
         BuildManager.vikingsRequired = calcNumVikingsNeeded();
         if (GameState.vikingList.size() < BuildManager.vikingsRequired) {
             BuildManager.vikingsRequired--;
@@ -180,71 +196,69 @@ public class ArmyManager {
         return Abilities.TRAIN_BANSHEE;
     }
 
-    public static int calcNumVikingsNeeded() { //TODO: update for vs zerg and protoss
+    public static int calcNumVikingsNeeded() { //TODO: update for protoss, then do smarter logic when tracking enemy army
         float answer = 0;
-        int numEnemyRaven = 0;
+        int numDetectors = 0;
         for (Unit enemy : GameState.enemyIsAir) {
             switch ((Units)enemy.getType()) {
-                case TERRAN_VIKING_ASSAULT: case TERRAN_VIKING_FIGHTER:
-                    answer += 1.3;
+                case TERRAN_VIKING_ASSAULT: case TERRAN_VIKING_FIGHTER: case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG:
+                case ZERG_CORRUPTOR: case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
+                    answer += 1;
                     break;
                 case TERRAN_BATTLECRUISER:
                     answer += 3;
                     break;
-                case TERRAN_RAVEN:
+                case TERRAN_RAVEN: case ZERG_OVERSEER:
                     answer += 1;
-                    numEnemyRaven++;
+                    numDetectors++;
                     break;
-                case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG:
-                    answer += 1;
             }
         }
-        answer = Math.max((float)numEnemyRaven*4, answer); //at least 4 vikings per raven
-
-        if (GameState.bansheeList.size() > 5) {
-            answer = Math.max(answer, 3); //minimum 3 vikings once banshee count is 6+
-        }
+        answer = Math.max((float)numDetectors*4, answer); //at least 4 vikings per raven
+        answer = Math.max(answer, GameState.bansheeList.size() / 4);
         return (int)answer;
     }
 
     public static void giveBansheeCommand(Unit banshee) {
+        ArmyCommands lastCommand = getCurrentCommand(banshee);
         int x = Math.round(banshee.getPosition().getX());
         int y = Math.round(banshee.getPosition().getY());
-        boolean isUnsafe = GameState.pointUnsafeFromAir[x][y] || GameState.pointUnsafeFromGround[x][y];
+        boolean isUnsafe = GameState.threatToAir[x][y] > 5;
         boolean isInDetectionRange = GameState.pointDetected[x][y];
         boolean isInBansheeRange = GameState.pointInBansheeRange[x][y];
         boolean canAttack = banshee.getWeaponCooldown().orElse(1f) == 0f;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING;
 
-        if (UnitUtils.getHealthPercentage(banshee) < 100 && banshee.getPosition().toPoint2d().distance(retreatPos) < 3) {  //banshee under 100% health and at repair bay
+        //banshee under 100% health and at repair bay
+        if (UnitUtils.getHealthPercentage(banshee) < 100 && banshee.getPosition().toPoint2d().distance(retreatPos) < 3) {
             if (cloakState == CloakState.CLOAKED_ALLIED) {
                 Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
             }
             else {
-                Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
             }
         }
         else if (UnitUtils.getHealthPercentage(banshee) < Strategy.RETREAT_HEALTH) {
-            Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+            if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
         }
         else if (canAttack && isInBansheeRange) {
             //attack
-            Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
+            if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
         }
         else if (isUnsafe) {
             if (isInDetectionRange) {
                 //retreat
-                Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED && banshee.getEnergy().get() > 2) {
                 if (isInBansheeRange) {
                     //retreat
-                    Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                    if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
                 }
                 else {
                     //attack
-                    Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
+                    if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
                 }
             }
             else if (canCloak) {
@@ -253,66 +267,93 @@ public class ArmyManager {
             }
             else {
                 //retreat
-                Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
             }
         }
         else if (!canCloak && cloakState != CloakState.CLOAKED_ALLIED) {
             //retreat
-            Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+            if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
         }
         else {
             if (isInBansheeRange) {
                 //retreat
-                Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
             }
             else {
                 //attack
-                Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
+                if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(banshee, Abilities.ATTACK, attackPos, false);
             }
         }
     }
 
+    private static ArmyCommands getCurrentCommand(Unit unit) {
+        ArmyCommands currentCommand = ArmyCommands.EMPTY;
+        if (!unit.getOrders().isEmpty()) {
+            UnitOrder order = unit.getOrders().get(0);
+            if (order.getAbility() == Abilities.ATTACK) {
+                if (order.getTargetedWorldSpacePosition().isPresent() && order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.attackPos) < 1) {
+                    currentCommand = ArmyCommands.ATTACK;
+                }
+                else if (order.getTargetedUnitTag().isPresent()) {
+                    currentCommand = ArmyCommands.DIVE;
+                }
+            }
+            else if (order.getAbility() == Abilities.MOVE &&  order.getTargetedWorldSpacePosition().isPresent() &&
+                    order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.retreatPos) < 1) {
+                currentCommand = ArmyCommands.HOME;
+            }
+        }
+        return currentCommand;
+    }
+
     private static void giveVikingCommand(Unit viking) {
+        ArmyCommands lastCommand = getCurrentCommand(viking);
         int x = Math.round(viking.getPosition().getX());
         int y = Math.round(viking.getPosition().getY());
-        boolean isUnsafe = GameState.pointUnsafeFromGround[x][y];
+        boolean isUnsafe = GameState.threatToAir[x][y] > 0;
         boolean isInVikingRange = GameState.pointInVikingRange[x][y];
         boolean canAttack = viking.getWeaponCooldown().orElse(1f) == 0f;
 
         if (UnitUtils.getHealthPercentage(viking) < 100 && viking.getPosition().toPoint2d().distance(retreatPos) < 3) {  //viking under 100% health and at retreat position
-            Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+            if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
         }
         else if (UnitUtils.getHealthPercentage(viking) < Strategy.RETREAT_HEALTH) {
-            Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+            if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
         }
         else if (!canAttack) {
-            Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+            if (isInVikingRange || isUnsafe) {
+                if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+            }
+            else {
+                if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(viking, Abilities.ATTACK, attackPos, false);
+            }
         }
         else if (isInVikingRange) {
-            Bot.ACTION.unitCommand(viking, Abilities.ATTACK, attackPos, false);
+            if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(viking, Abilities.ATTACK, attackPos, false);
         }
         else if (isUnsafe) {
-            Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+            if (lastCommand != ArmyCommands.HOME) Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
         }
         else {
-            Bot.ACTION.unitCommand(viking, Abilities.ATTACK, attackPos, false);
+            if (lastCommand != ArmyCommands.ATTACK) Bot.ACTION.unitCommand(viking, Abilities.ATTACK, attackPos, false);
         }
     }
 
-    private static boolean shouldBansheesDive(Unit detector) {
-        List<UnitInPool> banshees = UnitUtils.getUnitsNearbyOfType(Units.TERRAN_BANSHEE, detector.getPosition().toPoint2d(), 16);
+    private static boolean shouldDive(Units unitType, Unit detector) {
+        int numAttackersNearby = UnitUtils.getUnitsNearbyOfType(unitType, detector.getPosition().toPoint2d(), Strategy.DIVE_RANGE).size();
+        if (numAttackersNearby < 2) {
+            return false;
+        }
+
         //calculate point from detector
-        Point2d threatPoint = getPointFromA(detector.getPosition().toPoint2d(), retreatPos, UnitUtils.getAirAttackRange(detector));
-        Bot.DEBUG.debugBoxOut(Point.of(threatPoint.getX()-0.4f, threatPoint.getY()-0.4f, GameState.z),
-                Point.of(threatPoint.getX()+0.4f, threatPoint.getY()+0.4f, GameState.z),
-                Color.GREEN);
+        Point2d threatPoint = getPointFromA(detector.getPosition().toPoint2d(), retreatPos, 6);
+
         //decide to dive
-        return isEnoughBansheesToDive(banshees.size(), GameState.threatToAir[(int)threatPoint.getX()][(int)threatPoint.getY()]);
+        return isEnoughToDive(numAttackersNearby, GameState.threatToAir[(int) threatPoint.getX()][(int) threatPoint.getY()], detector.getHealth().get());
     }
 
-    //10% of threatlevel + 3 = num banshees to dive
-    private static boolean isEnoughBansheesToDive(int numBanshees, int threatLevel) {
-        return numBanshees >= Math.round(threatLevel/8) + 4;
+    private static boolean isEnoughToDive(int numUnits, int threatLevel, float hp) {
+        return numUnits >= Math.round((threatLevel/2 + hp/100) / 2) + 1;
     }
 
     public static Point2d getPointFromA(Point2d a, Point2d b, float distance) {

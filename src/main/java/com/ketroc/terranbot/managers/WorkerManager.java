@@ -21,14 +21,9 @@ import java.util.stream.Collectors;
 
 public class WorkerManager {
 
-    public static void onGameStart() {
-        System.out.println("sending action @" + Bot.OBS.getGameLoop() + Abilities.TRAIN_SCV);
-        Bot.ACTION.unitCommand(GameState.baseList.get(0).getCc(), Abilities.TRAIN_SCV, false);
-    }
-
     public static void onStep() {
         repairLogic();
-        if (Bot.OBS.getGameLoop() % 200 == 0) { //~every 10sec
+        if (Bot.OBS.getGameLoop() % 120 == 0) { //~every 6sec
             fixOverSaturation();
             buildRefineryLogic();
         }
@@ -37,32 +32,33 @@ public class WorkerManager {
 
     private static void repairLogic() {
         //loop through units.  look for unmaxed health.  decide numscvs to repair
-        for (Base base : GameState.baseList) {
-            Unit cc = base.getCc();
-            int ccHealth = UnitUtils.getHealthPercentage(cc);
+        List<UnitInPool> structures = GameState.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, new ArrayList<UnitInPool>());
+        structures.addAll(GameState.allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, Collections.emptyList()));
+        structures.addAll(GameState.allFriendliesMap.getOrDefault(Units.TERRAN_BUNKER, Collections.emptyList()));
+        for (UnitInPool unitInPool : structures) {
+            Unit structure = unitInPool.unit();
+            int ccHealth = UnitUtils.getHealthPercentage(structure);
             if (ccHealth < 100) {
-                int numScvsToAdd = UnitUtils.getIdealScvsToRepair(cc) - UnitUtils.numRepairingScvs(cc);
+                int numScvsToAdd = UnitUtils.getIdealScvsToRepair(structure) - UnitUtils.numRepairingScvs(structure);
                 if (numScvsToAdd > 0) {
-                    List<Unit> availableScvs = getAvailableScvUnits(cc.getPosition().toPoint2d());
-                    availableScvs = availableScvs.subList(0, Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)));
+                    List<Unit> availableScvs;
+                    if (numScvsToAdd > 9999) {
+                        availableScvs = getAllScvUnits(structure.getPosition().toPoint2d());
+                    }
+                    else {
+                        availableScvs = getAvailableScvUnits(structure.getPosition().toPoint2d());
+                        availableScvs = availableScvs.subList(0, Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)));
+                    }
                     if (!availableScvs.isEmpty()) {
                         System.out.println("sending " + availableScvs.size() + " scvs to repair.");
-                        Unit mineralNode;
-                        if (base.getMineralPatches().isEmpty()) {
-                            mineralNode = GameState.mineralNodeRally.unit();
-                        }
-                        else {
-                            mineralNode = base.getMineralPatches().get(0).unit();
-                        }
-                        Bot.ACTION.unitCommand(availableScvs, Abilities.EFFECT_REPAIR_SCV, cc, false)
-                                .unitCommand(availableScvs, Abilities.SMART, mineralNode, true);
+                        Bot.ACTION.unitCommand(availableScvs, Abilities.EFFECT_REPAIR_SCV, structure, false);
                     }
                 }
             }
         }
     }
 
-    private static void buildRefineryLogic() { //handle 2nd scv going to the same geyser as previous scv who hadn't gotten there yet
+    private static void buildRefineryLogic() { //TODO: handle 2nd scv going to the same geyser as previous scv who hadn't gotten there yet
         for (Purchase p : Bot.purchaseQueue) { //ignore if already in queue
             if (p instanceof PurchaseStructure && ((PurchaseStructure) p).getStructureType() == Units.TERRAN_REFINERY) {
                 return;
@@ -98,8 +94,11 @@ public class WorkerManager {
     }
 
     public static List<Unit> getAvailableScvUnits(Point2d targetPosition) {
-        List<UnitInPool> result = getAvailableScvs(targetPosition, 20);
-        return unitInPoolToUnitList(getAvailableScvs(targetPosition, 20));
+        return UnitUtils.unitInPoolToUnitList(getAvailableScvs(targetPosition, 20));
+    }
+
+    public static List<Unit> getAllScvUnits(Point2d targetPosition) {
+        return UnitUtils.unitInPoolToUnitList(getAllScvs(targetPosition, 10));
     }
 
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition) {
@@ -112,15 +111,26 @@ public class WorkerManager {
     //return list of scvs that are mining minerals without holding minerals within an optional distance
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced) {
         List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv -> {
+//            return scv.unit().getType() == Units.TERRAN_SCV &&
+//                    !scv.unit().getOrders().isEmpty() &&
+//                    (scv.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(scv)) && //is mining minerals
+//                    (targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance);
             return scv.unit().getType() == Units.TERRAN_SCV &&
-                    !scv.unit().getOrders().isEmpty() &&
-                    (scv.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(scv)) && //is mining minerals
-                    (targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance);
+                    (scv.unit().getOrders().isEmpty() ||
+                            (scv.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(scv))) && //is mining minerals
+                    targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance;
         });
         if (scvList.isEmpty() && !isDistanceEnforced) {
             return getAvailableScvs(targetPosition, Integer.MAX_VALUE, true);
         }
         return scvList;
+    }
+
+    //return list of all scvs within a distance
+    public static List<UnitInPool> getAllScvs(Point2d targetPosition, int distance) {
+        return Bot.OBS.getUnits(Alliance.SELF, scv -> {
+            return scv.unit().getType() == Units.TERRAN_SCV && targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance;
+        });
     }
 
     public static List<UnitInPool> getRefineryScvs(Unit refinery) {
@@ -158,8 +168,6 @@ public class WorkerManager {
 
     private static void fixOverSaturation() { //TODO: fix >4 on gas (make setting newestMineralNode smarter to not have scvs always transferring
         List<Unit> scvsToMove = new ArrayList<>();
-        UnitInPool oldNode = GameState.mineralNodeRally;
-        GameState.mineralNodeRally = null; //reset rally node
 
         //loop through bases
         for (Base base : GameState.baseList) {
@@ -180,40 +188,38 @@ public class WorkerManager {
                 }
             }
 
-            int numScvsOverSaturation = cc.getAssignedHarvesters().get() - numScvsMovingToGas - cc.getIdealHarvesters().get();
-            if (numScvsOverSaturation < 0) { //set this base as rally point
-               if (GameState.mineralNodeRally == null && !base.getMineralPatches().isEmpty()) {
-                   GameState.mineralNodeRally = base.getMineralPatches().get(0);
-               }
-            }
-            else if (numScvsOverSaturation > 0) {
-                //add extra mineral scvs
-                for (int i = 0; i < numScvsOverSaturation && i < availableScvs.size(); i++) {
-                    scvsToMove.add(availableScvs.get(i).unit());
-                }
+            //add extra scvs to list
+            base.setExtraScvs(cc.getAssignedHarvesters().get() - numScvsMovingToGas - cc.getIdealHarvesters().get());
+            for (int i = 0; i < base.getExtraScvs() && i < availableScvs.size(); i++) {
+                scvsToMove.add(availableScvs.get(i).unit());
             }
         } //end loop through bases
 
-        //set rally to newest base if still null
-        if (GameState.mineralNodeRally == null) {
-            GameState.mineralNodeRally = oldNode;
-        }
-
-        // add all idle workers
+        // add all idle workers to same list
         if (Bot.OBS.getIdleWorkerCount() > 0) {
-            scvsToMove.addAll(unitInPoolToUnitList(
+            scvsToMove.addAll(UnitUtils.unitInPoolToUnitList(
                     Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV && scv.unit().getActive().get() == false)
             ));
         }
 
-        //send scvs to newest base's mineral line
-        if (!scvsToMove.isEmpty()) {
-            Bot.ACTION.unitCommand(scvsToMove, Abilities.SMART, GameState.mineralNodeRally.unit(), false);
+        //send extra scvs to undersaturated bases
+        for (Base base : GameState.baseList) {
+            int scvsNeeded = base.getExtraScvs() * -1;
+            while (scvsNeeded > 0 && scvsToMove.size() > 0) {
+                Bot.ACTION.unitCommand(scvsToMove.remove(0), Abilities.SMART, base.getMineralPatches().get(0).unit(), false);
+                scvsNeeded--;
+            }
+            if (scvsNeeded > 0) { //set cc rallies here if saturation is still needed
+                GameState.mineralNodeRally = base.getMineralPatches().get(0);
+            }
         }
 
         //rally all CCs to newest base's mineral line
-        for (Unit cc : GameState.ccList) {
-            Bot.ACTION.unitCommand(cc, Abilities.RALLY_COMMAND_CENTER, GameState.mineralNodeRally.unit(), false);
+        if (!Switches.TvtFastStart) {
+            for (Unit cc : GameState.ccList) {
+                Bot.ACTION.unitCommand(cc, Abilities.RALLY_COMMAND_CENTER, GameState.mineralNodeRally.unit(), false);
+
+            }
         }
     }
 
@@ -221,10 +227,6 @@ public class WorkerManager {
         int scvCount = cc.getAssignedHarvesters().orElse(0);
         int scvCountIdeal = cc.getIdealHarvesters().orElse(0);
         return (scvCount >= scvCountIdeal);
-    }
-
-    public static List<Unit> unitInPoolToUnitList(List<UnitInPool> unitInPoolList) {
-        return unitInPoolList.stream().map(UnitInPool::unit).collect(Collectors.toList());
     }
 
     public static List<Tag> unitInPoolToTagList(List<UnitInPool> unitInPoolList) {

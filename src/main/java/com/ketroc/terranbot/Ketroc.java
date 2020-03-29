@@ -3,7 +3,10 @@ package com.ketroc.terranbot;
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.BattlenetMap;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
+import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
+
+import java.nio.file.Paths;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -36,7 +39,7 @@ onNydusDetected()
 
 public class Ketroc {
     public static void main(String[] args) {
-        Bot bot = new Bot(MapNames.TRITON);
+        Bot bot = new Bot();
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(false)
@@ -47,26 +50,21 @@ public class Ketroc {
                 .setTimeoutMS(600 * 1000)
                 //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
                 .setParticipants(
-                        //S2Coordinator.createParticipant(choice, bot2),
                         S2Coordinator.createParticipant(Race.TERRAN, bot),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.HARD))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
                 .launchStarcraft()
-                .startGame(BattlenetMap.of(LocationConstants.MAP));
+                .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
+
+//        S2Coordinator s2Coordinator = S2Coordinator.setup()
+//                .setRawAffectsSelection(true)
+//                .loadLadderSettings(args)
+//                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot))
+//                .connectToLadder()
+//                .joinGame();
 
         while (s2Coordinator.update()) {
 
         }
         s2Coordinator.quit();
     }
-
-
-    /*    private static class MapCoordinates {
-        public MapCoordinates(String mapName, String spawm) {
-            if mapName.equals(com.ketroc.terranbot.MapNames.TRITON) {
-                //TODO: spawn location
-
-            }
-        }
-    }
-*/
-    }
+}

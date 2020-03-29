@@ -6,8 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="SC2Bot" />
+        <module name="ketroc" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="13" />
   </component>
 </project>
