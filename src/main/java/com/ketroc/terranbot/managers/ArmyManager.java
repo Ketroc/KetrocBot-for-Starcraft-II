@@ -21,10 +21,15 @@ public class ArmyManager {
 
     public static void onStep() {
         //set attack location
-        if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
-            LocationConstants.rotateBaseAttackIndex();
+        if (Switches.isDefending && UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
+            //ArmyManager.attackPos = GameState.baseList.get(GameState.baseList.size()-1).getCcPos(); //LocationConstants.rotateBaseAttackIndex();
+            Switches.isDefending = false;
+            ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
         }
-        ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
+        else if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
+            LocationConstants.rotateBaseAttackIndex();
+            ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
+        }
 
 
 

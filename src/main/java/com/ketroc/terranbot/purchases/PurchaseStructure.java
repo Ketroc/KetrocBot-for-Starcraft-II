@@ -207,7 +207,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     private void selectARallyUnit() {
         if (this.rallyUnit == null) {
             if (this.scv.getOrders().isEmpty()) { //send to main base mineral patch
-                this.rallyUnit = GameState.mineralNodeRally.unit();
+                this.rallyUnit = GameState.mineralNodeRally;
             } else { //back to same mineral patch it's mining now
                 this.rallyUnit = Bot.OBS.getUnit(
                         this.scv.getOrders().get(0).getTargetedUnitTag().get()

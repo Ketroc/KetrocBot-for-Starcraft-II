@@ -66,7 +66,7 @@ public class BuildManager {
                         }
                     case TERRAN_ORBITAL_COMMAND:
                         if (cc.getEnergy().get() >= 50) {
-                            Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, GameState.mineralNodeRally.unit(), false);
+                            Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, GameState.mineralNodeRally, false);
                         }
 
                     case TERRAN_PLANETARY_FORTRESS:
@@ -123,7 +123,7 @@ public class BuildManager {
                 GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0) < 1) {
             //if on 6 bases, try to build a macro OC
             if (GameState.baseList.size() >= 7 && !LocationConstants.MACRO_OCS.isEmpty()) {
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0))); //TODO: if purchase is cancelled we need to re-add this entry to MACRO_OCS
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
             }
             else {
                 Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));

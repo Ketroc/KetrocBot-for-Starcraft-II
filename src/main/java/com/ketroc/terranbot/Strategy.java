@@ -60,7 +60,7 @@ public class Strategy {
                     scv_TvtFastStart = WorkerManager.getAllScvs(LocationConstants.REAPER_JUMP_2x2, 5).get(0); //TODO: null check
                     Bot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants.REAPER_JUMP_3x3));
                     Bot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT, LocationConstants.REAPER_JUMP_2x2));
-                    Switches.TvtFastStart = false;
+                    Switches.tvtFastStart = false;
                 }
                 break;
         }

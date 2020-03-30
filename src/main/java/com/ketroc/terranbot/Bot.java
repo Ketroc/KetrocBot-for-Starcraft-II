@@ -73,7 +73,7 @@ public class Bot extends S2Agent {
         //set build order
         switch (LocationConstants.opponentRace) {
             case TERRAN:
-                Switches.TvtFastStart = true;
+                Switches.tvtFastStart = true;
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
                 purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
@@ -125,7 +125,7 @@ public class Bot extends S2Agent {
                     }
                 }
 
-                if (Switches.TvtFastStart) {
+                if (Switches.tvtFastStart) {
                     Strategy.onStep_TvtFaststart();
                 }
                 else {
@@ -326,7 +326,16 @@ public class Bot extends S2Agent {
 
     @Override
     public void onUnitEnterVision(UnitInPool unitInPool) {
-
+        if (unitInPool.unit().getAlliance() == Alliance.ENEMY) {
+            switch ((Units)unitInPool.unit().getType()) {
+                case TERRAN_SCV: case ZERG_DRONE: case PROTOSS_PROBE:
+                    break;
+                default:
+                    ArmyManager.attackPos = unitInPool.unit().getPosition().toPoint2d();
+                    Switches.isDefending = true;
+                    break;
+            }
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -102,7 +103,13 @@ public class UnitUtils {
     }
 
     public static List<UnitInPool> getUnitsNearbyOfType(UnitType unitType, Point2d position, int distance) {
-        return Bot.OBS.getUnits(unit -> unit.unit().getType() == unitType && unit.unit().getPosition().toPoint2d().distance(position) < distance);
+        try {
+            return Bot.OBS.getUnits(unit -> unit.unit().getType() == unitType && unit.unit().getPosition().toPoint2d().distance(position) < distance);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
     }
 
     public static boolean isUnitTypesNearby(List<UnitType> unitTypes, Point2d position, int distance) {

@@ -62,7 +62,7 @@ public class GameState {
     public static final Set<Tag> claimedGases = new HashSet<>();
     public static final List<UnitInPool> otherFriendliesList = new ArrayList<>();
     public static final Map<Units, List<UnitInPool>> allFriendliesMap = new HashMap<>();
-    public static UnitInPool mineralNodeRally;
+    public static Unit mineralNodeRally;
 
     public static void onStep() {
         mineralBank = Bot.OBS.getMinerals();
@@ -365,7 +365,7 @@ public class GameState {
                     float distance = distance(x, y, enemy.x, enemy.y);
                     if (enemy.isDetector && distance < enemy.detectRange) {
                         pointDetected[x][y] = true;
-                        //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
+                        if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.3f,y-0.3f, z), Point.of(x+0.3f,y+0.3f, z), Color.BLUE);
                     }
                     if (enemy.isAir) {
                         if (distance < Strategy.VIKING_RANGE) {

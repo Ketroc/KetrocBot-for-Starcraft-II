@@ -35,7 +35,7 @@ public class LocationConstants {
     public static Race opponentRace = Race.TERRAN;
 
     public static void onStep() {
-        if (Bot.OBS.getGameLoop() % 5000 == 0) {
+        if (Bot.OBS.getGameLoop() % 8000 == 0) {
             baseAttackIndex = 8;
         }
     }
@@ -44,7 +44,7 @@ public class LocationConstants {
         baseAttackIndex--;
         if (baseAttackIndex == 0) {
             //TODO: initiate end game clean up
-            baseAttackIndex = 6;
+            baseAttackIndex = 8;
         }
     }
 
@@ -79,7 +79,7 @@ public class LocationConstants {
         bansheeRallyPos = BuildManager.getMidPoint(myExpansionLocations.get(0).toPoint2d(), myExpansionLocations.get(1).toPoint2d());
 
         //TODO: delete later.  temporary banshee positions
-        ArmyManager.retreatPos = bansheeRallyPos;
+        ArmyManager.retreatPos = ArmyManager.attackPos = bansheeRallyPos;
         //ArmyManager.attackPos = myExpansionLocations.get(myExpansionLocations.size()-2).toPoint2d();
 
 //        //hidden expansions
@@ -102,7 +102,7 @@ public class LocationConstants {
         switch (MAP) {
             case MapNames.TRITON:
                 if (isTopPos) {
-                    REAPER_JUMP_2x2 = Point2d.of(72f, 145f);
+                    REAPER_JUMP_2x2 = Point2d.of(72f, 144f);
                     REAPER_JUMP_3x3 = Point2d.of(69.5f, 144.5f);
                     BUNKER_NATURAL = Point2d.of(87.5f, 152.5f);
                     WALL_2x2 = Point2d.of(71.0f, 154.0f);

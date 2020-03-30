@@ -204,20 +204,26 @@ public class WorkerManager {
 
         //send extra scvs to undersaturated bases
         for (Base base : GameState.baseList) {
+            if (!base.getMineralPatches().isEmpty()) {
+                GameState.mineralNodeRally = base.getMineralPatches().get(0).unit();
+            }
             int scvsNeeded = base.getExtraScvs() * -1;
-            while (scvsNeeded > 0 && scvsToMove.size() > 0) {
-                Bot.ACTION.unitCommand(scvsToMove.remove(0), Abilities.SMART, base.getMineralPatches().get(0).unit(), false);
+            while (scvsNeeded > 0 && !scvsToMove.isEmpty()) {
+                Bot.ACTION.unitCommand(scvsToMove.remove(0), Abilities.SMART, GameState.mineralNodeRally, false);
                 scvsNeeded--;
             }
-            if (scvsNeeded > 0) { //set cc rallies here if saturation is still needed
-                GameState.mineralNodeRally = base.getMineralPatches().get(0);
+            if (scvsNeeded > 0) {
+                break;
             }
         }
+        if (!scvsToMove.isEmpty()) {
+            Bot.ACTION.unitCommand(scvsToMove, Abilities.SMART, GameState.mineralNodeRally, false);
+        }
 
-        //rally all CCs to newest base's mineral line
-        if (!Switches.TvtFastStart) {
+        //send left over available workers to the newest base's mineral line
+        if (!Switches.tvtFastStart) {
             for (Unit cc : GameState.ccList) {
-                Bot.ACTION.unitCommand(cc, Abilities.RALLY_COMMAND_CENTER, GameState.mineralNodeRally.unit(), false);
+                Bot.ACTION.unitCommand(cc, Abilities.RALLY_COMMAND_CENTER, GameState.mineralNodeRally, false);
 
             }
         }
