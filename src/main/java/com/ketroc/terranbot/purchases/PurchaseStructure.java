@@ -246,15 +246,20 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 return false;
             case TERRAN_COMMAND_CENTER:
+                int skipLocationCount = GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0);
                 for (Point ccPos : LocationConstants.myExpansionLocations.subList(0, LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND)) {
-                    if (!UnitUtils.isUnitTypesNearby(List.of(Units.TERRAN_COMMAND_CENTER, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_ORBITAL_COMMAND), ccPos.toPoint2d(), 1)) { //this includes enemy
+                    if (!UnitUtils.isUnitTypesNearby(List.of(Units.TERRAN_COMMAND_CENTER, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_ORBITAL_COMMAND), ccPos.toPoint2d(), 1)) { //if any cc is there -- TODO: this includes enemy terran cc
+                        if (skipLocationCount > 0) { //skip if a scv is already on the way to build a cc
+                            skipLocationCount--;
+                            continue;
+                        }
                         position = ccPos.toPoint2d(); //TODO: check for minerals/gas at base
                         return true;
                     }
                 }
                 return false;
             case TERRAN_STARPORT:
-                if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: add more hardcoded positions or create a position
+                if (!LocationConstants.STARPORTS.isEmpty()) {
                     position = LocationConstants.STARPORTS.remove(0);
                     return true;
                 }
@@ -278,6 +283,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 break;
             case TERRAN_SUPPLY_DEPOT:
                 numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SUPPLY_DEPOT_LOWERED, Collections.emptyList()).size();
+                break;
+            case TERRAN_COMMAND_CENTER:
+                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_ORBITAL_COMMAND, Collections.emptyList()).size();
+                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, Collections.emptyList()).size();
                 break;
         }
         return numUnitType;

@@ -75,14 +75,14 @@ public class Bot extends S2Agent {
             case TERRAN:
                 Switches.tvtFastStart = true;
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-                purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
+                //purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameState.baseList.get(0).getCc()));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.WALL_3x3));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.MID_WALL_3x3));
+                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                 break;
             case ZERG:
                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));

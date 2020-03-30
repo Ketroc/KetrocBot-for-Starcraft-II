@@ -19,7 +19,6 @@ public class LocationConstants {
     public static Point2d WALL_2x2;
     public static Point2d WALL_3x3;
     public static Point2d MID_WALL_3x3;
-    public static Point2d FACTORY;
     public static Point2d ARMORY_WEAPONS;
     public static Point2d ARMORY_ARMOR;
     public static List<Point2d> extraDepots = new ArrayList<>();
@@ -102,8 +101,8 @@ public class LocationConstants {
         switch (MAP) {
             case MapNames.TRITON:
                 if (isTopPos) {
-                    REAPER_JUMP_2x2 = Point2d.of(72f, 144f);
-                    REAPER_JUMP_3x3 = Point2d.of(69.5f, 144.5f);
+                    REAPER_JUMP_2x2 = Point2d.of(69f, 144f);
+                    REAPER_JUMP_3x3 = Point2d.of(71.5f, 144.5f);
                     BUNKER_NATURAL = Point2d.of(87.5f, 152.5f);
                     WALL_2x2 = Point2d.of(71.0f, 154.0f);
                     WALL_3x3 = Point2d.of(73.5f, 150.5f);
@@ -129,13 +128,13 @@ public class LocationConstants {
                     TURRETS.add(Point2d.of(57.0f, 162.0f));
                     MACRO_OCS.add(Point2d.of(60.5f, 157.5f));
                     MACRO_OCS.add(Point2d.of(59.5f, 152.5f));
-                    MACRO_OCS.add(Point2d.of(53.5f, 146.5f));
+                    MACRO_OCS.add(Point2d.of(54.5f, 146.5f));
                     MACRO_OCS.add(Point2d.of(54.5f, 141.5f));
                     MACRO_OCS.add(Point2d.of(65.5f, 156.5f));
                     MACRO_OCS.add(Point2d.of(65.5f, 151.5f));
                     MACRO_OCS.add(Point2d.of(65.5f, 146.5f));
                     MACRO_OCS.add(Point2d.of(59.5f, 147.5f));
-                    MACRO_OCS.add(Point2d.of(59.5f, 142.5f));
+                    MACRO_OCS.add(Point2d.of(59.5f, 141.5f));
                     extraDepots.add(Point2d.of(70.0f, 157.0f));
                     extraDepots.add(Point2d.of(70.0f, 159.0f));
                     extraDepots.add(Point2d.of(70.0f, 161.0f));

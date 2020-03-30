@@ -10,6 +10,6 @@
         <module name="ketroc" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="13" />
+    <bytecodeTargetLevel target="12" />
   </component>
 </project>

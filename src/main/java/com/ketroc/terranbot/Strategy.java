@@ -36,7 +36,7 @@ public class Strategy {
                 }
             }
         }
-        idealScvs += GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0) * 22;
+        idealScvs += 10;
         return Math.min(MAX_SCVS, Math.max(idealScvs, 44));
     }
 

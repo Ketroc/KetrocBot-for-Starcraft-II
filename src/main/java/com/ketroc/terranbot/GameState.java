@@ -58,7 +58,7 @@ public class GameState {
     public static final List<Unit> enemyDetector = new ArrayList<>();
     public static final List<EnemyUnit> enemyMappingList = new ArrayList<>();
 
-    public static final Map<Ability, Integer> productionMap = new HashMap<>();
+    public static final Map<Ability, Integer> productionMap = new HashMap<>(); //only counts structures scvs are on the way to build but haven't started yet
     public static final Set<Tag> claimedGases = new HashSet<>();
     public static final List<UnitInPool> otherFriendliesList = new ArrayList<>();
     public static final Map<Units, List<UnitInPool>> allFriendliesMap = new HashMap<>();
@@ -117,7 +117,12 @@ public class GameState {
                     }
                     allFriendliesMap.get(unitType).add(unitInPool);
                     for (UnitOrder order: unit.getOrders()) {
-                        productionMap.put(order.getAbility(), productionMap.getOrDefault(order.getAbility(), 0) + 1);
+                        if (order.getTargetedWorldSpacePosition().isPresent()) {
+                            Units structureType = Bot.abilityToUnitType.getOrDefault(order.getAbility(), Units.INVALID);
+                            if (structureType != Units.INVALID && !UnitUtils.isUnitTypesNearby(structureType, order.getTargetedWorldSpacePosition().get().toPoint2d(), 1)) {
+                                productionMap.put(order.getAbility(), productionMap.getOrDefault(order.getAbility(), 0) + 1);
+                            }
+                        }
                         if (order.getAbility() == Abilities.BUILD_REFINERY) {
                             claimedGases.add(order.getTargetedUnitTag().get());
                         }

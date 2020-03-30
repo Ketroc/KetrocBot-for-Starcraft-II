@@ -21,17 +21,16 @@ public class ArmyManager {
 
     public static void onStep() {
         //set attack location
-        if (Switches.isDefending && UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
+        if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
             //ArmyManager.attackPos = GameState.baseList.get(GameState.baseList.size()-1).getCcPos(); //LocationConstants.rotateBaseAttackIndex();
-            Switches.isDefending = false;
+            if (Switches.isDefending) {
+                Switches.isDefending = false;
+            }
+            else {
+                LocationConstants.rotateBaseAttackIndex();
+            }
             ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
         }
-        else if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
-            LocationConstants.rotateBaseAttackIndex();
-            ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
-        }
-
-
 
 //        //position siege tanks
 //        for(UnitInPool tank : GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SIEGE_TANK, Collections.emptyList())) {

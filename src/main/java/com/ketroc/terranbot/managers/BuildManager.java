@@ -118,9 +118,7 @@ public class BuildManager {
         }
 
         //build command center logic
-        if (GameState.baseList.size() < LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND &&
-                GameState.mineralBank > 500 && !isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
-                GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0) < 1) {
+        if (GameState.baseList.size() < LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND && GameState.mineralBank > 500 && !isStructureQueued(Units.TERRAN_COMMAND_CENTER)) {
             //if on 6 bases, try to build a macro OC
             if (GameState.baseList.size() >= 7 && !LocationConstants.MACRO_OCS.isEmpty()) {
                 Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
