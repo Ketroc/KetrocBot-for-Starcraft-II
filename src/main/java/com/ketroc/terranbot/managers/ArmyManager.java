@@ -21,15 +21,27 @@ public class ArmyManager {
 
     public static void onStep() {
         //set attack location
-        if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, ArmyManager.attackPos, 1)) {
+        if (UnitUtils.isUnitTypesNearby(Units.TERRAN_BANSHEE, attackPos, 1)) {
             //ArmyManager.attackPos = GameState.baseList.get(GameState.baseList.size()-1).getCcPos(); //LocationConstants.rotateBaseAttackIndex();
-            if (Switches.isDefending) {
+            if (Switches.finishHim > 2) {
+                //set any visible enemy or snapshot as new attack point
+                List<UnitInPool> enemies = Bot.OBS.getUnits(Alliance.ENEMY);
+                if (!enemies.isEmpty()) {
+                    attackPos = enemies.get(0).unit().getPosition().toPoint2d();
+                }
+                else {
+                    //spread out
+                    attackPos = null;
+                }
+            }
+            else if (Switches.isDefending) {
                 Switches.isDefending = false;
-            }
-            else {
+                attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size() - LocationConstants.baseAttackIndex).toPoint2d();
+            } else {
                 LocationConstants.rotateBaseAttackIndex();
+                attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size() - LocationConstants.baseAttackIndex).toPoint2d();
             }
-            ArmyManager.attackPos = LocationConstants.myExpansionLocations.get(LocationConstants.myExpansionLocations.size()-LocationConstants.baseAttackIndex).toPoint2d();
+
         }
 
 //        //position siege tanks
@@ -70,27 +82,33 @@ public class ArmyManager {
         }
 
         //=== Attack Banshees
-
-        //give banshee divers command
-        if (Switches.bansheeDiveTarget != null) {
-            Bot.ACTION.unitCommand(GameState.bansheeDivers, Abilities.ATTACK, Switches.bansheeDiveTarget.unit(), false);
+        //if searching for last structures
+        if (attackPos == null) {
+            spreadArmy(GameState.bansheeList);
+            spreadArmy(GameState.vikingList);
         }
+        else {
+            //give banshee divers command
+            if (Switches.bansheeDiveTarget != null) {
+                Bot.ACTION.unitCommand(GameState.bansheeDivers, Abilities.ATTACK, Switches.bansheeDiveTarget.unit(), false);
+            }
 
-        //give normal banshees their commands
-        for (Unit banshee : GameState.bansheeList) {
-            giveBansheeCommand(banshee);
-        }
+            //give normal banshees their commands
+            for (Unit banshee : GameState.bansheeList) {
+                giveBansheeCommand(banshee);
+            }
 
-        //=== Attack Vikings
+            //=== Attack Vikings
 
-        //give viking divers commands
-        if (Switches.vikingDiveTarget != null) {
-            Bot.ACTION.unitCommand(GameState.vikingList, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
-        }
+            //give viking divers commands
+            if (Switches.vikingDiveTarget != null) {
+                Bot.ACTION.unitCommand(GameState.vikingList, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
+            }
 
-        //give normal banshees their commands
-        for (Unit viking : GameState.vikingList) {
-            giveVikingCommand(viking);
+            //give normal banshees their commands
+            for (Unit viking : GameState.vikingList) {
+                giveVikingCommand(viking);
+            }
         }
 
         //repair station
@@ -124,23 +142,32 @@ public class ArmyManager {
         }
     }
 
-    private static Point2d setTankLocation() {
-//        //if tank at eng base - REMOVED: skipping tank at main ramp
-//        if (!UnitUtils.isUnitTypeNearby(Units.TERRAN_SIEGE_TANK_SIEGED, LocationConstants.DEPOT2, 5)) {
-//            return LocationConstants.DEPOT2;
-//        }
-        //loop through bases looking for tank
-        for (Base base : GameState.baseList) {
-            Unit cc = base.getCc();
-            if (cc.getType() == Units.TERRAN_ORBITAL_COMMAND) { //ignore main base and macro OCs
-                continue;
-            }
-            if (!UnitUtils.isUnitTypesNearby(Units.TERRAN_SIEGE_TANK_SIEGED, cc.getPosition().toPoint2d(), 12)) {
-                return calculateTankPosition(cc.getPosition().toPoint2d());
+    private static void spreadArmy(List<Unit> army) {
+        for (Unit unit : army) {
+            if (unit.getOrders().isEmpty()) {
+                Point2d randomPoint = Point2d.of((float)Math.random() * GameState.SCREEN_TOP_RIGHT.getX(), (float)Math.random() * GameState.SCREEN_TOP_RIGHT.getY());
+                Bot.ACTION.unitCommand(unit, Abilities.ATTACK, randomPoint, false);
             }
         }
-        return null;
     }
+
+//    private static Point2d setTankLocation() {
+////        //if tank at eng base - REMOVED: skipping tank at main ramp
+////        if (!UnitUtils.isUnitTypeNearby(Units.TERRAN_SIEGE_TANK_SIEGED, LocationConstants.DEPOT2, 5)) {
+////            return LocationConstants.DEPOT2;
+////        }
+//        //loop through bases looking for tank
+//        for (Base base : GameState.baseList) {
+//            Unit cc = base.getCc();
+//            if (cc.getType() == Units.TERRAN_ORBITAL_COMMAND) { //ignore main base and macro OCs
+//                continue;
+//            }
+//            if (!UnitUtils.isUnitTypesNearby(Units.TERRAN_SIEGE_TANK_SIEGED, cc.getPosition().toPoint2d(), 12)) {
+//                return calculateTankPosition(cc.getPosition().toPoint2d());
+//            }
+//        }
+//        return null;
+//    }
 
     private static Point2d calculateTankPosition(Point2d ccPos) {//pick position away from enemy main base like a knight move (3x1)
         float xCC = ccPos.getX();

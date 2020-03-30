@@ -42,7 +42,7 @@ public class LocationConstants {
     public static void rotateBaseAttackIndex() {
         baseAttackIndex--;
         if (baseAttackIndex == 0) {
-            //TODO: initiate end game clean up
+            Switches.finishHim++;
             baseAttackIndex = 8;
         }
     }

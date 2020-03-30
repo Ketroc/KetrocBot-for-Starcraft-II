@@ -11,6 +11,6 @@ public class Switches {
 
     public static boolean isDefending;
     public static boolean tvtFastStart;
-    public static boolean isFinishing;
+    public static int finishHim; //if I cycle his bases to his main 3 times then start final clean up.
 
 }

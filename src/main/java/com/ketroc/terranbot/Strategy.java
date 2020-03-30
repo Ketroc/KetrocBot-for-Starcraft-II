@@ -22,6 +22,7 @@ public class Strategy {
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static final int DIVE_RANGE = 16;
 
+
     public static int step_TvtFastStart = 1;
     public static UnitInPool scv_TvtFastStart;
 
