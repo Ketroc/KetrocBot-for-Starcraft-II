@@ -4,9 +4,9 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
-import com.ketroc.terranbot.Bot;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
-import com.ketroc.terranbot.GameState;
+import com.ketroc.terranbot.GameCache;
 
 public class PurchaseStructureMorph implements Purchase {
     private static final float CANCEL_THRESHOLD = 0.4f;
@@ -65,7 +65,7 @@ public class PurchaseStructureMorph implements Purchase {
         if (shouldCancelPreviousOrder()) {
             System.out.println("cancelled unit");
             Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
-            GameState.mineralBank += 50;
+            GameCache.mineralBank += 50;
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
         }
@@ -92,8 +92,8 @@ public class PurchaseStructureMorph implements Purchase {
 
     private boolean shouldCancelPreviousOrder() {
         if (!structure.unit().getOrders().isEmpty() && structure.unit().getOrders().get(0).getAbility() == Abilities.TRAIN_SCV) {
-            int minerals = GameState.mineralBank;
-            int gas = GameState.gasBank;
+            int minerals = GameCache.mineralBank;
+            int gas = GameCache.gasBank;
 
             UnitOrder order = this.structure.unit().getOrders().get(0);
             UnitTypeData producingUnitData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(order.getAbility()));
@@ -113,7 +113,7 @@ public class PurchaseStructureMorph implements Purchase {
 
     @Override
     public boolean canAfford() {
-        return GameState.mineralBank >= cost.minerals && GameState.gasBank >= cost.gas;
+        return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
     }
 
 

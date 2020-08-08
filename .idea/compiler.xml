@@ -7,9 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="SC2Bot" />
-        <module name="ketroc" />
+        <module name="terranbot" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="12" />
+    <bytecodeTargetLevel target="12">
+      <module name="kagamine" target="1.12" />
+      <module name="ketroc" target="1.12" />
+    </bytecodeTargetLevel>
   </component>
 </project>

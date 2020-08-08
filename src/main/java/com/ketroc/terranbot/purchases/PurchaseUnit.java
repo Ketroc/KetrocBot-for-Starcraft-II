@@ -2,14 +2,19 @@ package com.ketroc.terranbot.purchases;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.ketroc.terranbot.Bot;
+import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
-import com.ketroc.terranbot.GameState;
+import com.ketroc.terranbot.GameCache;
 
 public class PurchaseUnit implements Purchase {
     private Cost cost;
     private Units unitType;
     private UnitInPool productionStructure;
+
+    public PurchaseUnit(Units unitType, Unit productionStructure) {
+        this(unitType, Bot.OBS.getUnit(productionStructure.getTag()));
+    }
 
     public PurchaseUnit(Units unitType, UnitInPool productionStructure) {
         this.unitType = unitType;
@@ -44,6 +49,7 @@ public class PurchaseUnit implements Purchase {
 
     @Override
     public PurchaseResult build() {
+        //TODO: handle finding the right production structure and add a constructor for unittype only
         if (!productionStructure.isAlive()) {
             return PurchaseResult.CANCEL;
         }
@@ -58,7 +64,7 @@ public class PurchaseUnit implements Purchase {
 
     @Override
     public boolean canAfford() {
-        return GameState.mineralBank >= cost.minerals && GameState.gasBank >= cost.gas;
+        return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
     }
 
     @Override

@@ -1,48 +1,105 @@
 package com.ketroc.terranbot.models;
 
+import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.Strategy;
+import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.bots.Bot;
+
+import java.util.Collections;
 
 public class EnemyUnit {
+    public static float observerRange = 11;
     public float x;
     public float y;
+    public float supply;
     public boolean isAir;
     public boolean isDetector;
     public boolean isEffect;
+    public boolean isArmy;
+    public boolean isSeekered;
+    public boolean isTempest;
     public float detectRange;
+    public float groundAttackRange;
     public float airAttackRange;
-    public byte threatLevel;
-    public float maxRange;
+    public short threatLevel;
+    public byte pfTargetLevel;
+    public float maxRange; //used to determine what portion of the grid to loop through
+
+    public EnemyUnit(Unit friendly, boolean isParasitic) {
+        x = friendly.getPosition().getX();
+        y = friendly.getPosition().getY();
+        isDetector = true;
+        detectRange = 3f + Strategy.KITING_BUFFER;
+        airAttackRange = 3f + Strategy.KITING_BUFFER;
+        threatLevel = 200;
+        calcMaxRange();
+    }
+
+    public EnemyUnit(Point2d pos, boolean isFungal) {
+        x = pos.getX();
+        y = pos.getY();
+        isDetector = true;
+        isEffect = true;
+        detectRange = 3.5f;
+        groundAttackRange = 3.5f;
+        airAttackRange = 3.5f;
+        maxRange = 3.5f;
+        threatLevel = 200;
+    }
 
     public EnemyUnit(Unit enemy) {
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
+        supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
         isAir = enemy.getFlying().orElse(false);
         threatLevel = getThreatValue((Units)enemy.getType());
+        pfTargetLevel = getPFTargetValue((Units)enemy.getType());
         detectRange = enemy.getDetectRange().orElse(0f);
         isDetector = detectRange > 0f;
-        detectRange +=  Strategy.KITING_BUFFER + 1;
-
-        airAttackRange = UnitUtils.getAirAttackRange(enemy) + Strategy.KITING_BUFFER;
+        detectRange +=  Strategy.KITING_BUFFER + 1.5f;
+        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
+        isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
+        airAttackRange = UnitUtils.getAirAttackRange(enemy);
+        if (airAttackRange != 0) {
+            airAttackRange += Strategy.KITING_BUFFER;
+        }
+        groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
+        if (groundAttackRange != 0) {
+            groundAttackRange += Strategy.KITING_BUFFER;
+        }
         switch ((Units)enemy.getType()) {
             case PROTOSS_PHOENIX:
                 airAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
                 break;
             case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
+            case ZERG_MUTALISK: //giving more kiting range since it's fast
                 airAttackRange++;
                 break;
             case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
-                airAttackRange -= 0.5;
+                airAttackRange -= 0.5f;
                 break;
-            case PROTOSS_TEMPEST: case TERRAN_VIKING_FIGHTER:
-                airAttackRange = 6; //hack so my vikings will fight, but this hack is bad for banshees
+            case PROTOSS_OBSERVER:
+                if (EnemyUnit.observerRange != 13.75f && enemy.getDetectRange().orElse(11f) > 11f) {
+                    EnemyUnit.observerRange = 13.75f;
+                }
+                isDetector = true;
+                detectRange = EnemyUnit.observerRange + Strategy.KITING_BUFFER + 1.5f;
+                break;
+            case TERRAN_CYCLONE: //assume cyclones won't attack other than their lock_on
+                airAttackRange = 0;
+                groundAttackRange = 0;
+                break;
+            case PROTOSS_TEMPEST:
+                isTempest = true;
+                break;
         }
-        calcMaxRange();
+        calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
     }
 
     public EnemyUnit(EffectLocations effect) {
@@ -57,27 +114,53 @@ public class EnemyUnit {
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
-                detectRange = 3.5f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
-                threatLevel = 20;
-                airAttackRange = 3.5f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                detectRange = 4f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                threatLevel = 200;
+                airAttackRange = 4f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                groundAttackRange = airAttackRange;
+                break;
+            case PSI_STORM_PERSISTENT:
+                isDetector = true;
+                detectRange = effect.getRadius().get() + Strategy.KITING_BUFFER;
+                threatLevel = 200;
+                airAttackRange = effect.getRadius().get() + Strategy.KITING_BUFFER;
+                groundAttackRange = airAttackRange;
                 break;
         }
-        calcMaxRange();
+        calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
     }
 
     private void calcMaxRange() {
-        //set the largest range of airattack, detection, range from banshee/viking
-        maxRange = Math.max(airAttackRange, Math.max(detectRange, (isAir) ? Strategy.VIKING_RANGE : Strategy.BANSHEE_RANGE));
+        //viking stay back range if tempests are out
+        if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) {
+            maxRange = 15 + Strategy.KITING_BUFFER;
+            return;
+        }
+
+        //set the largest range of air attack, ground attack, detection, viking range, and banshee range
+        maxRange = Math.max(airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER, groundAttackRange);
+        maxRange = Math.max(maxRange, detectRange);
+        if (isAir) {
+            maxRange = Math.max(maxRange, Strategy.VIKING_RANGE);
+        }
+        else {
+            if (isDetector) { //spell effects (any turrets/spores/cannons)
+                maxRange = Math.max(maxRange, Strategy.BANSHEE_RANGE);
+            }
+            else {
+                maxRange = Math.max(maxRange, 13); //13 for GameCache.pointGroundUnitWithin13
+            }
+        }
     }
 
     public static byte getThreatValue(Units unitType) {
         switch (unitType) {
             case TERRAN_MARINE:
-                return 3;
+                return 2;
             case TERRAN_MISSILE_TURRET:
                 return 8;
-            case TERRAN_BUNKER: //TODO: what to do with that?
-                return 4;
+            case TERRAN_BUNKER: //assume 4 marines
+                return 12;
             case TERRAN_VIKING_FIGHTER:
                 return 3;
             case TERRAN_LIBERATOR:
@@ -111,15 +194,15 @@ public class EnemyUnit {
             case PROTOSS_VOIDRAY:
                 return 4;
             case PROTOSS_STALKER:
-                return 2;
-            case PROTOSS_TEMPEST:
                 return 3;
+            case PROTOSS_TEMPEST:
+                return 2; //should be 4, but this is a hack to ignore tempests when only 1 of them
             case PROTOSS_PHOTON_CANNON:
                 return 5;
             case ZERG_HYDRALISK:
-                return 4;
-            case ZERG_QUEEN:
                 return 3;
+            case ZERG_QUEEN:
+                return 4;
             case ZERG_MUTALISK:
                 return 2;
             case ZERG_CORRUPTOR:
@@ -129,4 +212,94 @@ public class EnemyUnit {
         }
         return 0;
     }
+
+    public static byte getPFTargetValue(Units unitType) {
+        switch (unitType) {
+            case TERRAN_MARINE:
+                return 4;
+            case TERRAN_MARAUDER:
+                return 7;
+            case TERRAN_GHOST:
+                return 7;
+            case TERRAN_AUTO_TURRET:
+                return 1;
+            case TERRAN_CYCLONE:
+                return 6;
+            case TERRAN_THOR:
+                return 5;
+            case TERRAN_THOR_AP:
+                return 5;
+            case TERRAN_SIEGE_TANK:
+                return 5;
+            case TERRAN_SIEGE_TANK_SIEGED:
+                return 4;
+            case TERRAN_HELLION:
+                return 2;
+            case TERRAN_HELLION_TANK:
+                return 5;
+            case PROTOSS_ZEALOT:
+                return 5;
+            case PROTOSS_ADEPT:
+                return 2;
+            case PROTOSS_SENTRY:
+                return 3;
+            case PROTOSS_STALKER:
+                return 4;
+            case PROTOSS_COLOSSUS:
+                return 3;
+            case PROTOSS_IMMORTAL:
+                return 7;
+            case PROTOSS_HIGH_TEMPLAR:
+                return 10;
+            case PROTOSS_ARCHON:
+                return 5;
+            case PROTOSS_DARK_TEMPLAR:
+                return 9;
+            case ZERG_HYDRALISK:
+                return 6;
+            case ZERG_HYDRALISK_BURROWED:
+                return 5;
+            case ZERG_QUEEN:
+                return 3;
+            case ZERG_QUEEN_BURROWED:
+                return 2;
+            case ZERG_INFESTOR:
+                return 7;
+            case ZERG_INFESTOR_BURROWED:
+                return 7;
+            case ZERG_LURKER_MP:
+                return 8;
+            case ZERG_LURKER_MP_BURROWED:
+                return 8;
+            case ZERG_ZERGLING:
+                return 5;
+            case ZERG_ZERGLING_BURROWED:
+                return 5;
+            case ZERG_BANELING:
+                return 10;
+            case ZERG_BANELING_BURROWED:
+                return 8;
+            case ZERG_BANELING_COCOON:
+                return 1;
+            case ZERG_RAVAGER:
+                return 6;
+//            case ZERG_RAVAGER_BURROWED:
+//                return 5;
+            case ZERG_RAVAGER_COCOON:
+                return 1;
+            case ZERG_ULTRALISK:
+                return 3;
+//            case ZERG_ULTRALISK_BURROWED:
+//                return 2;
+            case ZERG_SWARM_HOST_MP:
+                return 4;
+            case ZERG_SWARM_HOST_BURROWED_MP:
+                return 3;
+            case ZERG_LOCUS_TMP:
+                return 1;
+
+        }
+        return 0;
+    }
+
 }

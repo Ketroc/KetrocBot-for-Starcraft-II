@@ -2,30 +2,39 @@ package com.ketroc.terranbot.purchases;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.ketroc.terranbot.Bot;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
-import com.ketroc.terranbot.GameState;
+import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.strategies.Strategy;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PurchaseUpgrade implements Purchase {
     private UnitInPool structure;
     private Upgrades upgrade;
     private Cost cost;
+    public static final List<Upgrades> armoryUpgrades = (!Strategy.ARCHON_MODE)
+            ?
+            new ArrayList<>(List.of(
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1, Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2, Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3, Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3))
+            :
+            new ArrayList<>(List.of(
+                    Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+                    Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+                    Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3
+            ));
 
     // ============ CONSTRUCTORS =============
-//    public PurchaseUpgrade(Abilities upgrade) {
-//        this(upgrade, null);
-//    }
+
     public PurchaseUpgrade(Upgrades upgrade, UnitInPool structure) {
+
         this.upgrade = upgrade;
-//        if (structure == null) {
-//            structure = selectStructureUnit();
-//        }
         this.structure = structure;
         setCost();
     }
-//    public Unit selectStructureUnit() { //TODO: does api even provide a mapping of upgrade to unit type???
-//        return null;
-//    }
 
     // ========= GETTERS AND SETTERS =========
 
@@ -52,6 +61,10 @@ public class PurchaseUpgrade implements Purchase {
     // ============= METHODS ==============
     public PurchaseResult build() {
         if (!structure.isAlive()) {
+            GameCache.upgradesPurchased.remove(upgrade);
+            if (structure.unit().getType() == Units.TERRAN_ARMORY) {
+                armoryUpgrades.add(0, upgrade);
+            }
             return PurchaseResult.CANCEL;
         }
         if (!canAfford()) {
@@ -75,14 +88,17 @@ public class PurchaseUpgrade implements Purchase {
             }
             Bot.ACTION.unitCommand(structure.unit(), upgradeAbility, false);
             Cost.updateBank(cost);
+            GameCache.upgradesPurchased.add(upgrade);
             return PurchaseResult.SUCCESS;
         }
+        GameCache.upgradesPurchased.remove(upgrade);
+        if (structure.unit().getType() == Units.TERRAN_ARMORY) armoryUpgrades.add(0, upgrade);
         return PurchaseResult.CANCEL;
     }
 
     @Override
     public boolean canAfford() {
-        return GameState.mineralBank >= cost.minerals && GameState.gasBank >= cost.gas;
+        return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
     }
 
     @Override

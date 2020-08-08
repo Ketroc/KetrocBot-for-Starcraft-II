@@ -1,43 +1,44 @@
 package com.ketroc.terranbot.models;
 
-import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.spatial.Point;
+import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 
 public class Gas {
-    private UnitInPool geyser;
-    private UnitInPool refinery;
-    private Point location;
+    private Unit geyser;
+    private Unit refinery;
+    private Point2d location;
 
     // ========= CONSTRUCTORS ===========
 
-    public Gas(UnitInPool geyser) {
+    public Gas(Unit geyser) {
         this.geyser = geyser;
-        this.location = geyser.unit().getPosition();
+        this.location = geyser.getPosition().toPoint2d();
     }
 
     // ========= GETTERS AND SETTERS =========
 
-    public UnitInPool getGeyser() {
+    public Unit getGeyser() {
         return geyser;
     }
 
-    public void setGeyser(UnitInPool geyser) {
+    public void setGeyser(Unit geyser) {
         this.geyser = geyser;
     }
 
-    public UnitInPool getRefinery() {
+    public Unit getRefinery() {
         return refinery;
     }
 
-    public void setRefinery(UnitInPool refinery) {
+    public void setRefinery(Unit refinery) {
         this.refinery = refinery;
     }
 
-    public Point getLocation() {
+    public Point2d getLocation() {
         return location;
     }
 
-    public void setLocation(Point location) {
+    public void setLocation(Point2d location) {
         this.location = location;
     }
+
 }

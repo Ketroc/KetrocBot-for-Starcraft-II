@@ -1,11 +1,8 @@
 package com.ketroc.terranbot;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
-import com.github.ocraft.s2client.protocol.game.Difficulty;
-import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
-
-import java.nio.file.Paths;
+import com.ketroc.terranbot.bots.Bot;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -40,8 +37,11 @@ public class Ladder {
     public static void main(String[] args) {
         Bot bot = new Bot(false);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
-                .setRawAffectsSelection(true)
+                .setTimeoutMS(300000) //5min
+                .setRawAffectsSelection(false)
                 .loadLadderSettings(args)
+                .setShowCloaked(true)
+                .setShowBurrowed(true)
                 .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot))
                 .connectToLadder()
                 .joinGame();

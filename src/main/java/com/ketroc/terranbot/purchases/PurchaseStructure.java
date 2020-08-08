@@ -2,15 +2,18 @@ package com.ketroc.terranbot.purchases;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
+import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.Gas;
+import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
 
@@ -148,19 +151,48 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 return buildOther();
             }
         }
-        //if tech requirement doesn't exist TODO: add tech to purchase queue here???
-        return PurchaseResult.WAITING;
+        else {
+            //if tech requirement doesn't exist TODO: add tech to purchase queue here???
+            Cost.updateBank(cost);
+            return PurchaseResult.WAITING;
+        }
     }
 
     public PurchaseResult buildOther() {
-        if (this.position == null) {  //no position was given.  Find one.
-            //TODO: set random nearby and available location to build
+        //no position was given.  Find one.
+        if (this.position == null) {
             if (!selectStructurePosition()) { //if no position can be set, just remove this structure from the queue
                 System.out.println("cancelled " + structureType + " because no position set");
                 return PurchaseResult.CANCEL;
             }
         }
-        Ability buildAction = structureData.getAbility().get();
+
+        //extra check that structure isn't already in position
+        if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, structureType, position, 1).isEmpty()) { //TODO: won't handle lowered depots, PFs, OCs
+            return PurchaseResult.SUCCESS;
+        }
+
+        //cancel starport purchases if any existing starport is idle
+        if (structureType == Units.TERRAN_STARPORT && Bot.OBS.getFoodUsed() <= 197 &&
+                GameCache.starportList.stream().anyMatch(u -> u.unit().getOrders().isEmpty())) {
+            makePositionAvailableAgain(position);
+            return PurchaseResult.CANCEL;
+        }
+
+        //position unplaceable
+        Abilities buildAction = (Abilities)structureData.getAbility().get();
+        if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
+            //if structure blocks location
+            if (!Bot.OBS.getUnits(u -> position.distance(u.unit().getPosition().toPoint2d()) < BuildManager.getStructureRadius(buildAction) && !UnitUtils.canMove(u.unit().getType())).isEmpty() ||
+                    Bot.OBS.hasCreep(position)) {
+                makePositionAvailableAgain(position);
+                return PurchaseResult.CANCEL;
+            }
+            else { //if movable enemy unit is blocking location
+                return PurchaseResult.WAITING;
+            }
+        }
+
         if (this.scv == null) { //select an scv if none was provided
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
             if (availableScvs.isEmpty()) {
@@ -168,46 +200,49 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 makePositionAvailableAgain(position);
                 return PurchaseResult.CANCEL;
             }
-            this.scv = availableScvs.
-                    get(0).unit();
+            this.scv = availableScvs.get(0).unit();
         }
-        if (this.rallyUnit == null) { //select a rally point for the scv if none is provided
-            //selectARallyUnit();
-        }
-        System.out.println("sending action @" + Bot.OBS.getGameLoop() + buildAction);
+        System.out.println("sending action @" + Bot.OBS.getGameLoop() + buildAction + " at " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
-                //.unitCommand(this.scv, Abilities.SMART, this.rallyUnit, true);
+        StructureScv.scvBuildingList.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
         return PurchaseResult.SUCCESS;
     }
 
     public PurchaseResult buildRefinery() {
-        Ability buildAction = structureData.getAbility().get();
-        for (Base base : GameState.baseList) {
-            for (Gas gas : base.getGases()) {
-                if (gas.getRefinery() == null && gas.getGeyser().unit().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) { //if geyser is available and isn't empty
-                    this.position = gas.getLocation().toPoint2d();
-                    List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
-                    if (availableScvs.isEmpty()) {
-                        return PurchaseResult.WAITING;
+        Abilities buildAction = (Abilities)structureData.getAbility().get();
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase() && base.isComplete(0.60f)) {
+                for (Gas gas : base.getGases()) {
+                    //if geyser is available and isn't empty
+                    if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
+                        //if scv isn't already on the way to build at this geyser
+                        if (StructureScv.scvBuildingList.stream()
+                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getLocation()) < 1)) {
+                            this.position = gas.getLocation();
+                            List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
+                            if (availableScvs.isEmpty()) {
+                                return PurchaseResult.WAITING;
+                            }
+                            this.scv = availableScvs.get(0).unit();
+                            gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
+                            System.out.println("sending action @" + Bot.OBS.getGameLoop() + Abilities.BUILD_REFINERY);
+                            Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
+                            StructureScv.scvBuildingList.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
+                            Cost.updateBank(Units.TERRAN_REFINERY);
+                            return PurchaseResult.SUCCESS;
+                        }
                     }
-                    this.scv = availableScvs.get(0).unit();
-                    gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
-                    System.out.println("sending action @" + Bot.OBS.getGameLoop() + Abilities.BUILD_REFINERY);
-                    Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser().unit(), false);
-                    Cost.updateBank(Units.TERRAN_REFINERY);
-                    return PurchaseResult.SUCCESS;
                 }
             }
         }
-        //if no gas geysers left on my bases
         return PurchaseResult.CANCEL;
     }
 
     private void selectARallyUnit() {
         if (this.rallyUnit == null) {
             if (this.scv.getOrders().isEmpty()) { //send to main base mineral patch
-                this.rallyUnit = GameState.mineralNodeRally;
+                this.rallyUnit = GameCache.defaultRallyNode;
             } else { //back to same mineral patch it's mining now
                 this.rallyUnit = Bot.OBS.getUnit(
                         this.scv.getOrders().get(0).getTargetedUnitTag().get()
@@ -226,12 +261,13 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 break;
             case TERRAN_COMMAND_CENTER:
                 //ignore expansion CCs
-                for (Point ccPos : LocationConstants.myExpansionLocations) {
-                    if (ccPos.toPoint2d().distance(pos) < 1) {
-                        return;
-                    }
+                if (LocationConstants.baseLocations.contains(pos)) {
+                    return;
                 }
                 LocationConstants.MACRO_OCS.add(pos);
+                break;
+            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
+                LocationConstants._3x3Structures.add(pos);
                 break;
         }
     }
@@ -240,27 +276,45 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     private boolean selectStructurePosition() {
         switch (structureType) {
             case TERRAN_SUPPLY_DEPOT:
-                if (!LocationConstants.extraDepots.isEmpty()) { //TODO: add more hardcoded positions or create a position
-                    position = LocationConstants.extraDepots.remove(0);
-                    return true;
-                }
-                return false;
-            case TERRAN_COMMAND_CENTER:
-                int skipLocationCount = GameState.productionMap.getOrDefault(Abilities.BUILD_COMMAND_CENTER, 0);
-                for (Point ccPos : LocationConstants.myExpansionLocations.subList(0, LocationConstants.myExpansionLocations.size() - Strategy.NUM_DONT_EXPAND)) {
-                    if (!UnitUtils.isUnitTypesNearby(List.of(Units.TERRAN_COMMAND_CENTER, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_ORBITAL_COMMAND), ccPos.toPoint2d(), 1)) { //if any cc is there -- TODO: this includes enemy terran cc
-                        if (skipLocationCount > 0) { //skip if a scv is already on the way to build a cc
-                            skipLocationCount--;
-                            continue;
-                        }
-                        position = ccPos.toPoint2d(); //TODO: check for minerals/gas at base
+                if (!LocationConstants.extraDepots.isEmpty()) {
+                    position = LocationConstants.extraDepots.stream()
+                            .filter(p -> BuildManager.isPlaceable(p, Abilities.BUILD_SUPPLY_DEPOT)).findFirst().orElse(null);
+                    if (position != null) {
+                        LocationConstants.extraDepots.remove(position);
                         return true;
                     }
                 }
                 return false;
+            case TERRAN_COMMAND_CENTER:
+                for (Point2d ccPos : LocationConstants.baseLocations.subList(0, LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND)) {
+                    if (!UnitUtils.isUnitTypesNearby(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, ccPos, 1)
+                            && StructureScv.scvBuildingList.stream().noneMatch(scv -> scv.structurePos.distance(ccPos) < 1)) {
+                        if (!BuildManager.isPlaceable(ccPos, Abilities.BUILD_COMMAND_CENTER)) {
+                            continue;
+                        }
+                        position = ccPos; //TODO: check for minerals/gas at base
+                        return true;
+                    }
+                }
+            return false;
+
+
+
             case TERRAN_STARPORT:
                 if (!LocationConstants.STARPORTS.isEmpty()) {
-                    position = LocationConstants.STARPORTS.remove(0);
+                    position = LocationConstants.STARPORTS.stream()
+                            .filter(p -> BuildManager.isPlaceable(p, Abilities.BUILD_STARPORT)).findFirst().orElse(null);
+                    if (position != null) {
+                        LocationConstants.STARPORTS.remove(position);
+                        return true;
+                    }
+                }
+                return false;
+            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
+                position = LocationConstants._3x3Structures.stream()
+                        .filter(p -> BuildManager.isPlaceable(p, (Abilities)Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get())).findFirst().orElse(null);
+                if (position != null) {
+                    LocationConstants._3x3Structures.remove(position);
                     return true;
                 }
                 return false;
@@ -270,31 +324,31 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public static int countUnitType(Units unitType) {
-        int numUnitType = GameState.allFriendliesMap.getOrDefault(unitType, Collections.emptyList()).size();
+        int numUnitType = GameCache.allFriendliesMap.getOrDefault(unitType, Collections.emptyList()).size();
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_STARPORT_FLYING, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_STARPORT_FLYING, Collections.emptyList()).size();
                 break;
             case TERRAN_FACTORY:
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_FACTORY_FLYING, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_FACTORY_FLYING, Collections.emptyList()).size();
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_BARRACKS_FLYING, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_BARRACKS_FLYING, Collections.emptyList()).size();
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_SUPPLY_DEPOT_LOWERED, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_SUPPLY_DEPOT_LOWERED, Collections.emptyList()).size();
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_ORBITAL_COMMAND, Collections.emptyList()).size();
-                numUnitType += GameState.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_ORBITAL_COMMAND, Collections.emptyList()).size();
+                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, Collections.emptyList()).size();
                 break;
         }
         return numUnitType;
     }
 
-    public static UnitInPool getGeyserUnitAtPosition(Point location) {
-        return Bot.OBS.getUnits(Alliance.NEUTRAL, u -> Base.GAS_GEYSER_TYPE.contains(u.unit().getType()) && u.unit().getPosition().distance(location) < 1)
-                .get(0);
+    public static Unit getGeyserUnitAtPosition(Point2d location) { //TODO: null handle
+        return Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType()) && u.unit().getPosition().toPoint2d().distance(location) < 1)
+                .get(0).unit();
     }
 
     @Override
@@ -304,7 +358,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
     @Override
     public boolean canAfford() {
-        return GameState.mineralBank >= cost.minerals && GameState.gasBank >= cost.gas;
+        return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
     }
 
     @Override
