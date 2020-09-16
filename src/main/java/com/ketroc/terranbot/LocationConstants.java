@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
@@ -13,16 +12,21 @@ import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.strategies.Strategy;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class LocationConstants {
     public static final Point2d SCREEN_BOTTOM_LEFT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP0().toPoint2d();
     public static final Point2d SCREEN_TOP_RIGHT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP1().toPoint2d();
-    public static final int MAX_X = (int)SCREEN_TOP_RIGHT.getX();
-    public static final int MAX_Y = (int)SCREEN_TOP_RIGHT.getY();
+    public static final int MAX_X = (int) SCREEN_TOP_RIGHT.getX();
+    public static final int MAX_Y = (int) SCREEN_TOP_RIGHT.getY();
     public static Point2d insideMainWall;
+    public static boolean[][] pointInMainBase = new boolean[400][400];
+    public static boolean[][] pointInEnemyMainBase = new boolean[400][400];
+    public static boolean[][] pointInNat = new boolean[400][400];
+    public static boolean[][] pointInEnemyNat = new boolean[400][400];
+    public static Point2d mainBaseMidPos;
+    public static Point2d enemyMainBaseMidPos;
+
 
     public static boolean isTopSpawn;
     public static String MAP;
@@ -44,11 +48,37 @@ public class LocationConstants {
     public static List<Point2d> STARPORTS = new ArrayList<>();
     public static List<Point2d> TURRETS = new ArrayList<>();
     public static List<Point2d> MACRO_OCS = new ArrayList<>();
+    public static Point2d proxyBarracksPos;
+    public static Point2d proxyBunkerPos;
 
     public static List<Point2d> baseLocations = new ArrayList<>();
+    public static List<Point2d> clockBasePositions = new ArrayList<>();
+    public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
     public static int baseAttackIndex = 2;
     public static Race opponentRace;
+
+    public static void onGameStart(UnitInPool mainCC) {
+        if (MAP.equals(MapNames.GOLDEN_WALL)) { //isTopSpawn == the left spawn for this map
+            isTopSpawn = mainCC.unit().getPosition().getX() < 100;
+        } else {
+            isTopSpawn = mainCC.unit().getPosition().getY() > 100;
+        }
+        setStructureLocations();
+        setBaseLocations();
+        setClockBaseLists();
+        createBaseList(mainCC);
+        insideMainWall = Position.towards(MID_WALL_3x3, baseLocations.get(0), 2.5f);
+        initEnemyRaceSpecifics();
+        mapMainBases();
+        mapNaturalBases();
+        mainBaseMidPos = getMainBaseMidPoint(false);
+        enemyMainBaseMidPos = getMainBaseMidPoint(true);
+
+        //set probe rush mineral node
+        enemyMineralTriangle = new TriangleOfNodes(enemyMineralPos);
+        myMineralTriangle = new TriangleOfNodes(myMineralPos);
+    }
 
     public static void onStep() {
         if (Bot.OBS.getGameLoop() % 6720 == 0 && Base.numMyBases() >= 4) { //every ~5min
@@ -60,7 +90,7 @@ public class LocationConstants {
     //set baseAttackIndex to 2 past the newest enemy base I know about
     private static int getNewEnemyBaseIndex() {
         if (UnitUtils.enemyCommandStructures != null) { //if not an unscouted random player
-            for (int i=0; i<baseLocations.size(); i++) {
+            for (int i = 0; i < baseLocations.size(); i++) {
                 Point2d basePos = baseLocations.get(i);
                 for (Units unitType : UnitUtils.enemyCommandStructures) { //loop through different enemy command structures
                     List<UnitInPool> enemyCommandStructures = GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList());
@@ -74,39 +104,73 @@ public class LocationConstants {
     }
 
     public static void rotateBaseAttackIndex() {
-        if (baseAttackIndex == baseLocations.size()-1) {
+        if (baseAttackIndex == baseLocations.size() - 1) {
             Switches.finishHim = true;
             Bot.ACTION.sendChat("Finish Him!", ActionChat.Channel.BROADCAST);
-        }
-        else {
+        } else {
             baseAttackIndex++;
         }
         skipBasesIOwn();
     }
+
     private static void skipBasesIOwn() {
         //skip bases where I have started a CC at
-        while (baseAttackIndex < baseLocations.size()-1 &&
-                UnitUtils.isUnitTypesNearby(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, baseLocations.get(baseAttackIndex), 1)) {
+        while (baseAttackIndex < baseLocations.size() - 1 && GameCache.baseList.get(baseAttackIndex).isMyBase()) {
             baseAttackIndex++;
         }
     }
 
-    public static void init(UnitInPool mainCC) {
-        if (MAP.equals(MapNames.GOLDEN_WALL)) { //isTopSpawn == the left spawn for this map
-            isTopSpawn = mainCC.unit().getPosition().getX() < 100;
-        }
-        else {
-            isTopSpawn = mainCC.unit().getPosition().getY() > 100;
-        }
-        setStructureLocations();
-        setBaseLocations();
-        createBaseList(mainCC);
-        insideMainWall = Position.towards(MID_WALL_3x3, baseLocations.get(0), 2.5f);
-        initEnemyRaceSpecifics();
+    //make array map of all points within the main bases
+    private static void mapMainBases() {
+        int xMin = (int) SCREEN_BOTTOM_LEFT.getX();
+        int xMax = (int) SCREEN_TOP_RIGHT.getX();
+        int yMin = (int) SCREEN_BOTTOM_LEFT.getY();
+        int yMax = (int) SCREEN_TOP_RIGHT.getY();
 
-        //set probe rush mineral node
-        enemyMineralTriangle = new TriangleOfNodes(enemyMineralPos);
-        myMineralTriangle = new TriangleOfNodes(myMineralPos);
+        Point2d homePos = baseLocations.get(0);
+        float homeZ = Bot.OBS.terrainHeight(homePos);
+
+        Point2d enemyPos = baseLocations.get(baseLocations.size() - 1);
+        float enemyZ = Bot.OBS.terrainHeight(enemyPos);
+
+        for (int x = xMin; x <= xMax; x++) {
+            for (int y = yMin; y <= yMax; y++) {
+                Point2d thisPos = Point2d.of(x, y);
+                float thisZ = Bot.OBS.terrainHeight(thisPos);
+                if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && Bot.OBS.isPathable(Point2d.of(x, y))) {
+                    pointInMainBase[x][y] = true;
+                }
+                else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && Bot.OBS.isPathable(Point2d.of(x, y))) {
+                    pointInEnemyMainBase[x][y] = true;
+                }
+            }
+        }
+    }
+
+    private static void mapNaturalBases() {
+        int xMin = (int) SCREEN_BOTTOM_LEFT.getX();
+        int xMax = (int) SCREEN_TOP_RIGHT.getX();
+        int yMin = (int) SCREEN_BOTTOM_LEFT.getY();
+        int yMax = (int) SCREEN_TOP_RIGHT.getY();
+
+        Point2d natPos = baseLocations.get(1);
+        float natZ = Bot.OBS.terrainHeight(natPos);
+
+        Point2d enemyNatPos = baseLocations.get(baseLocations.size() - 2);
+        float enemyNatZ = Bot.OBS.terrainHeight(enemyNatPos);
+
+        for (int x = xMin; x <= xMax; x++) {
+            for (int y = yMin; y <= yMax; y++) {
+                Point2d thisPos = Point2d.of(x, y);
+                float thisZ = Bot.OBS.terrainHeight(thisPos);
+                if (thisPos.distance(natPos) < 20 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(Point2d.of(x, y))) {
+                    pointInNat[x][y] = true;
+                }
+                else if (thisPos.distance(enemyNatPos) < 20 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(Point2d.of(x, y))) {
+                    pointInEnemyNat[x][y] = true;
+                }
+            }
+        }
     }
 
     public static void setRepairBayLocation() {
@@ -152,15 +216,15 @@ public class LocationConstants {
     public static boolean setEnemyTypes() {
         switch (opponentRace) {
             case TERRAN:
-                UnitUtils.enemyCommandStructures = new ArrayList<>(List.of(Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING));
+                UnitUtils.enemyCommandStructures = new HashSet<>(Set.of(Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING));
                 UnitUtils.enemyWorkerType = Units.TERRAN_SCV;
                 return true;
             case PROTOSS:
-                UnitUtils.enemyCommandStructures = new ArrayList<>(List.of(Units.PROTOSS_NEXUS));
+                UnitUtils.enemyCommandStructures = new HashSet<>(Set.of(Units.PROTOSS_NEXUS));
                 UnitUtils.enemyWorkerType = Units.PROTOSS_PROBE;
                 return true;
             case ZERG:
-                UnitUtils.enemyCommandStructures = new ArrayList<>(List.of(Units.ZERG_HATCHERY, Units.ZERG_LAIR, Units.ZERG_HIVE));
+                UnitUtils.enemyCommandStructures = new HashSet<>(Set.of(Units.ZERG_HATCHERY, Units.ZERG_LAIR, Units.ZERG_HIVE));
                 UnitUtils.enemyWorkerType = Units.ZERG_DRONE;
                 return true;
             default: //case RANDOM:
@@ -179,7 +243,8 @@ public class LocationConstants {
             case MapNames.DISCO_BLOODBATH:
                 setLocationsForDiscoBloodBath(isTopSpawn);
                 break;
-            case MapNames.EPHEMERON: case MapNames.EPHEMERONLE:
+            case MapNames.EPHEMERON:
+            case MapNames.EPHEMERONLE:
                 setLocationsForEphemeron(isTopSpawn);
                 break;
             case MapNames.ETERNAL_EMPIRE:
@@ -223,7 +288,7 @@ public class LocationConstants {
                 break;
         }
         if (Strategy.ANTI_DROP_TURRET) { //replace first turret position with last depot position
-            TURRETS.add(0, extraDepots.remove(extraDepots.size()-1));
+            TURRETS.add(0, extraDepots.remove(extraDepots.size() - 1));
             TURRETS.remove(2);
         }
     }
@@ -292,8 +357,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(33.0f, 130.0f));
             extraDepots.add(Point2d.of(36.0f, 129.0f));
             extraDepots.add(Point2d.of(49.0f, 143.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(143f, 26.5f);
             enemyMineralPos = Point2d.of(33.0f, 145.5f);
 
@@ -426,8 +490,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(31.0f, 132.0f));
             extraDepots.add(Point2d.of(30.0f, 149.0f));
             extraDepots.add(Point2d.of(41.0f, 133.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(155.5f, 42.5f);
             enemyMineralPos = Point2d.of(36.5f, 146.5f);
 
@@ -559,8 +622,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(31.0f, 116.0f));
             extraDepots.add(Point2d.of(30.0f, 118.0f));
             extraDepots.add(Point2d.of(31.0f, 129.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(161.0f, 71.5f);
             enemyMineralPos = Point2d.of(39.0f, 108.5f);
             //REPAIR_BAY = Point2d.of(165.5f,47f);
@@ -696,8 +758,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(20.0f, 141.0f));
             extraDepots.add(Point2d.of(32.0f, 151.0f));
             extraDepots.add(Point2d.of(38.0f, 149.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(138.0f, 20.5f);
             enemyMineralPos = Point2d.of(22.0f, 139.5f);
             //REPAIR_BAY = Point2d.of(126.5f, 31f);
@@ -766,6 +827,9 @@ public class LocationConstants {
     private static void setLocationsForEternalEmpire(boolean isTopPos) {
         numReaperWall = 3;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(77.5f, 54.5f);
+            proxyBunkerPos = Point2d.of(42.5f, 58.5f);
+
             myMineralPos = Point2d.of(150.0f, 141.5f);
             enemyMineralPos = Point2d.of(26.0f, 30.5f);
             //REPAIR_BAY = Point2d.of(144.5f, 133f);
@@ -833,6 +897,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(131.0f, 134.0f));  //drop turret
         }
         else {
+            proxyBarracksPos = Point2d.of(96.5f, 117.5f);
+            proxyBunkerPos = Point2d.of(133.5f, 113.5f);
+
             myMineralPos = Point2d.of(26.0f, 30.5f);
             enemyMineralPos = Point2d.of(150.0f, 141.5f);
             //REPAIR_BAY = Point2d.of(32.5f, 41f);
@@ -905,6 +972,9 @@ public class LocationConstants {
     private static void setLocationsForEverDream(boolean isTopPos) {
         numReaperWall = 2;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(97.5f, 88.5f);
+            proxyBunkerPos = Point2d.of(49.5f, 73.5f);
+
             myMineralPos = Point2d.of(147.0f, 164.5f);
             enemyMineralPos = Point2d.of(53f, 47.5f);
             WALL_2x2 = Point2d.of(144.0f, 151.0f);
@@ -971,6 +1041,9 @@ public class LocationConstants {
 
         }
         else {
+            proxyBarracksPos = Point2d.of(100.5f, 123.5f);
+            proxyBunkerPos = Point2d.of(151.5f, 138.5f);
+
             myMineralPos = Point2d.of(53f, 47.5f);
             enemyMineralPos = Point2d.of(147.0f, 164.5f);
 
@@ -1041,6 +1114,9 @@ public class LocationConstants {
     private static void setLocationsForGoldenWall(boolean isTopPos) {
         numReaperWall = 1;
         if (isTopPos) { //left spawn
+            proxyBarracksPos = Point2d.of(132.5f, 97.5f);
+            proxyBunkerPos = Point2d.of(158.5f, 76.5f);
+
             myMineralPos = Point2d.of(25f, 51.5f);
             enemyMineralPos = Point2d.of(183f, 51.5f);
             //REPAIR_BAY = Point2d.of(144.5f, 133f);
@@ -1108,6 +1184,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(42.0f, 46.0f)); //drop turret TODO: test location
         }
         else {
+            proxyBarracksPos = Point2d.of(68.5f, 98.5f);
+            proxyBunkerPos = Point2d.of(49.5f, 76.5f);
+
             myMineralPos = Point2d.of(183f, 51.5f);
             enemyMineralPos = Point2d.of(25f, 51.5f);
             //REPAIR_BAY = Point2d.of(32.5f, 41f);
@@ -1242,8 +1321,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(181.0f, 180.0f));
             extraDepots.add(Point2d.of(189.0f, 182.0f));
             extraDepots.add(Point2d.of(171.0f, 160.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(72.5f, 56.5f);
             enemyMineralPos = Point2d.of(183.5f, 179.5f);
             //REPAIR_BAY = Point2d.of(158.5f, 49.5f);
@@ -1316,6 +1394,9 @@ public class LocationConstants {
     private static void setLocationsForNightshade(boolean isTopPos) {
         numReaperWall = 3;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(122.5f, 91.5f);
+            proxyBunkerPos = Point2d.of(140.5f, 59.5f);
+
             myMineralPos = Point2d.of(34f, 139.5f);
             enemyMineralPos = Point2d.of(158f, 32.5f);
             //REPAIR_BAY = Point2d.of(32.5f, 121.5f);
@@ -1383,6 +1464,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(62.0f, 141.0f)); //drop turret TODO: test location
         }
         else {
+            proxyBarracksPos = Point2d.of(65.5f, 80.5f);
+            proxyBunkerPos = Point2d.of(51.5f, 112.5f);
+
             myMineralPos = Point2d.of(158f, 32.5f);
             enemyMineralPos = Point2d.of(34f, 139.5f);
             //REPAIR_BAY = Point2d.of(158.5f, 49.5f);
@@ -1458,6 +1542,9 @@ public class LocationConstants {
     private static void setLocationsForSimulacrum(boolean isTopPos) {
         numReaperWall = 3;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(129.5f, 87.5f);
+            proxyBunkerPos = Point2d.of(158.5f, 77.5f);
+
             myMineralPos = Point2d.of(47f, 140.5f);
             enemyMineralPos = Point2d.of(169f, 43.5f);
             //REPAIR_BAY = Point2d.of(53.5f, 133.5f);
@@ -1526,6 +1613,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(80.0f, 139.0f)); //drop turret
         }
         else {
+            proxyBarracksPos = Point2d.of(84.5f, 96.5f);
+            proxyBunkerPos = Point2d.of(57.5f, 106.5f);
+
             myMineralPos = Point2d.of(169f, 43.5f);
             enemyMineralPos = Point2d.of(47f, 140.5f);
             //REPAIR_BAY = Point2d.of(156.5f, 45.5f);
@@ -1604,6 +1694,9 @@ public class LocationConstants {
     private static void setLocationsForThunderBird(boolean isTopPos) {
         numReaperWall = 1;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(129.5f, 82.5f);
+            proxyBunkerPos = Point2d.of(141.5f, 51.5f);
+
             myMineralPos = Point2d.of(38.0f, 140.5f);
             enemyMineralPos = Point2d.of(154.0f, 15.5f);
             //REPAIR_BAY = Point2d.of(41.5f, 122.5f);
@@ -1648,8 +1741,8 @@ public class LocationConstants {
             MACRO_OCS.add(Point2d.of(51.5f, 137.5f));
 
 
-            extraDepots.add(WALL_2x2); //wall2x2
             extraDepots.add(Point2d.of(54.0f, 123.0f)); //reaperJump1
+            extraDepots.add(WALL_2x2); //wall2x2
             extraDepots.add(Point2d.of(58.0f, 132.0f));
             extraDepots.add(Point2d.of(56.0f, 141.0f));
             extraDepots.add(Point2d.of(51.0f, 144.0f));
@@ -1667,6 +1760,9 @@ public class LocationConstants {
 
         }
         else {
+            proxyBarracksPos = Point2d.of(61.5f, 74.5f);
+            proxyBunkerPos = Point2d.of(50.5f, 104.5f);
+
             myMineralPos = Point2d.of(154.0f, 15.5f);
             enemyMineralPos = Point2d.of(38.0f, 140.5f);
             //REPAIR_BAY = Point2d.of(151.5f, 30f);
@@ -1711,8 +1807,8 @@ public class LocationConstants {
             MACRO_OCS.add(Point2d.of(137.5f, 21.5f));
             MACRO_OCS.add(Point2d.of(142.5f, 34.5f));
 
-            extraDepots.add(WALL_2x2); //wall2x2
             extraDepots.add(Point2d.of(139.0f, 34.0f)); //reaperJump1
+            extraDepots.add(WALL_2x2); //wall2x2
             extraDepots.add(Point2d.of(134.0f, 17.0f));
             extraDepots.add(Point2d.of(134.0f, 19.0f));
             extraDepots.add(Point2d.of(134.0f, 23.0f));
@@ -1802,8 +1898,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(43.0f, 160.0f));
             extraDepots.add(Point2d.of(44.0f, 155.0f));
             extraDepots.add(Point2d.of(46.0f, 155.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(168f, 45.5f);
             enemyMineralPos = Point2d.of(48f, 158.5f);
             //REPAIR_BAY = Point2d.of(146.5f, 44.0f);
@@ -1934,8 +2029,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(71.0f, 132.0f));
             extraDepots.add(Point2d.of(70.0f, 135.0f));
             extraDepots.add(Point2d.of(41.0f, 129.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(145f, 22.5f);
             enemyMineralPos = Point2d.of(47f, 141.5f);
             //REPAIR_BAY = Point2d.of(140.5f, 38.5f);
@@ -2069,8 +2163,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(138.0f, 145.0f));
             extraDepots.add(Point2d.of(157.0f, 136.0f));
             extraDepots.add(Point2d.of(155.0f, 136.0f));
-        }
-        else {
+        } else {
             myMineralPos = Point2d.of(34f, 19.5f);
             enemyMineralPos = Point2d.of(150f, 148.5f);
             //REPAIR_BAY = Point2d.of(36.5f, 35.5f);
@@ -2139,6 +2232,9 @@ public class LocationConstants {
     private static void setLocationsForZen(boolean isTopPos) {
         numReaperWall = 3;
         if (isTopPos) {
+            proxyBarracksPos = Point2d.of(71.5f, 87.5f);
+            proxyBunkerPos = Point2d.of(66.5f, 50.5f);
+
             myMineralPos = Point2d.of(150f, 140.5f);
             enemyMineralPos = Point2d.of(42f, 31.5f);
             //REPAIR_BAY = Point2d.of(139.5f, 135.5f);
@@ -2152,7 +2248,7 @@ public class LocationConstants {
             _3x3Structures.add(Point2d.of(136.5f, 146.5f));
             _3x3Structures.add(Point2d.of(128.5f, 135.5f));
 
-            BUNKER_NATURAL = Point2d.of(126.5f, 117.5f);
+            BUNKER_NATURAL = Point2d.of(129.5f, 112.5f);
             //REAPER_JUMP1 = Point2d.of(144.0f, 121.0f);
             REAPER_JUMP2 = Point2d.of(126.5f, 144.5f);
             //REAPER_JUMP3 = Point2d.of(126.0f, 147.0f);
@@ -2203,9 +2299,12 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(126.0f, 149.0f));
             extraDepots.add(Point2d.of(129.0f, 144.0f));
             extraDepots.add(Point2d.of(129.0f, 146.0f));
-            extraDepots.add(Point2d.of(133.0f,148.0f)); //turret
+            extraDepots.add(Point2d.of(133.0f, 148.0f)); //turret
         }
         else {
+            proxyBarracksPos = Point2d.of(119.5f, 85.5f);
+            proxyBunkerPos = Point2d.of(125.5f, 121.5f);
+
             myMineralPos = Point2d.of(42f, 31.5f);
             enemyMineralPos = Point2d.of(150f, 140.5f);
             //REPAIR_BAY = Point2d.of(51.5f, 36.5f);
@@ -2223,7 +2322,7 @@ public class LocationConstants {
             //REAPER_JUMP1 = Point2d.of(48.0f, 51.0f);
             REAPER_JUMP2 = Point2d.of(65.5f, 24.5f);
             //REAPER_JUMP3 = Point2d.of(66.0f, 27.0f);
-            BUNKER_NATURAL = Point2d.of(64.5f, 53.5f);
+            BUNKER_NATURAL = Point2d.of(61.5f, 58.5f);
             FACTORY = Point2d.of(49.5f, 36.5f);
 
             STARPORTS.add(Point2d.of(36.5f, 37.5f));
@@ -2280,10 +2379,10 @@ public class LocationConstants {
         float y1 = WALL_2x2.getY();
         float y2 = WALL_3x3.getY();
 
-        float xMin = Math.min(x1, x2)-1;
-        float xMax = Math.max(x1, x2)+1;
-        float yMin = Math.min(y1, y2)-1;
-        float yMax = Math.max(y1, y2)+1;
+        float xMin = Math.min(x1, x2) - 1;
+        float xMax = Math.max(x1, x2) + 1;
+        float yMin = Math.min(y1, y2) - 1;
+        float yMax = Math.max(y1, y2) + 1;
 
         float xStructure = structure.getPosition().getX();
         float yStructure = structure.getPosition().getY();
@@ -2294,7 +2393,7 @@ public class LocationConstants {
     }
 
     public static void setBaseLocations() {
-        switch(MAP) {
+        switch (MAP) {
             case MapNames.ACROPOLIS:
                 baseLocations.add(Point2d.of(33.5f, 138.5f));
                 baseLocations.add(Point2d.of(31.5f, 113.5f));
@@ -2392,8 +2491,8 @@ public class LocationConstants {
             case MapNames.GOLDEN_WALL:
                 baseLocations.add(Point2d.of(32.5f, 50.5f));
                 baseLocations.add(Point2d.of(40.5f, 77.5f));
-                baseLocations.add(Point2d.of(71.5f, 71.5f));
                 baseLocations.add(Point2d.of(42.5f, 109.5f));
+                baseLocations.add(Point2d.of(71.5f, 71.5f));
                 baseLocations.add(Point2d.of(39.5f, 141.5f));
                 baseLocations.add(Point2d.of(75.5f, 130.5f));
                 baseLocations.add(Point2d.of(51.5f, 30.5f));
@@ -2402,8 +2501,8 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(156.5f, 30.5f));
                 baseLocations.add(Point2d.of(132.5f, 130.5f));
                 baseLocations.add(Point2d.of(168.5f, 141.5f));
-                baseLocations.add(Point2d.of(165.5f, 109.5f));
                 baseLocations.add(Point2d.of(136.5f, 71.5f));
+                baseLocations.add(Point2d.of(165.5f, 109.5f));
                 baseLocations.add(Point2d.of(167.5f, 77.5f));
                 baseLocations.add(Point2d.of(175.5f, 50.5f));
                 break;
@@ -2522,16 +2621,16 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(142.5f, 139.5f));
                 baseLocations.add(Point2d.of(134.5f, 117.5f));
                 baseLocations.add(Point2d.of(149.5f, 95.5f));
-                baseLocations.add(Point2d.of(111.5f, 146.5f));
                 baseLocations.add(Point2d.of(149.5f, 63.5f));
+                baseLocations.add(Point2d.of(111.5f, 146.5f));
                 baseLocations.add(Point2d.of(104.5f, 121.5f));
                 baseLocations.add(Point2d.of(150.5f, 27.5f));
                 baseLocations.add(Point2d.of(71.5f, 134.5f));
                 baseLocations.add(Point2d.of(120.5f, 37.5f));
                 baseLocations.add(Point2d.of(41.5f, 144.5f));
                 baseLocations.add(Point2d.of(42.5f, 108.5f));
-                baseLocations.add(Point2d.of(87.5f, 50.5f));
                 baseLocations.add(Point2d.of(80.5f, 25.5f));
+                baseLocations.add(Point2d.of(87.5f, 50.5f));
                 baseLocations.add(Point2d.of(42.5f, 76.5f));
                 baseLocations.add(Point2d.of(57.5f, 54.5f));
                 baseLocations.add(Point2d.of(49.5f, 32.5f));
@@ -2541,6 +2640,73 @@ public class LocationConstants {
         //reverse list for bottom spawn
         if (!isTopSpawn) {
             Collections.reverse(baseLocations);
+        }
+    }
+
+    public static void setClockBaseLists() {
+        Map<Double, Point2d> basesByAngle = new TreeMap<>();
+        float midX = MAX_X/2;
+        float midY = MAX_Y/2;
+        Point2d homeBasePos = baseLocations.get(0);
+        double homeBaseAngle = Math.toDegrees(Math.atan2(homeBasePos.getX()-midX, homeBasePos.getY()-midY));
+        Point2d enemyBasePos = baseLocations.get(baseLocations.size() - 1);
+        double enemyBaseAngle = Math.toDegrees(Math.atan2(enemyBasePos.getX()-midX, enemyBasePos.getY()-midY)) - homeBaseAngle;
+
+        for (Point2d basePos : baseLocations) {
+            double angle = Math.toDegrees(Math.atan2(basePos.getX()-midX, basePos.getY()-midY)) - homeBaseAngle;
+            if (enemyBaseAngle < 0 && angle < enemyBaseAngle) angle += 360;
+            if (enemyBaseAngle > 0 && angle > enemyBaseAngle) angle -= 360;
+            basesByAngle.put(angle, basePos);
+        }
+
+        basesByAngle.forEach((angle, basePos) -> {
+            if (angle <= 0) {
+                counterClockBasePositions.add(0, basePos);
+            }
+            if (angle >= 0) {
+                clockBasePositions.add(basePos);
+            }
+        });
+        if (enemyBaseAngle < 0) {
+            clockBasePositions.add(enemyBasePos);
+        }
+        else {
+            counterClockBasePositions.add(enemyBasePos);
+        }
+    }
+
+    public static Point2d getMainBaseMidPoint(boolean isEnemyMain) {
+        boolean[][] pointInBase = (isEnemyMain) ? pointInEnemyMainBase : pointInMainBase;
+        int xMin = (int) SCREEN_BOTTOM_LEFT.getX();
+        int xMax = (int) SCREEN_TOP_RIGHT.getX();
+        int yMin = (int) SCREEN_BOTTOM_LEFT.getY();
+        int yMax = (int) SCREEN_TOP_RIGHT.getY();
+        int xBaseLeft = Integer.MAX_VALUE;
+        int xBaseRight = 0;
+        int yBaseTop = 0;
+        int yBaseBottom = Integer.MAX_VALUE;
+
+        for (int x = xMin; x <= xMax; x++) {
+            for (int y = yMin; y <= yMax; y++) {
+                if (pointInBase[x][y]) {
+                    xBaseLeft = Math.min(xBaseLeft, x);
+                    xBaseRight = Math.max(xBaseRight, x);
+                    yBaseTop = Math.max(yBaseTop, y);
+                    yBaseBottom = Math.min(yBaseBottom, y);
+                }
+            }
+        }
+        return Point2d.of((xBaseLeft + xBaseRight)/2, (yBaseTop + yBaseBottom)/2);
+    }
+
+    public static void prepareReaperWallLocations() {
+        if (numReaperWall == 2) {
+            _3x3Structures.set(0, REAPER_JUMP2);
+            extraDepots.add(2, MID_WALL_2x2);
+        }
+        else if (numReaperWall == 3) {
+            _3x3Structures.set(0, REAPER_JUMP2);
+            extraDepots.add(3, MID_WALL_2x2);
         }
     }
 }

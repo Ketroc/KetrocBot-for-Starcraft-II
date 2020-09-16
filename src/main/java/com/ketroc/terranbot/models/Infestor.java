@@ -13,6 +13,7 @@ import com.ketroc.terranbot.bots.Bot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Infestor {
@@ -24,7 +25,7 @@ public class Infestor {
 
     public Infestor(UnitInPool infestor) {
         this.infestor = infestor;
-        prevEnergy = infestor.unit().getEnergy().get();
+        prevEnergy = infestor.unit().getEnergy().orElse(0f);
     }
 
     public static void onStep() {
@@ -59,7 +60,7 @@ public class Infestor {
     private static void dodgefungal(Unit infestor) {
         //manual dodge
         //get all banshee/viking/raven in fungal radius
-        List<Units> airUnitTypes = List.of(Units.TERRAN_BANSHEE, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_RAVEN);
+        Set<Units> airUnitTypes = Set.of(Units.TERRAN_BANSHEE, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_RAVEN);
         List<UnitInPool> airUnitsInFungalRange = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, airUnitTypes, infestor.getPosition().toPoint2d(), 15);
         airUnitsInFungalRange.stream()
                 .forEach(unit -> {

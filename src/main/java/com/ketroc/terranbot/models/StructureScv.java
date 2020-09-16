@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.LocationConstants;
+import com.ketroc.terranbot.Position;
 import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -29,7 +30,6 @@ public class StructureScv {
     public Units structureType;
     public UnitInPool scv;
     private UnitInPool structureUnit;
-    public int numScvsFailed;
 
     // *********************************
     // ********* CONSTRUCTORS **********
@@ -127,8 +127,16 @@ public class StructureScv {
         for (int i = 0; i< scvBuildingList.size(); i++) {
             StructureScv scv = scvBuildingList.get(i);
 
-            //if assigned scv is dead or doesn't have the build order
-            if (!scv.scv.isAlive() || scv.scv.unit().getOrders().isEmpty() || !scv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == scv.buildAbility)) {
+            //if assigned scv is dead add another
+            if (!scv.scv.isAlive()) {
+                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(scv.structurePos);
+                if (!availableScvs.isEmpty()) {
+                    scv.scv = availableScvs.get(0);
+                }
+            }
+
+            //if scv doesn't have the build command
+            if (scv.scv.unit().getOrders().isEmpty() || !scv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == scv.buildAbility)) {
                 UnitInPool structure = scv.getStructureUnit();
 
                 //if structure never started/destroyed, repurchase
@@ -146,8 +154,18 @@ public class StructureScv {
                         }
                     }
 
-                    requeueCancelledStructure(scv);
-                    scvBuildingList.remove(i--);
+                    //if under threat, requeue
+                    Point2d roundedPos = Position.nearestWholePoint(scv.structurePos);
+                    if (GameCache.pointThreatToGround[(int)roundedPos.getX()][(int)roundedPos.getY()] > 0) {
+                        requeueCancelledStructure(scv);
+                        scvBuildingList.remove(i--);
+                    }
+                    else {
+                        Cost.updateBank(scv.structureType);
+                        if (Bot.QUERY.placement(scv.buildAbility, scv.structurePos)) {
+                            Bot.ACTION.unitCommand(scv.scv.unit(), scv.buildAbility, scv.structurePos, false);
+                        }
+                    }
                 }
                 //if structure started but not complete
                 else if (structure.unit().getBuildProgress() < 1.0f) {
@@ -159,20 +177,7 @@ public class StructureScv {
 
                     //send another scv
                     else {
-                        List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(scv.structurePos);
-                        if (!availableScvs.isEmpty()) {
-                            scv.numScvsFailed++;
-                            if (scv.numScvsFailed < 3 || structure.unit().getBuildProgress() > 0.8f) {
-                                Bot.ACTION.unitCommand(availableScvs.get(0).unit(), Abilities.SMART, structure.unit(), false);
-                                scv.scv = availableScvs.get(0);
-                            }
-                            //if scvs keep dying, cancel structure and add it back to the purchase queue
-                            else {
-                                Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
-                                requeueCancelledStructure(scv);
-                                scvBuildingList.remove(i--);
-                            }
-                        }
+                        Bot.ACTION.unitCommand(scv.scv.unit(), Abilities.SMART, structure.unit(), false);
                     }
                 }
 
@@ -187,23 +192,24 @@ public class StructureScv {
 
     private static void requeueCancelledStructure(StructureScv scv) {
         switch (scv.structureType) {
-            //don't specify same position for these structures
+            //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:
-                //Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
-                break;
-            //fix for refinery type
-            case TERRAN_REFINERY: case TERRAN_REFINERY_RICH: case TERRAN_REFINERY_RICH_410:
-                //Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
+            case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
+            case TERRAN_BUNKER:
                 break;
             case TERRAN_SUPPLY_DEPOT:
                 LocationConstants.extraDepots.add(scv.structurePos);
-//                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
                 break;
             case TERRAN_STARPORT:
                 LocationConstants.STARPORTS.add(scv.structurePos);
-//                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
                 break;
-            case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_BARRACKS: case TERRAN_GHOST_ACADEMY:
+            case TERRAN_BARRACKS:
+                if (scv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
+                    LocationConstants._3x3Structures.add(scv.structurePos);
+                }
+                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
+                break;
+            case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
                 LocationConstants._3x3Structures.add(scv.structurePos);
                 Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
                 break;

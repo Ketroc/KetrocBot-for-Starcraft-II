@@ -13,6 +13,7 @@ import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.DefenseUnitPositions;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
+import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
@@ -43,20 +44,20 @@ public class ArmyManager {
         pfTargetting();
 
         //positioning siege tanks && tank targetting
-        if (!GameCache.siegeTankList.isEmpty()) {
+        if (BunkerContain.proxyBunkerLevel != 2) {
             positionTanks();
         }
 
         //position liberators
-        if (!GameCache.liberatorList.isEmpty()) {
-            positionLiberators();
-        }
+        positionLiberators();
 
         //empty bunker after PF at natural is done
         emptyBunker();
 
         //position marines
-        positionMarines();
+        if (BunkerContain.proxyBunkerLevel == 0) {
+            positionMarines();
+        }
 
         //repair station
         manageRepairBay();
@@ -134,11 +135,9 @@ public class ArmyManager {
 
             //=== Attack Ravens
 
-            //give normal banshees their commands
-            if (!Strategy.ARCHON_MODE) {
-                for (Unit raven : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_RAVEN)) {
-                    giveRavenCommand(raven);
-                }
+            //give ravens their commands
+            for (Unit raven : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_RAVEN)) {
+                giveRavenCommand(raven);
             }
 
             //send actions
@@ -182,7 +181,7 @@ public class ArmyManager {
 
     private static void manageRepairBay() {
         int numInjured = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
-            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE) &&
+            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
                     UnitUtils.getHealthPercentage(u.unit()) < 100 &&
                     u.unit().getPosition().toPoint2d().distance(LocationConstants.REPAIR_BAY) < 5;
         }).size();
@@ -215,13 +214,26 @@ public class ArmyManager {
         UnitInPool closestEnemy = GameCache.allEnemiesList.stream()
                 .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
                         u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
-                        u.unit().getType() != Units.ZERG_OVERLORD && u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore overlords/changelings
+                        !u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
+                        //u.unit().getType() != Units.ZERG_OVERLORD &&
+                        u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
+                        u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore overlords/changelings
+                        u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                         (!GameCache.vikingList.isEmpty() || !u.unit().getFlying().orElse(false)) && //ignore flying units if I have no vikings
                         !u.unit().getHallucination().orElse(false) && u.getLastSeenGameLoop() == Bot.OBS.getGameLoop()) //ignore hallucs and units in the fog
                 .min(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)))).orElse(null);
         if (closestEnemy != null) {
             attackPos = closestEnemy.unit().getPosition().toPoint2d();
             attackUnit = closestEnemy.unit();
+            //TODO: below is hack to "hopefully" handle unknown bug of air units getting stuck on unchanging attackPos
+            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackPos, 1).isEmpty() &&
+                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackPos, 1).isEmpty() &&
+                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackPos, 1).isEmpty()) {
+                System.out.println("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
+                System.out.println("closestEnemy.isAlive() = " + closestEnemy.isAlive());
+                System.out.println("closestEnemy.unit().getType() = " + closestEnemy.unit().getType());
+                GameCache.allEnemiesList.remove(closestEnemy);
+            }
         }
         else if (Switches.finishHim) {
             attackPos = null; //flag to spread army
@@ -324,7 +336,7 @@ public class ArmyManager {
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
                     if (GameCache.pointPFTargetValue[x][y] > bestValue &&
-                            GameCache.distance(x, y, x_pfTank, y_pfTank) < range) {
+                            Position.distance(x, y, x_pfTank, y_pfTank) < range) {
                         bestValueX = x;
                         bestValueY = y;
                         bestValue = GameCache.pointPFTargetValue[x][y];
@@ -512,7 +524,8 @@ public class ArmyManager {
             boolean isLibPlaced = false;
 
             //send available liberator to siege an expansion
-            outer: for (Base base : GameCache.baseList) {
+            List<Base> allButEnemyStarterBases = GameCache.baseList.subList(0, GameCache.baseList.size()-BuildManager.getNumEnemyBasesIgnored());
+            outer: for (Base base : allButEnemyStarterBases) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions libPos : base.getLiberators()) {
                         if (libPos.getUnit().isEmpty()) {
@@ -527,7 +540,7 @@ public class ArmyManager {
             }
 
             //if nowhere to send lib and no expansions left, siege newest enemy base (or siege enemy 3rd base if no enemy bases are known)
-            if (!isLibPlaced && GameCache.baseList.stream().anyMatch(base -> !base.isDryedUp() && base.getCc().isEmpty())) {
+            if (!isLibPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
                 GameCache.baseList.stream()
                         .filter(base -> base.isEnemyBase)
                         .findFirst()
@@ -551,7 +564,8 @@ public class ArmyManager {
             boolean isTankPlaced = false;
 
             //send available tank to siege an expansion
-            outer: for (Base base : GameCache.baseList) {
+            List<Base> allButEnemyStarterBases = GameCache.baseList.subList(0, GameCache.baseList.size()-BuildManager.getNumEnemyBasesIgnored());
+            outer: for (Base base : allButEnemyStarterBases) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit().isEmpty()) {
@@ -566,7 +580,7 @@ public class ArmyManager {
             }
 
             //if nowhere to send tank and no expansions available, a-move tank to its death
-            if (!isTankPlaced && GameCache.baseList.stream().anyMatch(base -> !base.isDryedUp() && base.getCc().isEmpty())) {
+            if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
                 GameCache.baseList.stream()
                         .filter(base -> base.isEnemyBase)
                         .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
@@ -579,10 +593,14 @@ public class ArmyManager {
         //if PF at natural
         if (GameCache.baseList.get(1).getCc().map(UnitInPool::unit).map(Unit::getType).orElse(null) == Units.TERRAN_PLANETARY_FORTRESS) {
             //salvage bunker
-            List<Unit> bunkerList = GameCache.allFriendliesMap.get(Units.TERRAN_BUNKER);
-            if (bunkerList != null) {
-                Bot.ACTION.unitCommand(bunkerList.get(0), Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of main ramp
-                Bot.ACTION.unitCommand(bunkerList.get(0), Abilities.EFFECT_SALVAGE, false);
+            List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
+            if (!bunkerList.isEmpty()) {
+                bunkerList.stream()
+                        .filter(bunker -> UnitUtils.getDistance(bunker, LocationConstants.BUNKER_NATURAL) < 1)
+                        .forEach(bunker -> {
+                            Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
+                            Bot.ACTION.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
+                        });
             }
         }
     }
@@ -895,7 +913,7 @@ public class ArmyManager {
     //drop auto-turrets near enemy before going home to repair
     private static boolean doAutoTurretOnRetreat(Unit raven) {
         if (raven.getEnergy().orElse(0f) >= 50 && UnitUtils.getDistance(raven, attackPos) < 12 && attackUnit != null) {
-            return castAutoTurret(raven);
+            return castAutoTurret(raven, false);
         }
         return false;
     }
@@ -903,13 +921,14 @@ public class ArmyManager {
     //drop auto-turrets near enemy when max energy
     private static boolean doAutoTurretOnMaxEnergy(Unit raven) {
         if (raven.getEnergy().orElse(0f) >= 180) {
-            return castAutoTurret(raven);
+            return castAutoTurret(raven, true);
         }
         return false;
     }
 
-    private static boolean castAutoTurret(Unit raven) {
-        Point2d turretPos = Position.towards(raven.getPosition().toPoint2d(), attackPos, 1.5f);
+    private static boolean castAutoTurret(Unit raven, boolean useForwardPosition) {
+        float castRange = (useForwardPosition) ? 4f : 2f;
+        Point2d turretPos = Position.towards(raven.getPosition().toPoint2d(), attackPos, castRange);
         if (Bot.QUERY.placement(Abilities.BUILD_SUPPLY_DEPOT, turretPos)) { //depot = same size as autoturret
             Bot.ACTION.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, turretPos, false);
             return true;

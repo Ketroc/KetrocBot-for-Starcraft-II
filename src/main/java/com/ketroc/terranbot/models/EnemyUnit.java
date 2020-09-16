@@ -54,24 +54,25 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(Unit enemy) {
+        float kitingBuffer = getKitingBuffer(enemy);
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
         supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
         isAir = enemy.getFlying().orElse(false);
         threatLevel = getThreatValue((Units)enemy.getType());
         pfTargetLevel = getPFTargetValue((Units)enemy.getType());
-        detectRange = enemy.getDetectRange().orElse(0f);
+        detectRange = getDetectionRange(enemy);
         isDetector = detectRange > 0f;
-        detectRange +=  Strategy.KITING_BUFFER + 1.5f;
+        detectRange += kitingBuffer;
         isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         airAttackRange = UnitUtils.getAirAttackRange(enemy);
         if (airAttackRange != 0) {
-            airAttackRange += Strategy.KITING_BUFFER;
+            airAttackRange += kitingBuffer;
         }
         groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
         if (groundAttackRange != 0) {
-            groundAttackRange += Strategy.KITING_BUFFER;
+            groundAttackRange += kitingBuffer;
         }
         switch ((Units)enemy.getType()) {
             case PROTOSS_PHOENIX:
@@ -89,12 +90,12 @@ public class EnemyUnit {
                     EnemyUnit.observerRange = 13.75f;
                 }
                 isDetector = true;
-                detectRange = EnemyUnit.observerRange + Strategy.KITING_BUFFER + 1.5f;
+                detectRange = EnemyUnit.observerRange + kitingBuffer;
                 break;
-            case TERRAN_CYCLONE: //assume cyclones won't attack other than their lock_on
-                airAttackRange = 0;
-                groundAttackRange = 0;
-                break;
+//            case TERRAN_CYCLONE: //assume cyclones won't attack other than their lock_on
+//                airAttackRange = 0;
+//                groundAttackRange = 0;
+//                break;
             case PROTOSS_TEMPEST:
                 isTempest = true;
                 break;
@@ -103,6 +104,7 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(EffectLocations effect) {
+        float kitingBuffer = 2;
         isEffect = true;
         Point2d position = effect.getPositions().iterator().next();
         x = position.getX();
@@ -114,20 +116,40 @@ public class EnemyUnit {
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
-                detectRange = 4f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                detectRange = 5f + kitingBuffer; //actual range is 0.5f but effect disappears prior to it landing
                 threatLevel = 200;
-                airAttackRange = 4f + Strategy.KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                airAttackRange = 5f + kitingBuffer; //actual range is 0.5f but effect disappears prior to it landing
                 groundAttackRange = airAttackRange;
                 break;
             case PSI_STORM_PERSISTENT:
                 isDetector = true;
-                detectRange = effect.getRadius().get() + Strategy.KITING_BUFFER;
+                detectRange = effect.getRadius().get() + kitingBuffer;
                 threatLevel = 200;
-                airAttackRange = effect.getRadius().get() + Strategy.KITING_BUFFER;
+                airAttackRange = effect.getRadius().get() + kitingBuffer;
                 groundAttackRange = airAttackRange;
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
+    }
+
+    private float getKitingBuffer(Unit enemy) {
+        float kitingBuffer = Strategy.KITING_BUFFER;
+        if (!UnitUtils.canMove(enemy.getType())) {
+            kitingBuffer = 2;
+        }
+        return kitingBuffer;
+    }
+
+    private float getDetectionRange(Unit enemy) {
+        float range = enemy.getDetectRange().orElse(0f);
+        if (range == 0f && enemy.getBuildProgress() > 0.85f) {
+            switch ((Units)enemy.getType()) {
+                case PROTOSS_PHOTON_CANNON: case TERRAN_MISSILE_TURRET: case ZERG_SPORE_CRAWLER:
+                    range = 11;
+                    break;
+            }
+        }
+        return range;
     }
 
     private void calcMaxRange() {
@@ -204,9 +226,9 @@ public class EnemyUnit {
             case ZERG_QUEEN:
                 return 4;
             case ZERG_MUTALISK:
-                return 2;
+                return 3;
             case ZERG_CORRUPTOR:
-                return 2;
+                return 3;
             case ZERG_SPORE_CRAWLER:
                 return 5;
         }

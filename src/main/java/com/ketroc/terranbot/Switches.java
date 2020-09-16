@@ -26,11 +26,12 @@ public class Switches {
 
     public static boolean hotkey8; //begin planetary doom
     public static boolean includeTanks;
-    public static boolean scoutScanNow;
+    public static boolean scoutScanComplete;
+    public static boolean doBuildMainBaseTurrets = true;
 
     public static void onStep() {
         //BC Rush Defense - add 3rd turret at main base
-        if (!isExpectingEnemyBCs && LocationConstants.opponentRace == Race.TERRAN &&
+        if (!isExpectingEnemyBCs && Bot.OBS.getGameLoop() < 10752 && LocationConstants.opponentRace == Race.TERRAN &&
                 (!UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BATTLECRUISER).isEmpty() || !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty())) {
             Bot.purchaseQueue.addFirst(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
             Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(2)));

@@ -39,7 +39,7 @@ public class ProbeRushDefense {
 
             //initialize townHall type
             if (townHallType == null && UnitUtils.enemyCommandStructures != null) {
-                townHallType = UnitUtils.enemyCommandStructures.get(0);
+                townHallType = UnitUtils.enemyCommandStructures.iterator().next();
             }
 
             //things to be done at any point during probe rush
@@ -67,8 +67,9 @@ public class ProbeRushDefense {
             }
             switch (defenseStep) {
                 case 0: //probe rush check
-                    if (Bot.OBS.getGameLoop() < 3200 && GameCache.allEnemiesMap.getOrDefault(UnitUtils.enemyWorkerType, Collections.emptyList()).size() > 5 &&
-                            GameCache.allEnemiesMap.getOrDefault(townHallType, Collections.emptyList()).isEmpty()) {
+                    if (Bot.OBS.getGameLoop() < 3200 &&
+                            UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).size() > 5 &&
+                            UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.baseLocations.get(0), 50).size() > 5) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
                     }

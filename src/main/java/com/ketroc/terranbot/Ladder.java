@@ -35,7 +35,14 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
-        Bot bot = new Bot(false);
+        boolean realTime = false;
+        for (String arg : args) {
+            if (arg.contains("RealTime")) {
+                realTime = true;
+                break;
+            }
+        }
+        Bot bot = new Bot(false, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

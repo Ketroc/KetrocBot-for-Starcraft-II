@@ -10,13 +10,45 @@ import com.ketroc.terranbot.bots.Bot;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//TODO: adjust for map boundries on all methods
 public class Position {
     public static Point2d towards(Point2d origin, Point2d target, float distance) {
         float distanceRatio = distance / (float)origin.distance(target);
-        return Point2d.of(
-                ((target.getX() - origin.getX()) * distanceRatio) + origin.getX(),
-                ((target.getY() - origin.getY()) * distanceRatio) + origin.getY()
-        );
+        float x = ((target.getX() - origin.getX()) * distanceRatio) + origin.getX();
+        x = inBoundsX(x);
+        float y = ((target.getY() - origin.getY()) * distanceRatio) + origin.getY();
+        y = inBoundsY(y);
+        return Point2d.of(x, y);
+    }
+
+    private static float inBoundsX(float x) {
+        x = Math.min(x, LocationConstants.MAX_X);
+        x = Math.max(x, 0);
+        return x;
+    }
+
+    private static float inBoundsY(float y) {
+        y = Math.min(y, LocationConstants.MAX_Y);
+        y = Math.max(y, 0);
+        return y;
+    }
+
+    public static boolean atEdgeOfMap(Point2d p) {
+        return p.getX() == 0 || p.getX() == LocationConstants.MAX_X ||
+                p.getY() == 0 || p.getY() == LocationConstants.MAX_Y;
+    }
+
+    public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {
+        if (target.getX() < origin.getX()) {
+            xDistance *= -1;
+        }
+        if (target.getY() < origin.getY()) {
+            yDistance *= -1;
+        }
+        float x = origin.getX() + xDistance;
+
+        float y = origin.getY() + yDistance;
+        return Point2d.of(inBoundsX(x), inBoundsY(y));
     }
 
     public static Point2d midPoint(Point2d p1, Point2d p2) {
@@ -95,7 +127,9 @@ public class Position {
         float ynew = (float)(origin.getX() * sin + origin.getY() * cos);
 
         //add back the pivot point
-        return Point2d.of(xnew + pivotPoint.getX(), ynew + pivotPoint.getY());
+        float x = xnew + pivotPoint.getX();
+        float y = ynew + pivotPoint.getY();
+        return Point2d.of(inBoundsX(x), inBoundsY(y));
     }
 
     public static Point2d normalize(Point2d vector) {
@@ -187,5 +221,15 @@ public class Position {
 
     public static float getZ(Point2d p) {
         return Bot.OBS.terrainHeight(p) + 0.3f;
+    }
+
+    public static float distance(int x1, int y1, float x2, float y2) {
+        float width = Math.abs(x2 - x1);
+        float height = Math.abs(y2 - y1);
+        return (float)Math.sqrt(width*width + height*height);
+    }
+
+    public static boolean pointInMappingValue(Point2d pos, boolean[][] map) {
+        return map[Math.round(pos.getX())][Math.round(pos.getY())];
     }
 }

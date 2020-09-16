@@ -2,12 +2,19 @@ package com.ketroc.terranbot.models;
 
 import com.github.ocraft.s2client.protocol.unit.Tag;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-public abstract class IgnoredUnit {
-    public static List<IgnoredUnit> ignoredUnits = new ArrayList<>();
-
+public class IgnoredUnit {
+    public static Set<IgnoredUnit> ignoredUnits = new HashSet<>();
     public Tag unitTag;
-    public abstract boolean doReleaseUnit();
+
+    public IgnoredUnit(Tag unitTag) {
+        this.unitTag = unitTag;
+    }
+
+    public boolean doReleaseUnit() {
+        return false;
+    }
+
 }

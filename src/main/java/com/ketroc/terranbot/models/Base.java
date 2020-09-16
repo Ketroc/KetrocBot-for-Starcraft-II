@@ -294,7 +294,7 @@ public class Base {
         if (unit.isEmpty()) {
             UnitInPool newUnit;
             if (UnitUtils.COMMAND_CENTER_TYPE.contains(unitType)) {
-                newUnit = UnitUtils.getUnitsNearbyOfType(UnitUtils.COMMAND_CENTER_TYPE, pos, 1).stream()
+                newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, pos, 1).stream()
                         .filter(cc -> !cc.unit().getFlying().orElse(true)) //ignore flying CCs
                         .findFirst().orElse(null);
             }
@@ -324,7 +324,7 @@ public class Base {
 
     public void onMyBaseDeath() {
         //send all scvs to another base's mineral patch
-        List<Unit> baseScvs = UnitUtils.unitInPoolToUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, List.of(Units.TERRAN_SCV, Units.TERRAN_MULE), ccPos, 7));
+        List<Unit> baseScvs = UnitUtils.unitInPoolToUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Set.of(Units.TERRAN_SCV, Units.TERRAN_MULE), ccPos, 7));
         Unit mineralPatch = UnitUtils.getSafestMineralPatch();
         List<Unit> scvsCarrying = baseScvs.stream().filter(unit -> UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());//scvs carrying return cargo first
         if (!scvsCarrying.isEmpty()) {

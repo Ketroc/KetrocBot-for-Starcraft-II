@@ -2,7 +2,6 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
@@ -18,6 +17,7 @@ import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.purchases.PurchaseStructureMorph;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
+import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
@@ -31,6 +31,9 @@ public class BuildManager {
     );
 
     public static void onStep() {
+        //build armories etc
+        build2ndLayerOfTech();
+
         //cancel structure logic
         cancelStructureLogic();
 
@@ -38,9 +41,7 @@ public class BuildManager {
         buildDepotLogic();
 
         //build missile turrets logic
-        if (Strategy.ARCHON_SPENDING_ON) {
-            buildTurretLogic();
-        }
+        buildTurretLogic();
 
         //keep CCs active (make scvs, morph ccs, call mules)
         ccActivityLogic();
@@ -49,26 +50,39 @@ public class BuildManager {
         saveDyingCCs();
 
         //build marines
-        buildBarracksUnitsLogic();
+        if (BunkerContain.proxyBunkerLevel == 0) {
+            buildBarracksUnitsLogic();
+        }
 
         //build siege tanks
-        if (!Strategy.ARCHON_MODE) {
+        if (BunkerContain.proxyBunkerLevel != 2) {
             if (Strategy.DO_INCLUDE_TANKS) {
                 buildFactoryUnitsLogic();
             } else if (!UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
                 liftFactory();
             }
         }
+        //build starport units
+        buildStarportUnitsLogic();
 
-        if (Strategy.ARCHON_SPENDING_ON) {
-            //build starport units
-            buildStarportUnitsLogic();
+        //build starport logic
+        buildStarportLogic();
 
-            //build starport logic
-            buildStarportLogic();
+        //build command center logic
+        buildCCLogic();
+    }
 
-            //build command center logic
-            buildCCLogic();
+    private static void build2ndLayerOfTech() {
+        //build after 4th base started
+        if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
+            Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
+            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            if (LocationConstants.opponentRace == Race.ZERG) {
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+            }
+            Strategy.techBuilt = true;
         }
     }
 
@@ -95,7 +109,7 @@ public class BuildManager {
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty()) {
             turretsRequired = 3;
         }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) {
+        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > 6000) {
             turretsRequired = 1;
         }
         if (turretsRequired > 0) {
@@ -110,6 +124,12 @@ public class BuildManager {
                         }
                     }
                 }
+            }
+            //build main base missile turrets now
+            if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                Switches.doBuildMainBaseTurrets = false;
             }
         }
     }
@@ -167,12 +187,19 @@ public class BuildManager {
                         break;
                     case TERRAN_ORBITAL_COMMAND:
                         if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
-                            //scan enemy base
-                            if (Switches.scoutScanNow) {
-                                if (!Switches.enemyCanProduceAir) {
-                                    Bot.ACTION.unitCommand(cc, Abilities.EFFECT_SCAN, Position.towards(LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), LocationConstants.baseLocations.get(0), 5), false);
+                            //scan enemy main at 4:30
+                            if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Bot.OBS.getGameLoop() > 6000) {
+                                Bot.ACTION.unitCommand(cc, Abilities.EFFECT_SCAN,
+                                        Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
+                                Switches.scoutScanComplete = true;
+
+                                //slow throw away marines as scouts as follow-up scouts
+                                int delay = 120;
+                                for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
+                                    DelayedAction.delayedActions.add(
+                                            new DelayedAction(delay, Abilities.MOVE, Bot.OBS.getUnit(marine.getTag()), GameCache.baseList.get(GameCache.baseList.size() - 1).getCcPos()));
+                                    delay += 60;
                                 }
-                                Switches.scoutScanNow = false;
                             }
                             else {
                                 //calldown mule
@@ -353,15 +380,23 @@ public class BuildManager {
         }
     }
 
-    private static void liftFactory() {
+    public static void liftFactory() {
         UnitInPool factory = GameCache.factoryList.get(0);
         if (factory.unit().getBuildProgress() == 1f) {
             if (factory.unit().getActive().orElse(true)) {
                 Bot.ACTION.unitCommand(factory.unit(), Abilities.CANCEL_LAST, false);
             }
             else {
+                Point2d behindMainBase = Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 10);
+                if (BunkerContain.proxyBunkerLevel == 2) {
+                    BunkerContain.onFactoryLift();
+                }
                 Bot.ACTION.unitCommand(factory.unit(), Abilities.LIFT, false);
-                LocationConstants.STARPORTS.add(0, factory.unit().getPosition().toPoint2d());
+                DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.MOVE, factory, behindMainBase));
+                Point2d factoryPos = factory.unit().getPosition().toPoint2d();
+                if (Position.pointInMappingValue(factoryPos, LocationConstants.pointInMainBase)) {
+                    LocationConstants.STARPORTS.add(0, factoryPos);
+                }
             }
         }
     }
@@ -369,22 +404,23 @@ public class BuildManager {
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starport : GameCache.starportList) {
             if (!starport.unit().getActive().get()) {
-                Abilities unitToProduce = (Strategy.ARCHON_MODE) ? Abilities.TRAIN_RAVEN : decideStarportUnit();
+                Abilities unitToProduce = decideStarportUnit();
                 Units unitType = Bot.abilityToUnitType.get(unitToProduce);
                 if (UnitUtils.canAfford(unitType)) {
+                    //get add-on if required
                     if (starport.unit().getAddOnTag().isEmpty() &&
                             (unitToProduce == Abilities.TRAIN_RAVEN || unitToProduce == Abilities.TRAIN_BANSHEE || unitToProduce == Abilities.TRAIN_BATTLECRUISER) &&
                             !Purchase.isStructureQueued(Units.TERRAN_STARPORT_TECHLAB)) {
                         Bot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
                     }
                     else {
-                        //get cloak when 2nd banshee begins
-                        if (unitToProduce == Abilities.TRAIN_BANSHEE && !Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                                UnitUtils.getNumUnits(Units.TERRAN_BANSHEE, true) == 1) {
-                            if (!Purchase.isUpgradeQueued(Upgrades.BANSHEE_CLOAK) && !isCloakInProduction()) {
-                                Unit availableTechLab = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream().filter(techLab -> techLab.getOrders().isEmpty()).findFirst().get();
-                                Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, Bot.OBS.getUnit(availableTechLab.getTag())));
-                            }
+                        //get cloak when 1st banshee begins
+                        if (unitToProduce == Abilities.TRAIN_BANSHEE &&
+                                !Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
+                                !Purchase.isUpgradeQueued(Upgrades.BANSHEE_CLOAK) &&
+                                !isCloakInProduction()) {
+                            Unit availableTechLab = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream().filter(techLab -> techLab.getOrders().isEmpty()).findFirst().get();
+                            Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, Bot.OBS.getUnit(availableTechLab.getTag())));
                         }
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
                         Cost.updateBank(unitType);
@@ -396,7 +432,7 @@ public class BuildManager {
 
     private static boolean isCloakInProduction() {
         return UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                .anyMatch(techLab -> !techLab.getOrders().isEmpty() && techLab.getOrders().get(0).getAbility() != Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
+                .anyMatch(techLab -> !techLab.getOrders().isEmpty() && techLab.getOrders().get(0).getAbility() == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
     }
 
     public static Abilities decideStarportUnit() { //never max out without a raven
@@ -421,14 +457,14 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //get viking
-        if (numVikings < vikingsRequired) {
-            return Abilities.TRAIN_VIKING_FIGHTER;
-        }
-
         //maintain a banshee count of 1
         if (numBanshees < 1) {
             return Abilities.TRAIN_BANSHEE;
+        }
+
+        //get required vikings
+        if (numVikings < vikingsRequired) {
+            return Abilities.TRAIN_VIKING_FIGHTER;
         }
 
         if (LocationConstants.opponentRace == Race.ZERG) {
@@ -453,12 +489,12 @@ public class BuildManager {
         }
         //TvZ, get raven after first banshee, then a 2nd after 15 air units.
         if (LocationConstants.opponentRace == Race.ZERG) {
-            if ((numBanshees >= 1 && numRavens == 0) || (numBanshees + numVikings > 15 && numRavens < ravensRequired)) {
+            if (numBanshees + numVikings > 15 && numRavens < ravensRequired) {
                 return Abilities.TRAIN_RAVEN;
             }
         }
         //TvT/TvP, get a raven after 6 banshees+vikings
-        else if (UnitUtils.getNumUnits(Units.TERRAN_RAVEN, true) < ravensRequired && numBanshees + numVikings >= 6) {
+        else if (numRavens < ravensRequired && numBanshees + numVikings >= 6) {
             return Abilities.TRAIN_RAVEN;
         }
 
@@ -470,21 +506,6 @@ public class BuildManager {
         if (GameCache.mineralBank > 400 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
                 (Base.numMyBases() < LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND || !LocationConstants.MACRO_OCS.isEmpty())) {
             addCCToPurchaseQueue();
-
-            //TODO: move this
-            //build after 4th base started
-            if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
-                Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
-                if (!Strategy.ARCHON_MODE) {
-                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
-                }
-                if (LocationConstants.opponentRace == Race.ZERG) {
-                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                    Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
-                }
-                Strategy.techBuilt = true;
-            }
         }
     }
 
@@ -510,13 +531,6 @@ public class BuildManager {
     }
 
     private static void addCCToPurchaseQueue() {
-        if (Strategy.ARCHON_MODE) {
-            if (!purchaseExpansionCC()) {
-                purchaseMacroCC();
-            }
-            return;
-        }
-
         int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
         int numScvs = Bot.OBS.getFoodWorkers();
         if (wallUnderAttack() || !CannonRushDefense.isSafe) {
@@ -552,11 +566,14 @@ public class BuildManager {
     }
 
     private static Optional<Point2d> getNextAvailableExpansionPosition() {
-        int numEnemyBasesIgnored = (LocationConstants.MACRO_OCS.isEmpty()) ? 2 : 5; //try to expand deeper on enemy side when macro OCs are complete
-        return GameCache.baseList.subList(0, GameCache.baseList.size()-numEnemyBasesIgnored).stream()
+        return GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
                 .filter(base -> base.isUntakenBase() && !base.isDryedUp() && isPlaceable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER))
                 .findFirst()
                 .map(Base::getCcPos);
+    }
+
+    public static int getNumEnemyBasesIgnored() {
+        return (LocationConstants.MACRO_OCS.isEmpty()) ? 2 : 5; //try to expand deeper on enemy side when macro OCs are complete
     }
 
     private static boolean purchaseMacroCC() {

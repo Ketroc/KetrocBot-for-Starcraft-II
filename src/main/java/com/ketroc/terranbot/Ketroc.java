@@ -24,8 +24,8 @@ public class Ketroc {
                 .setTimeoutMS(600 * 1000)
                 //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
                 .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new Bot(true)),
-                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createParticipant(Race.TERRAN, new Bot(true, false)),
+                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createParticipant(Race.TERRAN, new TestingBot()),
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
@@ -34,18 +34,18 @@ public class Ketroc {
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WorldofSleepersLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
 
         while (s2Coordinator.update()) {
 

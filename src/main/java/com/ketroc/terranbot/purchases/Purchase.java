@@ -1,9 +1,11 @@
 package com.ketroc.terranbot.purchases;
 
+import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
 
@@ -33,6 +35,15 @@ public interface Purchase {
         return false;
     }
 
+    public static boolean isUpgradeQueued(Tag structureTag) {
+        for (Purchase p : Bot.purchaseQueue) {
+            if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().unit().getTag() == structureTag) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean isStructureQueued(Units unitType) {
         return isStructureQueued(unitType, null);
     }
@@ -46,5 +57,15 @@ public interface Purchase {
             }
         }
         return false;
+    }
+
+    public static Point2d getPositionOfQueuedStructure(Units unitType) {
+        for (Purchase p : Bot.purchaseQueue) {
+            if (p instanceof PurchaseStructure &&
+                    ((PurchaseStructure) p).getStructureType() == unitType) {
+                return ((PurchaseStructure) p).getPosition();
+            }
+        }
+        return null;
     }
 }

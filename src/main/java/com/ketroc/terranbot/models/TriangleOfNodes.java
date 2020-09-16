@@ -41,11 +41,11 @@ public class TriangleOfNodes {
                 if (innerPos.distance(node.unit().getPosition().toPoint2d()) < 0.5) {
                     inner = node;
                 }
-                else if (outer1 == null) {
-                    outer1 = node;
+                else if (outer2 == null) {
+                    outer2 = node;
                 }
                 else {
-                    outer2 = node;
+                    outer1 = node;
                 }
             }
         }

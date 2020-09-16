@@ -25,7 +25,6 @@ public class GameCache {
     public static int gasBank;
     public static int freeSupply;
 
-    public static final List<Upgrades> upgradesPurchased = new ArrayList<>(); //any upgrade that is complete, in production, or queued up for purchase
     public static final List<Upgrades> upgradesCompleted = new ArrayList<>(); //completed upgrades
 
     public static boolean[][] pointDetected = null;
@@ -43,7 +42,7 @@ public class GameCache {
 
     public static int numMacroOCs = 0;
     public static final List<Unit> ccList = new ArrayList<>();
-    public static List<Tag> buildingScvTags;
+    public static List<Tag> buildingScvTags =  new ArrayList<>();
     public static final List<UnitInPool> scvMineralList = new ArrayList<>();
     public static final List<UnitInPool> scvIdleList = new ArrayList<>();
     public static final List<UnitInPool> barracksList = new ArrayList<>();
@@ -118,8 +117,11 @@ public class GameCache {
         burningStructures.clear();
 
         for (int i = 0; i< allEnemiesList.size(); i++) {
-            //if currently on screen or if dead, remove it
-            if (allEnemiesList.get(i).getLastSeenGameLoop() == Bot.OBS.getGameLoop() || !allEnemiesList.get(i).isAlive()) {
+            //if currently on screen, or a snapshot, or dead, remove it
+            UnitInPool enemy = allEnemiesList.get(i);
+            if (enemy.getLastSeenGameLoop() == Bot.OBS.getGameLoop() ||
+                    enemy.unit().getDisplayType() == DisplayType.SNAPSHOT ||
+                    !enemy.isAlive()) {
                 allEnemiesList.remove(i--);
             }
         }
@@ -147,17 +149,12 @@ public class GameCache {
             }
             switch (alliance) {
                 case SELF:
-                    //ignore selected friendly units when playing archon mode
-                    if (Strategy.ARCHON_MODE && !UnitUtils.STRUCTURE_TYPE.contains(unitType) && unit.getSelected().orElse(false)) {
-                        continue;
-                    }
-
                     //skip most structures in production
                     if (unit.getBuildProgress() < 1.0f) {
                         inProductionList.add(unit);
                         inProductionMap.put((Units)unit.getType(), inProductionMap.getOrDefault((Units)unit.getType(), 0) + 1);
                         switch (unitType) {
-                            case TERRAN_REFINERY: case TERRAN_REFINERY_RICH: case TERRAN_REFINERY_RICH_410: case TERRAN_COMMAND_CENTER:
+                            case TERRAN_REFINERY: case TERRAN_REFINERY_RICH: case TERRAN_COMMAND_CENTER:
                                 break;
                             default: //ignore in-production units except the ones above
                                 continue;
@@ -186,7 +183,7 @@ public class GameCache {
                         case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
                             ccList.add(unit);
                             break;
-                        case TERRAN_REFINERY: case TERRAN_REFINERY_RICH: case TERRAN_REFINERY_RICH_410:
+                        case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
                             refineryList.add(unit);
                             break;
                         case TERRAN_SUPPLY_DEPOT:
@@ -339,7 +336,7 @@ public class GameCache {
                             Strategy.enemyHasAirThreat = true;
                         }
                     }
-                    if (unit.getDetectRange().orElse(0f) > 0f || unit.getType() == Units.PROTOSS_OBSERVER) { // || unit.getType() == Units.PROTOSS_TEMPEST) {
+                    if (unit.getDetectRange().orElse(0f) > 0f || unit.getType() == Units.PROTOSS_OBSERVER) {
                         enemyDetector.add(unit);
                     }
                     Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons();
@@ -355,13 +352,13 @@ public class GameCache {
 
         //build enemies Units map
         for (UnitInPool unitInPool : allEnemiesList) {
-            if (unitInPool.unit().getType() instanceof Units) { //TODO: try removing this when rich gas IDs are fixed in ocraft api
+            //if (unitInPool.unit().getType() instanceof Units) { //TODO: try removing this when rich gas IDs are fixed in ocraft api
                 Units unitType = (Units) unitInPool.unit().getType();
                 if (!allEnemiesMap.containsKey(unitType)) {
                     allEnemiesMap.put(unitType, new ArrayList<>());
                 }
                 allEnemiesMap.get(unitType).add(unitInPool);
-            }
+            //}
         }
 
         //************************
@@ -370,7 +367,7 @@ public class GameCache {
         List<UnitInPool> enemyCCs = Bot.OBS.getUnits(Alliance.ENEMY, enemyCC -> UnitUtils.enemyCommandStructures.contains(enemyCC.unit().getType())); //TODO: refactor when allEnemiesList doesn't duplicate snapshots
         for (Base base : baseList) { //TODO: handle FlyingCCs
             //ignore bases that aren't mine and aren't visible
-            if (base.getCc().isEmpty() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
+            if (base.isMyBase() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
                 continue;
             }
             base.lastScoutedFrame = Bot.OBS.getGameLoop();
@@ -403,8 +400,26 @@ public class GameCache {
             }
 
             //set default rally node for any base
+            //TODO: remove - for debugging
+            if (base.getCc().isEmpty()) {
+                System.out.println("error on GameCache::407");
+            }
             Unit cc = base.getCc().get().unit();
-            if ((cc.getAssignedHarvesters().get() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) {
+            if (cc.getAssignedHarvesters().isEmpty()) {
+                System.out.println("error on GameCache::411");
+                System.out.println("base index: " + baseList.indexOf(base));
+                System.out.println("base.getCcPos() = " + base.getCcPos());
+                System.out.println("cc.getType() = " + cc.getType());
+                System.out.println("cc.getBuildProgress() = " + cc.getBuildProgress());
+                System.out.println("FlyingCC.flyingCCs.size() = " + FlyingCC.flyingCCs.size());
+                System.out.println("base.isEnemyBase = " + base.isEnemyBase);
+                System.out.println("base.getCc().isPresent() = " + base.getCc().isPresent());
+
+            }
+            if (cc.getIdealHarvesters().isEmpty()) {
+                System.out.println("error on GameCache::414");
+            }
+            if ((cc.getAssignedHarvesters().get() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) { //DEBUG: got No value present on this line
                 if (GameCache.defaultRallyNode == null) {
                     GameCache.defaultRallyNode = base.getRallyNode();
                 }
@@ -524,9 +539,8 @@ public class GameCache {
         //start viking dive vs detector
         if (Switches.vikingDiveTarget == null) {
             //don't dive observer if there are still voids or phoenix visible
-            if (LocationConstants.opponentRace != Race.PROTOSS ||
-                    (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() +
-                            UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {
+            if (LocationConstants.opponentRace != Race.TERRAN && //TODO: temp for ketroc vs ketroc
+                    (LocationConstants.opponentRace != Race.PROTOSS || (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0))) {
                 for (Unit detector : GameCache.enemyDetector) {
                     if (detector.getFlying().orElse(false)) {
                         if (ArmyManager.shouldDive(Units.TERRAN_VIKING_FIGHTER, detector)) {
@@ -625,7 +639,7 @@ public class GameCache {
             //loop through box
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
-                    float distance = distance(x, y, enemy.x, enemy.y);
+                    float distance = Position.distance(x, y, enemy.x, enemy.y);
                     //depot raising
                     if (!enemy.isAir && enemy.isArmy && distance < Strategy.DISTANCE_RAISE_DEPOT) {
                         pointRaiseDepots[x][y] = true;
@@ -707,12 +721,31 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin; x <= xMax; x++) {
                 for (int y = yMin; y <= yMax; y++) {
-                    if (pointThreatToAir[x][y] > 150) {
+                    if (pointDetected[x][y]) {
                         //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, Position.getZ(x, y)), Color.RED, 12);
-                        Bot.DEBUG.debugBoxOut(Point.of(x-0.17f,y-0.17f, Position.getZ(x, y)), Point.of(x+0.17f,y+0.17f, Position.getZ(x, y)), Color.RED);
+                        Bot.DEBUG.debugBoxOut(Point.of(x-0.22f,y-0.22f, Position.getZ(x, y)), Point.of(x+0.22f,y+0.22f, Position.getZ(x, y)), Color.YELLOW);
                     }
+//                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {
+//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, Position.getZ(x, y)), Color.RED, 12);
+//                        Bot.DEBUG.debugBoxOut(Point.of(x-0.17f,y-0.17f, Position.getZ(x, y)), Point.of(x+0.17f,y+0.17f, Position.getZ(x, y)), Color.YELLOW);
+//                    }
+//                    if (LocationConstants.pointInMainBase[x][y] || LocationConstants.pointInMainBase[x][y]) {
+//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, Position.getZ(x, y)), Color.RED, 12);
+//                        Bot.DEBUG.debugBoxOut(Point.of(x-0.14f,y-0.14f, Position.getZ(x, y)), Point.of(x+0.14f,y+0.14f, Position.getZ(x, y)), Color.BLUE);
+//                    }
                 }
             }
+//            float x = LocationConstants.mainBaseMidPos.getX();
+//            float y = LocationConstants.mainBaseMidPos.getY();
+//            float z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+//
+//            x = LocationConstants.enemyMainBaseMidPos.getX();
+//            y = LocationConstants.enemyMainBaseMidPos.getY();
+//            z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
         }
     }
 
@@ -728,12 +761,6 @@ public class GameCache {
         float width = Math.abs(x2 - x1);
         float height = Math.abs(y2 - y1);
         return Math.sqrt(width*width + height*height) < range;
-    }
-
-    public static float distance(int x1, int y1, float x2, float y2) {
-        float width = Math.abs(x2 - x1);
-        float height = Math.abs(y2 - y1);
-        return (float)Math.sqrt(width*width + height*height);
     }
 
     /*

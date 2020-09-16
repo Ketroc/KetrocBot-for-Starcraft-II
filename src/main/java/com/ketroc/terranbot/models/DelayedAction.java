@@ -28,6 +28,12 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.unit = unit;
     }
 
+    public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit) {
+        this.gameFrame = gameFrame;
+        this.ability = ability;
+        this.unit = unit;
+    }
+
     public DelayedAction(int delaySeconds, Abilities ability, UnitInPool unit, UnitInPool targetUnit) {
         this.gameFrame = getDelayedGameFrame(delaySeconds);
         this.ability = ability;
@@ -35,8 +41,22 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.targetUnit = targetUnit;
     }
 
+    public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit, UnitInPool targetUnit) {
+        this.gameFrame = gameFrame;
+        this.ability = ability;
+        this.unit = unit;
+        this.targetUnit = targetUnit;
+    }
+
     public DelayedAction(int delaySeconds, Abilities ability, UnitInPool unit, Point2d targetPos) {
         this.gameFrame = getDelayedGameFrame(delaySeconds);
+        this.ability = ability;
+        this.unit = unit;
+        this.targetPos = targetPos;
+    }
+
+    public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit, Point2d targetPos) {
+        this.gameFrame = gameFrame;
         this.ability = ability;
         this.unit = unit;
         this.targetPos = targetPos;

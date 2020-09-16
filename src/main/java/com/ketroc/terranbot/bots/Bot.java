@@ -15,21 +15,15 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.managers.ArmyManager;
-import com.ketroc.terranbot.managers.BuildManager;
-import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.managers.*;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
-import com.ketroc.terranbot.strategies.CannonRushDefense;
-import com.ketroc.terranbot.strategies.ProbeRushDefense;
-import com.ketroc.terranbot.strategies.ScvRush;
-import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.strategies.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.*;
 
 public class Bot extends S2Agent {
@@ -42,9 +36,11 @@ public class Bot extends S2Agent {
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
     public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
     public static boolean isDebugOn;
+    public static boolean isRealTime;
 
-    public Bot(boolean isDebugOn) {
+    public Bot(boolean isDebugOn, boolean isRealTime) {
         this.isDebugOn = isDebugOn;
+        this.isRealTime = isRealTime;
     }
 
     @Override
@@ -60,7 +56,7 @@ public class Bot extends S2Agent {
             QUERY = query();
             DEBUG = debug();
 
-            //TODO: temp for Spiny
+            //TODO: temp for TWL
             String prevGameCode = "invalid";
             try {
                 prevGameCode = Files.readString(Paths.get("./data/prevResult.txt"));
@@ -68,18 +64,29 @@ public class Bot extends S2Agent {
             catch (IOException e) {
                 e.printStackTrace();
             }
-            //0-lost to nydus, 1-lost to reg, 2-won vs nydus, 3-won vs regular
+            //0-lost w bunker, 1-lost w reg, 2-won w bunker, 3-won w regular
             switch (prevGameCode) {
-                case "invalid": case "0": case "3":
-                    //do anti-nydus opener
-                    Strategy.ANTI_NYDUS_BUILD = true;
+                case "invalid": case "1": case "2":
+                    //do bunker contain
+                    BunkerContain.proxyBunkerLevel = 0;
                     break;
-                case "1": case "2":
+                case "0": case "3":
                     //do regular opener
-                    Strategy.ANTI_NYDUS_BUILD = false;
+                    BunkerContain.proxyBunkerLevel = 0;
                     break;
             }
             System.out.println("========= Prev Match code: " + prevGameCode + " ==========");
+            switch (BunkerContain.proxyBunkerLevel) {
+                case 0:
+                    System.out.println("========= Bunker Contain: off ==========");
+                    break;
+                case 1:
+                    System.out.println("========= Bunker Contain: bunker only ==========");
+                    break;
+                case 2:
+                    System.out.println("========= Bunker Contain: bunker/tanks/turret ==========");
+                    break;
+            }
 
 
             //set map
@@ -100,7 +107,7 @@ public class Bot extends S2Agent {
             ACTION.sendActions();
 
             //get map, get hardcoded map locations
-            LocationConstants.init(mainCC);
+            LocationConstants.onGameStart(mainCC);
 
             //build unit lists
             GameCache.onStep();
@@ -137,36 +144,11 @@ public class Bot extends S2Agent {
                 });
             });
 
-            //set build order
-            switch (LocationConstants.opponentRace) {
-                case TERRAN:
-                    Switches.tvtFastStart = true;
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    break;
-                case ZERG: //TODO: make purchase depot not take a location
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.numReaperWall - 1))); //WALL_2x2
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-                    break;
-                case PROTOSS:
-                case RANDOM:
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.numReaperWall - 1))); //WALL_2x2
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
-                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-                    break;
-            }
-
             Strategy.onGameStart();
+            BuildOrder.onGameStart();
+            BunkerContain.onGameStart();
+
+            ACTION.sendActions();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -177,32 +159,12 @@ public class Bot extends S2Agent {
     public void onStep() {
         try {
             for (ChatReceived chat : Bot.OBS.getChatMessages()) {
-                //my chat
-                if (chat.getPlayerId() == Bot.OBS.getPlayerId()) {
-                    if (Strategy.ARCHON_MODE) {
-                        switch (chat.getMessage().toUpperCase().trim()) {
-                            case ".S":
-                                if (Strategy.ARCHON_SPENDING_ON) {
-                                    Strategy.ARCHON_SPENDING_ON = false;
-                                    Bot.ACTION.sendChat("Bot spending: off", ActionChat.Channel.BROADCAST);
-                                }
-                                else {
-                                    Strategy.ARCHON_SPENDING_ON = true;
-                                    Bot.ACTION.sendChat("Bot spending: on", ActionChat.Channel.BROADCAST);
-                                }
-                                break;
-                        }
-                    }
-                }
-                //responses
-                else {
-                    Chat.respondToBots(chat);
-                }
+                Chat.respondToBots(chat);
             }
 
             if (OBS.getGameLoop() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (OBS.getGameLoop() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Aug 2, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Aug 24, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //rebuild unit cache every frame
@@ -227,7 +189,7 @@ public class Bot extends S2Agent {
                 StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
 
                 //don't build up during probe rush
-                if (ProbeRushDefense.onStep() && !Strategy.ARCHON_MODE) {
+                if (ProbeRushDefense.onStep()) {
                     return;
                 }
 
@@ -236,10 +198,9 @@ public class Bot extends S2Agent {
                     Switches.scvRushComplete = ScvRush.onStep();
                 }
 
-                //cannon rush defense
-                if (!Strategy.ARCHON_MODE) {
-                    CannonRushDefense.onStep();
-                }
+                CannonRushDefense.onStep();
+                BunkerContain.onStep();
+                Harassers.onStep();
 
                 //clearing bases that have just dried up or died
                 GameCache.baseList.stream().forEach(Base::onStep);
@@ -271,6 +232,7 @@ public class Bot extends S2Agent {
 
                 //TODO: order to spend should be workers, units, build queue, structures
                 //Strategy.onStep(); //effect game strategy
+                UpgradeManager.onStep();
                 BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
                 WorkerManager.onStep(); //fix workers, make refineries
                 ArmyManager.onStep(); //decide army movements
@@ -339,13 +301,22 @@ public class Bot extends S2Agent {
         System.out.println("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
         System.out.println("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
         System.out.println("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
-        System.out.println("PurchaseUpgrade.armoryUpgrades.toString() = " + PurchaseUpgrade.armoryUpgrades.toString());
+        System.out.println("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
+        System.out.println("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
         System.out.println("Bot.purchaseQueue.size() = " + Bot.purchaseQueue.size());
         System.out.println("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);
             System.out.println("\nBase " + i);
-            System.out.println("base.isUntakenBase() = " + base.isUntakenBase());
+            if (base.isMyBase()) {
+                System.out.println("isMyBase");
+            }
+            if (base.isEnemyBase) {
+                System.out.println("isEnemyBase");
+            }
+            if (base.isUntakenBase()) {
+                System.out.println("isUntakenBase()");
+            }
             System.out.println("base.isDryedUp() = " + base.isDryedUp());
             System.out.println("isPlaceable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER) = " + BuildManager.isPlaceable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER));
             System.out.println("base.lastScoutedFrame = " + base.lastScoutedFrame);
@@ -369,27 +340,37 @@ public class Bot extends S2Agent {
 
                 switch (unitType) {
                     case TERRAN_BARRACKS:
-                        //set rally
-                        Point2d barracksRally;
-                        if (LocationConstants.opponentRace == Race.TERRAN) {
-                            barracksRally = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.baseLocations.get(1), 1.5f);
+                        if (BunkerContain.proxyBunkerLevel != 0) {
+                            BunkerContain.onBarracksComplete();
                         }
                         else {
-                            barracksRally = LocationConstants.insideMainWall;
+                            //set rally
+                            Point2d barracksRally;
+                            Point2d bunkerPos = Purchase.getPositionOfQueuedStructure(Units.TERRAN_BUNKER);
+                            if (bunkerPos != null) {
+                                barracksRally = Position.towards(bunkerPos, unit.getPosition().toPoint2d(), 2f);
+                            } else {
+                                barracksRally = LocationConstants.insideMainWall;
+                            }
+                            Bot.ACTION.unitCommand(unit, Abilities.SMART, barracksRally, false);
+
+                            //queue tech lab if marauders needed
+                            if (Strategy.ANTI_NYDUS_BUILD) {
+                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS, unit));
+                            }
                         }
-                        Bot.ACTION.unitCommand(unit, Abilities.SMART, barracksRally, false);
 
                         //get OC
-                        if (GameCache.baseList.get(0).getCc().isPresent()) {
-                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc().get())); //TODO: only first time (or only if base isn't OC already)
+                        if (GameCache.baseList.get(0).getCc().map(UnitInPool::unit).map(Unit::getType).orElse(Units.INVALID) == Units.TERRAN_COMMAND_CENTER) {
+                            if (BunkerContain.proxyBunkerLevel == 2) {
+                                purchaseQueue.add(purchaseQueue.size()-2, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc().get())); //TODO: only first time (or only if base isn't OC already)
+                            }
+                            else {
+                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc().get()));
+                            }
                         }
 
-                        //queue tech lab if marauders needed
-                        if (Strategy.ANTI_NYDUS_BUILD) {
-                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS, unit));
-                        }
-
-                        //queue factory TODO: don't do this here cuz what if rebuilding the barracks
+                        //queue factory
                         if (GameCache.factoryList.isEmpty() &&
                                 !Purchase.isStructureQueued(Units.TERRAN_FACTORY) &&
                                 !StructureScv.isAlreadyInProduction(Units.TERRAN_FACTORY)) {
@@ -412,47 +393,40 @@ public class Bot extends S2Agent {
                         purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
                         break;
                     case TERRAN_BUNKER:
-                        //rally bunker to inside main base wall
-                        Point2d bunkerRallyPos = LocationConstants.insideMainWall;
-                        Bot.ACTION.unitCommand(unit, Abilities.SMART, bunkerRallyPos, false);
+                        if (UnitUtils.getDistance(unit, LocationConstants.proxyBunkerPos) < 1) {
+                            BunkerContain.onBunkerComplete();
+                        }
+                        else {
+                            //rally bunker to inside main base wall
+                            Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
+
+                            //load bunker with nearby marines
+                            List<UnitInPool> nearbyMarines = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MARINE, unit.getPosition().toPoint2d(), 60);
+                            if (!nearbyMarines.isEmpty()) {
+                                Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(nearbyMarines), Abilities.SMART, unit, false);
+                            }
+                        }
+                        break;
+                    case TERRAN_ENGINEERING_BAY:
+                        if (BunkerContain.proxyBunkerLevel == 2) {
+                            BunkerContain.onEngineeringBayComplete(unitInPool);
+                        }
                         break;
                     case TERRAN_FACTORY:
-                        purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT, LocationConstants.STARPORTS.remove(0)));
+                        if (BunkerContain.proxyBunkerLevel == 2) {
+                            BunkerContain.onFactoryComplete();
+                        }
+                        else {
+                            purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                        }
+                        break;
+                    case TERRAN_FACTORY_TECHLAB:
+                        if (BunkerContain.proxyBunkerLevel == 2) {
+                            BunkerContain.onTechLabComplete();
+                        }
                         break;
                     case TERRAN_STARPORT:
                         Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, ArmyManager.retreatPos, false);
-
-                        //when first starport finishes
-                        if (Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_STARPORT && u.unit().getBuildProgress() == 1).size() == 1) {
-                            //scan with next 50 energy
-                            if (LocationConstants.opponentRace != Race.ZERG) {
-                                Switches.scoutScanNow = true;
-                            }
-                            //slow throw away marines as scouts
-                            int delay = 90;
-                            for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
-                                DelayedAction.delayedActions.add(
-                                        new DelayedAction(delay, Abilities.MOVE, Bot.OBS.getUnit(marine.getTag()), GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos()));
-                                delay += 60;
-                            }
-                            //build main base missile turrets now
-                            if (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN) {
-                                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
-                            }
-
-                        }
-                        break;
-//                    case TERRAN_STARPORT_TECHLAB:
-//                        //if 1st completed tech lab TODO: move this build order code elsewhere
-//                        if (Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_STARPORT_TECHLAB && u.unit().getBuildProgress() == 1).size() == 1) {
-//                            purchaseQueue.add(new PurchaseUpgrade((Strategy.ARCHON_MODE) ? Upgrades.RAVEN_CORVID_REACTOR : Upgrades.BANSHEE_CLOAK, unitInPool)); //TODO: do this when 1st banshee is produced
-//                        }
-//                        break;
-                    case TERRAN_ARMORY:
-                        if (!PurchaseUpgrade.armoryUpgrades.isEmpty()) {
-                            purchaseQueue.add(new PurchaseUpgrade(PurchaseUpgrade.armoryUpgrades.remove(0), unitInPool));
-                        }
                         break;
                     case TERRAN_SUPPLY_DEPOT:
                         ACTION.unitCommand(unit, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false); //lower depot
@@ -505,6 +479,12 @@ public class Bot extends S2Agent {
         try {
             Unit unit = unitInPool.unit();
             Alliance alliance = unit.getAlliance();
+
+            //cancelled structures are handled in requeueCancelledStructure(), not here
+            if (alliance == Alliance.SELF && unit.getBuildProgress() < 1) {
+                return;
+            }
+
             if (unit.getType() instanceof Units) {
                 switch (alliance) {
                     case SELF:
@@ -512,11 +492,6 @@ public class Bot extends S2Agent {
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
                                 LocationConstants.extraDepots.add(unit.getPosition().toPoint2d());
                                 break;
-                            case TERRAN_ARMORY:
-                                if (!unit.getOrders().isEmpty()) {
-                                    PurchaseUpgrade.armoryUpgrades.add(0, Bot.abilityToUpgrade.get(unit.getOrders().get(0).getAbility())); //TODO: mapping Ability back to Upgrade doesn't work
-                                }
-                                //no break
                             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
                                 LocationConstants._3x3Structures.add(unit.getPosition().toPoint2d());
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
@@ -530,7 +505,7 @@ public class Bot extends S2Agent {
 //                                break;
                             case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
                                 if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: use same location for factory
-                                    purchaseQueue.add(new PurchaseStructure((Units) unit.getType(), LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
+                                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
                                 }
                                 break;
                             case TERRAN_STARPORT:
@@ -577,26 +552,30 @@ public class Bot extends S2Agent {
 
         switch((Upgrades)upgrade) {
             case TERRAN_BUILDING_ARMOR:
-                purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+                if (!Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
+                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+                }
                 break;
             case BANSHEE_CLOAK:
                 purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_SPEED, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
                 break;
-            case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2:
-                if (!PurchaseUpgrade.armoryUpgrades.isEmpty()) {
-                    for (Unit armory : GameCache.allFriendliesMap.get(Units.TERRAN_ARMORY)) {
-                        //if armory idle or contains this finishing upgrade
-                        if (armory.getOrders().isEmpty() || armory.getOrders().get(0).getProgress().orElse(0f) > 0.999) { //upgrade is at 0.9992-0.9993 in this hook
-                            //TODO: is checking purchase queue necessary???
-//                            if (Bot.purchaseQueue.stream().noneMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().getTag().equals(armory.getTag()))) {
-                                if (!PurchaseUpgrade.armoryUpgrades.isEmpty()) {
-                                    purchaseQueue.add(new PurchaseUpgrade(PurchaseUpgrade.armoryUpgrades.remove(0), Bot.OBS.getUnit(armory.getTag())));
-                                    break;
-                                }
-//                            }
-                        }
-                    }
-                }
+            case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
+                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
+                UpgradeManager.updateUpgradeList();
+//                if (!UpgradeManager.armoryUpgrades.isEmpty()) {
+//                    for (Unit armory : GameCache.allFriendliesMap.get(Units.TERRAN_ARMORY)) {
+//                        //if armory idle or contains this finishing upgrade
+//                        if (armory.getOrders().isEmpty() || armory.getOrders().get(0).getProgress().orElse(0f) > 0.999) { //upgrade is at 0.9992-0.9993 in this hook
+//                            //TODO: is checking purchase queue necessary???
+////                            if (Bot.purchaseQueue.stream().noneMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().getTag().equals(armory.getTag()))) {
+//                                if (!UpgradeManager.armoryUpgrades.isEmpty()) {
+//                                    purchaseQueue.add(new PurchaseUpgrade(UpgradeManager.armoryUpgrades.remove(0), Bot.OBS.getUnit(armory.getTag())));
+//                                    break;
+//                                }
+////                            }
+//                        }
+//                    }
+//                }
                 break;
         }
 
@@ -643,7 +622,7 @@ public class Bot extends S2Agent {
                 .get()
                 .getResult();
         String resultCode;
-        //0 - loss + nydus rush, 1 - loss, 2 - win + nydus rush, 3 - win
+        //0 - loss + bunker, 1 - loss w reg, 2 - win + bunker, 3 - win w reg
         Path path = Paths.get("./data/prevResult.txt");
         if (!result.equals(Result.VICTORY)) {
             if (GameResult.wasNydusRushed) {

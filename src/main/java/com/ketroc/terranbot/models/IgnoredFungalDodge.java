@@ -8,7 +8,7 @@ public class IgnoredFungalDodge extends IgnoredUnit {
     public long releaseGameFrame;
 
     public IgnoredFungalDodge(Tag unitTag) {
-        super.unitTag = unitTag;
+        super(unitTag);
         this.releaseGameFrame = Bot.OBS.getGameLoop() + Strategy.FUNGAL_FRAMES;
     }
 
@@ -16,4 +16,5 @@ public class IgnoredFungalDodge extends IgnoredUnit {
     public boolean doReleaseUnit() {
         return Bot.OBS.getGameLoop() >= releaseGameFrame;
     }
+
 }
