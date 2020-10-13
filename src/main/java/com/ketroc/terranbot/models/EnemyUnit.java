@@ -6,15 +6,11 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.UnitUtils;
-import com.ketroc.terranbot.bots.Bot;
-
-import java.util.Collections;
 
 public class EnemyUnit {
-    public static float observerRange = 11;
     public float x;
     public float y;
     public float supply;
@@ -85,13 +81,6 @@ public class EnemyUnit {
             case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
                 airAttackRange -= 0.5f;
                 break;
-            case PROTOSS_OBSERVER:
-                if (EnemyUnit.observerRange != 13.75f && enemy.getDetectRange().orElse(11f) > 11f) {
-                    EnemyUnit.observerRange = 13.75f;
-                }
-                isDetector = true;
-                detectRange = EnemyUnit.observerRange + kitingBuffer;
-                break;
 //            case TERRAN_CYCLONE: //assume cyclones won't attack other than their lock_on
 //                airAttackRange = 0;
 //                groundAttackRange = 0;
@@ -133,23 +122,25 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        float kitingBuffer = Strategy.KITING_BUFFER;
         if (!UnitUtils.canMove(enemy.getType())) {
-            kitingBuffer = 2;
+            return 0.5f;
         }
-        return kitingBuffer;
+        return Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {
         float range = enemy.getDetectRange().orElse(0f);
-        if (range == 0f && enemy.getBuildProgress() > 0.85f) {
+        if (range == 0f) {
             switch ((Units)enemy.getType()) {
                 case PROTOSS_PHOTON_CANNON: case TERRAN_MISSILE_TURRET: case ZERG_SPORE_CRAWLER:
                     range = 11;
                     break;
+                case PROTOSS_OBSERVER:
+                    range = 11;
+                    break;
             }
         }
-        return range;
+        return range + enemy.getRadius();
     }
 
     private void calcMaxRange() {
@@ -238,19 +229,19 @@ public class EnemyUnit {
     public static byte getPFTargetValue(Units unitType) {
         switch (unitType) {
             case TERRAN_MARINE:
-                return 4;
+                return 5;
             case TERRAN_MARAUDER:
-                return 7;
+                return 6;
             case TERRAN_GHOST:
-                return 7;
+                return 9;
             case TERRAN_AUTO_TURRET:
                 return 1;
             case TERRAN_CYCLONE:
                 return 6;
             case TERRAN_THOR:
-                return 5;
+                return 4;
             case TERRAN_THOR_AP:
-                return 5;
+                return 4;
             case TERRAN_SIEGE_TANK:
                 return 5;
             case TERRAN_SIEGE_TANK_SIEGED:
@@ -262,7 +253,7 @@ public class EnemyUnit {
             case PROTOSS_ZEALOT:
                 return 5;
             case PROTOSS_ADEPT:
-                return 2;
+                return 3;
             case PROTOSS_SENTRY:
                 return 3;
             case PROTOSS_STALKER:
@@ -270,9 +261,9 @@ public class EnemyUnit {
             case PROTOSS_COLOSSUS:
                 return 3;
             case PROTOSS_IMMORTAL:
-                return 7;
+                return 9;
             case PROTOSS_HIGH_TEMPLAR:
-                return 10;
+                return 15;
             case PROTOSS_ARCHON:
                 return 5;
             case PROTOSS_DARK_TEMPLAR:
@@ -298,7 +289,7 @@ public class EnemyUnit {
             case ZERG_ZERGLING_BURROWED:
                 return 5;
             case ZERG_BANELING:
-                return 10;
+                return 20;
             case ZERG_BANELING_BURROWED:
                 return 8;
             case ZERG_BANELING_COCOON:

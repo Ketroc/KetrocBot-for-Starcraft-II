@@ -1,12 +1,15 @@
-package com.ketroc.terranbot.models;
+package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.LocationConstants;
 import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.models.Ignored;
+import com.ketroc.terranbot.models.IgnoredUnit;
 
 public class Harassers {
     public static BansheeHarasser clockwiseBanshee;
@@ -31,13 +34,13 @@ public class Harassers {
     private static void removeHarassers() {
         if (clockwiseBanshee != null) {
             if (doRemoveBanshee(clockwiseBanshee)) {
-                IgnoredUnit.ignoredUnits.removeIf(ignoredUnit -> ignoredUnit.unitTag.equals(clockwiseBanshee.banshee.getTag()));
+                Ignored.remove(clockwiseBanshee.banshee.getTag());
                 clockwiseBanshee = null;
             }
         }
         if (counterClockwiseBanshee != null) {
             if (doRemoveBanshee(counterClockwiseBanshee)) {
-                IgnoredUnit.ignoredUnits.removeIf(ignoredUnit -> ignoredUnit.unitTag.equals(counterClockwiseBanshee.banshee.getTag()));
+                Ignored.remove(counterClockwiseBanshee.banshee.getTag());
                 counterClockwiseBanshee = null;
             }
         }
@@ -45,7 +48,8 @@ public class Harassers {
 
     private static boolean doRemoveBanshee(BansheeHarasser bansheeHarasser) {
         UnitInPool banshee = bansheeHarasser.banshee;
-        return !banshee.isAlive(); // || banshee.unit().getHealth().orElse(0f) <= 40; commented out cuz low health banshees have no micro home
+        return !banshee.isAlive() ||
+                (bansheeHarasser.retreatForRepairs && UnitUtils.getDistance(banshee.unit(), LocationConstants.REPAIR_BAY) < 10);
     }
 
     private static void getNewHarassers() {
@@ -53,14 +57,14 @@ public class Harassers {
             Tag newBansheeTag = getNewBanshee();
             if (newBansheeTag != null) {
                 clockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), true);
-                IgnoredUnit.ignoredUnits.add(new IgnoredUnit(newBansheeTag));
+                Ignored.add(new IgnoredUnit(newBansheeTag));
             }
         }
         else if (counterClockwiseBanshee == null) {
             Tag newBansheeTag = getNewBanshee();
             if (newBansheeTag != null) {
                 counterClockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), false);
-                IgnoredUnit.ignoredUnits.add(new IgnoredUnit(newBansheeTag));
+                Ignored.add(new IgnoredUnit(newBansheeTag));
             }
         }
     }

@@ -7,18 +7,16 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.LocationConstants;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.*;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class StructureScv {
     public static final List<StructureScv> scvBuildingList = new ArrayList<>();
@@ -28,8 +26,9 @@ public class StructureScv {
     public UnitInPool gasGeyser;
     public Abilities buildAbility;
     public Units structureType;
-    public UnitInPool scv;
+    private UnitInPool scv;
     private UnitInPool structureUnit;
+    public long scvAddedFrame;
 
     // *********************************
     // ********* CONSTRUCTORS **********
@@ -40,6 +39,7 @@ public class StructureScv {
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
         this.structurePos = structurePos;
+        scvAddedFrame = Bot.OBS.getGameLoop();
     }
 
     public StructureScv(UnitInPool scv, Abilities buildAbility, UnitInPool gasGeyser) {
@@ -49,11 +49,25 @@ public class StructureScv {
         this.isGas = true;
         this.gasGeyser = gasGeyser;
         this.structurePos = gasGeyser.unit().getPosition().toPoint2d();
+        scvAddedFrame = Bot.OBS.getGameLoop();
     }
 
     // **************************************
     // ******** GETTERS AND SETTERS *********
     // **************************************
+
+    public UnitInPool getScv() {
+        return scv;
+    }
+
+    public void setScv(UnitInPool scv) {
+        if (this.scv != null) {
+            Ignored.remove(scv.getTag());
+        }
+        this.scv = scv;
+        scvAddedFrame = Bot.OBS.getGameLoop();
+        Ignored.add(new IgnoredUnit(scv.getTag()));
+    }
 
     public UnitInPool getStructureUnit() {
         if (structureUnit == null) {
@@ -90,6 +104,16 @@ public class StructureScv {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuffer strBuff = new StringBuffer();
+        strBuff.append("structurePos: ").append(structurePos)
+                .append("\nstructureType: ").append(structureType)
+                .append("\nscv.position: ").append(scv.unit().getPosition().toPoint2d())
+                .append("\nscvAddedFrame: ").append(scvAddedFrame);
+        return strBuff.toString();
+    }
+
     // *********************************
     // ******** STATIC METHODS *********
     // *********************************
@@ -97,8 +121,15 @@ public class StructureScv {
     public static boolean removeScvFromList(Unit structure) {
         for (int i = 0; i< scvBuildingList.size(); i++) {
             StructureScv scv = scvBuildingList.get(i);
-            if (scv.structureType == structure.getType() && scv.structurePos.distance(structure.getPosition().toPoint2d()) < 1) {
-                scvBuildingList.remove(i--);
+
+            //hack to handle rich refineries
+            Units structureType = (Units)structure.getType();
+            if (structureType == Units.TERRAN_REFINERY_RICH) {
+                structureType = Units.TERRAN_REFINERY;
+            }
+
+            if (scv.structureType == structureType && scv.structurePos.distance(structure.getPosition().toPoint2d()) < 1) {
+                remove(scv);
                 return true;
             }
         }
@@ -116,7 +147,7 @@ public class StructureScv {
                 scv.cancelProduction();
 
                 //remove StructureScv object from list
-                scvBuildingList.remove(i);
+                remove(scv);
                 return true;
             }
         }
@@ -125,29 +156,30 @@ public class StructureScv {
 
     public static void checkScvsActivelyBuilding() {
         for (int i = 0; i< scvBuildingList.size(); i++) {
-            StructureScv scv = scvBuildingList.get(i);
+            StructureScv structureScv = scvBuildingList.get(i);
 
             //if assigned scv is dead add another
-            if (!scv.scv.isAlive()) {
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(scv.structurePos);
+            if (!structureScv.scv.isAlive()) {
+                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
                 if (!availableScvs.isEmpty()) {
-                    scv.scv = availableScvs.get(0);
+
+                    structureScv.setScv(availableScvs.get(0));
                 }
             }
 
             //if scv doesn't have the build command
-            if (scv.scv.unit().getOrders().isEmpty() || !scv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == scv.buildAbility)) {
-                UnitInPool structure = scv.getStructureUnit();
+            if (structureScv.scv.unit().getOrders().isEmpty() || !structureScv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == structureScv.buildAbility)) {
+                UnitInPool structure = structureScv.getStructureUnit();
 
                 //if structure never started/destroyed, repurchase
                 if (structure == null || !structure.isAlive()) {
 
-                    //if cc location is blocked by burrowed unit or creep, set baseIndex to this base
+                    //if cc location is blocked by burrowed unit or creep, set baseIndex to this base TODO: this will probably get replaced
                     if (LocationConstants.opponentRace == Race.ZERG &&
-                            scv.scv.isAlive() &&
-                            scv.structureType == Units.TERRAN_COMMAND_CENTER &&
-                            UnitUtils.getDistance(scv.scv.unit(), scv.structurePos) < 5) {
-                        int blockedBaseIndex = LocationConstants.baseLocations.indexOf(scv.structurePos);
+                            structureScv.scv.isAlive() &&
+                            structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
+                            UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 5) {
+                        int blockedBaseIndex = LocationConstants.baseLocations.indexOf(structureScv.structurePos);
                         if (blockedBaseIndex > 0) {
                             LocationConstants.baseAttackIndex = blockedBaseIndex;
                             System.out.println("blocked base.  set baseIndex to " + blockedBaseIndex);
@@ -155,15 +187,16 @@ public class StructureScv {
                     }
 
                     //if under threat, requeue
-                    Point2d roundedPos = Position.nearestWholePoint(scv.structurePos);
-                    if (GameCache.pointThreatToGround[(int)roundedPos.getX()][(int)roundedPos.getY()] > 0) {
-                        requeueCancelledStructure(scv);
-                        scvBuildingList.remove(i--);
+                    if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structureScv.structurePos) > 0 ||
+                            UnitUtils.isWallUnderAttack()) {
+                        requeueCancelledStructure(structureScv);
+                        remove(structureScv);
+                        i--;
                     }
                     else {
-                        Cost.updateBank(scv.structureType);
-                        if (Bot.QUERY.placement(scv.buildAbility, scv.structurePos)) {
-                            Bot.ACTION.unitCommand(scv.scv.unit(), scv.buildAbility, scv.structurePos, false);
+                        Cost.updateBank(structureScv.structureType);
+                        if (Bot.QUERY.placement(structureScv.buildAbility, structureScv.structurePos)) {
+                            Bot.ACTION.unitCommand(structureScv.scv.unit(), structureScv.buildAbility, structureScv.structurePos, false);
                         }
                     }
                 }
@@ -171,50 +204,50 @@ public class StructureScv {
                 else if (structure.unit().getBuildProgress() < 1.0f) {
 
                     //remove if there is a duplicate entry in scvBuildList
-                    if (isDuplicateStructureScv(scv)) {
+                    if (isDuplicateStructureScv(structureScv)) {
                         scvBuildingList.remove(i--);
                     }
 
                     //send another scv
                     else {
-                        Bot.ACTION.unitCommand(scv.scv.unit(), Abilities.SMART, structure.unit(), false);
+                        Bot.ACTION.unitCommand(structureScv.scv.unit(), Abilities.SMART, structure.unit(), false);
                     }
                 }
 
                 //if structure completed
                 else if (structure.unit().getBuildProgress() == 1.0f) {
-                    scvBuildingList.remove(i--);
+                    remove(structureScv);
+                    i--;
                 }
             }
         }
-        GameCache.buildingScvTags = scvBuildingList.stream().map(s -> s.scv.getTag()).collect(Collectors.toList());
     }
 
-    private static void requeueCancelledStructure(StructureScv scv) {
-        switch (scv.structureType) {
+    private static void requeueCancelledStructure(StructureScv structureScv) {
+        switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:
             case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
             case TERRAN_BUNKER:
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                LocationConstants.extraDepots.add(scv.structurePos);
+                LocationConstants.extraDepots.add(structureScv.structurePos);
                 break;
             case TERRAN_STARPORT:
-                LocationConstants.STARPORTS.add(scv.structurePos);
+                LocationConstants.STARPORTS.add(structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:
-                if (scv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
-                    LocationConstants._3x3Structures.add(scv.structurePos);
+                if (structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
+                    LocationConstants._3x3Structures.add(structureScv.structurePos);
                 }
-                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
+                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
-                LocationConstants._3x3Structures.add(scv.structurePos);
-                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType));
+                LocationConstants._3x3Structures.add(structureScv.structurePos);
+                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             default:
-                Bot.purchaseQueue.addFirst(new PurchaseStructure(scv.structureType, scv.structurePos));
+                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
         }
     }
@@ -237,12 +270,34 @@ public class StructureScv {
 
 
     //check if another scv is already doing the assigned structure build
-    private static boolean isDuplicateStructureScv(StructureScv scv) {
+    private static boolean isDuplicateStructureScv(StructureScv structureScv) {
         for (StructureScv otherScv : scvBuildingList) {
-            if (!scv.equals(otherScv) && otherScv.buildAbility == scv.buildAbility && UnitUtils.getDistance(otherScv.scv.unit(), scv.getStructureUnit().unit()) < 3) {
+            if (!structureScv.equals(otherScv) && otherScv.buildAbility == structureScv.buildAbility && UnitUtils.getDistance(otherScv.scv.unit(), structureScv.getStructureUnit().unit()) < 3) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static StructureScv findByScvTag(Tag scvTag) {
+        return scvBuildingList.stream()
+                .filter(structureScv -> structureScv.scv.getTag().equals(scvTag))
+                .findFirst()
+                .orElse(null);
+    }
+
+
+    public static void add(StructureScv structureScv) {
+        scvBuildingList.add(structureScv);
+        if (structureScv.scv != null) {
+            Ignored.add(new IgnoredUnit(structureScv.scv.getTag()));
+        }
+    }
+
+    public static void remove(StructureScv structureScv) {
+        scvBuildingList.remove(structureScv);
+        if (structureScv.scv != null) {
+            Ignored.remove(structureScv.scv.getTag());
+        }
     }
 }

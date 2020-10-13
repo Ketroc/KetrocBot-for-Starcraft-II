@@ -138,6 +138,11 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     //return true if going to build
     @Override
     public PurchaseResult build() {
+
+        if (structureType == Units.INVALID) {
+            return PurchaseResult.WAITING;
+        }
+
         //if resources available and prerequisite structure done
         if (!canAfford()) {
             Cost.updateBank(cost);
@@ -183,7 +188,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         Abilities buildAction = (Abilities)structureData.getAbility().get();
         if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
             //if structure blocks location
-            if (!Bot.OBS.getUnits(u -> position.distance(u.unit().getPosition().toPoint2d()) < BuildManager.getStructureRadius(buildAction) && !UnitUtils.canMove(u.unit().getType())).isEmpty() ||
+            if (!Bot.OBS.getUnits(u -> position.distance(u.unit().getPosition().toPoint2d()) < UnitUtils.getStructureRadius(buildAction) && !UnitUtils.canMove(u.unit().getType())).isEmpty() ||
                     Bot.OBS.hasCreep(position)) {
                 makePositionAvailableAgain(position);
                 return PurchaseResult.CANCEL;
@@ -204,7 +209,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         }
         System.out.println("sending action @" + Bot.OBS.getGameLoop() + buildAction + " at " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
-        StructureScv.scvBuildingList.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
+        StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
         return PurchaseResult.SUCCESS;
     }
@@ -228,7 +233,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
                             System.out.println("sending action @" + Bot.OBS.getGameLoop() + Abilities.BUILD_REFINERY);
                             Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
-                            StructureScv.scvBuildingList.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
+                            StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);
                             return PurchaseResult.SUCCESS;
                         }
@@ -278,7 +283,8 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             case TERRAN_SUPPLY_DEPOT:
                 if (!LocationConstants.extraDepots.isEmpty()) {
                     position = LocationConstants.extraDepots.stream()
-                            .filter(p -> BuildManager.isPlaceable(p, Abilities.BUILD_SUPPLY_DEPOT)).findFirst().orElse(null);
+                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
+                            .findFirst().orElse(null);
                     if (position != null) {
                         LocationConstants.extraDepots.remove(position);
                         return true;
@@ -286,24 +292,19 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 return false;
             case TERRAN_COMMAND_CENTER:
-                for (Point2d ccPos : LocationConstants.baseLocations.subList(0, LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND)) {
-                    if (!UnitUtils.isUnitTypesNearby(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, ccPos, 1)
-                            && StructureScv.scvBuildingList.stream().noneMatch(scv -> scv.structurePos.distance(ccPos) < 1)) {
-                        if (!BuildManager.isPlaceable(ccPos, Abilities.BUILD_COMMAND_CENTER)) {
-                            continue;
-                        }
-                        position = ccPos; //TODO: check for minerals/gas at base
+                for (Base base : GameCache.baseList) {
+                    if (base.isUntakenBase() &&
+                            isLocationSafeAndAvailable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER)) {
+                        position = base.getCcPos(); //TODO: check for minerals/gas at base
                         return true;
                     }
                 }
-            return false;
-
-
-
+                return false;
             case TERRAN_STARPORT:
                 if (!LocationConstants.STARPORTS.isEmpty()) {
                     position = LocationConstants.STARPORTS.stream()
-                            .filter(p -> BuildManager.isPlaceable(p, Abilities.BUILD_STARPORT)).findFirst().orElse(null);
+                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
+                            .findFirst().orElse(null);
                     if (position != null) {
                         LocationConstants.STARPORTS.remove(position);
                         return true;
@@ -312,7 +313,8 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 return false;
             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
                 position = LocationConstants._3x3Structures.stream()
-                        .filter(p -> BuildManager.isPlaceable(p, (Abilities)Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get())).findFirst().orElse(null);
+                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                        .findFirst().orElse(null);
                 if (position != null) {
                     LocationConstants._3x3Structures.remove(position);
                     return true;
@@ -323,24 +325,29 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         }
     }
 
+    private boolean isLocationSafeAndAvailable(Point2d p, Ability buildAbility) {
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, p) == 0 &&
+                Bot.QUERY.placement(buildAbility, p);
+    }
+
     public static int countUnitType(Units unitType) {
-        int numUnitType = GameCache.allFriendliesMap.getOrDefault(unitType, Collections.emptyList()).size();
+        int numUnitType = UnitUtils.getNumUnits(unitType, false);
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_STARPORT_FLYING, Collections.emptyList()).size();
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_STARPORT_FLYING, false);
                 break;
             case TERRAN_FACTORY:
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_FACTORY_FLYING, Collections.emptyList()).size();
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_FACTORY_FLYING, false);
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_BARRACKS_FLYING, Collections.emptyList()).size();
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_BARRACKS_FLYING, false);
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_SUPPLY_DEPOT_LOWERED, Collections.emptyList()).size();
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_ORBITAL_COMMAND, Collections.emptyList()).size();
-                numUnitType += GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, Collections.emptyList()).size();
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_ORBITAL_COMMAND, false);
+                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
                 break;
         }
         return numUnitType;

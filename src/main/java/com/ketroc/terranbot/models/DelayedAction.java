@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
 
@@ -76,7 +77,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
 
     public boolean executeAction() {
         //if unit is dead, or targetUnit is dead or in fog, cancel action
-        if (!unit.isAlive() || (targetUnit != null && (!targetUnit.isAlive() || targetUnit.getLastSeenGameLoop() != Bot.OBS.getGameLoop()))) {
+        if (!unit.isAlive() || (targetUnit != null && (!targetUnit.isAlive() || !UnitUtils.isVisible(targetUnit)))) {
             return false;
         }
         if (targetUnit == null && targetPos == null) {
@@ -96,11 +97,11 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
     // **************************************
     public static void onStep() {
         delayedActions.stream()
-                .filter(action -> action.gameFrame == Bot.OBS.getGameLoop())
+                .filter(action -> Bot.OBS.getGameLoop() >= action.gameFrame)
                 .forEach(delayedAction -> {
                     if (!delayedAction.executeAction()) System.out.println("Action not performed: " + delayedAction.toString());
                 });
-        delayedActions.removeIf(action -> action.gameFrame == Bot.OBS.getGameLoop());
+        delayedActions.removeIf(action -> Bot.OBS.getGameLoop() >= action.gameFrame);
     }
 
     public static long nextFrame() {

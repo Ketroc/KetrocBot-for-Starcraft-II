@@ -4,6 +4,8 @@ import com.github.ocraft.s2client.bot.S2Agent;
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Ability;
+import com.github.ocraft.s2client.protocol.data.UnitType;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.*;
@@ -15,28 +17,39 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
+import com.ketroc.terranbot.LocationConstants;
+import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.managers.ActionErrorManager;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class TestingBot  extends S2Agent {
+public class TestingBot extends Bot {
     public static UnitInPool bunker;
     public static UnitInPool marine;
     public float z;
     public Unit commandCenter;
 
+    public TestingBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
+        super(isDebugOn, opponentId, isRealTime);
+    }
+
     @Override
     public void onGameStart() {
-//        debug().debugGiveAllTech().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-//        int playerId = observation().getPlayerId();
-//        debug().debugCreateUnit(Units.TERRAN_BARRACKS, Point2d.of(100, 100), playerId, 1);
-////        debug().debugCreateUnit(Units.TERRAN_HELLION, Point2d.of(114, 120), playerId, 10);
+        super.onGameStart();
+
+        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
+        int playerId = observation().getPlayerId();
+//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), 0, 1);
+        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), playerId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), playerId, 1);
 ////        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), observation().getGameInfo().getPlayersInfo().iterator().next().getPlayerId(), 1);
-//        debug().sendDebug();
+        debug().sendDebug();
 
 //        commandCenter = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
 //        z = commandCenter.getPosition().getZ();
@@ -56,6 +69,38 @@ public class TestingBot  extends S2Agent {
 
     @Override
     public void onStep() {
+        super.onStep();
+        ActionErrorManager.onStep();
+//        if (Bot.OBS.getGameLoop() == 10) {
+//            Unit scv = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).get(0).unit();
+//            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)));
+//            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)));
+//        }
+
+//        List<Unit> scvs = observation().getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream().map(UnitInPool::unit).collect(Collectors.toList());
+//        actions().unitCommand(scvs.remove(0), Abilities.BUILD_COMMAND_CENTER, Point2d.of(1, 250), false);
+////        List<UnitInPool> scvs = observation().getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV &&
+////                !scv.unit().getOrders().isEmpty());
+////
+////        if (!scvs.isEmpty()) {
+////            Tag mineralNode = scvs.get(0).unit().getOrders().get(0).getTargetedUnitTag().orElse(null);
+////
+////            if (mineralNode != null) {
+////                System.out.println(observation().getUnit(mineralNode).unit().getPosition().toPoint2d());
+////            }
+////        }
+        if (OBS.getGameLoop() == 100) {
+            long start = System.currentTimeMillis();
+            List<Point2d> expansions = Tester.calculateExpansionLocations(OBS);
+            System.out.println(System.currentTimeMillis()-start);
+            List<Unit> scvs = OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream().map(UnitInPool::unit).collect(Collectors.toList());
+            //expansions.forEach(p -> ACTION.unitCommand(scvs.remove(0), Abilities.BUILD_COMMAND_CENTER, p, false));
+        }
+
+
+        List<UnitInPool> cyclone = Bot.OBS.getUnits(Alliance.SELF, c -> c.unit().getType() == Units.TERRAN_CYCLONE);
+        int w=0;
+
         //testing how to cancel a unit production
 //        if (observation().getGameLoop() > 20) {
 //            Unit barracks = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BARRACKS).get(0).unit();
@@ -143,6 +188,12 @@ public class TestingBot  extends S2Agent {
 //        if (!scvs.isEmpty()) {
 //            System.out.println("z: " + scvs.get(0).unit().getPosition().getZ());
 //        }
+        ACTION.sendActions();
+        DEBUG.sendDebug();
+        if (OBS.getGameLoop() == 100) {
+            int q = 1;
+        }
+
     }
 
     @Override

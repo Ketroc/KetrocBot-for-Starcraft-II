@@ -1,8 +1,8 @@
 package com.ketroc.terranbot.models;
 
 import com.github.ocraft.s2client.protocol.data.*;
-import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.bots.Bot;
 
 public class Cost {
     public int minerals;
@@ -22,6 +22,9 @@ public class Cost {
     // =========== METHODS ===========
 
     public static Cost getUnitCost(Units unitType) {
+        if (unitType == Units.INVALID) {
+            return null;
+        }
         UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unitType);
         Cost unitCost = new Cost(unitData.getMineralCost().orElse(0), unitData.getVespeneCost().orElse(0), unitData.getFoodRequired().orElse(0f).intValue());
         switch (unitType) {

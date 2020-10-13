@@ -4,52 +4,108 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
+import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.Position;
 import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.List;
 
 public class TriangleOfNodes {
-    public UnitInPool inner;
-    public UnitInPool outer1;
-    public UnitInPool outer2;
+    private Point2d midPos;
+    private UnitInPool middle;
+    private UnitInPool inner;
+    private UnitInPool outer;
+    private Point2d clusterPos;
 
-    public TriangleOfNodes(Point2d innerPos) {
-        updateNodes(innerPos);
+    public Point2d getClusterPos() {
+        if (clusterPos == null) {
+            updateNodes();
+        }
+        return clusterPos;
+    }
+
+    public void setClusterPos(Point2d clusterPos) {
+        this.clusterPos = clusterPos;
+    }
+
+
+    public UnitInPool getMiddle() {
+        if (middle == null) {
+            updateNodes();
+        }
+        return middle;
+    }
+
+    public void setMiddle(UnitInPool middle) {
+        this.middle = middle;
+    }
+
+    public UnitInPool getInner() {
+        if (inner == null) {
+            updateNodes();
+        }
+        return inner;
+    }
+
+    public void setInner(UnitInPool inner) {
+        this.inner = inner;
+    }
+
+    public UnitInPool getOuter() {
+        if (outer == null) {
+            updateNodes();
+        }
+
+        return outer;
+    }
+
+    public void setOuter(UnitInPool outer) {
+        this.outer = outer;
+    }
+
+    public TriangleOfNodes(Point2d midPos) {
+        this.midPos = midPos;
     }
 
     public boolean hasSnapshots() { //TODO: not needed??
-        return (inner.unit().getDisplayType() == DisplayType.SNAPSHOT ||
-                outer1.unit().getDisplayType() == DisplayType.SNAPSHOT ||
-                outer2.unit().getDisplayType() == DisplayType.SNAPSHOT);
+        return (getMiddle().unit().getDisplayType() == DisplayType.SNAPSHOT ||
+                getInner().unit().getDisplayType() == DisplayType.SNAPSHOT ||
+                getOuter().unit().getDisplayType() == DisplayType.SNAPSHOT);
     }
 
     public boolean requiresUpdate() {
-        return (inner == null || outer1 == null || outer2 == null ||
-                inner.getLastSeenGameLoop() != Bot.OBS.getGameLoop() ||
-                outer1.getLastSeenGameLoop() != Bot.OBS.getGameLoop() ||
-                outer2.getLastSeenGameLoop() != Bot.OBS.getGameLoop());
+        return (middle == null || inner == null || outer == null ||
+                !UnitUtils.isVisible(getMiddle()) || !UnitUtils.isVisible(getInner()) || !UnitUtils.isVisible(getOuter()));
     }
 
-    public void updateNodes(Point2d innerPos) {
+    public void updateNodes() {
         if (requiresUpdate()) {
-            inner = null; outer1 = null; outer2 = null;
+            middle = null; inner = null; outer = null; clusterPos = null;
             //find mineral nodes
             List<UnitInPool> mineralNodes = Bot.OBS.getUnits(Alliance.NEUTRAL,
-                    node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) && node.unit().getPosition().toPoint2d().distance(innerPos) < 2.5);
-            for (UnitInPool node : mineralNodes) {
-                if (innerPos.distance(node.unit().getPosition().toPoint2d()) < 0.5) {
-                    inner = node;
-                }
-                else if (outer2 == null) {
-                    outer2 = node;
-                }
-                else {
-                    outer1 = node;
+                    node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) && node.unit().getPosition().toPoint2d().distance(midPos) < 2.5);
+            for (int i=0; i< mineralNodes.size(); i++) {
+                if (UnitUtils.getDistance(mineralNodes.get(i).unit(), midPos) < 0.5) {
+                    setMiddle(mineralNodes.remove(i));
+                    break;
                 }
             }
+            UnitInPool node1 = mineralNodes.get(0);
+            UnitInPool node2 = mineralNodes.get(1);
+            Point2d midMineralLine = (UnitUtils.getDistance(node1.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 10) ?
+                    GameCache.baseList.get(0).getResourceMidPoint() :
+                    GameCache.baseList.get(GameCache.baseList.size()-1).getResourceMidPoint();
+            if (UnitUtils.getDistance(node1.unit(), midMineralLine) < UnitUtils.getDistance(node2.unit(), midMineralLine)) {
+                setInner(node1);
+                setOuter(node2);
+            }
+            else {
+                setInner(node2);
+                setOuter(node1);
+            }
+            clusterPos = Position.midPoint(inner.unit().getPosition().toPoint2d(), outer.unit().getPosition().toPoint2d());
         }
     }
-
 
 }

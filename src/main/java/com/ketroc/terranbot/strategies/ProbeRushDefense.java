@@ -46,7 +46,7 @@ public class ProbeRushDefense {
             if (defenseStep >= 2) {
 
                 //update snapshots
-                LocationConstants.enemyMineralTriangle.updateNodes(LocationConstants.enemyMineralPos);
+                LocationConstants.enemyMineralTriangle.updateNodes();
 
                 //remove dead scvs from scvList
                 UnitUtils.removeDeadUnits(scvList);
@@ -90,13 +90,14 @@ public class ProbeRushDefense {
                         }
 
                         //put scv back to mineral line
-                        Bot.ACTION.unitCommand(scv.scv.unit(), Abilities.SMART, GameCache.baseList.get(0).getRallyNode(), false);
+                        Bot.ACTION.unitCommand(scv.getScv().unit(), Abilities.SMART, GameCache.baseList.get(0).getRallyNode(), false);
 
                         //put depot back in depot list
                         if (scv.structureType == Units.TERRAN_SUPPLY_DEPOT) {
                             LocationConstants.extraDepots.add(0, scv.structurePos);
                         }
-                        StructureScv.scvBuildingList.remove(i--);
+                        StructureScv.remove(scv);
+                        i--;
                     }
                     defenseStep++;
                     break;
@@ -142,8 +143,8 @@ public class ProbeRushDefense {
         //if townhall dead, head home and advance to defenseStep 5
         if (GameCache.allEnemiesMap.get(townHallType).isEmpty()) {
             //send scvs home on attack-move
-            Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false)
-                    .unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
+            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false)
+                    .unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
             defenseStep++;
             return;
         }
@@ -189,13 +190,13 @@ public class ProbeRushDefense {
             else {
                 Unit closestWorker = UnitUtils.getClosestEnemyOfType(UnitUtils.enemyWorkerType, scvList.get(0).unit().getPosition().toPoint2d());
                 if (UnitUtils.getDistance(closestWorker, scvList.get(0).unit()) > 1) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.inner.unit(), false);
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 } else {
                     for (UnitInPool scv : scvList) {
                         if (scv.unit().getWeaponCooldown().get() == 0f) {
                             Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.myMineralPos, false);
                         } else {
-                            Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.inner.unit(), false);
+                            Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                         }
                     }
                 }
@@ -206,24 +207,24 @@ public class ProbeRushDefense {
     public static boolean clusterMyNode() {
         switch (clusterMyNodeStep) {
             case 0:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.outer1.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.outer1.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getInner().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getInner().unit(), false);
                 }
                 else {
                     clusterMyNodeStep++;
                 }
                 break;
             case 1:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.outer2.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.outer2.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getOuter().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), false);
                 }
                 else {
                     clusterMyNodeStep++;
                 }
                 break;
             case 2:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.inner.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.inner.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getMiddle().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
                 }
                 else {
                     clusterMyNodeStep = 0;
@@ -238,24 +239,24 @@ public class ProbeRushDefense {
     public static boolean clusterEnemyNode() {
         switch (clusterEnemyNodeStep) {
             case 0:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.outer1.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.outer1.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getInner().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
                 }
                 else {
                     clusterEnemyNodeStep++;
                 }
                 break;
             case 1:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.outer2.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.outer2.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getOuter().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getOuter().unit(), false);
                 }
                 else {
                     clusterEnemyNodeStep++;
                 }
                 break;
             case 2:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.inner.unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.inner.unit(), false);
+                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getMiddle().unit()) > 2)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 }
                 else {
                     clusterEnemyNodeStep = 0;

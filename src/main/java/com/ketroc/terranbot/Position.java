@@ -1,24 +1,34 @@
 package com.ketroc.terranbot;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Ability;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitSnapshot;
 import com.ketroc.terranbot.bots.Bot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO: adjust for map boundries on all methods
 public class Position {
     public static Point2d towards(Point2d origin, Point2d target, float distance) {
-        float distanceRatio = distance / (float)origin.distance(target);
-        float x = ((target.getX() - origin.getX()) * distanceRatio) + origin.getX();
-        x = inBoundsX(x);
-        float y = ((target.getY() - origin.getY()) * distanceRatio) + origin.getY();
-        y = inBoundsY(y);
-        return Point2d.of(x, y);
+        if (origin.equals(target)) { //move the distance left if origin == target
+            return inBounds(origin.getX() + distance, origin.getY());
+        }
+        Point2d vector = unitVector(origin, target);
+        return inBounds(origin.add(vector.mul(distance)));
+    }
+
+    private static Point2d inBounds(Point2d p) {
+        return Point2d.of(inBoundsX(p.getX()), inBoundsY(p.getY()));
+    }
+
+    private static Point2d inBounds(float x, float y) {
+        return Point2d.of(inBoundsX(x), inBoundsY(y));
     }
 
     private static float inBoundsX(float x) {
@@ -31,6 +41,14 @@ public class Position {
         y = Math.min(y, LocationConstants.MAX_Y);
         y = Math.max(y, 0);
         return y;
+    }
+
+    private static boolean isOutOfBoundsX(float x) {
+        return x > LocationConstants.MAX_X || x < 0;
+    }
+
+    private static boolean isOutOfBoundsY(float y) {
+        return y > LocationConstants.MAX_Y || y < 0;
     }
 
     public static boolean atEdgeOfMap(Point2d p) {
@@ -48,7 +66,7 @@ public class Position {
         float x = origin.getX() + xDistance;
 
         float y = origin.getY() + yDistance;
-        return Point2d.of(inBoundsX(x), inBoundsY(y));
+        return inBounds(x, y);
     }
 
     public static Point2d midPoint(Point2d p1, Point2d p2) {
@@ -99,7 +117,7 @@ public class Position {
             minY = Math.min(p.getY(), minY);
             maxY = Math.max(p.getY(), maxY);
         }
-        return Point2d.of((minX+maxX)/2, (minY+maxY)/2);
+        return Point2d.of((minX+maxX)/2f, (minY+maxY)/2f);
     }
 
     public static Point2d midPointUnitInPools(List<UnitInPool> unitList) {
@@ -110,16 +128,19 @@ public class Position {
         return midPoint.div(unitList.size());
     }
 
-    public static Point2d direction(Point2d from, Point2d to) {
+    public static Point2d unitVector(Point2d from, Point2d to) {
         return normalize(to.sub(from));
     }
 
     public static Point2d rotate(Point2d origin, Point2d pivotPoint, double angle) {
+        return rotate(origin, pivotPoint, angle, false);
+    }
+
+    public static Point2d rotate(Point2d origin, Point2d pivotPoint, double angle, boolean nullOutOfBounds) {
         double rads = Math.toRadians(angle);
         double sin = Math.sin(rads);
         double cos = Math.cos(rads);
 
-        //subtract pivot point
         origin = origin.sub(pivotPoint);
 
         //rotate point
@@ -129,7 +150,13 @@ public class Position {
         //add back the pivot point
         float x = xnew + pivotPoint.getX();
         float y = ynew + pivotPoint.getY();
-        return Point2d.of(inBoundsX(x), inBoundsY(y));
+
+        if (nullOutOfBounds && (isOutOfBoundsX(x) || isOutOfBoundsY(y))) {
+            return null;
+        }
+        else {
+            return inBounds(x, y);
+        }
     }
 
     public static Point2d normalize(Point2d vector) {
@@ -145,7 +172,7 @@ public class Position {
         return Point2d.of(Math.round(point.getX()), Math.round(point.getY()));
     }
 
-    private static float roundToNearestHalf(float number) {
+    public static float roundToNearestHalf(float number) {
         return Math.round(number * 2) / 2;
     }
 
@@ -171,14 +198,13 @@ public class Position {
         float distance;
         if (xDistance > yDistance) { //move on x-axis
             distance = Math.min(maxDistance, Math.max(minDistance, xDistance));
-            newPoint = Point2d.of(moveNumberExactly(pointToMove.getX(), obstacle.getX(), distance), pointToMove.getY());
+            newPoint = inBounds(moveNumberExactly(pointToMove.getX(), obstacle.getX(), distance), pointToMove.getY());
         }
         else { //move on y-axis
             distance = Math.min(maxDistance, Math.max(minDistance, yDistance));
-            newPoint = Point2d.of(pointToMove.getX(), moveNumberExactly(pointToMove.getY(), obstacle.getY(), distance));
+            newPoint = inBounds(pointToMove.getX(), moveNumberExactly(pointToMove.getY(), obstacle.getY(), distance));
         }
         return newPoint;
-
     }
 
     //get Point at terrain height from Point2d
@@ -188,7 +214,7 @@ public class Position {
 
     //returns true if 2 points are on the same elevation
     public static boolean isSameElevation(Point p1, Point p2) {
-        return Math.abs(p1.getZ() - p2.getZ()) < 0.5;
+        return Math.abs(p1.getZ() - p2.getZ()) < 1.2;
     }
 
     private static float moveNumberAtLeast(float number, float blocker, float stayClearBy) {
@@ -211,10 +237,6 @@ public class Position {
         return number;
     }
 
-    public static float getDegreesFromRads(float rad) {
-        return rad * 57.296f;
-    }
-
     public static float getZ(float x, float y) {
         return getZ(Point2d.of(x, y));
     }
@@ -223,13 +245,97 @@ public class Position {
         return Bot.OBS.terrainHeight(p) + 0.3f;
     }
 
-    public static float distance(int x1, int y1, float x2, float y2) {
+    public static float distance(float x1, float y1, float x2, float y2) {
         float width = Math.abs(x2 - x1);
         float height = Math.abs(y2 - y1);
         return (float)Math.sqrt(width*width + height*height);
     }
 
-    public static boolean pointInMappingValue(Point2d pos, boolean[][] map) {
-        return map[Math.round(pos.getX())][Math.round(pos.getY())];
+    public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos) {
+        return findNearestPlacement(placementAbility, pos, 5);
+    }
+
+    public static Point2d findNearestPlacement(Units structureType, Point2d pos) {
+        return findNearestPlacement(Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().orElse(Abilities.INVALID), pos, 5);
+    }
+
+    public static Point2d findNearestPlacement(Units structureType, Point2d pos, int searchRadius) {
+        return findNearestPlacement(Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().orElse(Abilities.INVALID), pos, searchRadius);
+    }
+
+    public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius) {
+        if (Bot.QUERY.placement(placementAbility, pos)) {
+            return pos;
+        }
+        float x = pos.getX();
+        float y = pos.getY();
+        boolean isMoveUp = true;
+        boolean isMoveRight = true;
+        boolean isMoveVertical = true;
+        int xLength = 1;
+        int yLength = 1;
+        int numTurns = searchRadius*4 + 1;
+        for (int count=0; count<numTurns; count++) {
+            if (isMoveVertical) {
+                for (int i = 0; i < yLength; i++) {
+                    y += (isMoveUp) ? 1 : -1;
+                    Point2d testPos = Point2d.of(x, y);
+                    if (Bot.QUERY.placement(placementAbility, testPos)) {
+                        return testPos;
+                    }
+                }
+                yLength++;
+                isMoveUp = !isMoveUp;
+                isMoveVertical = !isMoveVertical;
+            }
+            else {
+                for (int i = 0; i < xLength; i++) {
+                    x += (isMoveRight) ? 1 : -1;
+                    Point2d testPos = Point2d.of(x, y);
+                    if (Bot.QUERY.placement(placementAbility, testPos)) {
+                        return testPos;
+                    }
+                }
+                xLength++;
+                isMoveRight = !isMoveRight;
+                isMoveVertical = !isMoveVertical;
+            }
+        }
+        return null;
+    }
+
+    public static List<Point2d> getSpiralList(Point2d pos, int searchRadius) {
+        List<Point2d> spiralList = new ArrayList<>();
+        spiralList.add(pos);
+
+        float x = pos.getX();
+        float y = pos.getY();
+        boolean isMoveUp = true;
+        boolean isMoveRight = true;
+        boolean isMoveVertical = true;
+        int xLength = 1;
+        int yLength = 1;
+        int numTurns = searchRadius*4 + 1;
+        for (int count=0; count<numTurns; count++) {
+            if (isMoveVertical) {
+                for (int i = 0; i < yLength; i++) {
+                    y += (isMoveUp) ? 1 : -1;
+                    spiralList.add(Point2d.of(x, y));
+                }
+                yLength++;
+                isMoveUp = !isMoveUp;
+                isMoveVertical = !isMoveVertical;
+            }
+            else {
+                for (int i = 0; i < xLength; i++) {
+                    x += (isMoveRight) ? 1 : -1;
+                    spiralList.add(Point2d.of(x, y));
+                }
+                xLength++;
+                isMoveRight = !isMoveRight;
+                isMoveVertical = !isMoveVertical;
+            }
+        }
+        return spiralList;
     }
 }

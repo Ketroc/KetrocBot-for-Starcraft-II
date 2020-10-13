@@ -1,23 +1,30 @@
 package com.ketroc.terranbot.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.LocationConstants;
+import com.ketroc.terranbot.MapNames;
 import com.ketroc.terranbot.Switches;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 
 public class Strategy {
-    public static final boolean REAL_TIME = Bot.isRealTime;
-    public static final int SKIP_FRAMES = (REAL_TIME) ? 6 : 2;
+    public static int selectedStrategy;
+
+    public static int SKIP_FRAMES;
     public static final boolean ANTI_DROP_TURRET = false; //TODO: temporary for ANIbot
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
 
@@ -34,8 +41,8 @@ public class Strategy {
     public static final int MAX_VIKINGS_TO_DIVE_TEMPESTS = 20; //always dive tempests if we reach this number
     public static final float DISTANCE_RAISE_DEPOT = 9;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
-    public static int maxScvs = 80;
-    public static final float KITING_BUFFER = 2.75f;
+    public static int maxScvs = 90;
+    public static final float KITING_BUFFER = 2.5f;
     public static final int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
     public static boolean enemyHasAirThreat;
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
@@ -62,31 +69,99 @@ public class Strategy {
     public static int floatBaseAt = 50; //heath% to float base away at
 
     public static void onGameStart() {
+        SKIP_FRAMES = (BansheeBot.isRealTime) ? 6 : 2;
+        getGameStrategyChoice();
+
         if (ANTI_NYDUS_BUILD) {
             antiNydusBuild();
         }
-        BunkerContain.proxyBunkerLevel = 0;
-        //set bunker contain
-//        switch (LocationConstants.opponentRace) {
-//            case TERRAN:
-//                BunkerContain.proxyBunkerLevel = (Math.random()*10 < 2) ? 2 : 0; //1 in 5
-//                break;
-//            case PROTOSS:
-//                double random =  Math.random()*10;
-//                if (random < 2) {
-//                    BunkerContain.proxyBunkerLevel = 1;
-//                }
-//                else if (random < 4) {
-//                    BunkerContain.proxyBunkerLevel = 2;
-//                }
-//                else {
-//                    BunkerContain.proxyBunkerLevel = 0;
-//                }
-//                break;
-//            case ZERG:
-//                BunkerContain.proxyBunkerLevel = 0;
-//                break;
-//        }
+    }
+
+    private static void getGameStrategyChoice() {
+        setStrategyNumber();
+        switch (LocationConstants.opponentRace) {
+            case TERRAN:
+                chooseTvTStrategy();
+                break;
+            case PROTOSS:
+                chooseTvPStrategy();
+                break;
+            case ZERG:
+                chooseTvZStrategy();
+                break;
+        }
+
+    }
+
+    private static void chooseTvTStrategy() {
+        int numStrategies = 3;
+        selectedStrategy = selectedStrategy % numStrategies;
+
+        switch (selectedStrategy) {
+            case 0:
+                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                break;
+            case 1:
+                Bot.ACTION.sendChat("Bunker Contain Strategy", ActionChat.Channel.BROADCAST);
+                BunkerContain.proxyBunkerLevel = 2;
+                break;
+            case 2:
+                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                Switches.scvRushComplete = false;
+                break;
+        }
+    }
+
+    private static void chooseTvPStrategy() {
+        int numStrategies = 3;
+        selectedStrategy = selectedStrategy % numStrategies;
+
+        switch (selectedStrategy) {
+            case 0:
+                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                break;
+            case 1:
+                Bot.ACTION.sendChat("Bunker Contain Strategy", ActionChat.Channel.BROADCAST);
+                BunkerContain.proxyBunkerLevel = 1;
+                break;
+            case 2:
+                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                Switches.scvRushComplete = false;
+                break;
+        }
+    }
+
+    private static void chooseTvZStrategy() {
+        int numStrategies = 2;
+        selectedStrategy = selectedStrategy % numStrategies;
+
+        switch (selectedStrategy) {
+            case 0:
+                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                break;
+            case 1:
+                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                Switches.scvRushComplete = false;
+                break;
+        }
+    }
+
+    private static void setStrategyNumber() {
+        try {
+            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
+            String lastOpponentId = fileText[0];
+            int opponentStrategy = Integer.valueOf(fileText[1]);
+            if (!lastOpponentId.equals(BansheeBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+                selectedStrategy = 0;
+            }
+            else {
+                selectedStrategy = opponentStrategy;
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        selectedStrategy = 0; //TODO: delete - for testing
     }
 
     public static void onStep() {
@@ -128,12 +203,12 @@ public class Strategy {
                     List<UnitInPool> scvNearDepot = WorkerManager.getAllScvs(LocationConstants.extraDepots.get(0), 6);
                     if (!scvNearDepot.isEmpty()) {
                         scv_TvtFastStart = scvNearDepot.get(0); //TODO: null check
-                        Bot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        Bot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
+                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
                     }
                     else {
-                        Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     }
                     Switches.tvtFastStart = false;
                 }
@@ -157,9 +232,9 @@ public class Strategy {
 
     public static void antiNydusBuild() {
         //rax after depot, 2nd depot after cc since cc is late, earlier 2nd gas
-        Bot.purchaseQueue.add(1, Bot.purchaseQueue.remove(3));
-        Bot.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
-        Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        BansheeBot.purchaseQueue.add(1, BansheeBot.purchaseQueue.remove(3));
+        BansheeBot.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
+        BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
 
         //get closest STARPORTS position
         Point2d closestStarportPos = LocationConstants.STARPORTS.stream()
@@ -167,7 +242,7 @@ public class Strategy {
                 .get();
 
         //build rax at closest position
-        ((PurchaseStructure)Bot.purchaseQueue.get(1)).setPosition(closestStarportPos);
+        ((PurchaseStructure) BansheeBot.purchaseQueue.get(1)).setPosition(closestStarportPos);
 
         //save MID_WALL_3X3 for barracks' later position
         LocationConstants._3x3Structures.remove(0);

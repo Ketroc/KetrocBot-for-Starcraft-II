@@ -13,13 +13,11 @@ import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.*;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.models.Base;
-import com.ketroc.terranbot.models.Gas;
-import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
@@ -36,7 +34,7 @@ public class WorkerManager {
         fixOverSaturation();
         toggleWorkersInGas();
         buildRefineryLogic();
-        defendWorkerHarass();
+        defendWorkerHarass(); //TODO: this method break scvrush micro
 
     }
 
@@ -47,19 +45,19 @@ public class WorkerManager {
         }
 
         //target scout workers
-        List<Unit> enemyWorkers = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType);
-        List<Unit> myScvs = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SCV);
-        for (Unit enemyWorker : enemyWorkers) {
-            Point2d enemyWorkerPos = Position.nearestWholePoint(enemyWorker.getPosition().toPoint2d());
-            if (LocationConstants.pointInMainBase[(int)enemyWorkerPos.getX()][(int)enemyWorkerPos.getY()] ||
-                    LocationConstants.pointInNat[(int)enemyWorkerPos.getX()][(int)enemyWorkerPos.getY()]) {
+        List<Unit> enemyScoutWorkers = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType);
+        List<UnitInPool> myScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, LocationConstants.baseLocations.get(0), 50f);
+        for (Unit enemyWorker : enemyScoutWorkers) {
+            Point2d enemyWorkerPos = enemyWorker.getPosition().toPoint2d();
+            if (UnitUtils.getDistance(enemyWorker, LocationConstants.baseLocations.get(0)) < 40) {
                 Optional<Unit> attackingScv = myScvs.stream()
+                        .map(UnitInPool::unit)
                         .filter(scv -> UnitUtils.isAttacking(scv, enemyWorker))
                         .findFirst();
                 if (attackingScv.isPresent()) {
-                    System.out.println("attackingScv.get().getHealth().orElse(0f) = " + attackingScv.get().getHealth().orElse(0f));
                     if (attackingScv.get().getHealth().orElse(0f) <= 10f) {
                         Bot.ACTION.unitCommand(attackingScv.get(), Abilities.STOP, false);
+                        Ignored.remove(attackingScv.get().getTag());
                         sendScvToAttack(enemyWorker);
                     }
                 }
@@ -69,27 +67,31 @@ public class WorkerManager {
             }
         }
 
-        //abandon attacking scout workers
-        for (Unit scv : myScvs) {
-            if (!scv.getOrders().isEmpty()) {
-                Tag targetTag = scv.getOrders().get(0).getTargetedUnitTag().orElse(null);
-                if (targetTag != null) {
-                    UnitInPool targetUnit = Bot.OBS.getUnit(targetTag);
-                    if (targetUnit.unit().getType() == UnitUtils.enemyWorkerType) {
-                        Point2d targetPos = Position.nearestWholePoint(targetUnit.unit().getPosition().toPoint2d());
-                        if (!LocationConstants.pointInMainBase[(int) targetPos.getX()][(int) targetPos.getY()] &&
-                                !LocationConstants.pointInNat[(int) targetPos.getX()][(int) targetPos.getY()]) {
-                            Bot.ACTION.unitCommand(scv, Abilities.STOP, false);
-                        }
-                    }
-                }
-            }
-        }
+//        //abandon attacking scout workers
+//        for (UnitInPool scv : myScvs) {
+//            if (!scv.unit().getOrders().isEmpty()) {
+//                Tag targetTag = scv.unit().getOrders().get(0).getTargetedUnitTag().orElse(null);
+//                if (targetTag != null) {
+//                    UnitInPool targetUnit = Bot.OBS.getUnit(targetTag);
+//                    if (targetUnit.unit().getType() == UnitUtils.enemyWorkerType) {
+//                        Point2d targetPos = targetUnit.unit().getPosition().toPoint2d();
+//                        if (!LocationConstants.pointInMainBase[Position.getMapCoord(targetPos.getX())][Position.getMapCoord(targetPos.getY())] &&
+//                                !LocationConstants.pointInNat[Position.getMapCoord(targetPos.getX())][Position.getMapCoord(targetPos.getY())]) {
+//                            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
+//                            IgnoredUnit.remove(scv.getTag());
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     private static void sendScvToAttack(Unit enemy) {
-        List<UnitInPool> availableScvs = getAvailableScvs(enemy.getPosition().toPoint2d());
+        List<UnitInPool> availableScvs = getAvailableScvs(enemy.getPosition().toPoint2d()).stream()
+                .filter(scv -> scv.unit().getHealth().orElse(1f) > 39f)
+                .collect(Collectors.toList());
         if (!availableScvs.isEmpty()) {
+            Ignored.add(new IgnoredScvDefender(availableScvs.get(0).getTag(), Bot.OBS.getUnit(enemy.getTag())));
             Bot.ACTION.unitCommand(availableScvs.get(0).unit(), Abilities.ATTACK, enemy, false);
         }
 
@@ -118,7 +120,7 @@ public class WorkerManager {
                     else {
                         //only choose scvs inside the wall within 20 distance
                         if (GameCache.wallStructures.contains(unit)) {
-                            availableScvs = UnitUtils.unitInPoolToUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
+                            availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
                                 return u.unit().getType() == Units.TERRAN_SCV &&
                                         Math.round(u.unit().getPosition().getZ()) == Math.round(unit.getPosition().getZ()) && //inside the wall (round cuz z-coordinate isn't ever exactly the same at same level)
                                         u.unit().getPosition().distance(unit.getPosition()) < 30 &&
@@ -181,7 +183,7 @@ public class WorkerManager {
             }
 
 
-            if (Bot.isDebugOn) {
+            if (BansheeBot.isDebugOn) {
                 Point2d thirdScvPos = thirdScv.getPosition().toPoint2d();
                 Point2d overloadedPatchPos = Bot.OBS.getUnit(overloadedPatch).unit().getPosition().toPoint2d();
                 Point2d availablePatchPos = availablePatch.getPosition().toPoint2d();
@@ -211,7 +213,7 @@ public class WorkerManager {
                         if (StructureScv.scvBuildingList.stream()
                                 .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getLocation()) < 1)) {
                             if (!Purchase.isStructureQueued(Units.TERRAN_REFINERY)) {
-                                Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
+                                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
                                 return;
                             }
                         }
@@ -222,51 +224,87 @@ public class WorkerManager {
     }
 
     public static List<Unit> getAvailableScvUnits(Point2d targetPosition) {
-        return UnitUtils.unitInPoolToUnitList(getAvailableScvs(targetPosition, 10));
+        return UnitUtils.toUnitList(getAvailableScvs(targetPosition, 10));
     }
 
     public static List<Unit> getAllScvUnits(Point2d targetPosition) {
-        return UnitUtils.unitInPoolToUnitList(getAllScvs(targetPosition, 10));
+        return UnitUtils.toUnitList(getAllScvs(targetPosition, 10));
     }
 
+    public static UnitInPool getOneScv(Point2d targetPosition) {
+        List<UnitInPool> oneScvList = getAvailableScvs(targetPosition, 20, false, true);
+        return (!oneScvList.isEmpty()) ? oneScvList.get(0) : null;
+    }
+    public static UnitInPool getOneScv(Point2d targetPosition, int distance) {
+        List<UnitInPool> oneScvList = getAvailableScvs(targetPosition, distance, true, true);
+        return (!oneScvList.isEmpty()) ? oneScvList.get(0) : null;
+    }
+    public static UnitInPool getOneScv() {
+        List<UnitInPool> oneScvList = getAvailableScvs(ArmyManager.retreatPos, Integer.MAX_VALUE, true, true);
+        return (!oneScvList.isEmpty()) ? oneScvList.get(0) : null;
+    }
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition) {
-        return getAvailableScvs(targetPosition, 20, false);
+        return getAvailableScvs(targetPosition, 20, false, true);
     }
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance) {
-        return getAvailableScvs(targetPosition, distance, true);
+        return getAvailableScvs(targetPosition, distance, true, true);
     }
     public static List<UnitInPool> getAllAvailableScvs() {
-        return getAvailableScvs(ArmyManager.retreatPos, Integer.MAX_VALUE, true);
+        return getAvailableScvs(ArmyManager.retreatPos, Integer.MAX_VALUE, true, true);
+    }
+
+    public static List<UnitInPool> getAvailableMineralScvs(Point2d targetPosition) {
+        return getAvailableScvs(targetPosition, 20, false, false);
+    }
+
+    public static List<UnitInPool> getAvailableMineralScvs(Point2d targetPosition, int distance) {
+        return getAvailableScvs(targetPosition, distance, true, false);
+    }
+
+    public static List<UnitInPool> getAvailableMineralScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced) {
+        return getAvailableScvs(targetPosition, distance, isDistanceEnforced, false);
+    }
+
+    public static List<UnitInPool> getAllAvailableMineralScvs() {
+        return getAvailableScvs(ArmyManager.retreatPos, Integer.MAX_VALUE, true, false);
+    }
+
+    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced) {
+        return getAvailableScvs(targetPosition, distance, isDistanceEnforced, true);
     }
 
     //return list of scvs that are mining minerals without holding minerals within an optional distance
-    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced) {
+    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced, boolean includeGasScvs) {
         List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv -> {
             return scv.unit().getType() == Units.TERRAN_SCV &&
-                    !GameCache.buildingScvTags.contains(scv.getTag()) &&
-                    (scv.unit().getOrders().isEmpty() ||
-                            (scv.unit().getOrders().size() == 1 && scv.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(scv))) && //size==1 is too make sure there isn't a 2nd order like a build command
-                    targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance &&
-                    BunkerContain.repairScvs.stream().noneMatch(proxyScv -> proxyScv.getTag().equals(scv.getTag()));
+                    (scv.unit().getOrders().isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
+                    UnitUtils.getDistance(scv.unit(), targetPosition) < distance &&
+                    !Ignored.contains(scv.getTag());
         });
+
+//        List<UnitInPool> scvList = GameCache.availableScvs.stream()
+//                .filter(scv -> Bot.QUERY.pathingDistance(scv.unit(), targetPosition) < distance)
+//                .collect(Collectors.toList());
+
         if (scvList.isEmpty() && !isDistanceEnforced) {
-            return getAvailableScvs(targetPosition, Integer.MAX_VALUE, true);
+            return getAvailableScvs(targetPosition, Integer.MAX_VALUE, true, includeGasScvs);
         }
         return scvList;
     }
 
-    //return list of all scvs within a distance
-    public static List<UnitInPool> getAllScvs(Point2d targetPosition, int distance) {
-        return Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV && !GameCache.buildingScvTags.contains(scv.getTag()) && targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance);
+    public static UnitInPool getClosestAvailableScv(Point2d targetPosition) {
+        List<UnitInPool> scvList = getAvailableScvs(targetPosition, Integer.MAX_VALUE, true, true);
+        return scvList.stream()
+                .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), targetPosition)))
+                .orElse(null);
     }
 
-    public static List<UnitInPool> getRefineryScvs(Unit refinery) {
-        return Bot.OBS.getUnits(Alliance.SELF, scv -> {
-            return scv.unit().getType() == Units.TERRAN_SCV && //is scv
-                    !scv.unit().getOrders().isEmpty() && //has orders
-                    scv.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && //is not holding gas
-                    scv.unit().getOrders().get(0).getTargetedUnitTag().get().equals(refinery.getTag()); //is mining this refinery
-        });
+    //return list of all scvs within a distance
+    public static List<UnitInPool> getAllScvs(Point2d targetPosition, int distance) {
+        return Bot.OBS.getUnits(Alliance.SELF, scv ->
+                scv.unit().getType() == Units.TERRAN_SCV &&
+                !Ignored.contains(scv.getTag()) &&
+                targetPosition.distance(scv.unit().getPosition().toPoint2d()) < distance);
     }
 
 
@@ -279,14 +317,16 @@ public class WorkerManager {
     }
 
     private static boolean isMiningNode(UnitInPool scv, Set<Units> nodeType) { //TODO: doesn't include scvs returning minerals
-        if (scv.unit().getOrders().isEmpty() || scv.unit().getOrders().get(0).getAbility() != Abilities.HARVEST_GATHER) {
+        if (scv.unit().getOrders().size() != 1 || scv.unit().getOrders().get(0).getAbility() != Abilities.HARVEST_GATHER) {
             return false;
         }
 
+        //if returning resources
         Optional<Tag> scvTargetTag = scv.unit().getOrders().get(0).getTargetedUnitTag();
         if (scvTargetTag.isEmpty()) { //return false if scv has no target
             return false;
         }
+
         UnitInPool targetNode = Bot.OBS.getUnit(scvTargetTag.get());
         return targetNode != null && nodeType.contains(targetNode.unit().getType());
     }
@@ -302,7 +342,7 @@ public class WorkerManager {
                 Unit cc = base.getCc().get().unit();
 
                 //get available scvs at this base
-                List<UnitInPool> availableScvs = getAvailableScvs(base.getCcPos(), 10);
+                List<UnitInPool> availableScvs = getAvailableMineralScvs(base.getCcPos(), 10);
 
                 //saturate refineries
                 int numScvsMovingToGas = 0;
@@ -338,13 +378,11 @@ public class WorkerManager {
 
         // add all idle workers to top of same list
         if (Bot.OBS.getIdleWorkerCount() > 0) {
-            List<Unit> idleScvs = UnitUtils.unitInPoolToUnitList(
+            List<Unit> idleScvs = UnitUtils.toUnitList(
                     Bot.OBS.getUnits(Alliance.SELF, scv ->
                             scv.unit().getType() == Units.TERRAN_SCV &&
                                     scv.unit().getOrders().isEmpty() &&
-                                    BunkerContain.repairScvs.stream().noneMatch(proxyScv -> scv.getTag().equals(proxyScv.getTag()))
-                    )
-            );
+                                    !Ignored.contains(scv.getTag())));
             scvsToMove.addAll(0, idleScvs);
         }
 
@@ -412,17 +450,14 @@ public class WorkerManager {
 //    }
 
     public static boolean toggleWorkersInGas() {
-        int numRefineries = UnitUtils.getNumUnits(UnitUtils.REFINERY_TYPE, false);
-
         //skip logic until there are at least 2 refineries
+        int numRefineries = UnitUtils.getNumUnits(UnitUtils.REFINERY_TYPE, false);
         if (numRefineries <= 1) {
             return false;
         }
 
-
         int mins = GameCache.mineralBank;
         int gas = GameCache.gasBank;
-
         if (scvsPerGas == 1) {
             if (gasBankRatio() < 0.6) {
                 scvsPerGas = 2;
@@ -431,7 +466,7 @@ public class WorkerManager {
         }
         else if (scvsPerGas == 2) {
             //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (Bot.OBS.getGameLoop() > 4000 && (mins > 3250 || (mins > 350 && gasBankRatio() < 0.3))) {
+            if (Bot.OBS.getGameLoop() > 4000 && (mins > 3000 || (mins > 300 && gasBankRatio() < 0.3))) {
                 scvsPerGas = 3;
                 return true;
             }
@@ -454,4 +489,51 @@ public class WorkerManager {
         return Math.max(GameCache.gasBank, 1f) / (Math.max(GameCache.gasBank, 1f) + Math.max(GameCache.mineralBank, 1f));
     }
 
+    private static List<Unit> getDeepestMineralScvs(int numScvs) {
+        List<UnitInPool> scvs = new ArrayList<>();
+        int scvsNeeded = numScvs;
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase()) {
+                List<UnitInPool> baseScvs = getAvailableMineralScvs(base.getCcPos(), 10, true);
+                if (baseScvs.size() >= scvsNeeded) {
+                    scvs.addAll(baseScvs.subList(0, scvsNeeded));
+                    break;
+                } else {
+                    scvs.addAll(baseScvs);
+                    scvsNeeded -= baseScvs.size();
+                }
+            }
+        }
+        return scvs.stream().map(UnitInPool::unit).collect(Collectors.toList());
+    }
+
+    //Up a new pf base to a minimum of 8 scvs
+    public static void sendScvsToNewPf(Unit pf) {
+        Point2d pfPos = pf.getPosition().toPoint2d();
+        int scvsNeeded = 8 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
+        if (scvsNeeded <= 0) {
+            return;
+        }
+        Unit targetNode = getMiningNodeAtBase(pfPos);
+        if (targetNode == null) {
+            return;
+        }
+
+        List<Unit> scvs = getDeepestMineralScvs(scvsNeeded);
+        Bot.ACTION.unitCommand(scvs, Abilities.SMART, targetNode, false);
+    }
+
+    private static Unit getMiningNodeAtBase(Point2d basePos) {
+        List<UnitInPool> mineralPatches = UnitUtils.getUnitsNearbyOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, basePos, 10);
+        if (!mineralPatches.isEmpty()) {
+            return mineralPatches.get(0).unit();
+        }
+        else {
+            List<UnitInPool> refineries = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.REFINERY_TYPE, basePos, 10);
+            if (!refineries.isEmpty()) {
+                return refineries.get(0).unit();
+            }
+        }
+        return null;
+    }
 }

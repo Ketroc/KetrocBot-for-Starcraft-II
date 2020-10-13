@@ -2,7 +2,9 @@ package com.ketroc.terranbot;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.bots.DroneDrill;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -36,13 +38,18 @@ onNydusDetected()
 public class Ladder {
     public static void main(String[] args) {
         boolean realTime = false;
-        for (String arg : args) {
-            if (arg.contains("RealTime")) {
+        String opponentId = null;
+        for (int i=0; i<args.length; i++) {
+            String arg = args[i];
+            if (arg.equals("--RealTime")) {
                 realTime = true;
                 break;
             }
+            if (arg.contains("--OpponentId")) {
+                opponentId = args[i+1];
+            }
         }
-        Bot bot = new Bot(false, realTime);
+        Bot bot = new BansheeBot(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

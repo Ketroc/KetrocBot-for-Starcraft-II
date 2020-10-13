@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
@@ -75,12 +76,12 @@ public class BuildManager {
     private static void build2ndLayerOfTech() {
         //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
-            Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
-            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
-            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
+            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             if (LocationConstants.opponentRace == Race.ZERG) {
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
             }
             Strategy.techBuilt = true;
         }
@@ -98,7 +99,7 @@ public class BuildManager {
 
     private static void buildDepotLogic() {
         if (GameCache.mineralBank > 100 && checkIfDepotNeeded() && !LocationConstants.extraDepots.isEmpty()) {
-            Bot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+            BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
     }
 
@@ -109,7 +110,7 @@ public class BuildManager {
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty()) {
             turretsRequired = 3;
         }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > 6000) {
+        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > 4800) {
             turretsRequired = 1;
         }
         if (turretsRequired > 0) {
@@ -120,15 +121,19 @@ public class BuildManager {
                         if (turret.getUnit().isEmpty() &&
                                 !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
                                 !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos())) {
-                            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
+                            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
                         }
                     }
                 }
             }
             //build main base missile turrets now
             if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                if (LocationConstants.opponentRace == Race.TERRAN) {
+                    BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
+                    BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
+                }
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
                 Switches.doBuildMainBaseTurrets = false;
             }
         }
@@ -154,11 +159,11 @@ public class BuildManager {
                                     GameCache.baseList.stream().filter(base -> base.isUntakenBase()).findFirst().get().setCc(Bot.OBS.getUnit(cc.getTag()));
 
                                     //remove OC morph from purchase queue
-                                    for (int i=0; i<Bot.purchaseQueue.size(); i++) {
-                                        Purchase p = Bot.purchaseQueue.get(i);
+                                    for (int i = 0; i<BansheeBot.purchaseQueue.size(); i++) {
+                                        Purchase p = BansheeBot.purchaseQueue.get(i);
                                         if (p instanceof PurchaseStructureMorph) {
                                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                                Bot.purchaseQueue.remove(i);
+                                                BansheeBot.purchaseQueue.remove(i);
                                                 break;
                                             }
                                         }
@@ -166,7 +171,7 @@ public class BuildManager {
 
                                 }
                                 else if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                    Bot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                    BansheeBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
                                 }
                                 break; //don't queue scv
                             }
@@ -174,13 +179,14 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    Bot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                    BansheeBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                 }
                                 break; //don't queue scv
                             }
                         }
                         //build scv
-                        if (Bot.OBS.getFoodWorkers() < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
+                        if (Bot.OBS.getMinerals() >= 50 &&
+                                Bot.OBS.getFoodWorkers() < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
                             Bot.ACTION.unitCommand(cc, Abilities.TRAIN_SCV, false);
                             Cost.updateBank(Units.TERRAN_SCV);
                         }
@@ -240,7 +246,7 @@ public class BuildManager {
 
     private static boolean isNeededForExpansion() {
         //if safe and oversaturated
-        return !wallUnderAttack() && CannonRushDefense.isSafe && Base.totalScvsRequiredForMyBases() < Math.min(Strategy.maxScvs, Bot.OBS.getFoodWorkers() + 5);
+        return !UnitUtils.isWallUnderAttack() && CannonRushDefense.isSafe && Base.totalScvsRequiredForMyBases() < Math.min(Strategy.maxScvs, Bot.OBS.getFoodWorkers() + 5);
     }
 
     private static void saveDyingCCs() {
@@ -265,11 +271,11 @@ public class BuildManager {
                     base.setCc(null);
 
                     //cancel PF morph in purchase queue
-                    for (int i=0; i<Bot.purchaseQueue.size(); i++) {
-                        Purchase p = Bot.purchaseQueue.get(i);
+                    for (int i = 0; i< BansheeBot.purchaseQueue.size(); i++) {
+                        Purchase p = BansheeBot.purchaseQueue.get(i);
                         if (p instanceof PurchaseStructureMorph) {
                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                Bot.purchaseQueue.remove(i);
+                                BansheeBot.purchaseQueue.remove(i);
                                 break;
                             }
                         }
@@ -323,15 +329,12 @@ public class BuildManager {
                 }
             }
 
-
             else {
-                //always produce marines when wall under attack
-
                 // if no planetary at natural
                 if (!GameCache.baseList.get(1).isMyBase() || !GameCache.baseList.get(1).getCc().isPresent() ||
                         GameCache.baseList.get(1).getCc().get().unit().getType() != Units.TERRAN_PLANETARY_FORTRESS) {
                     //make marines if wall under attack
-                    if (wallUnderAttack()) {
+                    if (UnitUtils.isWallUnderAttack()) {
                         if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                             Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                             Cost.updateBank(Units.TERRAN_MARINE);
@@ -350,7 +353,7 @@ public class BuildManager {
                         marineCount += bunker.getCargoSpaceTaken().orElse(0); //count marines in bunkers
                     }
                     if ((marineCount < 2 || (marineCount < 4 && LocationConstants.opponentRace == Race.TERRAN)) && Bot.OBS.getMinerals() >= 50) {
-                        if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                        if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                             Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                             Cost.updateBank(Units.TERRAN_MARINE);
                         }
@@ -373,7 +376,7 @@ public class BuildManager {
                     }
                 }
                 else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                    Bot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                    BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                     Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
             }
@@ -394,7 +397,7 @@ public class BuildManager {
                 Bot.ACTION.unitCommand(factory.unit(), Abilities.LIFT, false);
                 DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.MOVE, factory, behindMainBase));
                 Point2d factoryPos = factory.unit().getPosition().toPoint2d();
-                if (Position.pointInMappingValue(factoryPos, LocationConstants.pointInMainBase)) {
+                if (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, factoryPos)) { //if not proxied
                     LocationConstants.STARPORTS.add(0, factoryPos);
                 }
             }
@@ -411,7 +414,7 @@ public class BuildManager {
                     if (starport.unit().getAddOnTag().isEmpty() &&
                             (unitToProduce == Abilities.TRAIN_RAVEN || unitToProduce == Abilities.TRAIN_BANSHEE || unitToProduce == Abilities.TRAIN_BATTLECRUISER) &&
                             !Purchase.isStructureQueued(Units.TERRAN_STARPORT_TECHLAB)) {
-                        Bot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
+                        BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
                     }
                     else {
                         //get cloak when 1st banshee begins
@@ -420,7 +423,7 @@ public class BuildManager {
                                 !Purchase.isUpgradeQueued(Upgrades.BANSHEE_CLOAK) &&
                                 !isCloakInProduction()) {
                             Unit availableTechLab = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream().filter(techLab -> techLab.getOrders().isEmpty()).findFirst().get();
-                            Bot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, Bot.OBS.getUnit(availableTechLab.getTag())));
+                            BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, Bot.OBS.getUnit(availableTechLab.getTag())));
                         }
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
                         Cost.updateBank(unitType);
@@ -457,14 +460,14 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //maintain a banshee count of 1
-        if (numBanshees < 1) {
-            return Abilities.TRAIN_BANSHEE;
-        }
-
         //get required vikings
         if (numVikings < vikingsRequired) {
             return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
+        //maintain a banshee count of 1
+        if (numBanshees < 1) {
+            return Abilities.TRAIN_BANSHEE;
         }
 
         if (LocationConstants.opponentRace == Race.ZERG) {
@@ -513,7 +516,7 @@ public class BuildManager {
         if (UnitUtils.canAfford(Units.TERRAN_STARPORT) && UnitUtils.hasTechToBuild(Units.TERRAN_STARPORT) && !LocationConstants.STARPORTS.isEmpty()) {
             if (Bot.OBS.getFoodUsed() > 197 ||
                     (GameCache.inProductionMap.getOrDefault(Units.TERRAN_STARPORT, 0) < 3 && areAllProductionStructuresBusy())) {
-                Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
@@ -533,7 +536,7 @@ public class BuildManager {
     private static void addCCToPurchaseQueue() {
         int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
         int numScvs = Bot.OBS.getFoodWorkers();
-        if (wallUnderAttack() || !CannonRushDefense.isSafe) {
+        if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
             purchaseMacroCC();
         }
         else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
@@ -548,16 +551,12 @@ public class BuildManager {
         }
     }
 
-    private static boolean wallUnderAttack() {
-        return GameCache.wallStructures.stream().anyMatch(unit -> unit.getType() == Units.TERRAN_SUPPLY_DEPOT); //if depot is raised then unsafe to expand
-    }
-
     private static boolean purchaseExpansionCC() {
         //if an expansion position is available, build expansion CC
         Optional<Point2d> expansionPos = getNextAvailableExpansionPosition();
         if (expansionPos.isPresent()) {
-            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos.get()));
-            List<Unit> marines = GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_MARINE, Collections.emptyList());
+            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos.get()));
+            List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
             if (!marines.isEmpty()) {
                 Bot.ACTION.unitCommand(marines, Abilities.ATTACK, expansionPos.get(), true);
             }
@@ -567,7 +566,10 @@ public class BuildManager {
 
     private static Optional<Point2d> getNextAvailableExpansionPosition() {
         return GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
-                .filter(base -> base.isUntakenBase() && !base.isDryedUp() && isPlaceable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER))
+                .filter(base -> base.isUntakenBase() &&
+                        !base.isDryedUp() &&
+                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, base.getCcPos()) == 0 &&
+                        Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()))
                 .findFirst()
                 .map(Base::getCcPos);
     }
@@ -578,7 +580,7 @@ public class BuildManager {
 
     private static boolean purchaseMacroCC() {
         if (!LocationConstants.MACRO_OCS.isEmpty()) {
-            Bot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
+            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
             GameCache.numMacroOCs++;
             return true;
         }
@@ -632,7 +634,7 @@ public class BuildManager {
 
     public static int numStructuresQueued(Units structureType) {
         int count = 0;
-        for (Purchase p : Bot.purchaseQueue) {
+        for (Purchase p : BansheeBot.purchaseQueue) {
             if (p instanceof PurchaseStructure && ((PurchaseStructure) p).getStructureType().equals(structureType)) {
                 count++;
             }
@@ -641,7 +643,7 @@ public class BuildManager {
     }
 
     public static boolean isMorphQueued(Abilities morphType) {
-        for (Purchase p : Bot.purchaseQueue) {
+        for (Purchase p : BansheeBot.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph && ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType) {
                 return true;
             }
@@ -650,7 +652,7 @@ public class BuildManager {
     }
 
     public static boolean isUpgradeQueued(Upgrades upgrade) {
-        for (Purchase p : Bot.purchaseQueue) {
+        for (Purchase p : BansheeBot.purchaseQueue) {
             if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade) {
                 return true;
             }
@@ -693,45 +695,18 @@ public class BuildManager {
     }
 
     public static boolean isPlaceable(Point2d pos, Abilities buildAction) { //TODO: not perfect.  sometimes return false positive
+        Point2d gridPos = Position.nearestHalfPoint(pos);
+
         //if creep is there
         if (Bot.OBS.hasCreep(pos)) {
             return false;
         }
-        float distance = getStructureRadius(buildAction);
+        float distance = UnitUtils.getStructureRadius(buildAction);
 
         //if enemy ground unit/structure there
         return Bot.OBS.getUnits(Alliance.ENEMY,
-                enemy -> enemy.unit().getPosition().toPoint2d().distance(pos) < distance &&
+                enemy -> UnitUtils.getDistance(enemy.unit(), gridPos) < distance &&
                         !enemy.unit().getFlying().orElse(false)).isEmpty();  //default false to handle structure snapshots
-    }
-
-    public static float getStructureRadius(Abilities buildAction) {
-        StructureSize size = getSize(buildAction);
-        switch (size) {
-            case _1x1:
-                return 0.3f;
-            case _2x2:
-                return 0.7f;
-            case _3x3:
-                return 1.1f;
-            default: //_5x5
-                return 2.2f;
-        }
-
-    }
-
-    public static StructureSize getSize(Abilities buildAction) {
-        switch (buildAction) {
-            case BUILD_COMMAND_CENTER:
-                return StructureSize._5x5;
-            case BUILD_ENGINEERING_BAY: case BUILD_BARRACKS: case BUILD_BUNKER: case BUILD_ARMORY: case BUILD_FACTORY:
-            case BUILD_STARPORT: case BUILD_FUSION_CORE: case BUILD_GHOST_ACADEMY:
-                return StructureSize._3x3;
-            case BUILD_MISSILE_TURRET: case BUILD_SUPPLY_DEPOT:
-                return StructureSize._2x2;
-            default: //case BUILD_SENSOR_TOWER:
-                return StructureSize._1x1;
-        }
     }
 
 }

@@ -4,10 +4,10 @@ import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
 
-public class IgnoredFungalDodge extends IgnoredUnit {
+public class IgnoredFungalDodger extends Ignored {
     public long releaseGameFrame;
 
-    public IgnoredFungalDodge(Tag unitTag) {
+    public IgnoredFungalDodger(Tag unitTag) {
         super(unitTag);
         this.releaseGameFrame = Bot.OBS.getGameLoop() + Strategy.FUNGAL_FRAMES;
     }

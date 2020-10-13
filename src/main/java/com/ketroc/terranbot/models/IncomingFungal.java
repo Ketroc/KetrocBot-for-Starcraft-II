@@ -14,6 +14,6 @@ public class IncomingFungal {
     }
 
     public boolean isExpired() {
-        return untilGameFrame < Bot.OBS.getGameLoop();
+        return Bot.OBS.getGameLoop() >= untilGameFrame;
     }
 }

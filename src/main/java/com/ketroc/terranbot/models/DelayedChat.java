@@ -1,9 +1,6 @@
 package com.ketroc.terranbot.models;
 
-import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
-import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
 
@@ -42,9 +39,9 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
     // **************************************
     public static void onStep() {
         delayedChats.stream()
-                .filter(chat -> chat.gameFrame == Bot.OBS.getGameLoop())
+                .filter(chat -> Bot.OBS.getGameLoop() >= chat.gameFrame)
                 .forEach(DelayedChat::executeAction);
-        delayedChats.removeIf(action -> action.gameFrame <= Bot.OBS.getGameLoop());
+        delayedChats.removeIf(chat -> Bot.OBS.getGameLoop() >= chat.gameFrame);
     }
 
     public static long getDelayedGameFrame(int delaySeconds) {

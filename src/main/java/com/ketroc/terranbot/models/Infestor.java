@@ -64,7 +64,7 @@ public class Infestor {
         List<UnitInPool> airUnitsInFungalRange = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, airUnitTypes, infestor.getPosition().toPoint2d(), 15);
         airUnitsInFungalRange.stream()
                 .forEach(unit -> {
-                    IgnoredUnit.ignoredUnits.add(new IgnoredFungalDodge(unit.getTag()));
+                    Ignored.add(new IgnoredFungalDodger(unit.getTag()));
                     Point2d dodgePoint = Position.towards(unit.unit().getPosition().toPoint2d(), infestor.getPosition().toPoint2d(), -3);
                     Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
                     switch ((Units)unit.unit().getType()) {
@@ -118,13 +118,13 @@ public class Infestor {
 
     private static Point2d calcFungalPos(Unit infestor) {
         Point2d infestorPos = infestor.getPosition().toPoint2d();
-        float direction = infestor.getFacing(); //TODO: check assumption that 0RAD == east
+        double direction = Math.toDegrees(infestor.getFacing()); //TODO: check assumption that 0RAD == east
         float distance = 10;
 
         Point2d originPoint = Point2d.of(infestorPos.getX()+distance, infestorPos.getY());
 
         //find destination Point
-        return Position.rotate(originPoint, infestorPos, Position.getDegreesFromRads(direction));
+        return Position.rotate(originPoint, infestorPos, direction);
     }
 
 

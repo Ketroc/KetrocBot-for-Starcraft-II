@@ -2,9 +2,8 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point;
+import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.*;
@@ -92,7 +91,7 @@ public class ArmyManager {
                 if (Switches.isDivingTempests) {
                     List<Unit> moveVikings = new ArrayList<>();
                     List<Unit> attackVikings = new ArrayList<>();
-                    if (Switches.vikingDiveTarget.getLastSeenGameLoop() != Bot.OBS.getGameLoop()) { //TODO: handle it when vikings arrive at last known tempest location and still can't find the tempest
+                    if (!UnitUtils.isVisible(Switches.vikingDiveTarget)) { //TODO: handle it when vikings arrive at last known tempest location and still can't find the tempest
                         moveVikings.addAll(GameCache.vikingDivers);
                     }
                     else {
@@ -193,7 +192,7 @@ public class ArmyManager {
             }).size();  //TODO: move this to GameState.startFrame() ??
             int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs; //decide 5 or 10 total scvs to repair at dock
             if (numScvsToSend > 1) {
-                List<Unit> availableScvs = UnitUtils.unitInPoolToUnitList(WorkerManager.getAvailableScvs(LocationConstants.REPAIR_BAY, 30, false)); //TODO: sort, or 2 calls? -so closest scvs repair
+                List<Unit> availableScvs = UnitUtils.toUnitList(WorkerManager.getAvailableScvs(LocationConstants.REPAIR_BAY, 30, false)); //TODO: sort, or 2 calls? -so closest scvs repair
                 if (availableScvs.size() > numScvsToSend) {
                     availableScvs = availableScvs.subList(0, numScvsToSend);
                 }
@@ -220,7 +219,7 @@ public class ArmyManager {
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore overlords/changelings
                         u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                         (!GameCache.vikingList.isEmpty() || !u.unit().getFlying().orElse(false)) && //ignore flying units if I have no vikings
-                        !u.unit().getHallucination().orElse(false) && u.getLastSeenGameLoop() == Bot.OBS.getGameLoop()) //ignore hallucs and units in the fog
+                        !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
                 .min(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)))).orElse(null);
         if (closestEnemy != null) {
             attackPos = closestEnemy.unit().getPosition().toPoint2d();
@@ -276,7 +275,7 @@ public class ArmyManager {
             if (scvs.size() > 10) {
                 scvs.subList(10, scvs.size()).clear();
             }
-            nydusDivers.addAll(UnitUtils.unitInPoolToUnitList(scvs));
+            nydusDivers.addAll(UnitUtils.toUnitList(scvs));
             ArmyManager.attackPos = nydusWorm.get().unit().getPosition().toPoint2d();
             ArmyManager.attackUnit = nydusWorm.get().unit();
             if (!nydusDivers.isEmpty()) {
@@ -298,7 +297,7 @@ public class ArmyManager {
         pfsAndTanks = pfsAndTanks.stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
                         unit.getWeaponCooldown().orElse(1f) == 0 &&
-                        GameCache.pointGroundUnitWithin13 [Math.round(unit.getPosition().getX())] [Math.round(unit.getPosition().getY())])
+                        InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, unit.getPosition().toPoint2d()))
                 .collect(Collectors.toList());
 
         for (Unit pfTank : pfsAndTanks) {
@@ -318,28 +317,27 @@ public class ArmyManager {
                 range = 8;
             }
 
-            int xMin = (int) LocationConstants.SCREEN_BOTTOM_LEFT.getX();
-            int xMax = (int) LocationConstants.SCREEN_TOP_RIGHT.getX();
-            int yMin = (int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
-            int yMax = (int) LocationConstants.SCREEN_TOP_RIGHT.getY();
-            int xStart = Math.max((int)(x_pfTank - range), xMin);
-            int yStart = Math.max((int)(y_pfTank - range), yMin);
-            int xEnd = Math.min((int)(x_pfTank + range), xMax);
-            int yEnd = Math.min((int)(y_pfTank + range), yMax);
+            int xMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getX();
+            int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
+            int yMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
+            int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
+            int xStart = Math.max(Math.round(2*(x_pfTank - range)), xMin);
+            int yStart = Math.max(Math.round(2*(y_pfTank - range)), yMin);
+            int xEnd = Math.min(Math.round(2*(x_pfTank + range)), xMax);
+            int yEnd = Math.min(Math.round(2*(y_pfTank + range)), yMax);
 
 
             //get x,y of max value
             int bestValueX = -1;
             int bestValueY = -1;
             int bestValue = 0;
-            if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(xStart, yStart, Position.getZ(xStart, yStart)), Point.of(xEnd, yEnd, Position.getZ(xEnd, yEnd)), Color.BLUE);
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
-                    if (GameCache.pointPFTargetValue[x][y] > bestValue &&
-                            Position.distance(x, y, x_pfTank, y_pfTank) < range) {
+                    if (InfluenceMaps.pointPFTargetValue[x][y] > bestValue &&
+                            Position.distance(x/2f, y/2f, x_pfTank, y_pfTank) < range) {
                         bestValueX = x;
                         bestValueY = y;
-                        bestValue = GameCache.pointPFTargetValue[x][y];
+                        bestValue = InfluenceMaps.pointPFTargetValue[x][y];
 
                     }
                 }
@@ -348,8 +346,7 @@ public class ArmyManager {
                 return;
             }
 
-            Point2d bestTargetPos = Point2d.of(bestValueX, bestValueY);
-            if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(bestValueX-0.5f, bestValueY-0.5f, Position.getZ(bestValueX, bestValueY)), Point.of(bestValueX+0.5f, bestValueY+0.5f, Position.getZ(bestValueX, bestValueY)), Color.RED);
+            Point2d bestTargetPos = Point2d.of(bestValueX/2f, bestValueY/2f);
 
             //get enemy Unit near bestTargetPos
             List<UnitInPool> enemyTargets = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
@@ -608,19 +605,19 @@ public class ArmyManager {
     private static void raiseAndLowerDepots() {
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (!GameCache.pointRaiseDepots[(int)depotPos.getX()][(int)depotPos.getY()]) {
+            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos)) {
                 Bot.ACTION.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
         }
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT_LOWERED)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (GameCache.pointRaiseDepots[(int)depotPos.getX()][(int)depotPos.getY()] && CannonRushDefense.cannonRushStep == 0) {
+            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) && CannonRushDefense.cannonRushStep == 0) {
                 Bot.ACTION.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
             }
         }
     }
 
-    private static void spreadArmy(List<Unit> army) {
+    public static void spreadArmy(List<Unit> army) {
         for (Unit unit : army) {
             if (unit.getOrders().isEmpty()) {
                 Bot.ACTION.unitCommand(unit, Abilities.ATTACK, Bot.OBS.getGameInfo().findRandomLocation(), false);
@@ -709,12 +706,12 @@ public class ArmyManager {
 
     public static void giveBansheeCommand(Unit banshee) {
         ArmyCommands lastCommand = getCurrentCommand(banshee);
-        int x = Math.round(banshee.getPosition().getX());
-        int y = Math.round(banshee.getPosition().getY());
-        boolean isUnsafe = (Switches.isDivingTempests) ? false : GameCache.pointThreatToAir[x][y] > 2;
-        boolean isInDetectionRange = GameCache.pointDetected[x][y];
-        boolean isInBansheeRange = GameCache.pointInBansheeRange[x][y];
-        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) == 0f && GameCache.pointThreatToAir[x][y] < 200;
+        int x = InfluenceMaps.toMapCoord(banshee.getPosition().getX());
+        int y = InfluenceMaps.toMapCoord(banshee.getPosition().getY());
+        boolean isUnsafe = (Switches.isDivingTempests) ? false : InfluenceMaps.pointThreatToAir[x][y] > 2;
+        boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
+        boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
+        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) == 0f && InfluenceMaps.pointThreatToAir[x][y] < 200;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING && GameCache.upgradesCompleted.contains(Upgrades.BANSHEE_CLOAK);
         boolean isParasitic = banshee.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
@@ -818,22 +815,22 @@ public class ArmyManager {
 
     private static void giveVikingCommand(Unit viking) { //never kites outside of range of air units... always engages maintaining max range TODO: change this for tempests
         ArmyCommands lastCommand = getCurrentCommand(viking);
-        int x = Math.round(viking.getPosition().getX());
-        int y = Math.round(viking.getPosition().getY());
-        boolean isUnsafe = GameCache.pointThreatToAirFromGround[x][y] > 0;
+        int x = InfluenceMaps.toMapCoord(viking.getPosition().getX());
+        int y = InfluenceMaps.toMapCoord(viking.getPosition().getY());
+        boolean isUnsafe = InfluenceMaps.pointThreatToAirFromGround[x][y] > 0;
 
         //keep vikings back if tempests are on the map, but no other toss air units are visible TODO: include outnumbered viking count too???
         if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty() && //TODO: change below to use Gamestate.allVisibleEnemiesMap
                 Bot.OBS.getUnits(Alliance.ENEMY,
                         e -> (e.unit().getType() == Units.PROTOSS_PHOENIX || e.unit().getType() == Units.PROTOSS_VOIDRAY || e.unit().getType() == Units.PROTOSS_INTERCEPTOR)
                         && !e.unit().getHallucination().orElse(false)).isEmpty()) {
-            isUnsafe = GameCache.pointVikingsStayBack[x][y];
+            isUnsafe = InfluenceMaps.pointVikingsStayBack[x][y];
         }
         else if (GameCache.vikingList.size() <= UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size()) {
-            isUnsafe = GameCache.pointThreatToAir[x][y] > 0;
+            isUnsafe = InfluenceMaps.pointThreatToAir[x][y] > 0;
         }
 
-        boolean isInVikingRange = GameCache.pointInVikingRange[x][y];
+        boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
         boolean canAttack = viking.getWeaponCooldown().orElse(1f) == 0f;
         boolean isParasitic = viking.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
 
@@ -878,9 +875,9 @@ public class ArmyManager {
             return;
         }
         ArmyCommands lastCommand = getCurrentCommand(raven);
-        int x = Math.round(raven.getPosition().getX());
-        int y = Math.round(raven.getPosition().getY());
-        boolean isUnsafe = GameCache.pointThreatToAirPlusBuffer[x][y];
+        boolean isSafe = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
+
+
 
         //always flee if locked on by cyclone
         if (raven.getBuffs().contains(Buffs.LOCK_ON)) {
@@ -897,7 +894,7 @@ public class ArmyManager {
             }
         }
         //back up if in range
-        else if (isUnsafe) {
+        else if (isSafe) {
             if (!castSeeker(raven)) {
                 if (!doAutoTurretOnMaxEnergy(raven)) {
                     if (lastCommand != ArmyCommands.HOME) armyRetreating.add(raven);
@@ -927,10 +924,24 @@ public class ArmyManager {
     }
 
     private static boolean castAutoTurret(Unit raven, boolean useForwardPosition) {
-        float castRange = (useForwardPosition) ? 4f : 2f;
+        float castRange = (useForwardPosition) ? 2f : 0f;
         Point2d turretPos = Position.towards(raven.getPosition().toPoint2d(), attackPos, castRange);
-        if (Bot.QUERY.placement(Abilities.BUILD_SUPPLY_DEPOT, turretPos)) { //depot = same size as autoturret
-            Bot.ACTION.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+        List<Point2d> posList = Position.getSpiralList(turretPos, 2).stream()
+                .sorted(Comparator.comparing(p -> p.distance(attackPos)))
+                .collect(Collectors.toList());
+
+        List<QueryBuildingPlacement> queryList = posList.stream()
+                .map(p -> QueryBuildingPlacement
+                        .placeBuilding()
+                        .useAbility(Abilities.EFFECT_AUTO_TURRET)
+                        .on(p).build())
+                .collect(Collectors.toList());
+
+        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+
+        if (placementList.contains(true)) {
+            Point2d placementPos = posList.get(placementList.indexOf(true));
+            Bot.ACTION.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
             return true;
         }
         return false;
@@ -960,20 +971,21 @@ public class ArmyManager {
 
     private static Point2d findSeekerTarget(int ravenX, int ravenY, boolean isMaxEnergy) {
         int bestX = 0; int bestY = 0; float bestValue = 0;
-        int xMin = Math.max((int) LocationConstants.SCREEN_BOTTOM_LEFT.getX(), ravenX-Strategy.CAST_SEEKER_RANGE);
-        int xMax = Math.min((int) LocationConstants.SCREEN_TOP_RIGHT.getX(), ravenX+Strategy.CAST_SEEKER_RANGE);
-        int yMin = Math.max((int) LocationConstants.SCREEN_BOTTOM_LEFT.getY(), ravenY-Strategy.CAST_SEEKER_RANGE);
-        int yMax = Math.min((int) LocationConstants.SCREEN_TOP_RIGHT.getY(), ravenY+Strategy.CAST_SEEKER_RANGE);
+        int xMin = Math.max(0, ravenX-Strategy.CAST_SEEKER_RANGE);
+        int xMax = Math.min(InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX()), (ravenX+Strategy.CAST_SEEKER_RANGE)*2);
+        int yMin = Math.max(0, ravenY-Strategy.CAST_SEEKER_RANGE);
+        int yMax = Math.min(InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY()), (ravenY+Strategy.CAST_SEEKER_RANGE)*2);
         for (int x=xMin; x<xMax; x++) {
             for (int y=yMin; y<yMax; y++) {
-                if (GameCache.pointSupplyInSeekerRange[x][y] > bestValue) {
-                    bestX = x; bestY = y; bestValue = GameCache.pointSupplyInSeekerRange[x][y];
+                if (InfluenceMaps.pointSupplyInSeekerRange[x][y] > bestValue) {
+                    bestX = x;
+                    bestY = y;
+                    bestValue = InfluenceMaps.pointSupplyInSeekerRange[x][y];
                 }
             }
         }
-        if (Bot.isDebugOn && bestValue > 0) Bot.DEBUG.debugBoxOut(Point.of(bestX-0.2f,bestY-0.2f, Position.getZ(bestX, bestY)), Point.of(bestX+0.2f,bestY+0.2f, Position.getZ(bestX, bestY)), Color.PURPLE);
         float minSupplyToSeeker = (isMaxEnergy) ? Strategy.MIN_SUPPLY_TO_SEEKER - 7 : Strategy.MIN_SUPPLY_TO_SEEKER;
-        return (bestValue < minSupplyToSeeker) ? null : Point2d.of(bestX, bestY);
+        return (bestValue < minSupplyToSeeker) ? null : Point2d.of(bestX/2f, bestY/2f);
     }
 
     public static boolean shouldDive(Units unitType, Unit enemy) {
@@ -989,8 +1001,8 @@ public class ArmyManager {
         //calculate point from detector
         Point2d threatPoint = getPointFromA(enemy.getPosition().toPoint2d(), retreatPos, Bot.OBS.getUnitTypeData(false).get(unitType).getWeapons().iterator().next().getRange());
 
-        int x = (int) threatPoint.getX();
-        int y = (int) threatPoint.getY();
+        int x = InfluenceMaps.toMapCoord(threatPoint.getX());
+        int y = InfluenceMaps.toMapCoord(threatPoint.getY());
 
         //if 25%+ of the threat is from air units, don't dive vikings
 //        if (unitType == Units.TERRAN_VIKING_FIGHTER && GameState.pointThreatToAirFromGround[x][y] < GameState.pointThreatToAir[x][y] * 0.75) {
@@ -998,7 +1010,7 @@ public class ArmyManager {
 //        }
 
         //calculate if I have enough units to dive in and snipe the detector
-        return numAttackersNearby >= numNeededToDive(enemy, GameCache.pointThreatToAir[x][y]);
+        return numAttackersNearby >= numNeededToDive(enemy, InfluenceMaps.pointThreatToAir[x][y]);
     }
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {

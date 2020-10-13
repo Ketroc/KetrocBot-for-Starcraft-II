@@ -2,14 +2,13 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
-import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +52,7 @@ public class UpgradeManager {
         if (idleArmory != null && !Purchase.isUpgradeQueued(idleArmory.getTag())) {
             Upgrades nextUpgrade = getNextArmoryUpgrade(armories);
             if (nextUpgrade != null) {
-                Bot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(idleArmory.getTag())));
+                BansheeBot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(idleArmory.getTag())));
             }
         }
     }

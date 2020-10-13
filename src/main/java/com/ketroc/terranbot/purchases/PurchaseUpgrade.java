@@ -3,7 +3,6 @@ package com.ketroc.terranbot.purchases;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
 

@@ -7,10 +7,8 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.LocationConstants;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.*;
+import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 
@@ -143,7 +141,7 @@ public class Base {
         if (tanks.isEmpty()) {
             Point2d resourceMidPoint = getResourceMidPoint();
             if (resourceMidPoint != null) {
-                Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.2f);
+                Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 45), null));
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -45), null));
             }
@@ -164,7 +162,7 @@ public class Base {
             onMyBaseDeath = false;
         }
         if (continueUnsieging) {
-            if (!GameCache.pointGroundUnitWithin13[Math.round(ccPos.getX())][Math.round(ccPos.getY())]) {
+            if (!InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, ccPos)) {
                 unsiegeBase();
                 continueUnsieging = false;
             }
@@ -227,11 +225,11 @@ public class Base {
         List<UnitInPool> idleLibs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_LIBERATOR &&
                 u.unit().getPosition().toPoint2d().distance(ccPos) < 4 &&
                 (u.unit().getOrders().isEmpty() || u.unit().getOrders().get(0).getAbility() != Abilities.ATTACK));
-        return UnitUtils.unitInPoolToUnitList(idleLibs);
+        return UnitUtils.toUnitList(idleLibs);
     }
 
     public List<Unit> getSiegedLibs() {
-        return UnitUtils.unitInPoolToUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_LIBERATOR_AG, ccPos, 10));
+        return UnitUtils.toUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_LIBERATOR_AG, ccPos, 10));
     }
 
     public List<Unit> getLargeMinerals() {
@@ -324,7 +322,7 @@ public class Base {
 
     public void onMyBaseDeath() {
         //send all scvs to another base's mineral patch
-        List<Unit> baseScvs = UnitUtils.unitInPoolToUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Set.of(Units.TERRAN_SCV, Units.TERRAN_MULE), ccPos, 7));
+        List<Unit> baseScvs = UnitUtils.toUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Set.of(Units.TERRAN_SCV, Units.TERRAN_MULE), ccPos, 7));
         Unit mineralPatch = UnitUtils.getSafestMineralPatch();
         List<Unit> scvsCarrying = baseScvs.stream().filter(unit -> UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());//scvs carrying return cargo first
         if (!scvsCarrying.isEmpty()) {
@@ -352,12 +350,13 @@ public class Base {
             if ((scv.structureType == Units.TERRAN_MISSILE_TURRET || scv.structureType == Units.TERRAN_REFINERY) &&
                     scv.structurePos.distance(ccPos) < 10) {
                 scv.cancelProduction();
-                StructureScv.scvBuildingList.remove(i--);
+                StructureScv.remove(scv);
+                i--;
             }
         }
 
         //cancel queued up turrets for this base
-        Bot.purchaseQueue.removeIf(
+        BansheeBot.purchaseQueue.removeIf(
                 p -> p instanceof PurchaseStructure &&
                         ((PurchaseStructure) p).getStructureType() == Units.TERRAN_MISSILE_TURRET &&
                         ((PurchaseStructure) p).getPosition().distance(ccPos) < 10);
