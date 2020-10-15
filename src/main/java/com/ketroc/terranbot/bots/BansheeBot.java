@@ -487,29 +487,16 @@ public class BansheeBot extends Bot {
                     purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
                 }
                 break;
-            case BANSHEE_CLOAK:
-                purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_SPEED, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
-                break;
-            case BANSHEE_SPEED:
-                purchaseQueue.add(new PurchaseUpgrade(Upgrades.RAVEN_CORVID_REACTOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
-                break;
+//            case BANSHEE_CLOAK:
+//                purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_SPEED, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
+//                break;
+//            case BANSHEE_SPEED:
+//                purchaseQueue.add(new PurchaseUpgrade(Upgrades.RAVEN_CORVID_REACTOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
+//                break;
             case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
-                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
-                UpgradeManager.updateUpgradeList();
-//                if (!UpgradeManager.armoryUpgrades.isEmpty()) {
-//                    for (Unit armory : GameCache.allFriendliesMap.get(Units.TERRAN_ARMORY)) {
-//                        //if armory idle or contains this finishing upgrade
-//                        if (armory.getOrders().isEmpty() || armory.getOrders().get(0).getProgress().orElse(0f) > 0.999) { //upgrade is at 0.9992-0.9993 in this hook
-//                            //TODO: is checking purchase queue necessary???
-////                            if (Bot.purchaseQueue.stream().noneMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().getTag().equals(armory.getTag()))) {
-//                                if (!UpgradeManager.armoryUpgrades.isEmpty()) {
-//                                    purchaseQueue.add(new PurchaseUpgrade(UpgradeManager.armoryUpgrades.remove(0), Bot.OBS.getUnit(armory.getTag())));
-//                                    break;
-//                                }
-////                            }
-//                        }
-//                    }
-//                }
+            case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
+            case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
+                UpgradeManager.updateUpgradeList(upgrade);
                 break;
         }
 

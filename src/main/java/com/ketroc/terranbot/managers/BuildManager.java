@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
@@ -22,6 +23,7 @@ import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BuildManager {
     public static final List<Abilities> BUILD_ACTIONS = Arrays.asList(
@@ -59,7 +61,7 @@ public class BuildManager {
         if (BunkerContain.proxyBunkerLevel != 2) {
             if (Strategy.DO_INCLUDE_TANKS) {
                 buildFactoryUnitsLogic();
-            } else if (!UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+            } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
                 liftFactory();
             }
         }
@@ -71,14 +73,75 @@ public class BuildManager {
 
         //build command center logic
         buildCCLogic();
+
+        //no-gas left (marines&hellbats)
+        noGasProduction();
+    }
+
+    private static void noGasProduction() {
+        if (Cost.isGasBroke()) {
+            //land factory
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
+                    .filter(factory -> factory.getOrders().isEmpty()) //if idle
+                    .findFirst()
+                    .ifPresent(factory -> {
+                        landFactory(factory);
+                    });
+
+            //produce marines & hellbats
+            GameCache.barracksList.stream()
+                    .filter(barracks -> barracks.unit().getOrders().isEmpty()) //if idle
+                    .forEach(barracks -> Bot.ACTION.unitCommand(barracks.unit(), Abilities.TRAIN_MARINE, false));
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).stream()
+                    .filter(factory -> factory.getOrders().isEmpty()) //if idle
+                    .forEach(factory -> Bot.ACTION.unitCommand(factory, Abilities.TRAIN_HELLBAT, false));
+        }
+
+    }
+
+    private static void landFactory(Unit factory) {
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase() && !base.isMyMainBase()) {
+                Point2d landingPos = getFactoryLandingPos(base.getCcPos());
+                if (landingPos != null) {
+                    Bot.ACTION.unitCommand(factory, Abilities.LAND_FACTORY, landingPos, false);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static Point2d getFactoryLandingPos(Point2d expansionPos) {
+        List<Point2d> landingPosList = Position.getSpiralList(
+                Position.toWholePoint(
+                        Position.towards(expansionPos, LocationConstants.enemyMainBaseMidPos, 8)
+                )
+        , 4).stream()
+                .sorted(Comparator.comparing(landPos -> landPos.distance(expansionPos)))
+                .collect(Collectors.toList());
+
+        List<QueryBuildingPlacement> queryList = landingPosList.stream()
+                .map(p -> QueryBuildingPlacement.placeBuilding().useAbility(Abilities.LAND_FACTORY).on(p).build())
+                .collect(Collectors.toList());
+
+        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+        if (placementList.contains(true)) {
+            return landingPosList.get(placementList.indexOf(true));
+        }
+
+        return null;
     }
 
     private static void build2ndLayerOfTech() {
         //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
             BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
-            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
-            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            if (!UpgradeManager.shipAttack.isEmpty()) {
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            }
+            if (!UpgradeManager.shipArmor.isEmpty()) {
+                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+            }
             if (LocationConstants.opponentRace == Race.ZERG) {
                 BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
                 BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
@@ -417,14 +480,6 @@ public class BuildManager {
                         BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
                     }
                     else {
-                        //get cloak when 1st banshee begins
-                        if (unitToProduce == Abilities.TRAIN_BANSHEE &&
-                                !Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                                !Purchase.isUpgradeQueued(Upgrades.BANSHEE_CLOAK) &&
-                                !isCloakInProduction()) {
-                            Unit availableTechLab = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream().filter(techLab -> techLab.getOrders().isEmpty()).findFirst().get();
-                            BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_CLOAK, Bot.OBS.getUnit(availableTechLab.getTag())));
-                        }
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
                         Cost.updateBank(unitType);
                     }
@@ -502,7 +557,7 @@ public class BuildManager {
         }
 
         //otherwise banshee
-        return Abilities.TRAIN_BANSHEE;
+        return Strategy.DEFAULT_STARPORT_UNIT;
     }
 
     private static void buildCCLogic() {
@@ -534,19 +589,24 @@ public class BuildManager {
     }
 
     private static void addCCToPurchaseQueue() {
-        int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
-        int numScvs = Bot.OBS.getFoodWorkers();
-        if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
-            purchaseMacroCC();
-        }
-        else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
-            if (!purchaseMacroCC()) {
-                purchaseExpansionCC();
+        if (Strategy.PRIORITIZE_EXPANDING) {
+            if (!purchaseExpansionCC()) {
+                purchaseMacroCC();
             }
         }
         else {
-            if (!purchaseExpansionCC()) {
+            int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
+            int numScvs = Bot.OBS.getFoodWorkers();
+            if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
                 purchaseMacroCC();
+            } else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
+                if (!purchaseMacroCC()) {
+                    purchaseExpansionCC();
+                }
+            } else {
+                if (!purchaseExpansionCC()) {
+                    purchaseMacroCC();
+                }
             }
         }
     }

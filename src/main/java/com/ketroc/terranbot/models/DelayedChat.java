@@ -50,4 +50,12 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
         return gameLoop;
     }
 
+    public static void add(String message) {
+        add(4, message);
+    }
+
+    public static void add(long gameFrame, String message) {
+        delayedChats.add(new DelayedChat(gameFrame, message));
+    }
+
 }

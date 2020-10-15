@@ -69,7 +69,7 @@ public class UnitUtils {
     public static final Set<Units> INFESTOR_TYPE = new HashSet<>(Set.of(
             Units.ZERG_INFESTOR, Units.ZERG_INFESTOR_BURROWED));
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
-            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING));
+            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET));
     public static final Set<Units> LONG_RANGE_ENEMIES = new HashSet<>(Set.of(
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
             Units.TERRAN_RAVEN, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));

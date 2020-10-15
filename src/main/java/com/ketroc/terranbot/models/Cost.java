@@ -47,4 +47,12 @@ public class Cost {
         GameCache.gasBank -= Math.max(0, cost.gas);
         GameCache.freeSupply -= cost.supply;
     }
+
+    public static boolean isGasBroke() {
+        return Bot.OBS.getVespene() == 0 && Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0;
+    }
+
+    public static boolean isMineralBroke() {
+        return Bot.OBS.getMinerals() == 0 && Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0;
+    }
 }

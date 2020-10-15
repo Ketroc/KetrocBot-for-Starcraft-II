@@ -224,7 +224,12 @@ public class GameCache {
                             bansheeList.add(unit);
                             break;
                         case TERRAN_RAVEN:
-                            ravenList.add(unit);
+                            if (unit.getEnergy().orElse(0f) > 175) {
+                                ravenList.add(0, unit);
+                            }
+                            else {
+                                ravenList.add(unit);
+                            }
                             break;
                         case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
                             vikingList.add(unit);
@@ -529,6 +534,7 @@ public class GameCache {
         if (Switches.vikingDiveTarget == null) {
             //don't dive detector if vs terran, no banshees, or if there are still voids or phoenix visible
             if (LocationConstants.opponentRace != Race.TERRAN && //TODO: temp for vs ANIBot
+                    !Strategy.MASS_RAVENS &&
                     !GameCache.bansheeList.isEmpty() &&
                     (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {
                 for (Unit detector : GameCache.enemyDetector) {

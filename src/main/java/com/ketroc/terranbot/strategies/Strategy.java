@@ -4,20 +4,23 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.LocationConstants;
-import com.ketroc.terranbot.MapNames;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.models.DelayedChat;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -62,6 +65,14 @@ public class Strategy {
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
     public static boolean diveRavensVsVikings; //won't dive enemy ravens if opponent has 6+ vikings
 
+    public static boolean MASS_RAVENS;
+    public static boolean DO_BANSHEE_HARASS = true;
+    public static boolean PRIORITIZE_EXPANDING;
+    public static boolean DO_SEEKER_MISSILE = true;
+    public static int AUTOTURRET_AT_ENERGY = 180;
+    public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
+
+
 
 
     public static int step_TvtFastStart = 1;
@@ -94,56 +105,80 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
-        int numStrategies = 3;
-        selectedStrategy = selectedStrategy % numStrategies;
+        int numStrategies = 4;
+        selectedStrategy = 2; //TODO selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
-                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                Bot.ACTION.sendChat("Bunker Contain Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 2;
                 break;
             case 2:
-                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Mass Raven Strategy");
+                massRavenStrategy();
+                break;
+            case 3:
+                DelayedChat.add("SCV Rush Strategy");
                 Switches.scvRushComplete = false;
                 break;
         }
     }
 
     private static void chooseTvPStrategy() {
-        int numStrategies = 3;
-        selectedStrategy = selectedStrategy % numStrategies;
+        int numStrategies = 4;
+        selectedStrategy = 2; //selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
-                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                Bot.ACTION.sendChat("Bunker Contain Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 1;
                 break;
             case 2:
-                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Mass Raven Strategy");
+                massRavenStrategy();
+                break;
+            case 3:
+                DelayedChat.add("SCV Rush Strategy");
                 Switches.scvRushComplete = false;
                 break;
         }
     }
 
     private static void chooseTvZStrategy() {
-        int numStrategies = 2;
+        int numStrategies = 3;
         selectedStrategy = selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
-                Bot.ACTION.sendChat("Standard Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                Bot.ACTION.sendChat("SCV Rush Strategy", ActionChat.Channel.BROADCAST);
+                DelayedChat.add("Mass Raven Strategy");
+                massRavenStrategy();
+                break;
+            case 2:
+                DelayedChat.add("SCV Rush Strategy");
                 Switches.scvRushComplete = false;
                 break;
         }
+    }
+
+    private static void massRavenStrategy() {
+        MASS_RAVENS = true;
+        maxScvs = 100;
+        UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
+        UpgradeManager.shipAttack.clear(); //no attack upgrades
+        DO_BANSHEE_HARASS = false;
+        PRIORITIZE_EXPANDING = true;
+        DO_SEEKER_MISSILE = false;
+        AUTOTURRET_AT_ENERGY = 50;
+        DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
     }
 
     private static void setStrategyNumber() {

@@ -26,13 +26,16 @@ public interface Purchase {
     }
 
     public static boolean isUpgradeQueued(Upgrades upgrade) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
-            if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade) {
-                return true;
-            }
-        }
-        return false;
+        return BansheeBot.purchaseQueue.stream()
+                .anyMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade);
     }
+
+    public static boolean containsUpgrade() {
+        return BansheeBot.purchaseQueue.stream()
+                .anyMatch(purchase -> purchase instanceof PurchaseUpgrade);
+    }
+
+
 
     public static boolean isUpgradeQueued(Tag structureTag) {
         for (Purchase p : BansheeBot.purchaseQueue) {

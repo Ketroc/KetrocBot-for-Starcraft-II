@@ -2,6 +2,7 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.UnitUtils;
@@ -25,6 +26,10 @@ public class UpgradeManager {
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3));
 
+    public static List<Upgrades> starportUpgradeList = new ArrayList<>(List.of(
+            Upgrades.BANSHEE_CLOAK,
+            Upgrades.BANSHEE_SPEED));
+
     public static void onStep() {
         //updateUpgradeList();
         checkArmories();
@@ -32,12 +37,10 @@ public class UpgradeManager {
         checkStarportTechLabs();
     }
 
-    public static void updateUpgradeList() {
-        Bot.OBS.getUpgrades().stream()
-                .forEach(upgrade -> {
-                    shipAttack.remove(upgrade);
-                    shipArmor.remove(upgrade);
-                });
+    public static void updateUpgradeList(Upgrade upgrade) {
+        shipAttack.remove(upgrade);
+        shipArmor.remove(upgrade);
+        starportUpgradeList.remove(upgrade);
     }
 
     private static void checkArmories() {
@@ -68,7 +71,7 @@ public class UpgradeManager {
         else if (activeAbility == Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING) {
             if (!shipAttack.isEmpty()) return shipAttack.get(0);
         }
-        else if (shipArmor.size() <= shipAttack.size() && !shipArmor.isEmpty()) {
+        else if (shipArmor.size() >= shipAttack.size() && !shipArmor.isEmpty()) {
             return shipArmor.get(0);
         }
         else if (!shipAttack.isEmpty()) {
@@ -82,7 +85,29 @@ public class UpgradeManager {
     }
 
     private static void checkStarportTechLabs() {
+        //if all upgrades done
+        if (starportUpgradeList.isEmpty()) {
+            return;
+        }
+        Upgrades nextUpgrade = starportUpgradeList.get(0);
+        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                .filter(unit -> unit.getOrders().isEmpty())
+                .findFirst()
+                .ifPresent(techLab -> {
+                            if (!Purchase.isUpgradeQueued(nextUpgrade)) {
+                                BansheeBot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(techLab.getTag())));
+                            }
+                        });
+    }
 
+    private static void getStarportUpgrades() { //TODO: don't start if making vikings
+        if (!starportUpgradeList.isEmpty() && !Purchase.containsUpgrade()) {
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                    .filter(techLab -> techLab.getOrders().isEmpty())
+                    .findFirst()
+                    .map(techLab -> Bot.OBS.getUnit(techLab.getTag()))
+                    .ifPresent(techLab -> BansheeBot.purchaseQueue.add(new PurchaseUpgrade(starportUpgradeList.remove(0), techLab)));
+        }
     }
 
 

@@ -187,7 +187,7 @@ public class LocationConstants {
                 break;
             case TERRAN:
                 Strategy.DO_INCLUDE_LIBS = false;
-                Strategy.DO_INCLUDE_TANKS = false;
+                Strategy.DO_INCLUDE_TANKS = true;
                 break;
         }
     }

@@ -10,15 +10,18 @@ import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Ignored;
 import com.ketroc.terranbot.models.IgnoredUnit;
+import com.ketroc.terranbot.strategies.Strategy;
 
 public class Harassers {
     public static BansheeHarasser clockwiseBanshee;
     public static BansheeHarasser counterClockwiseBanshee;
 
     public static void onStep() {
-        removeHarassers();
-        getNewHarassers();
-        giveBansheeCommands();
+        if (!Strategy.MASS_RAVENS) {
+            removeHarassers();
+            getNewHarassers();
+            giveBansheeCommands();
+        }
     }
 
     private static void giveBansheeCommands() {

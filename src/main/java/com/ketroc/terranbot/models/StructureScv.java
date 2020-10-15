@@ -95,12 +95,8 @@ public class StructureScv {
 
         //send scv to mineral patch
         if (scv.isAlive()) {
-            Unit mineralPatch = UnitUtils.getSafestMineralPatch();
-            if (mineralPatch == null) {
-                Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
-            } else {
-                Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, mineralPatch, false);
-            }
+            Ignored.remove(scv.getTag());
+            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
         }
     }
 
@@ -237,7 +233,7 @@ public class StructureScv {
                 LocationConstants.STARPORTS.add(structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:
-                if (structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
+                if (LocationConstants.proxyBarracksPos == null || structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
                     LocationConstants._3x3Structures.add(structureScv.structurePos);
                 }
                 BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));

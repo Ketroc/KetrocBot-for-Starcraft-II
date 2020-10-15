@@ -164,11 +164,15 @@ public class Position {
         return Point2d.of((float)(vector.getX() / length), (float)(vector.getY() / length));
     }
 
-    public static Point2d nearestHalfPoint(Point2d point) { //useful for 1x1, 3x3, and 5x5 structure placements
+    public static Point2d nearestHalfPoint(Point2d point) {
         return Point2d.of(roundToNearestHalf(point.getX()), roundToNearestHalf(point.getY()));
     }
 
-    public static Point2d nearestWholePoint(Point2d point) { //useful for 2x2 structure placements
+    public static Point2d toHalfPoint(Point2d point) { //useful for 1x1, 3x3, and 5x5 structure placements
+        return Point2d.of((int)point.getX() + 0.5f, (int)point.getY() + 0.5f);
+    }
+
+    public static Point2d toWholePoint(Point2d point) { //useful for 2x2 structure placements
         return Point2d.of(Math.round(point.getX()), Math.round(point.getY()));
     }
 
