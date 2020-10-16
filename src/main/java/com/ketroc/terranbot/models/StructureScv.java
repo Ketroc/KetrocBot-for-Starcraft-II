@@ -12,7 +12,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ public class StructureScv {
     // *********************************
 
     public StructureScv(UnitInPool scv, Abilities buildAbility, Point2d structurePos) {
-        this.scv = scv;
+        setScv(scv);
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
         this.structurePos = structurePos;
@@ -43,7 +45,7 @@ public class StructureScv {
     }
 
     public StructureScv(UnitInPool scv, Abilities buildAbility, UnitInPool gasGeyser) {
-        this.scv = scv;
+        setScv(scv);
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
         this.isGas = true;
@@ -67,6 +69,7 @@ public class StructureScv {
         this.scv = scv;
         scvAddedFrame = Bot.OBS.getGameLoop();
         Ignored.add(new IgnoredUnit(scv.getTag()));
+        ArmyManager.sendBioProtection(structurePos);
     }
 
     public UnitInPool getStructureUnit() {
@@ -158,7 +161,6 @@ public class StructureScv {
             if (!structureScv.scv.isAlive()) {
                 List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
                 if (!availableScvs.isEmpty()) {
-
                     structureScv.setScv(availableScvs.get(0));
                 }
             }
@@ -177,8 +179,9 @@ public class StructureScv {
                             UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 5) {
                         int blockedBaseIndex = LocationConstants.baseLocations.indexOf(structureScv.structurePos);
                         if (blockedBaseIndex > 0) {
-                            LocationConstants.baseAttackIndex = blockedBaseIndex;
-                            System.out.println("blocked base.  set baseIndex to " + blockedBaseIndex);
+                            ExpansionClearing.add(structureScv.structurePos);
+                            remove(structureScv);
+                            i--;
                         }
                     }
 
@@ -285,15 +288,12 @@ public class StructureScv {
 
     public static void add(StructureScv structureScv) {
         scvBuildingList.add(structureScv);
-        if (structureScv.scv != null) {
-            Ignored.add(new IgnoredUnit(structureScv.scv.getTag()));
-        }
     }
 
     public static void remove(StructureScv structureScv) {
-        scvBuildingList.remove(structureScv);
         if (structureScv.scv != null) {
             Ignored.remove(structureScv.scv.getTag());
         }
+        scvBuildingList.remove(structureScv);
     }
 }

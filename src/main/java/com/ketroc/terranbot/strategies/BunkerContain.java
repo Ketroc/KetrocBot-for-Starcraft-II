@@ -138,7 +138,7 @@ public class BunkerContain {
                 }
             }
             else if (!factory.unit().getActive().orElse(true)) {
-                if (UnitUtils.getNumUnits(UnitUtils.SIEGE_TANK_TYPE, false) < 2) {
+                if (UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, false) < 2) {
                     buildTanks();
                 }
                 else if (!factory.unit().getFlying().orElse(true)) {

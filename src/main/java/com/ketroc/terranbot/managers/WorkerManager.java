@@ -451,7 +451,7 @@ public class WorkerManager {
 
     public static boolean toggleWorkersInGas() {
         //skip logic until there are at least 2 refineries
-        int numRefineries = UnitUtils.getNumUnits(UnitUtils.REFINERY_TYPE, false);
+        int numRefineries = UnitUtils.getNumFriendlyUnits(UnitUtils.REFINERY_TYPE, false);
         if (numRefineries <= 1) {
             return false;
         }

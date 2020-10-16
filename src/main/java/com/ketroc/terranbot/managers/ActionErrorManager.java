@@ -11,6 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.StructureScv;
 
 import java.util.ArrayList;
@@ -34,14 +35,14 @@ public class ActionErrorManager {
                 Unit scv = structureScv.getScv().unit();
 
                 if (isBlockedByCreep(actionResult)) {
-                    //TODO: launch creep/burrowed/cloak clearing code
-                    int q=0;
+                    if (ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) {
+                        ExpansionClearing.add(pos);
+                    }
                 }
                 else if (isBlockedByUnit(actionResult)) {
-                    if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.BUILD_MISSILE_TURRET || ability == Abilities.LAND_COMMAND_CENTER) &&
+                    if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, ability) == 0) {
-                        //TODO: launch creep/burrowed/cloak clearing code
-                        int q=0;
+                        ExpansionClearing.add(pos);
                     }
                     else {
                         //TODO: do nothing?? check threat? (nothing = same scv keeps trying to build the structure)

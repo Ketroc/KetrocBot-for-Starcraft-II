@@ -13,6 +13,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
@@ -191,7 +192,7 @@ public class BuildManager {
             }
             //build main base missile turrets now
             if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
-                if (LocationConstants.opponentRace == Race.TERRAN) {
+                if (LocationConstants.opponentRace == Race.TERRAN && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
                     BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
                     BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
                 }
@@ -212,14 +213,16 @@ public class BuildManager {
 
                                 //if not main cc, and if needed for expansion
                                 if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isNeededForExpansion()) {
-                                    Base nextFreeBase = GameCache.baseList.stream().filter(base -> base.isUntakenBase()).findFirst().orElse(null);
-                                    if (nextFreeBase == null) { //do nothing, waits for expansion to free up
+                                    Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
+                                    if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up
                                         break;
                                     }
-                                    Point2d floatTo = nextFreeBase.getCcPos();
-                                    FlyingCC.addFlyingCC(cc, floatTo, false);
+                                    FlyingCC.addFlyingCC(cc, nextFreeBasePos, false);
                                     LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
-                                    GameCache.baseList.stream().filter(base -> base.isUntakenBase()).findFirst().get().setCc(Bot.OBS.getUnit(cc.getTag()));
+                                    GameCache.baseList.stream()
+                                            .filter(base -> base.getCcPos().distance(nextFreeBasePos) < 1)
+                                            .findFirst()
+                                            .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
 
                                     //remove OC morph from purchase queue
                                     for (int i = 0; i<BansheeBot.purchaseQueue.size(); i++) {
@@ -375,7 +378,7 @@ public class BuildManager {
             if (Strategy.ANTI_NYDUS_BUILD && UnitUtils.getDistance(barracks, LocationConstants.MID_WALL_3x3) > 1) {
 
                 //if marauders needed
-                if (UnitUtils.getNumUnits(Units.TERRAN_MARAUDER, false) < 2) {
+                if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARAUDER, false) < 2) {
 //                    if (UnitUtils.canAfford(Units.TERRAN_MARAUDER)) {
 //                        Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARAUDER, false);
 //                        Cost.updateBank(Units.TERRAN_MARAUDER);
@@ -392,34 +395,32 @@ public class BuildManager {
                 }
             }
 
-            else {
-                // if no planetary at natural
-                if (!GameCache.baseList.get(1).isMyBase() || !GameCache.baseList.get(1).getCc().isPresent() ||
-                        GameCache.baseList.get(1).getCc().get().unit().getType() != Units.TERRAN_PLANETARY_FORTRESS) {
-                    //make marines if wall under attack
-                    if (UnitUtils.isWallUnderAttack()) {
-                        if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
-                            Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
-                            Cost.updateBank(Units.TERRAN_MARINE);
-                        }
-                        return;
-                    }
+            //make marines if wall under attack
+            else if (UnitUtils.isWallUnderAttack()) {
+                if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                    Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
+                    Cost.updateBank(Units.TERRAN_MARINE);
+                }
+                return;
+            }
+            // if <2 planetaries
+            else if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false) < 2) {
 
-                    //no marines needed if early marauders were built
-                    if (UnitUtils.getNumUnits(Units.TERRAN_MARAUDER, false) > 0) {
-                        return;
-                    }
+                //no marines needed if early marauders were built
+                if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARAUDER, false) > 0) {
+                    return;
+                }
 
-                    //maintain early game marine count (2 for TvP/TvZ, 4 for TvT)
-                    int marineCount = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).size();
-                    for (Unit bunker : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER)) {
-                        marineCount += bunker.getCargoSpaceTaken().orElse(0); //count marines in bunkers
-                    }
-                    if ((marineCount < 2 || (marineCount < 4 && LocationConstants.opponentRace == Race.TERRAN)) && Bot.OBS.getMinerals() >= 50) {
-                        if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
-                            Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
-                            Cost.updateBank(Units.TERRAN_MARINE);
-                        }
+                //maintain early game marine count (3)
+                int marineCount = UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARINE, true);
+                marineCount += UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
+                        .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
+                        .sum();
+
+                if (marineCount < 3 && Bot.OBS.getMinerals() >= 50) {
+                    if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                        Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
+                        Cost.updateBank(Units.TERRAN_MARINE);
                     }
                 }
             }
@@ -494,16 +495,16 @@ public class BuildManager {
     }
 
     public static Abilities decideStarportUnit() { //never max out without a raven
-        int numBanshees = UnitUtils.getNumUnits(Units.TERRAN_BANSHEE, true);
-        int numRavens = UnitUtils.getNumUnits(Units.TERRAN_RAVEN, true);
-        int numVikings = UnitUtils.getNumUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int numLiberators = UnitUtils.getNumUnits(Units.TERRAN_LIBERATOR, true) + UnitUtils.getNumUnits(Units.TERRAN_LIBERATOR_AG, false);
+        int numBanshees = UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true);
+        int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
+        int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
+        int numLiberators = UnitUtils.getNumFriendlyUnits(Units.TERRAN_LIBERATOR, true) + UnitUtils.getNumFriendlyUnits(Units.TERRAN_LIBERATOR_AG, false);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
         int vikingsByRatio  = (int)(numBanshees * Strategy.VIKING_BANSHEE_RATIO);
         if (vikingsByRatio > vikingsRequired) { //build vikings 1:1 with banshees until 1.5x vikings required
             vikingsRequired = Math.min((int)(vikingsRequired * 1.8), vikingsByRatio);
         }
-        int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 2 : 1;
+        int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 3 : 2;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
@@ -613,25 +614,29 @@ public class BuildManager {
 
     private static boolean purchaseExpansionCC() {
         //if an expansion position is available, build expansion CC
-        Optional<Point2d> expansionPos = getNextAvailableExpansionPosition();
-        if (expansionPos.isPresent()) {
-            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos.get()));
-            List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-            if (!marines.isEmpty()) {
-                Bot.ACTION.unitCommand(marines, Abilities.ATTACK, expansionPos.get(), true);
-            }
+        Point2d expansionPos = getNextAvailableExpansionPosition();
+        if (expansionPos != null) {
+            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos));
         }
-        return expansionPos.isPresent();
+        return expansionPos != null;
     }
 
-    private static Optional<Point2d> getNextAvailableExpansionPosition() {
-        return GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
+    private static Point2d getNextAvailableExpansionPosition() {
+        List<Base> expansionOptions =  GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
                 .filter(base -> base.isUntakenBase() &&
                         !base.isDryedUp() &&
-                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, base.getCcPos()) == 0 &&
-                        Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()))
-                .findFirst()
-                .map(Base::getCcPos);
+                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, base.getCcPos()) == 0)
+                .collect(Collectors.toList());
+
+        for (Base base : expansionOptions) {
+            if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
+                return base.getCcPos();
+            }
+            else if (Bot.OBS.hasCreep(base.getCcPos())) {
+                ExpansionClearing.add(base.getCcPos());
+            }
+        }
+        return null;
     }
 
     public static int getNumEnemyBasesIgnored() {

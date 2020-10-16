@@ -49,7 +49,7 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        Bot bot = new BansheeBot(false, opponentId, realTime);
+        Bot bot = new BansheeBot(true, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

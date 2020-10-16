@@ -103,7 +103,7 @@ public class UnitUtils {
         return false;
     }
 
-    public static int getNumUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int getNumFriendlyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
         if (includeProducing) {
             numUnits += numInProductionOfType(unitType);
@@ -111,7 +111,7 @@ public class UnitUtils {
         return numUnits;
     }
 
-    public static int getNumUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int getNumFriendlyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = 0;
         for (Units unitType : unitTypes) {
             numUnits += getFriendlyUnitsOfType(unitType).size();
@@ -451,4 +451,6 @@ public class UnitUtils {
 
         return cantPathToMain;
     }
+
+
 }

@@ -121,9 +121,12 @@ public class Position {
     }
 
     public static Point2d midPointUnitInPools(List<UnitInPool> unitList) {
+        if (unitList.isEmpty()) {
+            return null;
+        }
         Point2d midPoint = Point2d.of(0,0);
         for (UnitInPool u : unitList) {
-            midPoint.add(u.unit().getPosition().toPoint2d());
+            midPoint = midPoint.add(u.unit().getPosition().toPoint2d());
         }
         return midPoint.div(unitList.size());
     }

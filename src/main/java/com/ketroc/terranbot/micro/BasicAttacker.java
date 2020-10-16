@@ -9,7 +9,6 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.InfluenceMaps;
 import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.function.Predicate;
 
 public class BasicAttacker {
     public UnitInPool attacker;
-    public Point2d target;
+    public Point2d targetPos;
     public boolean isGround;
     public boolean canAttackAir;
     public boolean canAttackGround;
@@ -27,9 +26,9 @@ public class BasicAttacker {
     public float movementSpeed;
     public float weaponCooldown = Float.MAX_VALUE; //default for units without weapons
 
-    public BasicAttacker(UnitInPool attacker, Point2d target) {
+    public BasicAttacker(UnitInPool attacker, Point2d targetPos) {
         this.attacker = attacker;
-        this.target = target;
+        this.targetPos = targetPos;
         this.isGround = !attacker.unit().getFlying().orElse(false);
         setWeaponInfo();
         this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(attacker.unit().getType()).getMovementSpeed().orElse(0f);
@@ -74,7 +73,7 @@ public class BasicAttacker {
             boolean isEnemyGround = !enemy.unit().getFlying().orElse(false);
             float range = ((isEnemyGround) ? groundAttackRange : airAttackRange) + 1.5f;
             return ((isEnemyGround && canAttackGround) || (!isEnemyGround && canAttackAir)) &&
-                    UnitUtils.getDistance(attacker.unit(), target) < range;
+                    UnitUtils.getDistance(attacker.unit(), targetPos) < range;
         };
         return Bot.OBS.getUnits(Alliance.ENEMY, enemyTargetPredicate);
     }

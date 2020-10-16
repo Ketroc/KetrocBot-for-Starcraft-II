@@ -14,6 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.managers.*;
+import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.micro.Harassers;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
@@ -74,6 +75,20 @@ public class BansheeBot extends Bot {
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
 
+//            int myId = Bot.OBS.getPlayerId();
+//            int enemyId = Bot.OBS.getGameInfo().getPlayersInfo().stream()
+//                    .filter(p -> p.getPlayerId() != myId)
+//                    .findFirst().get().getPlayerId();
+//
+//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
+//                    Position.towards(LocationConstants.baseLocations.get(2), LocationConstants.baseLocations.get(0), -3), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
+//                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.baseLocations.get(4), 4), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
+//                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.enemyMainBaseMidPos, 4), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, LocationConstants.baseLocations.get(0), myId, 1);
+//            DEBUG.sendDebug();
+
             Bot.ACTION.sendActions();
         }
         catch (Exception e) {
@@ -113,6 +128,9 @@ public class BansheeBot extends Bot {
 
                 //handle action errors like "cannot place building"
                 ActionErrorManager.onStep();
+
+                //micro to clear expansion positions
+                ExpansionClearing.onStep();
 
                 //check switches
                 Switches.onStep();
@@ -188,6 +206,12 @@ public class BansheeBot extends Bot {
                     int lines = 0;
 //                    DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
+                        Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).expansionPos),
+                                Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).raven),
+                                Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    }
                     Bot.DEBUG.debugTextOut("banshees: " + GameCache.bansheeList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("liberators: " + GameCache.liberatorList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("ravens: " + GameCache.ravenList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);

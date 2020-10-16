@@ -68,8 +68,8 @@ public class Strategy {
     public static boolean MASS_RAVENS;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
-    public static boolean DO_SEEKER_MISSILE = true;
-    public static int AUTOTURRET_AT_ENERGY = 180;
+    public static boolean DO_SEEKER_MISSILE;
+    public static int AUTOTURRET_AT_ENERGY = 150;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
 
 

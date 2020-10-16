@@ -331,23 +331,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public static int countUnitType(Units unitType) {
-        int numUnitType = UnitUtils.getNumUnits(unitType, false);
+        int numUnitType = UnitUtils.getNumFriendlyUnits(unitType, false);
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_STARPORT_FLYING, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_STARPORT_FLYING, false);
                 break;
             case TERRAN_FACTORY:
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_FACTORY_FLYING, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY_FLYING, false);
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_BARRACKS_FLYING, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_BARRACKS_FLYING, false);
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_ORBITAL_COMMAND, false);
-                numUnitType += UnitUtils.getNumUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_ORBITAL_COMMAND, false);
+                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
                 break;
         }
         return numUnitType;

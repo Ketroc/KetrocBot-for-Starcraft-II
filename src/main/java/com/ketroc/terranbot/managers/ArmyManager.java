@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.micro.BansheeHarasser;
+import com.ketroc.terranbot.micro.Target;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.DefenseUnitPositions;
@@ -131,7 +131,7 @@ public class ArmyManager {
                 (enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED) ||
                         enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED_DETECTED);
 
-        BansheeHarasser.Target bestTarget = new BansheeHarasser.Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
+        Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
             UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
@@ -221,15 +221,17 @@ public class ArmyManager {
             numAutoturretsAvailable = GameCache.ravenList.stream()
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
-            if (!doOffense && numAutoturretsAvailable > 20) {
+            if (!doOffense && numAutoturretsAvailable > 15) {
                 doOffense = true;
             }
-            else if (doOffense && numAutoturretsAvailable < 3) {
+            else if (doOffense && numAutoturretsAvailable < 2) {
                 doOffense = false;
             }
         }
-        doOffense = (Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                GameCache.bansheeList.size() > 1);
+        else {
+            doOffense = (Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
+                    GameCache.bansheeList.size() > 1);
+        }
     }
 
     private static void ravenMicro() {
@@ -812,7 +814,7 @@ public class ArmyManager {
                 answer = Math.max(2, answer);
             }
         }
-        else if (hasDetector && UnitUtils.getNumUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        else if (hasDetector && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             answer = Math.max((LocationConstants.opponentRace == Race.PROTOSS) ? 2 : 3, answer); //minimum vikings if he has a detector
         }
         answer = Math.max(answer, GameCache.bansheeList.size() / 5); //at least 1 safety viking for every 5 banshees
@@ -1270,6 +1272,14 @@ public class ArmyManager {
                 newX = LocationConstants.MAX_X;
             }
             return (xDistanceFromEdge < yDistanceFromEdge) ? Point2d.of(newX, y) : Point2d.of(x, newY);
+        }
+    }
+
+    public static void sendBioProtection(Point2d expansionPos) {
+        List<Unit> bio = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
+        bio.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARAUDER));
+        if (!bio.isEmpty()) {
+            Bot.ACTION.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
         }
     }
 }

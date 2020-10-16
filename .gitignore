@@ -1,2 +1,4 @@
 *.class
+*.SC2Replay
 target/
+/data/

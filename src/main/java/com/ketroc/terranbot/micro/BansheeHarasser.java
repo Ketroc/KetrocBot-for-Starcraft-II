@@ -241,19 +241,4 @@ public class BansheeHarasser {
         return bestTarget;
     }
 
-    public static class Target {
-        public UnitInPool unit;
-        public float value;
-        public float hp;
-
-        public Target(UnitInPool unit, float value, float hp) {
-            update(unit, value, hp);
-        }
-
-        public void update(UnitInPool unit, float value, float hp) {
-            this.unit = unit;
-            this.value = value;
-            this.hp = hp;
-        }
-    }
 }
