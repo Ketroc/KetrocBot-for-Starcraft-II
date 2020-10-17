@@ -16,6 +16,7 @@ import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -145,9 +146,10 @@ public class Base {
         if (tanks.isEmpty()) {
             Point2d resourceMidPoint = getResourceMidPoint();
             if (resourceMidPoint != null) {
+                int angle = (LocationConstants.opponentRace == Race.TERRAN) ? 65 : 45;
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
-                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 45), null));
-                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -45), null));
+                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle), null));
+                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle*-1), null));
             }
         }
         return tanks;

@@ -230,7 +230,6 @@ public class ArmyManager {
     private static void setOffense() {
         if (Strategy.MASS_RAVENS) {
             numAutoturretsAvailable = GameCache.ravenList.stream()
-                    .filter(raven -> UnitUtils.getDistance(raven, attackGroundPos) < 25)
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
             if (!doOffense && numAutoturretsAvailable > 15) {
@@ -842,6 +841,7 @@ public class ArmyManager {
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
+                    answer += 0.8;
                     hasDetector = true;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
@@ -1091,7 +1091,7 @@ public class ArmyManager {
         }
 
         //go home to repair if low
-        else if (canRepair && UnitUtils.getHealthPercentage(raven) < Strategy.RETREAT_HEALTH) {
+        else if (canRepair && UnitUtils.getHealthPercentage(raven) < Strategy.RETREAT_HEALTH + 10) {
             if (!doCastTurrets || !doAutoTurretOnRetreat(raven)) {
                 if (lastCommand != ArmyCommands.HOME) armyRetreating.add(raven);
             }
