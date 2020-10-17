@@ -51,6 +51,7 @@ public class Strategy {
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 7;
     public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
+    public static final float AUTOTURRET_RANGE = 7f;
     public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static int DIVE_RANGE = 12;
@@ -62,7 +63,6 @@ public class Strategy {
     public static final float MIN_SUPPLY_TO_SEEKER = 22;
     public static boolean techBuilt;
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
-    public static boolean diveRavensVsVikings; //won't dive enemy ravens if opponent has 6+ vikings
 
     public static boolean MASS_RAVENS;
     public static boolean DO_BANSHEE_HARASS = true;
@@ -151,7 +151,7 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 1; //selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -170,7 +170,6 @@ public class Strategy {
 
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
-        maxScvs = 100;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
         UpgradeManager.shipAttack.clear(); //no attack upgrades
         DO_BANSHEE_HARASS = false;

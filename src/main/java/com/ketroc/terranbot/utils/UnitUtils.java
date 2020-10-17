@@ -84,6 +84,9 @@ public class UnitUtils {
             Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED, Units.TERRAN_BANSHEE,
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE
     ));
+    public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(
+            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN
+    ));
 
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
@@ -457,5 +460,12 @@ public class UnitUtils {
         return cantPathToMain;
     }
 
+    public static boolean isExpansionCreepBlocked(Point2d expansionPos) {
+        boolean b = Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() + 2.5f, expansionPos.getY() + 2.5f)) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY() - 2.5f)) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() + 2.5f, expansionPos.getY() - 2.5f)) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY() + 2.5f));
+        return b;
+    }
 
 }

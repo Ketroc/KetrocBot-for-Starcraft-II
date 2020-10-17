@@ -1077,7 +1077,7 @@ public class ArmyManager {
         boolean isUnsafe = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
                 ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, raven.getPosition().toPoint2d()) > 0
                 : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
-        boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInBansheeRange, raven.getPosition().toPoint2d());
+        boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
 
         //always flee if locked on by cyclone

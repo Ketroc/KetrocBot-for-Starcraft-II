@@ -135,6 +135,9 @@ public class ExpansionClearing {
                 .stream()
                 .findFirst()
                 .orElse(null);
+        if (turret == null) {
+            isTurretActive = false;
+        }
     }
 
     private Point2d getTurretPos(Point2d centerPoint) {

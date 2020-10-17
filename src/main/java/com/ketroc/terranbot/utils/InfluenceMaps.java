@@ -6,6 +6,7 @@ public class InfluenceMaps {
 
     public static boolean[][] pointDetected;
     public static boolean[][] pointInBansheeRange;
+    public static boolean[][] pointAutoTurretTargets;
     public static boolean[][] pointInVikingRange;
     public static int[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;

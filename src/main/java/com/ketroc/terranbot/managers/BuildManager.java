@@ -638,7 +638,7 @@ public class BuildManager {
             if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
                 return base.getCcPos();
             }
-            else if (Bot.OBS.hasCreep(base.getCcPos())) {
+            else if (UnitUtils.isExpansionCreepBlocked(base.getCcPos())) {
                 ExpansionClearing.add(base.getCcPos());
             }
         }

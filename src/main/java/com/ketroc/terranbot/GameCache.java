@@ -360,7 +360,7 @@ public class GameCache {
         List<UnitInPool> enemyCCs = Bot.OBS.getUnits(Alliance.ENEMY, enemyCC -> UnitUtils.enemyCommandStructures.contains(enemyCC.unit().getType())); //TODO: refactor when allEnemiesList doesn't duplicate snapshots
         for (Base base : baseList) { //TODO: handle FlyingCCs
             //ignore bases that aren't mine and aren't visible
-            if (base.isMyBase() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
+            if (!base.isMyBase() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
                 continue;
             }
             base.lastScoutedFrame = Bot.OBS.getGameLoop();
@@ -470,7 +470,7 @@ public class GameCache {
         //add all enemies to the enemyMappingList (include enemies that entered fog within last 5sec)
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
-                .filter(enemy -> (enemy.unit().getBuildProgress() > 0.95f || enemy.unit().getBuildProgress() < 0) && enemy.getLastSeenGameLoop() +
+                .filter(enemy -> enemy.getLastSeenGameLoop() +
                         ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 0) >= Bot.OBS.getGameLoop())
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
 
@@ -620,6 +620,7 @@ public class GameCache {
 
         InfluenceMaps.pointDetected = new boolean[800][800];
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
+        InfluenceMaps.pointAutoTurretTargets = new boolean[800][800];
         InfluenceMaps.pointInVikingRange = new boolean[800][800];
         InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
         InfluenceMaps.pointSupplyInSeekerRange = new float[800][800];
@@ -693,6 +694,11 @@ public class GameCache {
                         //banshee range
                         if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect) {
                             InfluenceMaps.pointInBansheeRange[x][y] = true;
+                        }
+
+                        //autoturret cast range
+                        if (distance < Strategy.AUTOTURRET_RANGE && !enemy.isEffect && !enemy.isTumor) {
+                            InfluenceMaps.pointAutoTurretTargets[x][y] = true;
                         }
 
                         //threat to air from ground

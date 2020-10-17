@@ -20,6 +20,8 @@ public class EnemyUnit {
     public boolean isArmy;
     public boolean isSeekered;
     public boolean isTempest;
+    public boolean isTumor;
+    public boolean isInProgress;
     public float detectRange;
     public float groundAttackRange;
     public float airAttackRange;
@@ -51,32 +53,46 @@ public class EnemyUnit {
 
     public EnemyUnit(Unit enemy) {
         float kitingBuffer = getKitingBuffer(enemy);
+
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
         supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
         isAir = enemy.getFlying().orElse(false);
-        threatLevel = getThreatValue((Units)enemy.getType());
-        pfTargetLevel = getPFTargetValue((Units)enemy.getType());
-        detectRange = getDetectionRange(enemy);
+        isTumor = UnitUtils.CREEP_TUMOR.contains(enemy.getType());
+        isInProgress = enemy.getBuildProgress() > 0 && enemy.getBuildProgress() < 0.95f;
+        if (isInProgress) {
+            threatLevel = 0;
+            detectRange = 0;
+            airAttackRange = 0;
+            groundAttackRange = 0;
+
+        }
+        else {
+            threatLevel = getThreatValue((Units) enemy.getType());
+            detectRange = getDetectionRange(enemy);
+            airAttackRange = UnitUtils.getAirAttackRange(enemy);
+            groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
+        }
+        if (groundAttackRange != 0) {
+            groundAttackRange += kitingBuffer;
+        }
+        if (airAttackRange != 0) {
+            airAttackRange += kitingBuffer;
+        }
+        pfTargetLevel = getPFTargetValue((Units) enemy.getType());
         isDetector = detectRange > 0f;
         detectRange += kitingBuffer;
         isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
-        airAttackRange = UnitUtils.getAirAttackRange(enemy);
-        if (airAttackRange != 0) {
-            airAttackRange += kitingBuffer;
-        }
-        groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
-        if (groundAttackRange != 0) {
-            groundAttackRange += kitingBuffer;
-        }
         switch ((Units)enemy.getType()) {
             case PROTOSS_PHOENIX:
                 airAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
                 break;
             case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
             case ZERG_MUTALISK: //giving more kiting range since it's fast
-                airAttackRange++;
+                if (airAttackRange != 0) {
+                    airAttackRange++;
+                }
                 break;
             case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
                 airAttackRange -= 0.5f;
