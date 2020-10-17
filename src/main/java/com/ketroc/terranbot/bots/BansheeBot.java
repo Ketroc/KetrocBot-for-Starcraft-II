@@ -19,6 +19,7 @@ import com.ketroc.terranbot.micro.Harassers;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.strategies.*;
+import com.ketroc.terranbot.utils.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,8 +81,8 @@ public class BansheeBot extends Bot {
 //                    .filter(p -> p.getPlayerId() != myId)
 //                    .findFirst().get().getPlayerId();
 //
-//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
-//                    Position.towards(LocationConstants.baseLocations.get(2), LocationConstants.baseLocations.get(0), -3), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.ZERG_HATCHERY,
+//                    LocationConstants.baseLocations.get(1), enemyId, 1);
 //            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
 //                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.baseLocations.get(4), 4), enemyId, 1);
 //            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
@@ -127,7 +128,7 @@ public class BansheeBot extends Bot {
                 GameCache.onStep();
 
                 //handle action errors like "cannot place building"
-                ActionErrorManager.onStep();
+//                ActionErrorManager.onStep(); //TODO: turn on for tournament
 
                 //micro to clear expansion positions
                 ExpansionClearing.onStep();
@@ -161,6 +162,7 @@ public class BansheeBot extends Bot {
                 }
 
                 CannonRushDefense.onStep();
+                ProxyHatchDefense.onStep();
                 BunkerContain.onStep();
                 Harassers.onStep();
 
@@ -212,6 +214,15 @@ public class BansheeBot extends Bot {
                         Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).raven),
                                 Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }
+                    Bot.DEBUG.debugTextOut("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
+                            .filter(ignored -> Bot.OBS.getUnit(ignored.unitTag) != null)
+                            .map(ignored -> Bot.OBS.getUnit(ignored.unitTag).unit().getType())
+                            .filter(unitType -> unitType == Units.TERRAN_SCV)
+                            .count(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    Bot.DEBUG.debugTextOut("# Scvs Building: " + StructureScv.scvBuildingList.stream()
+                            .map(structureScv -> structureScv.getScv().unit().getType())
+                            .filter(unitType -> unitType == Units.TERRAN_SCV)
+                            .count(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("banshees: " + GameCache.bansheeList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("liberators: " + GameCache.liberatorList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("ravens: " + GameCache.ravenList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
@@ -229,9 +240,9 @@ public class BansheeBot extends Bot {
                     Bot.DEBUG.debugTextOut("Purchase Queue: " + BansheeBot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("BaseTarget: " + LocationConstants.baseAttackIndex, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    if (ArmyManager.attackPos != null) {
-                        int x = (int) ArmyManager.attackPos.getX();
-                        int y = (int) ArmyManager.attackPos.getY();
+                    if (ArmyManager.attackGroundPos != null) {
+                        int x = (int) ArmyManager.attackGroundPos.getX();
+                        int y = (int) ArmyManager.attackGroundPos.getY();
                         Bot.DEBUG.debugBoxOut(Point.of(x - 0.3f, y - 0.3f, Position.getZ(x, y)), Point.of(x + 0.3f, y + 0.3f, Position.getZ(x, y)), Color.YELLOW);
                     }
                     for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
@@ -250,7 +261,7 @@ public class BansheeBot extends Bot {
     } // end onStep()
 
     private void printCurrentGameInfo() {
-        System.out.println("\n\nGame info at " + convertGameLoopToStringTime(Bot.OBS.getGameLoop()));
+        System.out.println("\n\nGame info at " + Time.getTime());
         System.out.println("===================\n");
         System.out.println("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
         System.out.println("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
@@ -297,7 +308,7 @@ public class BansheeBot extends Bot {
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {
             Unit unit = unitInPool.unit();
-            System.out.println(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + currentGameTime());
+            System.out.println(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + Time.getTime());
 
 
             if (unit.getType() instanceof Units) {
@@ -499,7 +510,7 @@ public class BansheeBot extends Bot {
 
     @Override
     public void onUpgradeCompleted(Upgrade upgrade) {
-        System.out.println(upgrade + " finished at: " + currentGameTime());
+        System.out.println(upgrade + " finished at: " + Time.getTime());
 
         //add to list of completed upgrades
         GameCache.upgradesCompleted.add((Upgrades)upgrade);
@@ -590,31 +601,6 @@ public class BansheeBot extends Bot {
         System.out.println("==========================");
         System.out.println("  Result: " + result.toString());
         System.out.println("==========================");
-    }
-
-    public boolean afterTime(String time) {
-        long seconds = convertStringToSeconds(time);
-        return observation().getGameLoop()/22.4 > seconds;
-    }
-
-    public boolean beforeTime(String time) {
-        long seconds = convertStringToSeconds(time);
-        return observation().getGameLoop()/22.4 < seconds;
-    }
-
-    public long convertStringToSeconds(String time) {
-        String[] arrTime = time.split(":");
-        return Integer.parseInt(arrTime[0])*60 + Integer.parseInt(arrTime[1]);
-    }
-    public String convertGameLoopToStringTime(long gameLoop) {
-        return convertSecondsToString(Math.round(gameLoop/22.4));
-    }
-
-    public String convertSecondsToString(long seconds) {
-        return seconds/60 + ":" + String.format("%02d", seconds%60);
-    }
-    public String currentGameTime() {
-        return convertGameLoopToStringTime(observation().getGameLoop());
     }
 
     public Unit findScvNearestBase(Unit cc) {

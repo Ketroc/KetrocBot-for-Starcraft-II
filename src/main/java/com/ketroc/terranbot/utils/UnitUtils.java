@@ -1,9 +1,10 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
+import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
@@ -79,6 +80,10 @@ public class UnitUtils {
             Abilities.BUILD_BUNKER, Abilities.BUILD_SENSOR_TOWER, Abilities.BUILD_GHOST_ACADEMY,
             Abilities.BUILD_FACTORY, Abilities.BUILD_STARPORT, Abilities.BUILD_ARMORY,
             Abilities.BUILD_FUSION_CORE));
+    public static final Set<Units> NO_THREAT_ENEMY_AIR = new HashSet<>(Set.of(
+            Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED, Units.TERRAN_BANSHEE,
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE
+    ));
 
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;

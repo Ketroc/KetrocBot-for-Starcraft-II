@@ -15,6 +15,7 @@ import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +50,7 @@ public class GameCache {
     public static final List<Unit> bansheeDivers = new ArrayList<>();
     public static final List<Unit> vikingDivers = new ArrayList<>();
 
+    public static final List<UnitInPool> allVisibleEnemiesList = new ArrayList<>();
     public static final Map<Units, List<Unit>> allVisibleEnemiesMap = new HashMap<>();
     public static final List<UnitInPool> allEnemiesList = new ArrayList<>(); //tracks units in fog of war too
     public static final Map<Units, List<UnitInPool>> allEnemiesMap = new HashMap<>();
@@ -88,6 +90,7 @@ public class GameCache {
         availableScvs.clear();
         allScvs.clear();
         allFriendliesMap.clear();
+        allVisibleEnemiesList.clear();
         allVisibleEnemiesMap.clear();
         inProductionList.clear();
         inProductionMap.clear();
@@ -305,6 +308,7 @@ public class GameCache {
                     }
 
                     //map of every enemy unit
+                    allVisibleEnemiesList.add(unitInPool);
                     allEnemiesList.add(unitInPool);
                     if (!allVisibleEnemiesMap.containsKey(unitType)) {
                         allVisibleEnemiesMap.put(unitType, new ArrayList<>());

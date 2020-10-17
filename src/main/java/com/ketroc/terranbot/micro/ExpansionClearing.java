@@ -4,17 +4,17 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Ignored;
-import com.ketroc.terranbot.models.IgnoredUnit;
 import com.ketroc.terranbot.models.StructureScv;
 
 import java.util.ArrayList;
@@ -39,6 +39,10 @@ public class ExpansionClearing {
     }
 
     private void addRaven() {
+        if (raven != null) {
+            Ignored.remove(raven.mover.getTag());
+            raven = null;
+        }
         Tag nearestRaven = GameCache.ravenList.stream()
                 .filter(raven -> raven.getEnergy().orElse(0f) > 49)
                 .filter(raven -> !Ignored.contains(raven.getTag()))
@@ -47,17 +51,18 @@ public class ExpansionClearing {
                 .orElse(null);
         if (nearestRaven != null) {
             this.raven = new BasicMover(Bot.OBS.getUnit(nearestRaven), expansionPos);
-            Ignored.add(new IgnoredUnit(nearestRaven));
         }
     }
 
     public boolean clearExpansion() {
-        //remove dead raven
-        if (raven != null && !raven.mover.isAlive()) {
-            removeRaven();
+        //abandon clearing if a command structure is on location
+        if (!Bot.OBS.getUnits(structure -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(structure.unit().getType()) &&
+                UnitUtils.getDistance(structure.unit(), expansionPos) < 5).isEmpty()) {
+            return true;
         }
+
         //get a new raven
-        if (raven == null) {
+        if (raven == null || !raven.mover.isAlive()) {
             addRaven();
         }
         //raven is travelling to expansion
@@ -70,6 +75,10 @@ public class ExpansionClearing {
                 Point2d centerPoint = getCenterPoint();
                 //cast turret
                 if (centerPoint != null) {
+                    if (raven.mover.unit().getEnergy().orElse(0f) < 50) {
+                        addRaven();
+                        return false;
+                    }
                     Point2d turretPos = getTurretPos(centerPoint);
                     if (turretPos != null) {
                         raven.targetPos = turretPos;
@@ -81,11 +90,7 @@ public class ExpansionClearing {
                 //check if base is cleared of obstructions
                 else if (Bot.OBS.getGameLoop() > checkFrame) {
                     boolean result = testExpansionPos();
-                    if (result) {
-                        Bot.ACTION.sendChat("Blocked base cleared at: " + expansionPos, ActionChat.Channel.BROADCAST);
-                        removeRaven();
-                    }
-                    else {
+                    if (!result) {
                         checkFrame = Bot.OBS.getGameLoop() + 120;
                     }
                     return result;
@@ -114,12 +119,14 @@ public class ExpansionClearing {
     }
 
     private void removeRaven() {
-        Ignored.remove(raven.mover.getTag());
-        raven = null;
+        if (raven != null) {
+            Ignored.remove(raven.mover.getTag());
+            raven = null;
+        }
     }
 
     private boolean testExpansionPos() {
-        return !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_COMMAND_CENTER, expansionPos, 1).isEmpty() ||
+        return !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, expansionPos, 6).isEmpty() &&
                 Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, expansionPos);
     }
 
@@ -138,10 +145,12 @@ public class ExpansionClearing {
                 .collect(Collectors.toList());
 
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
-        if (placementList.contains(true)) {
-            return turretPosList.get(placementList.indexOf(true));
+        float turretRange = (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) ? 8 : 7;
+        for (int i=0; i<placementList.size(); i++) {
+            if (placementList.get(i) && UnitUtils.getDistance(blockers.get(0).unit(), turretPosList.get(i)) < turretRange) {
+                return turretPosList.get(i);
+            }
         }
-
         return null;
     }
 
@@ -168,14 +177,26 @@ public class ExpansionClearing {
     // ********* STATIC METHODS ***********
     // ************************************
     public static void onStep() {
-        expoClearList.removeIf(e -> e.clearExpansion());
+        for (int i=0; i<expoClearList.size(); i++) {
+            ExpansionClearing expo = expoClearList.get(i);
+            if (expo.clearExpansion()) {
+                remove(expo);
+                i--;
+            }
+        }
     }
 
     public static void add(Point2d expansionPos) {
         if (!contains(expansionPos)) {
             expoClearList.add(new ExpansionClearing(expansionPos));
-            Bot.ACTION.sendChat("Blocked base discovered at: " + expansionPos, ActionChat.Channel.BROADCAST);
+            Bot.ACTION.sendChat("Blocked expansion at: " + expansionPos, ActionChat.Channel.BROADCAST);
         }
+    }
+
+    public static void remove(ExpansionClearing expo) {
+        Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
+        expo.removeRaven();
+        expoClearList.remove(expo);
     }
 
     public static boolean contains(Point2d expansionPos) {

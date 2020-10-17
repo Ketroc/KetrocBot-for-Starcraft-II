@@ -8,6 +8,9 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.DebugHelper;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;

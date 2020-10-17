@@ -1,14 +1,13 @@
 package com.ketroc.terranbot.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.LocationConstants;
+import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;

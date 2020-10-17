@@ -3,7 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
 

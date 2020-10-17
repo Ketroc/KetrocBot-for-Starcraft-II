@@ -1,4 +1,4 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.utils;
 
 public final class MapNames {
     public static final String ACROPOLIS = "Acropolis LE";

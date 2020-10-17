@@ -7,9 +7,9 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.LocationConstants;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.StructureScv;
 

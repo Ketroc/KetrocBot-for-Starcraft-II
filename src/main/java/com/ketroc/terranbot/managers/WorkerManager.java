@@ -19,6 +19,8 @@ import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -8,12 +8,13 @@ import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.InfluenceMaps;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.InfluenceMaps;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.models.Ignored;
+import com.ketroc.terranbot.models.IgnoredUnit;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -37,6 +38,7 @@ public class BasicMover {
         this.isGround = !mover.unit().getFlying().orElse(false);
         setWeaponInfo();
         this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(mover.unit().getType()).getMovementSpeed().orElse(0f);
+        Ignored.add(new IgnoredUnit(mover.getTag()));
     }
 
     public void onStep() {

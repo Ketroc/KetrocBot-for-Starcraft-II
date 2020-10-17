@@ -1,4 +1,4 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;

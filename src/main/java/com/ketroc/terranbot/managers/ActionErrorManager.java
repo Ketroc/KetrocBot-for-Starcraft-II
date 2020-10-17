@@ -9,10 +9,11 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.utils.Time;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ActionErrorManager {
         for (ActionError warning : actionErrorList) {
             Abilities ability = (Abilities)warning.getAbility().orElse(Abilities.INVALID);
             ActionResult actionResult = warning.getActionResult();
-            if (UnitUtils.BUILD_ABILITIES.contains(ability)) {
+            if (UnitUtils.BUILD_ABILITIES.contains(ability) || ability == Abilities.LAND_COMMAND_CENTER) {
                 Units structureType = Bot.abilityToUnitType.get(ability);
                 StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get()); //TODO: warning.getUnitTag = scv unit.  <-- use this!!
                 if (structureScv == null) {
@@ -33,6 +34,8 @@ public class ActionErrorManager {
                 }
                 Point2d pos = structureScv.structurePos;
                 Unit scv = structureScv.getScv().unit();
+                System.out.println("Action Error at " + Time.getTime() + ".  Structure: " + structureType);
+                System.out.println("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
 
                 if (isBlockedByCreep(actionResult)) {
                     if (ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) {

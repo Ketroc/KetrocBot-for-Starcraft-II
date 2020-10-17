@@ -5,8 +5,8 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.Position;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.List;

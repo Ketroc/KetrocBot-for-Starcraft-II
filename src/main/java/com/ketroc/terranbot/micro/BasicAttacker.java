@@ -6,8 +6,8 @@ import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.InfluenceMaps;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.InfluenceMaps;
+import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.Comparator;

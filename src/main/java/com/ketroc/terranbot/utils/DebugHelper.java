@@ -1,9 +1,10 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.LocationConstants;
 
 public class DebugHelper {
     public static float z;

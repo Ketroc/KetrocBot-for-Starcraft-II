@@ -1,4 +1,4 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.*;
@@ -23,7 +23,7 @@ public class Ketroc {
                 //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new BansheeBot(true, null,false)),
-                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.EASY))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));

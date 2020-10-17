@@ -14,6 +14,9 @@ import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.Gas;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.InfluenceMaps;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
 

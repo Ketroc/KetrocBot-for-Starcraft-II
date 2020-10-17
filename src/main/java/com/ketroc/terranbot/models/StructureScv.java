@@ -9,13 +9,15 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.utils.InfluenceMaps;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,21 +39,21 @@ public class StructureScv {
     // *********************************
 
     public StructureScv(UnitInPool scv, Abilities buildAbility, Point2d structurePos) {
-        setScv(scv);
+        this.structurePos = structurePos;
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
-        this.structurePos = structurePos;
         scvAddedFrame = Bot.OBS.getGameLoop();
+        setScv(scv);
     }
 
     public StructureScv(UnitInPool scv, Abilities buildAbility, UnitInPool gasGeyser) {
-        setScv(scv);
+        this.structurePos = gasGeyser.unit().getPosition().toPoint2d();
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
         this.isGas = true;
         this.gasGeyser = gasGeyser;
-        this.structurePos = gasGeyser.unit().getPosition().toPoint2d();
         scvAddedFrame = Bot.OBS.getGameLoop();
+        setScv(scv);
     }
 
     // **************************************
@@ -69,7 +71,9 @@ public class StructureScv {
         this.scv = scv;
         scvAddedFrame = Bot.OBS.getGameLoop();
         Ignored.add(new IgnoredUnit(scv.getTag()));
-        ArmyManager.sendBioProtection(structurePos);
+        if (structureType == Units.TERRAN_COMMAND_CENTER) {
+            ArmyManager.sendBioProtection(structurePos);
+        }
     }
 
     public UnitInPool getStructureUnit() {
@@ -172,32 +176,32 @@ public class StructureScv {
                 //if structure never started/destroyed, repurchase
                 if (structure == null || !structure.isAlive()) {
 
-                    //if cc location is blocked by burrowed unit or creep, set baseIndex to this base TODO: this will probably get replaced
-                    if (LocationConstants.opponentRace == Race.ZERG &&
-                            structureScv.scv.isAlive() &&
-                            structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
-                            UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 5) {
-                        int blockedBaseIndex = LocationConstants.baseLocations.indexOf(structureScv.structurePos);
-                        if (blockedBaseIndex > 0) {
-                            ExpansionClearing.add(structureScv.structurePos);
-                            remove(structureScv);
-                            i--;
-                        }
-                    }
+//                    //if cc location is blocked by burrowed unit or creep, set baseIndex to this base TODO: this will probably get replaced
+//                    if (LocationConstants.opponentRace == Race.ZERG &&
+//                            structureScv.scv.isAlive() &&
+//                            structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
+//                            UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 5) {
+//                        int blockedBaseIndex = LocationConstants.baseLocations.indexOf(structureScv.structurePos);
+//                        if (blockedBaseIndex > 0) {
+//                            ExpansionClearing.add(structureScv.structurePos);
+//                            remove(structureScv);
+//                            i--;
+//                        }
+//                    }
 
                     //if under threat, requeue
-                    if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structureScv.structurePos) > 0 ||
-                            UnitUtils.isWallUnderAttack()) {
+//                    if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structureScv.structurePos) > 0 ||
+//                            UnitUtils.isWallUnderAttack()) {
                         requeueCancelledStructure(structureScv);
                         remove(structureScv);
                         i--;
-                    }
-                    else {
-                        Cost.updateBank(structureScv.structureType);
-                        if (Bot.QUERY.placement(structureScv.buildAbility, structureScv.structurePos)) {
-                            Bot.ACTION.unitCommand(structureScv.scv.unit(), structureScv.buildAbility, structureScv.structurePos, false);
-                        }
-                    }
+//                    }
+//                    else {
+//                        Cost.updateBank(structureScv.structureType);
+//                        if (Bot.QUERY.placement(structureScv.buildAbility, structureScv.structurePos)) {
+//                            Bot.ACTION.unitCommand(structureScv.scv.unit(), structureScv.buildAbility, structureScv.structurePos, false);
+//                        }
+//                    }
                 }
                 //if structure started but not complete
                 else if (structure.unit().getBuildProgress() < 1.0f) {

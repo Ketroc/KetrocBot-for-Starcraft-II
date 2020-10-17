@@ -10,8 +10,8 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.Comparator;
 import java.util.List;

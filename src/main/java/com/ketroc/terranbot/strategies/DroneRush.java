@@ -7,11 +7,14 @@ import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.DroneDrill;
 import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.MapNames;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;

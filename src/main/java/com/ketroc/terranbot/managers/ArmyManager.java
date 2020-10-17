@@ -17,6 +17,10 @@ import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.InfluenceMaps;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,12 +28,14 @@ import java.util.stream.Collectors;
 public class ArmyManager {
     public static boolean doOffense;
     public static Point2d retreatPos;
-    public static Point2d attackPos;
+    public static Point2d attackGroundPos;
+    public static Point2d attackAirPos;
     public static Point2d defensePos;
     public static int numAutoturretsAvailable;
     public static Unit attackUnit;
     public static List<Unit> armyRetreating;
-    public static List<Unit> armyAMoving;
+    public static List<Unit> armyGroundAttacking;
+    public static List<Unit> armyAirAttacking;
     public static long prevSeekerFrame;
     public static int turretsCast;
     public static int queriesMade;
@@ -73,13 +79,14 @@ public class ArmyManager {
         manageRepairBay();
 
         //if searching for last structures
-        if (attackPos == null && Switches.finishHim) {
+        if (attackGroundPos == null && Switches.finishHim) {
             spreadArmy(GameCache.bansheeList);
             spreadArmy(GameCache.vikingList);
         }
         else {
             armyRetreating = new ArrayList<>();
-            armyAMoving = new ArrayList<>();
+            armyGroundAttacking = new ArrayList<>();
+            armyAirAttacking = new ArrayList<>();
 
             bansheeMicro();
             vikingMicro();
@@ -89,9 +96,13 @@ public class ArmyManager {
             if (!armyRetreating.isEmpty()) {
                 Bot.ACTION.unitCommand(armyRetreating, Abilities.MOVE, retreatPos, false);
             }
-            if (!armyAMoving.isEmpty()) {
-                Point2d targetPos = (doOffense) ? attackPos : defensePos;
-                Bot.ACTION.unitCommand(armyAMoving, Abilities.ATTACK, targetPos, false);
+            if (!armyGroundAttacking.isEmpty()) {
+                Point2d targetPos = (doOffense) ? attackGroundPos : defensePos;
+                Bot.ACTION.unitCommand(armyGroundAttacking, Abilities.ATTACK, targetPos, false);
+            }
+            if (!armyAirAttacking.isEmpty()) {
+                Point2d targetPos = (doOffense) ? attackAirPos : defensePos;
+                Bot.ACTION.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
             }
 
             autoturretTargetting();
@@ -107,7 +118,7 @@ public class ArmyManager {
             army.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_HELLION_TANK));
             if (army.size() >= 20 || Bot.OBS.getFoodUsed() >= 199 || Cost.isMineralBroke()) {
                 if (army.stream().anyMatch(unit -> !unit.getOrders().isEmpty())) {
-                    Bot.ACTION.unitCommand(army, Abilities.ATTACK, attackPos, false);
+                    Bot.ACTION.unitCommand(army, Abilities.ATTACK, attackGroundPos, false);
                 }
             }
         }
@@ -219,12 +230,13 @@ public class ArmyManager {
     private static void setOffense() {
         if (Strategy.MASS_RAVENS) {
             numAutoturretsAvailable = GameCache.ravenList.stream()
+                    .filter(raven -> UnitUtils.getDistance(raven, attackGroundPos) < 25)
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
             if (!doOffense && numAutoturretsAvailable > 15) {
                 doOffense = true;
             }
-            else if (doOffense && numAutoturretsAvailable < 2) {
+            else if (doOffense && numAutoturretsAvailable < 4) {
                 doOffense = false;
             }
         }
@@ -327,48 +339,104 @@ public class ArmyManager {
     }
 
     private static void setAttackLocation() {
-        UnitInPool closestEnemy = GameCache.allEnemiesList.stream()
-                .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
-                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
-                        !u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
-                        //u.unit().getType() != Units.ZERG_OVERLORD &&
-                        u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
-                        u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore overlords/changelings
-                        u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
-                        (!GameCache.vikingList.isEmpty() || !u.unit().getFlying().orElse(false)) && //ignore flying units if I have no vikings
-                        !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
-                .min(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)))).orElse(null);
-        if (closestEnemy != null) {
-            attackPos = closestEnemy.unit().getPosition().toPoint2d();
-            attackUnit = closestEnemy.unit();
+        UnitInPool closestEnemyGround = getClosestEnemyGroundUnit();
+        if (closestEnemyGround != null) {
+            attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
+            attackUnit = closestEnemyGround.unit();
             //TODO: below is hack to "hopefully" handle unknown bug of air units getting stuck on unchanging attackPos
-            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackPos, 1).isEmpty() &&
-                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackPos, 1).isEmpty() &&
-                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackPos, 1).isEmpty()) {
+            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
+                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
+                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
                 System.out.println("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
-                System.out.println("closestEnemy.isAlive() = " + closestEnemy.isAlive());
-                System.out.println("closestEnemy.unit().getType() = " + closestEnemy.unit().getType());
-                GameCache.allEnemiesList.remove(closestEnemy);
+                System.out.println("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
+                System.out.println("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
+                GameCache.allEnemiesList.remove(closestEnemyGround);
             }
         }
         else if (Switches.finishHim) {
-            attackPos = null; //flag to spread army
+            attackGroundPos = null; //flag to spread army
         }
         else {
-            attackPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
+            attackGroundPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
             //gone on to next base after a banshee, viking, and raven have arrived
-            if (Bot.OBS.getVisibility(attackPos) == Visibility.VISIBLE &&
-                    (GameCache.bansheeList.isEmpty() || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BANSHEE, attackPos, 3)) &&
-                    (GameCache.vikingList.size() < 3 || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackPos, 3)) &&
+            if (Bot.OBS.getVisibility(attackGroundPos) == Visibility.VISIBLE &&
+                    (GameCache.bansheeList.isEmpty() || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 3)) &&
+                    (GameCache.vikingList.size() < 3 || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 3)) &&
                     (GameCache.ravenList.isEmpty() || GameCache.ravenList.stream()
                             .noneMatch(raven ->
                                     UnitUtils.getHealthPercentage(raven) >= Strategy.RETREAT_HEALTH &&
-                                    UnitUtils.getDistance(raven, retreatPos) > 10) ||
-                    UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_RAVEN, attackPos, 3))) {
+                                            UnitUtils.getDistance(raven, retreatPos) > 10) ||
+                            UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 3))) {
                 LocationConstants.rotateBaseAttackIndex();
-                attackPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
+                attackGroundPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
             }
         }
+
+        //send single vikings at the closest non-threatening air, and set the main air attack target
+        UnitInPool closestEnemyAir;
+        do {
+            closestEnemyAir = getClosestEnemyAirUnit();
+        } while (doPeelOffVikingForEasyTarget(closestEnemyAir));
+        attackAirPos = (closestEnemyAir != null) ? closestEnemyAir.unit().getPosition().toPoint2d() : attackGroundPos;
+
+    }
+
+    private static boolean doPeelOffVikingForEasyTarget(UnitInPool closestEnemyAir) {
+        if (closestEnemyAir == null) {
+            return false;
+        }
+        if (UnitUtils.NO_THREAT_ENEMY_AIR.contains(closestEnemyAir.unit().getType())) {
+            Unit closestViking = GameCache.vikingList.stream()
+                    .min(Comparator.comparing(unit -> UnitUtils.getDistance(closestEnemyAir.unit(), unit)))
+                    .orElse(null);
+            if (closestViking != null) {
+                Bot.ACTION.unitCommand(closestViking, Abilities.ATTACK, closestEnemyAir.unit(), false);
+                GameCache.vikingList.remove(closestViking);
+            }
+            GameCache.allVisibleEnemiesList.remove(closestEnemyAir);
+            return true;
+        }
+        return false;
+    }
+
+    private static UnitInPool getClosestEnemyGroundUnit() {
+        UnitInPool closestEnemyGroundUnit = GameCache.allVisibleEnemiesList.stream()
+                .filter(u -> //(Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
+                        !u.unit().getFlying().orElse(true) && //ground unit
+                                u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
+                                !u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
+                                u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
+                                u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
+                                !u.unit().getHallucination().orElse(false) && //ignore hallucs
+                                UnitUtils.isVisible(u)) //ignore units in the fog
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.myMineralPos)))
+                .orElse(null);
+        if (closestEnemyGroundUnit == null) {
+            return null;
+        }
+
+        //swap closest enemy base if it's closer than closest enemy unit
+        UnitInPool closestEnemyBase = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.enemyCommandStructures.contains(enemy.unit().getType()))
+                .stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myMineralPos)))
+                .orElse(null);
+        if (closestEnemyBase != null &&
+                UnitUtils.getDistance(closestEnemyBase.unit(), LocationConstants.myMineralPos) <
+                        UnitUtils.getDistance(closestEnemyGroundUnit.unit(), LocationConstants.myMineralPos)) {
+            return closestEnemyBase;
+        }
+
+        return closestEnemyGroundUnit;
+    }
+
+    private static UnitInPool getClosestEnemyAirUnit() {
+        return GameCache.allVisibleEnemiesList.stream()
+                .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
+                        u.unit().getFlying().orElse(false) && //air unit
+                        (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units TODO: handle banshees DTs etc with scan
+                        u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
+                        !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
+                .min(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)))).orElse(null);
     }
 
     private static void nydusResponse() {
@@ -393,8 +461,8 @@ public class ArmyManager {
                 scvs.subList(10, scvs.size()).clear();
             }
             nydusDivers.addAll(UnitUtils.toUnitList(scvs));
-            ArmyManager.attackPos = nydusWorm.get().unit().getPosition().toPoint2d();
-            ArmyManager.attackUnit = nydusWorm.get().unit();
+            attackGroundPos = nydusWorm.get().unit().getPosition().toPoint2d();
+            attackUnit = nydusWorm.get().unit();
             if (!nydusDivers.isEmpty()) {
                 Bot.ACTION.unitCommand(nydusDivers, Abilities.ATTACK, ArmyManager.attackUnit, false);
             }
@@ -775,7 +843,6 @@ public class ArmyManager {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
                     hasDetector = true;
-                    answer += 1;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
                     answer += 1.5;
@@ -814,7 +881,7 @@ public class ArmyManager {
                 answer = Math.max(2, answer);
             }
         }
-        else if (hasDetector && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             answer = Math.max((LocationConstants.opponentRace == Race.PROTOSS) ? 2 : 3, answer); //minimum vikings if he has a detector
         }
         answer = Math.max(answer, GameCache.bansheeList.size() / 5); //at least 1 safety viking for every 5 banshees
@@ -849,7 +916,7 @@ public class ArmyManager {
         //shoot when available
         else if (canAttack && isInBansheeRange) {
             //attack
-            if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(banshee);
+            if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
         }
         //fly to enemy main if parasitic'ed
         else if (isParasitic) {
@@ -884,7 +951,7 @@ public class ArmyManager {
                 }
                 else {
                     //attack
-                    if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(banshee);
+                    if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
                 }
             }
             else if (canCloak && !isDecloakBuffed) {
@@ -908,7 +975,7 @@ public class ArmyManager {
             }
             else {
                 //attack
-                if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(banshee);
+                if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
             }
         }
     }
@@ -923,14 +990,16 @@ public class ArmyManager {
         if (!unit.getOrders().isEmpty()) {
             UnitOrder order = unit.getOrders().get(0);
             if (order.getAbility() == Abilities.ATTACK) {
-                if (order.getTargetedWorldSpacePosition().isPresent() && order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.attackPos) < 1) {
+                if (order.getTargetedWorldSpacePosition().isPresent() &&
+                        order.getTargetedWorldSpacePosition().get().toPoint2d().distance(attackGroundPos) < 1) {
                     currentCommand = ArmyCommands.ATTACK;
                 }
                 else if (order.getTargetedUnitTag().isPresent()) {
                     currentCommand = ArmyCommands.DIVE;
                 }
             }
-            else if (order.getAbility() == Abilities.MOVE &&  order.getTargetedWorldSpacePosition().isPresent() &&
+            else if (order.getAbility() == Abilities.MOVE &&
+                    order.getTargetedWorldSpacePosition().isPresent() &&
                     order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.retreatPos) < 1) {
                 currentCommand = ArmyCommands.HOME;
             }
@@ -967,7 +1036,7 @@ public class ArmyManager {
         //shoot when available
         else if (canAttack && isInVikingRange) {
             //attack
-            if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(viking);
+            if (lastCommand != ArmyCommands.ATTACK) armyAirAttacking.add(viking);
         }
         //fly to enemy main if parasitic'ed
         else if (isParasitic) {
@@ -993,7 +1062,7 @@ public class ArmyManager {
         }
         //out of range, then move in
         else {
-            if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(viking);
+            if (lastCommand != ArmyCommands.ATTACK) armyAirAttacking.add(viking);
         }
     }
 
@@ -1031,20 +1100,26 @@ public class ArmyManager {
         else if (isUnsafe || inRange) {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
-                    if (isUnsafe && lastCommand != ArmyCommands.HOME)
-                        armyRetreating.add(raven);
-                    else if (lastCommand != ArmyCommands.ATTACK)
-                        armyAMoving.add(raven);
+                    if (isUnsafe) {
+                        if (lastCommand != ArmyCommands.HOME) {
+                            armyRetreating.add(raven);
+                        }
+                    }
+                    else if (lastCommand != ArmyCommands.ATTACK) {
+                        armyGroundAttacking.add(raven);
+                    }
                 }
             }
         }
         //go forward if not in range
-        else if (lastCommand != ArmyCommands.ATTACK) armyAMoving.add(raven);
+        else if (lastCommand != ArmyCommands.ATTACK) {
+            armyGroundAttacking.add(raven);
+        }
     }
 
     //drop auto-turrets near enemy before going home to repair
     private static boolean doAutoTurretOnRetreat(Unit raven) {
-        if (raven.getEnergy().orElse(0f) >= 50 && UnitUtils.getDistance(raven, attackPos) < 12 && attackUnit != null) {
+        if (raven.getEnergy().orElse(0f) >= 50 && UnitUtils.getDistance(raven, attackGroundPos) < 12 && attackUnit != null) {
             return castAutoTurret(raven, false);
         }
         return false;
@@ -1061,11 +1136,11 @@ public class ArmyManager {
     private static boolean castAutoTurret(Unit raven, boolean useForwardPosition) {
         float castRange = (useForwardPosition) ? 2f : 0f;
         Point2d turretPos = Position.toWholePoint(
-                Position.towards(raven.getPosition().toPoint2d(), attackPos, castRange));
+                Position.towards(raven.getPosition().toPoint2d(), attackGroundPos, castRange));
         List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
-                .filter(p -> p.distance(attackPos) < 8)
+                .filter(p -> p.distance(attackGroundPos) < 8)
                 .filter(p -> Bot.OBS.isPlacable(p))
-                .sorted(Comparator.comparing(p -> p.distance(attackPos)))
+                .sorted(Comparator.comparing(p -> p.distance(attackGroundPos)))
                 .collect(Collectors.toList());
         if (posList.isEmpty()) {
             return false;

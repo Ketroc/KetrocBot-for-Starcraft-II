@@ -1,4 +1,4 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
@@ -49,7 +49,7 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        Bot bot = new BansheeBot(true, opponentId, realTime);
+        Bot bot = new BansheeBot(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

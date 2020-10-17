@@ -1,32 +1,14 @@
 package com.ketroc.terranbot.bots;
 
-import com.github.ocraft.s2client.bot.S2Agent;
-import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Ability;
-import com.github.ocraft.s2client.protocol.data.UnitType;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.game.*;
-import com.github.ocraft.s2client.protocol.game.raw.StartRaw;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.spatial.PointI;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.github.ocraft.s2client.protocol.unit.UnitOrder;
-import com.ketroc.terranbot.LocationConstants;
 import com.ketroc.terranbot.Tester;
-import com.ketroc.terranbot.UnitUtils;
 import com.ketroc.terranbot.managers.ActionErrorManager;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TestingBot extends Bot {

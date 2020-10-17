@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
-import com.ketroc.terranbot.UnitUtils;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class EnemyUnit {
     public float x;
@@ -233,7 +233,7 @@ public class EnemyUnit {
             case TERRAN_MARAUDER:
                 return 6;
             case TERRAN_GHOST:
-                return 9;
+                return 11;
             case TERRAN_AUTO_TURRET:
                 return 1;
             case TERRAN_CYCLONE:
@@ -277,9 +277,9 @@ public class EnemyUnit {
             case ZERG_QUEEN_BURROWED:
                 return 2;
             case ZERG_INFESTOR:
-                return 7;
+                return 11;
             case ZERG_INFESTOR_BURROWED:
-                return 7;
+                return 11;
             case ZERG_LURKER_MP:
                 return 8;
             case ZERG_LURKER_MP_BURROWED:
@@ -289,7 +289,7 @@ public class EnemyUnit {
             case ZERG_ZERGLING_BURROWED:
                 return 5;
             case ZERG_BANELING:
-                return 20;
+                return 25;
             case ZERG_BANELING_BURROWED:
                 return 8;
             case ZERG_BANELING_COCOON:

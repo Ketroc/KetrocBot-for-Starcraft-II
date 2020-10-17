@@ -22,6 +22,7 @@ import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -504,7 +505,7 @@ public class BuildManager {
         if (vikingsByRatio > vikingsRequired) { //build vikings 1:1 with banshees until 1.5x vikings required
             vikingsRequired = Math.min((int)(vikingsRequired * 1.8), vikingsByRatio);
         }
-        int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 3 : 2;
+        int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 4 : 2;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
@@ -513,6 +514,11 @@ public class BuildManager {
 
         //get 1 raven if enemy can produce cloaked/burrowed attackers
         if (numRavens == 0 && Switches.enemyHasCloakThreat) {
+            return Abilities.TRAIN_RAVEN;
+        }
+
+        //get 1 raven if an expansion needs clearing
+        if (numRavens == 0 && !ExpansionClearing.expoClearList.isEmpty()) {
             return Abilities.TRAIN_RAVEN;
         }
 

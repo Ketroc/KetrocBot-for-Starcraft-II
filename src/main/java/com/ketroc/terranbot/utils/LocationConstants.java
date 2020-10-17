@@ -1,4 +1,4 @@
-package com.ketroc.terranbot;
+package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.models.Base;
@@ -147,10 +148,10 @@ public class LocationConstants {
                 else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyMainBase[x][y] = true;
                 }
-                else if (thisPos.distance(natPos) < 20 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(natPos) < 15 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
                 }
-                else if (thisPos.distance(enemyNatPos) < 20 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(enemyNatPos) < 15 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;
                 }
             }
@@ -164,7 +165,7 @@ public class LocationConstants {
 
 
         //initialize retreat/attack point to repair bay location
-        ArmyManager.retreatPos = ArmyManager.attackPos = REPAIR_BAY;
+        ArmyManager.retreatPos = ArmyManager.attackGroundPos = ArmyManager.attackAirPos = REPAIR_BAY;
     }
 
     private static void createBaseList(UnitInPool mainCC) {
@@ -484,13 +485,13 @@ public class LocationConstants {
             TURRETS.add(Point2d.of(33.0f, 136.0f));
             TURRETS.add(Point2d.of(33.0f, 139.0f));
 
-            MACRO_OCS.add(Point2d.of(42.5f, 138.5f));
-            MACRO_OCS.add(Point2d.of(45.5f, 133.5f));
             MACRO_OCS.add(Point2d.of(30.5f, 125.5f));
             MACRO_OCS.add(Point2d.of(35.5f, 125.5f));
             MACRO_OCS.add(Point2d.of(35.5f, 120.5f));
             MACRO_OCS.add(Point2d.of(40.5f, 122.5f));
             MACRO_OCS.add(Point2d.of(41.5f, 127.5f));
+            MACRO_OCS.add(Point2d.of(45.5f, 133.5f));
+            MACRO_OCS.add(Point2d.of(42.5f, 138.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
@@ -551,13 +552,13 @@ public class LocationConstants {
             TURRETS.add(Point2d.of(159.0f, 52.0f));
             TURRETS.add(Point2d.of(159.0f, 49.0f));
 
-            MACRO_OCS.add(Point2d.of(149.5f, 48.5f));
-            MACRO_OCS.add(Point2d.of(146.5f, 54.5f));
             MACRO_OCS.add(Point2d.of(161.5f, 62.5f));
             MACRO_OCS.add(Point2d.of(156.5f, 62.5f));
             MACRO_OCS.add(Point2d.of(156.5f, 67.5f));
             MACRO_OCS.add(Point2d.of(151.5f, 65.5f));
             MACRO_OCS.add(Point2d.of(150.5f, 60.5f));
+            MACRO_OCS.add(Point2d.of(146.5f, 54.5f));
+            MACRO_OCS.add(Point2d.of(149.5f, 48.5f));
 
 
             extraDepots.add(WALL_2x2);

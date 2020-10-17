@@ -9,6 +9,8 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class Switches {
     public static UnitInPool bansheeDiveTarget; //target to snipe for banshees (spore/turret/cannon)
