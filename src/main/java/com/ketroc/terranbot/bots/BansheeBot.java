@@ -81,10 +81,11 @@ public class BansheeBot extends Bot {
 //                    .filter(p -> p.getPlayerId() != myId)
 //                    .findFirst().get().getPlayerId();
 //
+//            DEBUG.debugShowMap();
 //            DEBUG.debugCreateUnit(Units.ZERG_HATCHERY,
 //                    LocationConstants.baseLocations.get(1), enemyId, 1);
-//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
-//                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.baseLocations.get(4), 4), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.PROTOSS_ORACLE_STASIS_TRAP, LocationConstants.baseLocations.get(2), enemyId, 1);
+//
 //            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
 //                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.enemyMainBaseMidPos, 4), enemyId, 1);
 //            DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, LocationConstants.baseLocations.get(0), myId, 1);
@@ -107,7 +108,7 @@ public class BansheeBot extends Bot {
 
             if (Bot.OBS.getGameLoop() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Bot.OBS.getGameLoop() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Oct 8, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Oct 17, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing

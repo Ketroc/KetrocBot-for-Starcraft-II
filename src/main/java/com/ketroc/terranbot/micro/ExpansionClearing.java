@@ -30,7 +30,6 @@ public class ExpansionClearing {
     public BasicMover raven;
     public List<UnitInPool> blockers;
     public UnitInPool turret;
-    public long checkFrame;
     public boolean isTurretActive;
 
     public ExpansionClearing(Point2d expansionPos) {
@@ -84,16 +83,11 @@ public class ExpansionClearing {
                         raven.targetPos = turretPos;
                         Bot.ACTION.unitCommand(raven.mover.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
                         isTurretActive = true;
-                        checkFrame = Bot.OBS.getGameLoop() + 120;
                     }
                 }
                 //check if base is cleared of obstructions
-                else if (Bot.OBS.getGameLoop() > checkFrame) {
-                    boolean result = testExpansionPos();
-                    if (!result) {
-                        checkFrame = Bot.OBS.getGameLoop() + 120;
-                    }
-                    return result;
+                else {
+                    return testExpansionPos();
                 }
             }
             //if autoturret is in the process of being cast
@@ -135,9 +129,6 @@ public class ExpansionClearing {
                 .stream()
                 .findFirst()
                 .orElse(null);
-        if (turret == null) {
-            isTurretActive = false;
-        }
     }
 
     private Point2d getTurretPos(Point2d centerPoint) {
