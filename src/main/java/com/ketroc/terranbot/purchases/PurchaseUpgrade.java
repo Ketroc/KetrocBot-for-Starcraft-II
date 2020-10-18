@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.Time;
 
 public class PurchaseUpgrade implements Purchase {
     private UnitInPool structure;
@@ -53,7 +54,7 @@ public class PurchaseUpgrade implements Purchase {
         }
         //if structure not producing unit/upgrade
         if (structure.unit().getOrders().isEmpty()) {
-            System.out.println("sending action @" + Bot.OBS.getGameLoop() + this.upgrade);
+            System.out.println("sending action " + this.upgrade + " at: " + Time.getTime());
             Abilities upgradeAbility = (Abilities) Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
             switch (upgradeAbility) {
                 case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:

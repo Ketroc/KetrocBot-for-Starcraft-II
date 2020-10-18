@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.Time;
 
 public class PurchaseStructureMorph implements Purchase {
     private static final float CANCEL_THRESHOLD = 0.4f;
@@ -79,7 +80,7 @@ public class PurchaseStructureMorph implements Purchase {
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
         if (structure.unit().getOrders().isEmpty()) {
             System.out.println("start building " + this.morphOrAddOn.toString());
-            System.out.println("sending action @" + Bot.OBS.getGameLoop() + this.morphOrAddOn);
+            System.out.println("sending action " + this.morphOrAddOn + " at: " + Time.getTime());
             Bot.ACTION.unitCommand(structure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
             return PurchaseResult.SUCCESS;

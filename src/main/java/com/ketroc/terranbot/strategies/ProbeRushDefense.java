@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.StructureScv;
@@ -67,7 +68,7 @@ public class ProbeRushDefense {
             }
             switch (defenseStep) {
                 case 0: //probe rush check
-                    if (Bot.OBS.getGameLoop() < 3200 &&
+                    if (Bot.OBS.getGameLoop() < Time.toFrames("2:23") &&
                             UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).size() > 5 &&
                             UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.baseLocations.get(0), 50).size() > 5) {
                         defenseStep++;

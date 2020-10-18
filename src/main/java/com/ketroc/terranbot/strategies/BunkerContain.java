@@ -20,6 +20,7 @@ import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
@@ -250,7 +251,7 @@ public class BunkerContain {
     }
 
     private static void sendScoutScvs() {
-        if (!isScoutScvsSent && Bot.OBS.getGameLoop() >= 864) {
+        if (!isScoutScvsSent && Bot.OBS.getGameLoop() >= Time.toFrames("0:39")) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10);
             scoutScvs = availableScvs.subList(0, 2);
             Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, LocationConstants.baseLocations.get(2), false)
@@ -262,7 +263,7 @@ public class BunkerContain {
         }
         else if (!scoutScvs.isEmpty()) {
             //if proxy barracks found
-            if (Bot.OBS.getGameLoop() < 4032) {
+            if (Bot.OBS.getGameLoop() < Time.toFrames("3:00")) {
                 List<UnitInPool> enemyBarracks = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BARRACKS);
                 if (!enemyBarracks.isEmpty()) {
                     List<UnitInPool> enemyScv = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_SCV, enemyBarracks.get(0).unit().getPosition().toPoint2d(), 5);

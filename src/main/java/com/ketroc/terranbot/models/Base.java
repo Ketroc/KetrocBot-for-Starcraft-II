@@ -286,6 +286,10 @@ public class Base {
             resourceNodes.addAll(mineralPatches);
             resourceNodes.addAll(gases.stream().map(gas -> gas.getGeyser()).collect(Collectors.toList()));
             if (resourceNodes.isEmpty()) { //TODO: look into making this always work
+                System.out.println("Base.getResourceMidPoint() == null\nMinerals:");
+                mineralPatches.stream().forEach(unit -> System.out.println(unit.getPosition()));
+                System.out.println("Gases:");
+                gases.stream().forEach(gas -> System.out.println(gas.getLocation()));
                 return null;
             }
             resourceMidPoint = Position.towards(ccPos, Position.midPointUnitsWeighted(resourceNodes), 4.25f);

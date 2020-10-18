@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
@@ -23,7 +24,7 @@ public class CannonRushDefense {
     public static void onStep() {
         switch (cannonRushStep) {
             case 0: //was a pylon built in my vision in the first 2min of the game
-                if (Bot.OBS.getGameLoop() < 2500 &&
+                if (Bot.OBS.getGameLoop() < Time.toFrames("1:50") &&
                         !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PYLON).stream()
                                 .anyMatch(pylon -> UnitUtils.getDistance(pylon.unit(), LocationConstants.baseLocations.get(0)) < 40)) {
                     cannonRushStep++;

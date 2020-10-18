@@ -29,7 +29,7 @@ public class ActionErrorManager {
                 Units structureType = Bot.abilityToUnitType.get(ability);
                 StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get()); //TODO: warning.getUnitTag = scv unit.  <-- use this!!
                 if (structureScv == null) {
-                    System.out.println("structure not found at frame: " + Bot.OBS.getGameLoop() + " for ability: " + ability);
+                    System.out.println("structure not found at: " + Time.getTime() + " for ability: " + ability);
                     continue;
                 }
                 Point2d pos = structureScv.structurePos;

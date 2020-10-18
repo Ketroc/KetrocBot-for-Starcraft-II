@@ -111,7 +111,7 @@ public class DroneDrill extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Bot.OBS.getGameLoop() % 3000 == 0) { //every 5min
+//                if (Bot.OBS.getGameLoop() % Time.toFrames("5:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 
@@ -199,7 +199,7 @@ public class DroneDrill extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println("Bot.onStep() error At game frame: " + OBS.getGameLoop());
+            System.out.println("Bot.onStep() error at: " + Time.getTime());
             e.printStackTrace();
         }
     } // end onStep()

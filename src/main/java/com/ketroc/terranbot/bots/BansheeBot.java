@@ -30,6 +30,8 @@ import java.util.*;
 public class BansheeBot extends Bot {
 
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
+    public static int count1 = 0;
+    public static int count2 = 0;
 
     public BansheeBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
@@ -113,7 +115,7 @@ public class BansheeBot extends Bot {
 
                 //TODO: delete - for testing
                 Optional<StructureScv> first = StructureScv.scvBuildingList.stream()
-                        .filter(structureScv -> structureScv.scvAddedFrame + 6000 < Bot.OBS.getGameLoop())
+                        .filter(structureScv -> structureScv.scvAddedFrame + Time.toFrames("4:30") < Bot.OBS.getGameLoop())
                         .findFirst();
                 if (first.isPresent()) {
                     System.out.println("Stalled StructureScv = \n" + first);
@@ -142,7 +144,7 @@ public class BansheeBot extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Bot.OBS.getGameLoop() % 3000 == 0) { //every 5min
+//                if (Bot.OBS.getGameLoop() % Time.toFrames("2:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 
@@ -209,6 +211,8 @@ public class BansheeBot extends Bot {
                     int lines = 0;
 //                    DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    Bot.DEBUG.debugTextOut("count1: " + count1, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    Bot.DEBUG.debugTextOut("count2: " + count2, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
                         Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).expansionPos),
                                 Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
@@ -256,7 +260,7 @@ public class BansheeBot extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println("Bot.onStep() error At game frame: " + Bot.OBS.getGameLoop());
+            System.out.println("Bot.onStep() error at: " + Time.getTime());
             e.printStackTrace();
         }
     } // end onStep()
@@ -574,6 +578,8 @@ public class BansheeBot extends Bot {
     @Override
     public void onGameEnd() {
         setNextGameStrategy();
+        System.out.println("count1 = " + count1);
+        System.out.println("count2 = " + count2);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
         try {
             control().saveReplay(Path.of(System.currentTimeMillis() + ".SC2Replay"));

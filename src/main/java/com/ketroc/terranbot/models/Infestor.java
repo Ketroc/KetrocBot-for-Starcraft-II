@@ -62,6 +62,9 @@ public class Infestor {
         //get all banshee/viking/raven in fungal radius
         Set<Units> airUnitTypes = Set.of(Units.TERRAN_BANSHEE, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_RAVEN);
         List<UnitInPool> airUnitsInFungalRange = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, airUnitTypes, infestor.getPosition().toPoint2d(), 15);
+        if (airUnitsInFungalRange == null || airUnitsInFungalRange.isEmpty()) { //hack to fix strange bug I got in stream() below when this list was empty
+            return;
+        }
         airUnitsInFungalRange.stream()
                 .forEach(unit -> {
                     Ignored.add(new IgnoredFungalDodger(unit.getTag()));

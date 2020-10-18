@@ -11,10 +11,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.DroneDrill;
 import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.MapNames;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,7 +50,7 @@ public class DroneRush {
                     return;
                 }
             }
-            if (Bot.OBS.getGameLoop() == 6000) {
+            if (Bot.OBS.getGameLoop() == Time.toFrames("4:30")) {
                 System.out.println("Drone list contents:");
                 droneList.forEach(unitInPool -> System.out.println(unitInPool));
             }

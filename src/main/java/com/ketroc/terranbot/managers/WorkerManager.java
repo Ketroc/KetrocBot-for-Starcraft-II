@@ -20,6 +20,7 @@ import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
@@ -42,7 +43,7 @@ public class WorkerManager {
 
     private static void defendWorkerHarass() {
         //only for first 3min
-        if (Bot.OBS.getGameLoop() > 4008) {
+        if (Bot.OBS.getGameLoop() > Time.toFrames("3:00")) {
             return;
         }
 
@@ -468,7 +469,7 @@ public class WorkerManager {
         }
         else if (scvsPerGas == 2) {
             //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (Bot.OBS.getGameLoop() > 4000 && (mins > 3000 || (mins > 300 && gasBankRatio() < 0.3))) {
+            if (Bot.OBS.getGameLoop() > Time.toFrames("3:00") && (mins > 3000 || (mins > 300 && gasBankRatio() < 0.3))) {
                 scvsPerGas = 3;
                 return true;
             }

@@ -6,10 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.CloakState;
-import com.github.ocraft.s2client.protocol.unit.Tag;
-import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.bots.BansheeBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
@@ -189,15 +186,20 @@ public class StructureScv {
 //                            i--;
 //                        }
 //                    }
-                    boolean isNotBlockedByUnit = Bot.OBS.getUnits(Alliance.ENEMY, u ->
-                                    UnitUtils.getDistance(u.unit(), structureScv.structurePos) < 5 &&
-                                    !u.unit().getFlying().orElse(true) &&
-                                    u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED &&
-                                    !u.unit().getType().toString().contains("BURROWED")).isEmpty();
-                    if (isNotBlockedByUnit) { //creep or burrowed/cloaked unit
-                        ExpansionClearing.add(structureScv.structurePos);
-                        remove(structureScv);
-                        i--;
+                    //any unit within 5 that is a snapshot, or a non-cloaked/non-burrowed unit
+                    if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
+                        boolean isNotBlockedByUnit = Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                                UnitUtils.getDistance(u.unit(), structureScv.structurePos) < 5 && //is within 5 distance
+                                        (u.unit().getDisplayType() == DisplayType.SNAPSHOT ||
+                                                (!u.unit().getFlying().orElse(false) && //is ground unit
+                                                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED && //is not cloaked
+                                                        !u.unit().getType().toString().contains("BURROWED")))).isEmpty(); //is not burrowed
+                        if (isNotBlockedByUnit) { //creep or burrowed/cloaked unit
+                            ExpansionClearing.add(structureScv.structurePos);
+                            BansheeBot.count2++;
+                            remove(structureScv);
+                            i--;
+                        }
                     }
 
 

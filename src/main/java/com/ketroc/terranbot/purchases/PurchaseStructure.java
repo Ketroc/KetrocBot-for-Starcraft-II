@@ -16,6 +16,7 @@ import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
@@ -210,7 +211,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
             this.scv = availableScvs.get(0).unit();
         }
-        System.out.println("sending action @" + Bot.OBS.getGameLoop() + buildAction + " at " + position.toString());
+        System.out.println("sending action " + buildAction + " at: " + Time.getTime() + buildAction + " at pos: " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
@@ -234,7 +235,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             this.scv = availableScvs.get(0).unit();
                             gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
-                            System.out.println("sending action @" + Bot.OBS.getGameLoop() + Abilities.BUILD_REFINERY);
+                            System.out.println("sending action " + Abilities.BUILD_REFINERY + " at: " + Time.getTime());
                             Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);

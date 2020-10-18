@@ -82,7 +82,7 @@ public class LocationConstants {
     }
 
     public static void onStep() { //TODO: rewrite this to use GameCache.baseList.isEnemyBase()
-        if (Bot.OBS.getGameLoop() % 6720 == 0 && Base.numMyBases() >= 4) { //every ~5min
+        if (Bot.OBS.getGameLoop() % Time.toFrames("5:00") == 0 && Base.numMyBases() >= 4) { //every ~5min
             baseAttackIndex = Math.max(2, getNewEnemyBaseIndex());
             skipBasesIOwn();
         }

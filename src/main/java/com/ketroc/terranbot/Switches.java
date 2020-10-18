@@ -10,6 +10,7 @@ import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class Switches {
@@ -34,7 +35,7 @@ public class Switches {
 
     public static void onStep() {
         //BC Rush Defense - add 3rd turret at main base
-        if (!isExpectingEnemyBCs && Bot.OBS.getGameLoop() < 10752 && LocationConstants.opponentRace == Race.TERRAN &&
+        if (!isExpectingEnemyBCs && Bot.OBS.getGameLoop() < Time.toFrames("8:00") && LocationConstants.opponentRace == Race.TERRAN &&
                 (!UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BATTLECRUISER).isEmpty() || !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty())) {
             BansheeBot.purchaseQueue.addFirst(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
             BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(2)));

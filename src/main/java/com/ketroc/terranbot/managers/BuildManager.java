@@ -175,7 +175,7 @@ public class BuildManager {
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty()) {
             turretsRequired = 3;
         }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > 4800) {
+        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > Time.toFrames("3:30")) {
             turretsRequired = 1;
         }
         if (turretsRequired > 0) {
@@ -261,7 +261,7 @@ public class BuildManager {
                     case TERRAN_ORBITAL_COMMAND:
                         if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
                             //scan enemy main at 4:30
-                            if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Bot.OBS.getGameLoop() > 6000) {
+                            if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Bot.OBS.getGameLoop() > Time.toFrames("4:30")) {
                                 Bot.ACTION.unitCommand(cc, Abilities.EFFECT_SCAN,
                                         Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
                                 Switches.scoutScanComplete = true;
@@ -638,8 +638,9 @@ public class BuildManager {
             if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
                 return base.getCcPos();
             }
-            else if (UnitUtils.isExpansionCreepBlocked(base.getCcPos())) {
+            else if (UnitUtils.isExpansionCreepBlocked(base.getCcPos())) { //TODO: check for units too
                 ExpansionClearing.add(base.getCcPos());
+                BansheeBot.count1++;
             }
         }
         return null;
