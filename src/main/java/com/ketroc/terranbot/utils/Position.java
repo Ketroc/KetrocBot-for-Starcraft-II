@@ -81,6 +81,14 @@ public class Position {
         return midPoint.div(pointList.size());
     }
 
+    public static Point2d midPointUnitInPoolsWeighted(List<UnitInPool> unitList) {
+        Point2d midPoint = Point2d.of(0, 0);
+        for (UnitInPool u : unitList) {
+            midPoint = midPoint.add(u.unit().getPosition().toPoint2d());
+        }
+        return midPoint.div(unitList.size());
+    }
+
     public static Point2d midPointUnitsWeighted(List<Unit> unitList) {
         Point2d midPoint = Point2d.of(0, 0);
         for (Unit u : unitList) {

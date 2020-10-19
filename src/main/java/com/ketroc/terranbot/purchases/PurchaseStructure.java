@@ -211,7 +211,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
             this.scv = availableScvs.get(0).unit();
         }
-        System.out.println("sending action " + buildAction + " at: " + Time.getTime() + buildAction + " at pos: " + position.toString());
+        System.out.println("sending action " + buildAction + " at: " + Time.getTime() + " at pos: " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);

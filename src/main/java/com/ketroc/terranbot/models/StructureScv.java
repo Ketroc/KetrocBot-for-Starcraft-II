@@ -174,31 +174,11 @@ public class StructureScv {
                 //if structure never started/destroyed, repurchase
                 if (structure == null || !structure.isAlive()) {
 
-//                    //if cc location is blocked by burrowed unit or creep, set baseIndex to this base TODO: this will probably get replaced
-//                    if (LocationConstants.opponentRace == Race.ZERG &&
-//                            structureScv.scv.isAlive() &&
-//                            structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
-//                            UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 5) {
-//                        int blockedBaseIndex = LocationConstants.baseLocations.indexOf(structureScv.structurePos);
-//                        if (blockedBaseIndex > 0) {
-//                            ExpansionClearing.add(structureScv.structurePos);
-//                            remove(structureScv);
-//                            i--;
-//                        }
-//                    }
                     //any unit within 5 that is a snapshot, or a non-cloaked/non-burrowed unit
                     if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
-                        boolean isNotBlockedByUnit = Bot.OBS.getUnits(Alliance.ENEMY, u ->
-                                UnitUtils.getDistance(u.unit(), structureScv.structurePos) < 5 && //is within 5 distance
-                                        (u.unit().getDisplayType() == DisplayType.SNAPSHOT ||
-                                                (!u.unit().getFlying().orElse(false) && //is ground unit
-                                                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED && //is not cloaked
-                                                        !u.unit().getType().toString().contains("BURROWED")))).isEmpty(); //is not burrowed
-                        if (isNotBlockedByUnit) { //creep or burrowed/cloaked unit
+                        if (!ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked unit
                             ExpansionClearing.add(structureScv.structurePos);
                             BansheeBot.count2++;
-                            remove(structureScv);
-                            i--;
                         }
                     }
 

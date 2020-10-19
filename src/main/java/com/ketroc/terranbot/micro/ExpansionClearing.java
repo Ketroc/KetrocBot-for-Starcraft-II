@@ -7,9 +7,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.Tag;
-import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -65,20 +63,24 @@ public class ExpansionClearing {
             addRaven();
         }
         //raven is travelling to expansion
-        else if (turret == null && UnitUtils.getDistance(raven.mover.unit(), expansionPos) > 1 && !isTurretActive) {
+        else if (turret == null && UnitUtils.getDistance(raven.mover.unit(), expansionPos) > 3 && !isTurretActive) {
             raven.onStep();
         }
         else if (turret == null) {
+
             //if autoturret cast is needed
             if (!isTurretActive) {
+
+                //determine autoturret position
                 Point2d centerPoint = getCenterPoint();
-                //cast turret
                 if (centerPoint != null) {
                     if (raven.mover.unit().getEnergy().orElse(0f) < 50) {
                         addRaven();
                         return false;
                     }
                     Point2d turretPos = getTurretPos(centerPoint);
+
+                    //cast autoturret
                     if (turretPos != null) {
                         raven.targetPos = turretPos;
                         Bot.ACTION.unitCommand(raven.mover.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
@@ -125,7 +127,7 @@ public class ExpansionClearing {
     }
 
     private void setTurret() {
-        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, expansionPos, 14.5f)
+        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.mover.unit().getPosition().toPoint2d(), 5f)
                 .stream()
                 .findFirst()
                 .orElse(null);
@@ -197,4 +199,13 @@ public class ExpansionClearing {
         return expoClearList.stream().anyMatch(e -> e.expansionPos.distance(expansionPos) < 1);
     }
 
+    //if a visible unit is blocking an expansion (like a hatchery or stalker)
+    public static boolean isVisiblyBlockedByUnit(Point2d expansionPos) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                UnitUtils.getDistance(u.unit(), expansionPos) < 5 && //is within 5 distance
+                        (u.unit().getDisplayType() == DisplayType.SNAPSHOT || //TODO: add not autoturret to snapshots
+                                (!u.unit().getFlying().orElse(false) && //is ground unit
+                                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED && //is not cloaked
+                                        !u.unit().getType().toString().contains("BURROWED")))).isEmpty(); //is not burrowed
+    }
 }

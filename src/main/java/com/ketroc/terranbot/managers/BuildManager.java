@@ -638,7 +638,7 @@ public class BuildManager {
             if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
                 return base.getCcPos();
             }
-            else if (UnitUtils.isExpansionCreepBlocked(base.getCcPos())) { //TODO: check for units too
+            else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
                 ExpansionClearing.add(base.getCcPos());
                 BansheeBot.count1++;
             }

@@ -214,9 +214,10 @@ public class BansheeBot extends Bot {
                     Bot.DEBUG.debugTextOut("count1: " + count1, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("count2: " + count2, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
-                        Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).expansionPos),
-                                Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                        Bot.DEBUG.debugTextOut(String.valueOf(ExpansionClearing.expoClearList.get(i).raven),
+                        Bot.DEBUG.debugTextOut("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
+                                " raven: " + ((ExpansionClearing.expoClearList.get(i).raven != null)
+                                        ? ExpansionClearing.expoClearList.get(i).raven.mover.unit().getPosition().toPoint2d()
+                                        : "none"),
                                 Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }
                     Bot.DEBUG.debugTextOut("# Scvs Ignored: " + Ignored.ignoredUnits.stream()

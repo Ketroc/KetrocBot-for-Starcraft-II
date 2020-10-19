@@ -138,13 +138,16 @@ public class ArmyManager {
                 UnitUtils.getDistance(enemy.unit(), turret) <= 8 &&
                 !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getHallucination().orElse(false) &&
+                !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                 (enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED) ||
                         enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED_DETECTED);
 
         Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
-            float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
+            float enemyHP = enemy.unit().getHealth().orElse(0f) +
+                    (enemy.unit().getShield().orElse(0f) * 1.5f);
+            float damageMultiple = getDamageMultiple(enemy.unit());
             UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
             float enemyCost;
             if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
@@ -153,12 +156,26 @@ public class ArmyManager {
             else {
                 enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
             }
-            float enemyValue = enemyHP/enemyCost;
+            float enemyValue = enemyHP/(enemyCost*damageMultiple);
             if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER)) {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }
         return (bestTarget.unit == null) ? Optional.empty() : Optional.of(bestTarget.unit.unit());
+    }
+
+    private static float getDamageMultiple(Unit enemy) {
+        switch ((Units)enemy.getType()) {
+            case PROTOSS_IMMORTAL:
+                return 1.5f;
+            case ZERG_BANELING:
+                return 2;
+            case ZERG_INFESTOR: case ZERG_INFESTOR_BURROWED:
+                return 1.5f;
+            case TERRAN_GHOST:
+                return 1.5f;
+        }
+        return 1;
     }
 
     private static void bansheeMicro() {
@@ -526,20 +543,27 @@ public class ArmyManager {
                     }
                 }
             }
+
+            Unit bestTargetUnit = null;
             if (bestValue == 0) {
-                return;
+                if (LocationConstants.opponentRace == Race.ZERG) {
+                    bestTargetUnit = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.ZERG_CHANGELING_MARINE, pfTank.getPosition().toPoint2d());
+                }
+            }
+            else {
+                Point2d bestTargetPos = Point2d.of(bestValueX / 2f, bestValueY / 2f);
+
+                //get enemy Unit near bestTargetPos
+                List<UnitInPool> enemyTargets = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                        UnitUtils.getDistance(enemy.unit(), bestTargetPos) < 1f && !enemy.unit().getFlying().orElse(false));
+                if (!enemyTargets.isEmpty()) {
+                    bestTargetUnit = enemyTargets.get(0).unit();
+                }
             }
 
-            Point2d bestTargetPos = Point2d.of(bestValueX/2f, bestValueY/2f);
-
-            //get enemy Unit near bestTargetPos
-            List<UnitInPool> enemyTargets = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                    UnitUtils.getDistance(enemy.unit(), bestTargetPos) < 1f &&
-                    !enemy.unit().getFlying().orElse(false));
-
-            //attack enemy Unit
-            if (!enemyTargets.isEmpty()) {
-                Bot.ACTION.unitCommand(pfTank, Abilities.ATTACK, enemyTargets.get(0).unit(), false);
+            //attack
+            if (bestTargetUnit != null) {
+                Bot.ACTION.unitCommand(pfTank, Abilities.ATTACK, bestTargetUnit, false);
             }
         }
     }

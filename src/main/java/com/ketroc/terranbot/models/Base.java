@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -42,9 +43,22 @@ public class Base {
 
     public Base(Point2d ccPos) {
         this.ccPos = ccPos;
+        setResourceMidPoint();
     }
 
     // =========== GETTERS AND SETTERS =============
+
+    public Point2d getResourceMidPoint() {
+        return resourceMidPoint;
+    }
+
+    public void setResourceMidPoint() {
+        List<UnitInPool> resourceNodes = Bot.OBS.getUnits(u ->
+                (UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) || UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType())) &&
+                        UnitUtils.getDistance(u.unit(), ccPos) < 10);
+        resourceMidPoint = Position.towards(ccPos, Position.midPointUnitInPoolsWeighted(resourceNodes), 4.25f);
+    }
+
 
     public List<Unit> getMineralPatches() {
         return mineralPatches;
@@ -98,11 +112,11 @@ public class Base {
     public List<DefenseUnitPositions> getTurrets() {
         if (turrets.isEmpty() && !isMyMainBase()) {
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(getResourceMidPoint(), ccPos, 3.5f), null));
+                    Position.moveClearExactly(resourceMidPoint, ccPos, 3.5f), null));
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(getResourceMidPoint(), ccPos, 110), ccPos, 3.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 110), ccPos, 3.5f), null));
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(getResourceMidPoint(), ccPos, -110), ccPos, 3.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -110), ccPos, 3.5f), null));
         }
         return turrets;
     }
@@ -128,7 +142,6 @@ public class Base {
 
     public List<DefenseUnitPositions> getLiberators() {
         if (liberators.isEmpty()) {
-            Point2d resourceMidPoint = getResourceMidPoint();
             if (resourceMidPoint != null) {
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
@@ -144,7 +157,6 @@ public class Base {
 
     public List<DefenseUnitPositions> getTanks() {
         if (tanks.isEmpty()) {
-            Point2d resourceMidPoint = getResourceMidPoint();
             if (resourceMidPoint != null) {
                 int angle = (LocationConstants.opponentRace == Race.TERRAN) ? 65 : 45;
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
@@ -278,23 +290,6 @@ public class Base {
 
         //return first 2
         return bigPatches.subList(0, 2);
-    }
-
-    public Point2d getResourceMidPoint() {
-        if (resourceMidPoint == null) {
-            List<Unit> resourceNodes = new ArrayList<>();
-            resourceNodes.addAll(mineralPatches);
-            resourceNodes.addAll(gases.stream().map(gas -> gas.getGeyser()).collect(Collectors.toList()));
-            if (resourceNodes.isEmpty()) { //TODO: look into making this always work
-                System.out.println("Base.getResourceMidPoint() == null\nMinerals:");
-                mineralPatches.stream().forEach(unit -> System.out.println(unit.getPosition()));
-                System.out.println("Gases:");
-                gases.stream().forEach(gas -> System.out.println(gas.getLocation()));
-                return null;
-            }
-            resourceMidPoint = Position.towards(ccPos, Position.midPointUnitsWeighted(resourceNodes), 4.25f);
-        }
-        return resourceMidPoint;
     }
 
     public UnitInPool getUpdatedUnit(Units unitType, Optional<UnitInPool> unit, Point2d pos) {
