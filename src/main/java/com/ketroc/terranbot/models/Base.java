@@ -4,12 +4,11 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.InfluenceMaps;
@@ -17,7 +16,6 @@ import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -361,7 +359,7 @@ public class Base {
         }
 
         //cancel queued up turrets for this base
-        BansheeBot.purchaseQueue.removeIf(
+        Ketroc.purchaseQueue.removeIf(
                 p -> p instanceof PurchaseStructure &&
                         ((PurchaseStructure) p).getStructureType() == Units.TERRAN_MISSILE_TURRET &&
                         ((PurchaseStructure) p).getPosition().distance(ccPos) < 10);

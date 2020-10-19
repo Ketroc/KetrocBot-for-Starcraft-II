@@ -2,9 +2,8 @@ package com.ketroc.terranbot.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.bots.DroneDrill;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -49,7 +48,7 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        Bot bot = new BansheeBot(false, opponentId, realTime);
+        Bot bot = new Ketroc(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

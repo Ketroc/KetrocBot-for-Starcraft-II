@@ -10,7 +10,7 @@ import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 
@@ -75,10 +75,10 @@ public class CannonRushDefense {
                     Bot.ACTION.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
                 }
 
-                if (BansheeBot.isDebugOn) Bot.DEBUG.debugTextOut("targets list size: " + ScvTarget.targets.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6)) / 1080.0)), Color.WHITE.WHITE, 12);
+                if (Ketroc.isDebugOn) Bot.DEBUG.debugTextOut("targets list size: " + ScvTarget.targets.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6)) / 1080.0)), Color.WHITE.WHITE, 12);
                 int i = 1;
                 for (ScvTarget target : ScvTarget.targets) {
-                    if (BansheeBot.isDebugOn) Bot.DEBUG.debugTextOut("scvs: " + target.scvs.size() + " on: " + (Units)target.targetUnit.unit().getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6 + i++)) / 1080.0)), Color.WHITE, 12);
+                    if (Ketroc.isDebugOn) Bot.DEBUG.debugTextOut("scvs: " + target.scvs.size() + " on: " + (Units)target.targetUnit.unit().getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6 + i++)) / 1080.0)), Color.WHITE, 12);
                 }
 
                 //check if safe to build/expand (only pylons remaining)

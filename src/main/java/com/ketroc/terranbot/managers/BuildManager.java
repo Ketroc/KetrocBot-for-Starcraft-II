@@ -11,7 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.*;
@@ -137,16 +137,16 @@ public class BuildManager {
     private static void build2ndLayerOfTech() {
         //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
-            BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
+            Ketroc.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
             if (!UpgradeManager.shipAttack.isEmpty()) {
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             if (!UpgradeManager.shipArmor.isEmpty()) {
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             if (LocationConstants.opponentRace == Race.ZERG) {
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
             }
             Strategy.techBuilt = true;
         }
@@ -164,7 +164,7 @@ public class BuildManager {
 
     private static void buildDepotLogic() {
         if (GameCache.mineralBank > 100 && checkIfDepotNeeded() && !LocationConstants.extraDepots.isEmpty()) {
-            BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+            Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
     }
 
@@ -186,7 +186,7 @@ public class BuildManager {
                         if (turret.getUnit().isEmpty() &&
                                 !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
                                 !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos())) {
-                            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
+                            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
                         }
                     }
                 }
@@ -194,11 +194,11 @@ public class BuildManager {
             //build main base missile turrets now
             if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
                 if (LocationConstants.opponentRace == Race.TERRAN && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
-                    BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
-                    BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
+                    Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
+                    Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
                 }
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
                 Switches.doBuildMainBaseTurrets = false;
             }
         }
@@ -226,11 +226,11 @@ public class BuildManager {
                                             .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
 
                                     //remove OC morph from purchase queue
-                                    for (int i = 0; i<BansheeBot.purchaseQueue.size(); i++) {
-                                        Purchase p = BansheeBot.purchaseQueue.get(i);
+                                    for (int i = 0; i< Ketroc.purchaseQueue.size(); i++) {
+                                        Purchase p = Ketroc.purchaseQueue.get(i);
                                         if (p instanceof PurchaseStructureMorph) {
                                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                                BansheeBot.purchaseQueue.remove(i);
+                                                Ketroc.purchaseQueue.remove(i);
                                                 break;
                                             }
                                         }
@@ -238,7 +238,7 @@ public class BuildManager {
 
                                 }
                                 else if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                    BansheeBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                    Ketroc.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
                                 }
                                 break; //don't queue scv
                             }
@@ -246,7 +246,7 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    BansheeBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                    Ketroc.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                 }
                                 break; //don't queue scv
                             }
@@ -338,11 +338,11 @@ public class BuildManager {
                     base.setCc(null);
 
                     //cancel PF morph in purchase queue
-                    for (int i = 0; i< BansheeBot.purchaseQueue.size(); i++) {
-                        Purchase p = BansheeBot.purchaseQueue.get(i);
+                    for (int i = 0; i< Ketroc.purchaseQueue.size(); i++) {
+                        Purchase p = Ketroc.purchaseQueue.get(i);
                         if (p instanceof PurchaseStructureMorph) {
                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                BansheeBot.purchaseQueue.remove(i);
+                                Ketroc.purchaseQueue.remove(i);
                                 break;
                             }
                         }
@@ -441,7 +441,7 @@ public class BuildManager {
                     }
                 }
                 else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                    BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                    Ketroc.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                     Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
             }
@@ -479,7 +479,7 @@ public class BuildManager {
                     if (starport.unit().getAddOnTag().isEmpty() &&
                             (unitToProduce == Abilities.TRAIN_RAVEN || unitToProduce == Abilities.TRAIN_BANSHEE || unitToProduce == Abilities.TRAIN_BATTLECRUISER) &&
                             !Purchase.isStructureQueued(Units.TERRAN_STARPORT_TECHLAB)) {
-                        BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
+                        Ketroc.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
                     }
                     else {
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
@@ -578,7 +578,7 @@ public class BuildManager {
         if (UnitUtils.canAfford(Units.TERRAN_STARPORT) && UnitUtils.hasTechToBuild(Units.TERRAN_STARPORT) && !LocationConstants.STARPORTS.isEmpty()) {
             if (Bot.OBS.getFoodUsed() > 197 ||
                     (GameCache.inProductionMap.getOrDefault(Units.TERRAN_STARPORT, 0) < 3 && areAllProductionStructuresBusy())) {
-                BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
@@ -622,7 +622,7 @@ public class BuildManager {
         //if an expansion position is available, build expansion CC
         Point2d expansionPos = getNextAvailableExpansionPosition();
         if (expansionPos != null) {
-            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos));
+            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos));
         }
         return expansionPos != null;
     }
@@ -640,7 +640,7 @@ public class BuildManager {
             }
             else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
                 ExpansionClearing.add(base.getCcPos());
-                BansheeBot.count1++;
+                Ketroc.count1++;
             }
         }
         return null;
@@ -652,7 +652,7 @@ public class BuildManager {
 
     private static boolean purchaseMacroCC() {
         if (!LocationConstants.MACRO_OCS.isEmpty()) {
-            BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
+            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
             GameCache.numMacroOCs++;
             return true;
         }
@@ -706,7 +706,7 @@ public class BuildManager {
 
     public static int numStructuresQueued(Units structureType) {
         int count = 0;
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseStructure && ((PurchaseStructure) p).getStructureType().equals(structureType)) {
                 count++;
             }
@@ -715,7 +715,7 @@ public class BuildManager {
     }
 
     public static boolean isMorphQueued(Abilities morphType) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph && ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType) {
                 return true;
             }
@@ -724,7 +724,7 @@ public class BuildManager {
     }
 
     public static boolean isUpgradeQueued(Upgrades upgrade) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade) {
                 return true;
             }

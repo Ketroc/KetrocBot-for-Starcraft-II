@@ -4,16 +4,14 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -178,7 +176,7 @@ public class StructureScv {
                     if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
                         if (!ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked unit
                             ExpansionClearing.add(structureScv.structurePos);
-                            BansheeBot.count2++;
+                            Ketroc.count2++;
                         }
                     }
 
@@ -237,14 +235,14 @@ public class StructureScv {
                 if (LocationConstants.proxyBarracksPos == null || structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
                     LocationConstants._3x3Structures.add(structureScv.structurePos);
                 }
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
                 LocationConstants._3x3Structures.add(structureScv.structurePos);
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             default:
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
         }
     }

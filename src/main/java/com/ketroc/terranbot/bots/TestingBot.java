@@ -28,7 +28,7 @@ public class TestingBot extends Bot {
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
         int playerId = observation().getPlayerId();
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), 0, 1);
-        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), playerId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), playerId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), playerId, 1);
 ////        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), observation().getGameInfo().getPlayersInfo().iterator().next().getPlayerId(), 1);
         debug().sendDebug();

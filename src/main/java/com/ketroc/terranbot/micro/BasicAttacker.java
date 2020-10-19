@@ -44,7 +44,8 @@ public class BasicAttacker {
             }
         }
         else {
-            //TODO: retreat
+            //TODO: stutterstep forwards/backwards
+            //float targetRange = UnitUtils.getAttackRange()
         }
     }
 

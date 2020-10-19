@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.Switches;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -79,7 +79,7 @@ public class Strategy {
     public static int floatBaseAt = 50; //heath% to float base away at
 
     public static void onGameStart() {
-        SKIP_FRAMES = (BansheeBot.isRealTime) ? 6 : 2;
+        SKIP_FRAMES = (Ketroc.isRealTime) ? 6 : 2;
         getGameStrategyChoice();
 
         if (ANTI_NYDUS_BUILD) {
@@ -184,7 +184,7 @@ public class Strategy {
             String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
             String lastOpponentId = fileText[0];
             int opponentStrategy = Integer.valueOf(fileText[1]);
-            if (!lastOpponentId.equals(BansheeBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+            if (!lastOpponentId.equals(Ketroc.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
                 selectedStrategy = 0;
             }
             else {
@@ -236,12 +236,12 @@ public class Strategy {
                     List<UnitInPool> scvNearDepot = WorkerManager.getAllScvs(LocationConstants.extraDepots.get(0), 6);
                     if (!scvNearDepot.isEmpty()) {
                         scv_TvtFastStart = scvNearDepot.get(0); //TODO: null check
-                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
+                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
                     }
                     else {
-                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     }
                     Switches.tvtFastStart = false;
                 }
@@ -265,9 +265,9 @@ public class Strategy {
 
     public static void antiNydusBuild() {
         //rax after depot, 2nd depot after cc since cc is late, earlier 2nd gas
-        BansheeBot.purchaseQueue.add(1, BansheeBot.purchaseQueue.remove(3));
-        BansheeBot.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
-        BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        Ketroc.purchaseQueue.add(1, Ketroc.purchaseQueue.remove(3));
+        Ketroc.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
+        Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
 
         //get closest STARPORTS position
         Point2d closestStarportPos = LocationConstants.STARPORTS.stream()
@@ -275,7 +275,7 @@ public class Strategy {
                 .get();
 
         //build rax at closest position
-        ((PurchaseStructure) BansheeBot.purchaseQueue.get(1)).setPosition(closestStarportPos);
+        ((PurchaseStructure) Ketroc.purchaseQueue.get(1)).setPosition(closestStarportPos);
 
         //save MID_WALL_3X3 for barracks' later position
         LocationConstants._3x3Structures.remove(0);

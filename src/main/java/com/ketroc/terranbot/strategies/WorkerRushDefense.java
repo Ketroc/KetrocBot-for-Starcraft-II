@@ -4,9 +4,12 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.Time;
@@ -17,9 +20,8 @@ import com.ketroc.terranbot.models.StructureScv;
 import java.util.Collections;
 import java.util.List;
 
-public class ProbeRushDefense {
-    public static int clusterMyNodeStep;
-    public static int clusterEnemyNodeStep;
+public class WorkerRushDefense {
+    public static int clusterTriangleStep;
 
     public static int defenseStep;
     public static List<UnitInPool> scvList;
@@ -30,12 +32,12 @@ public class ProbeRushDefense {
         try {
 //            if (Bot.isDebugOn) {
 //                int lines = 0;
-//                Bot.DEBUG.debugTextOut("clusterMyNodeStep: " + ProbeRushDefense.clusterMyNodeStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-//                Bot.DEBUG.debugTextOut("clusterEnemyNodeStep: " + ProbeRushDefense.clusterEnemyNodeStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+//                Bot.DEBUG.debugTextOut("townhall type: " + townHallType, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+//                Bot.DEBUG.debugTextOut("clusterTriangleStep: " + ProbeRushDefense.clusterTriangleStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                Bot.DEBUG.debugTextOut("defenseStep: " + ProbeRushDefense.defenseStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-//                Bot.DEBUG.debugTextOut("0", LocationConstants.enemyMineralTriangle.inner.unit().getPosition(), Color.WHITE, 10);
-//                Bot.DEBUG.debugTextOut("1", LocationConstants.enemyMineralTriangle.outer1.unit().getPosition(), Color.WHITE, 10);
-//                Bot.DEBUG.debugTextOut("2", LocationConstants.enemyMineralTriangle.outer2.unit().getPosition(), Color.WHITE, 10);
+//                Bot.DEBUG.debugTextOut("0", LocationConstants.enemyMineralTriangle.getInner().unit().getPosition(), Color.WHITE, 10);
+//                Bot.DEBUG.debugTextOut("1", LocationConstants.enemyMineralTriangle.getOuter().unit().getPosition(), Color.WHITE, 10);
+//                Bot.DEBUG.debugTextOut("2", LocationConstants.enemyMineralTriangle.getMiddle().unit().getPosition(), Color.WHITE, 10);
 //            }
 
             //initialize townHall type
@@ -109,14 +111,14 @@ public class ProbeRushDefense {
                         if (scvList == null) {
                             scvList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, GameCache.ccList.get(0).getPosition().toPoint2d(), 20);
                         }
-                        if (clusterMyNode()) {
+                        if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
                             defenseStep++;
                         }
                     }
                     break;
 
                 case 3: //send scvs across the map to cluster on enemy node
-                    if (clusterEnemyNode()) {
+                    if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
                         defenseStep++;
                     }
                     break;
@@ -151,11 +153,11 @@ public class ProbeRushDefense {
         }
 
         Unit townHall = GameCache.allEnemiesMap.get(townHallType).get(0).unit();
-        int numWorkers = Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
+        int numEnemyWorkers = Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                 UnitUtils.getDistance(worker.unit(), townHall) < 10).size();
 
         //if scv count doubles enemy worker count then kill townhall
-        if (scvList.size() > numWorkers * 2) {
+        if (scvList.size() > numEnemyWorkers * 2) {
             for (UnitInPool scv : scvList) {
                 //if enemy worker < 1 distance from scv, attack worker
                 if (!Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
@@ -183,14 +185,14 @@ public class ProbeRushDefense {
         else {
             //triangle-cluster after switching from attacking townhall
             if (isAttackingTownHall) {
-                if (clusterEnemyNode()) {
+                if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
                     isAttackingTownHall = false;
                 }
             }
             //cluster and attack micro
             else {
-                Unit closestWorker = UnitUtils.getClosestEnemyOfType(UnitUtils.enemyWorkerType, scvList.get(0).unit().getPosition().toPoint2d());
-                if (UnitUtils.getDistance(closestWorker, scvList.get(0).unit()) > 1) {
+                Unit closestEnemyWorker = UnitUtils.getClosestEnemyOfType(UnitUtils.enemyWorkerType, scvList.get(0).unit().getPosition().toPoint2d());
+                if (UnitUtils.getDistance(closestEnemyWorker, scvList.get(0).unit()) > 1) {
                     Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 } else {
                     for (UnitInPool scv : scvList) {
@@ -205,30 +207,30 @@ public class ProbeRushDefense {
         }
     }
 
-    public static boolean clusterMyNode() {
-        switch (clusterMyNodeStep) {
+    public static boolean clusterTriangleNode(TriangleOfNodes triangle) {
+        switch (clusterTriangleStep) {
             case 0:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getInner().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getInner().unit(), false);
+                if (scvList.stream().filter(u -> UnitUtils.getDistance(u.unit(), triangle.getInner().unit()) > 2.7).count() > 2) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getInner().unit(), false);
                 }
                 else {
-                    clusterMyNodeStep++;
+                    clusterTriangleStep++;
                 }
                 break;
             case 1:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getOuter().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), false);
+                if (scvList.stream().filter(u -> UnitUtils.getDistance(u.unit(), triangle.getOuter().unit()) > 2.7).count() > 2) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getOuter().unit(), false);
                 }
                 else {
-                    clusterMyNodeStep++;
+                    clusterTriangleStep++;
                 }
                 break;
             case 2:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myMineralTriangle.getMiddle().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
+                if (scvList.stream().allMatch(u -> UnitUtils.getDistance(u.unit(), triangle.getMiddle().unit()) > 1.4)) {
+                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getMiddle().unit(), false);
                 }
                 else {
-                    clusterMyNodeStep = 0;
+                    clusterTriangleStep = 0;
                     return true;
                 }
                 break;
@@ -236,37 +238,4 @@ public class ProbeRushDefense {
         }
         return false;
     }
-
-    public static boolean clusterEnemyNode() {
-        switch (clusterEnemyNodeStep) {
-            case 0:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getInner().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
-                }
-                else {
-                    clusterEnemyNodeStep++;
-                }
-                break;
-            case 1:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getOuter().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getOuter().unit(), false);
-                }
-                else {
-                    clusterEnemyNodeStep++;
-                }
-                break;
-            case 2:
-                if (scvList.stream().anyMatch(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.enemyMineralTriangle.getMiddle().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
-                }
-                else {
-                    clusterEnemyNodeStep = 0;
-                    return true;
-                }
-                break;
-
-        }
-        return false;
-    }
-
 }

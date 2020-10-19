@@ -12,7 +12,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -216,7 +216,7 @@ public class BunkerContain {
                     }
                 }
                 else if (!factory.getFlying().orElse(true) && !Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                    BansheeBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                    Ketroc.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                     Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
             }
@@ -495,12 +495,12 @@ public class BunkerContain {
             }
         }
         //cancel all proxy construction in queue
-        for (int i=0; i<BansheeBot.purchaseQueue.size(); i++) {
-            if (BansheeBot.purchaseQueue.get(i) instanceof PurchaseStructure) {
-                PurchaseStructure structure = (PurchaseStructure)BansheeBot.purchaseQueue.get(i);
+        for (int i = 0; i< Ketroc.purchaseQueue.size(); i++) {
+            if (Ketroc.purchaseQueue.get(i) instanceof PurchaseStructure) {
+                PurchaseStructure structure = (PurchaseStructure) Ketroc.purchaseQueue.get(i);
                 if (structure.getPosition().distance(LocationConstants.REPAIR_BAY) > 50) {
                     requeueStructure(structure.getStructureType());
-                    BansheeBot.purchaseQueue.remove(i--);
+                    Ketroc.purchaseQueue.remove(i--);
                 }
             }
         }
@@ -509,7 +509,7 @@ public class BunkerContain {
             //cancel barracks in production
             if (barracks.unit().getBuildProgress() < 1) {
                 Bot.ACTION.unitCommand(barracks.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
             }
             //send completed barracks home
             else {
@@ -548,10 +548,10 @@ public class BunkerContain {
     private static void requeueStructure(Units structureType) {
         switch (structureType) {
             case TERRAN_FACTORY:
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                 break;
             case TERRAN_BARRACKS:
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
                 break;
             case TERRAN_BUNKER: case TERRAN_MISSILE_TURRET:
                 //don't requeue at home
@@ -648,7 +648,7 @@ public class BunkerContain {
 
     public static void onBarracksComplete() {
         //change proxyBunker scv to nearest scv
-        BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SCV, bunkerPos), Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
+        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SCV, bunkerPos), Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
     }
 
     private static void onBunkerStarted(UnitInPool bunk) {
@@ -669,7 +669,7 @@ public class BunkerContain {
         if (proxyBunkerLevel == 2 &&
                 //(LocationConstants.MAP.equals(MapNames.ZEN) || LocationConstants.MAP.equals(MapNames.THUNDERBIRD)) &&
                 Purchase.isStructureQueued(Units.TERRAN_FACTORY)) {
-            for (Purchase purchase : BansheeBot.purchaseQueue) {
+            for (Purchase purchase : Ketroc.purchaseQueue) {
                 if (purchase instanceof PurchaseStructure) {
                     PurchaseStructure p = (PurchaseStructure) purchase;
                     if (p.getStructureType() == Units.TERRAN_FACTORY) {
@@ -686,7 +686,7 @@ public class BunkerContain {
                 //(LocationConstants.MAP.equals(MapNames.ZEN) || LocationConstants.MAP.equals(MapNames.THUNDERBIRD)) &&
                 Purchase.isStructureQueued(Units.TERRAN_FACTORY)) {
             UnitInPool factoryScv = repairScvList.get(0);
-            for (Purchase purchase : BansheeBot.purchaseQueue) {
+            for (Purchase purchase : Ketroc.purchaseQueue) {
                 if (purchase instanceof PurchaseStructure) {
                     PurchaseStructure p = (PurchaseStructure) purchase;
                     if (p.getStructureType() == Units.TERRAN_FACTORY) {
@@ -719,27 +719,27 @@ public class BunkerContain {
     }
 
     public static void onFactoryComplete() {
-        BansheeBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+        Ketroc.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
     }
 
     public static void onTechLabComplete() {
-        BansheeBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory.unit()));
+        Ketroc.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory.unit()));
     }
 
     public static void onFactoryLift() {
-        BansheeBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-        BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+        Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        Ketroc.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
     }
 
     public static void onEngineeringBayComplete(UnitInPool engBay) {
-        BansheeBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
+        Ketroc.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
         List<Unit> availableScvs = getAvailableRepairScvs();
         Point2d turretPos = calcTurretPosition();
         if (turretPos != null) {
             if (!availableScvs.isEmpty()) {
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(availableScvs.get(0), Units.TERRAN_MISSILE_TURRET, turretPos));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(availableScvs.get(0), Units.TERRAN_MISSILE_TURRET, turretPos));
             } else {
-                BansheeBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
             }
         }
     }

@@ -27,13 +27,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class BansheeBot extends Bot {
+public class Ketroc extends Bot {
 
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
     public static int count1 = 0;
     public static int count2 = 0;
 
-    public BansheeBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
+    public Ketroc(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
     }
 
@@ -155,7 +155,7 @@ public class BansheeBot extends Bot {
                 StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
 
                 //don't build up during probe rush
-                if (ProbeRushDefense.onStep()) {
+                if (WorkerRushDefense.onStep()) {
                     return;
                 }
 
@@ -243,7 +243,7 @@ public class BansheeBot extends Bot {
                     }
 
                     Bot.DEBUG.debugTextOut("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("Purchase Queue: " + BansheeBot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    Bot.DEBUG.debugTextOut("Purchase Queue: " + Ketroc.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("BaseTarget: " + LocationConstants.baseAttackIndex, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     if (ArmyManager.attackGroundPos != null) {
@@ -252,7 +252,7 @@ public class BansheeBot extends Bot {
                         Bot.DEBUG.debugBoxOut(Point.of(x - 0.3f, y - 0.3f, Position.getZ(x, y)), Point.of(x + 0.3f, y + 0.3f, Position.getZ(x, y)), Color.YELLOW);
                     }
                     for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
-                        Bot.DEBUG.debugTextOut(BansheeBot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        Bot.DEBUG.debugTextOut(Ketroc.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }
                     Bot.DEBUG.debugBoxOut(Point.of(LocationConstants.enemyMineralPos.getX()-0.33f, LocationConstants.enemyMineralPos.getY()-0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Point.of(LocationConstants.enemyMineralPos.getX()+0.33f, LocationConstants.enemyMineralPos.getY()+0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Color.BLUE);
                     Bot.DEBUG.sendDebug();
@@ -288,7 +288,7 @@ public class BansheeBot extends Bot {
         System.out.println("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
         System.out.println("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
         System.out.println("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
-        System.out.println("BansheeBot.purchaseQueue.size() = " + BansheeBot.purchaseQueue.size());
+        System.out.println("BansheeBot.purchaseQueue.size() = " + Ketroc.purchaseQueue.size());
         System.out.println("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);

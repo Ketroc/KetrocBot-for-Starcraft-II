@@ -5,7 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.models.Cost;
 
 public interface Purchase {
@@ -17,7 +17,7 @@ public interface Purchase {
     public boolean canAfford();
 
     public static boolean isMorphQueued(Abilities morphType) { //TODO: relook at this.  it looks out of place here (but it is static)
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph && ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType) {
                 return true;
             }
@@ -26,19 +26,19 @@ public interface Purchase {
     }
 
     public static boolean isUpgradeQueued(Upgrades upgrade) {
-        return BansheeBot.purchaseQueue.stream()
+        return Ketroc.purchaseQueue.stream()
                 .anyMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade);
     }
 
     public static boolean containsUpgrade() {
-        return BansheeBot.purchaseQueue.stream()
+        return Ketroc.purchaseQueue.stream()
                 .anyMatch(purchase -> purchase instanceof PurchaseUpgrade);
     }
 
 
 
     public static boolean isUpgradeQueued(Tag structureTag) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().unit().getTag() == structureTag) {
                 return true;
             }
@@ -51,7 +51,7 @@ public interface Purchase {
     }
 
     public static boolean isStructureQueued(Units unitType, Point2d pos) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseStructure &&
                     ((PurchaseStructure) p).getStructureType() == unitType &&
                     (pos == null || ((PurchaseStructure) p).getPosition().distance(pos) < 1)) {
@@ -62,7 +62,7 @@ public interface Purchase {
     }
 
     public static Point2d getPositionOfQueuedStructure(Units unitType) {
-        for (Purchase p : BansheeBot.purchaseQueue) {
+        for (Purchase p : Ketroc.purchaseQueue) {
             if (p instanceof PurchaseStructure &&
                     ((PurchaseStructure) p).getStructureType() == unitType) {
                 return ((PurchaseStructure) p).getPosition();

@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
@@ -29,7 +29,7 @@ public class ScvRush {
     private static boolean clusterNow = false;
 
     public static boolean onStep() {
-        if (BansheeBot.isDebugOn) {
+        if (Ketroc.isDebugOn) {
             int lines = 0;
             Bot.DEBUG.debugTextOut("clusterEnemyNodeStep: " + ScvRush.clusterTriangleStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
             Bot.DEBUG.debugTextOut("scvRushStep: " + ScvRush.scvRushStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);

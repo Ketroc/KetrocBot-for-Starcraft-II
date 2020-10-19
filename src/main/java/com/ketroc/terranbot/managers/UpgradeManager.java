@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.utils.UnitUtils;
-import com.ketroc.terranbot.bots.BansheeBot;
+import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseUpgrade;
@@ -55,7 +55,7 @@ public class UpgradeManager {
         if (idleArmory != null && !Purchase.isUpgradeQueued(idleArmory.getTag())) {
             Upgrades nextUpgrade = getNextArmoryUpgrade(armories);
             if (nextUpgrade != null) {
-                BansheeBot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(idleArmory.getTag())));
+                Ketroc.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(idleArmory.getTag())));
             }
         }
     }
@@ -95,7 +95,7 @@ public class UpgradeManager {
                 .findFirst()
                 .ifPresent(techLab -> {
                             if (!Purchase.isUpgradeQueued(nextUpgrade)) {
-                                BansheeBot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(techLab.getTag())));
+                                Ketroc.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(techLab.getTag())));
                             }
                         });
     }
@@ -106,7 +106,7 @@ public class UpgradeManager {
                     .filter(techLab -> techLab.getOrders().isEmpty())
                     .findFirst()
                     .map(techLab -> Bot.OBS.getUnit(techLab.getTag()))
-                    .ifPresent(techLab -> BansheeBot.purchaseQueue.add(new PurchaseUpgrade(starportUpgradeList.remove(0), techLab)));
+                    .ifPresent(techLab -> Ketroc.purchaseQueue.add(new PurchaseUpgrade(starportUpgradeList.remove(0), techLab)));
         }
     }
 
