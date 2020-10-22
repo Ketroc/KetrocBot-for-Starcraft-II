@@ -17,10 +17,7 @@ import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,8 +28,8 @@ public class ArmyManager {
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
     public static Point2d defensePos;
-    public static int numAutoturretsAvailable;
     public static Unit attackUnit;
+    public static int numAutoturretsAvailable;
     public static List<Unit> armyRetreating;
     public static List<Unit> armyGroundAttacking;
     public static List<Unit> armyAirAttacking;
@@ -41,17 +38,21 @@ public class ArmyManager {
     public static int queriesMade;
 
     public static void onStep() {
-        //set defense position
-        setDefensePosition();
-
         //set offense decision
-        setOffense();
+        setDoOffense();
+
+
+        //set defense position
+        setAirTarget();
+        if (doOffense) {
+            setGroundTarget();
+        }
+        else {
+            setDefensePosition();
+        }
 
         // lift & lower depot walls
         raiseAndLowerDepots();
-
-        //set attack location
-        setAttackLocation();
 
         //respond to nydus
         nydusResponse();
@@ -80,8 +81,7 @@ public class ArmyManager {
 
         //if searching for last structures
         if (attackGroundPos == null && Switches.finishHim) {
-            spreadArmy(GameCache.bansheeList);
-            spreadArmy(GameCache.vikingList);
+            searchForLastStructures();
         }
         else {
             armyRetreating = new ArrayList<>();
@@ -110,6 +110,11 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void searchForLastStructures() {
+        spreadArmy(GameCache.bansheeList);
+        spreadArmy(GameCache.vikingList);
     }
 
     private static void sendMarinesHellbats() {
@@ -244,7 +249,7 @@ public class ArmyManager {
         }
     }
 
-    private static void setOffense() {
+    private static void setDoOffense() {
         if (Strategy.MASS_RAVENS) {
             numAutoturretsAvailable = GameCache.ravenList.stream()
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
@@ -274,24 +279,21 @@ public class ArmyManager {
 
     //set defensePos to closestEnemy to an injured PF
     private static void setDefensePosition() {
-        for (Base base : GameCache.baseList) {
-            if (base.isMyBase()) {
-                Unit cc = base.getCc().get().unit();
-                if (cc.getHealth().orElse(1500f) < cc.getHealthMax().orElse(1500f)) {
-                    List<UnitInPool> nearbyEnemies = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                            !enemy.unit().getHallucination().orElse(false) &&
-                            enemy.unit().getType() != Units.ZERG_CHANGELING_MARINE &&
-                            UnitUtils.getDistance(enemy.unit(), cc) < 15);
-                    if (!nearbyEnemies.isEmpty()) {
-                        defensePos = nearbyEnemies.stream()
-                                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), cc)))
-                                .get().unit().getPosition().toPoint2d();
-                        return;
-                    }
-                }
-            }
-        }
-        defensePos = retreatPos;
+        attackUnit = GameCache.allVisibleEnemiesList.stream()
+                .filter(u -> GameCache.baseList.stream()
+                        .filter(Base::isMyBase)
+                        .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
+                        !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
+                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
+                        !u.unit().getBurrowed().orElse(false) && //ignore burrowed units
+                        u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
+                        u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
+                        !u.unit().getHallucination().orElse(false) && //ignore hallucs
+                        UnitUtils.isVisible(u)) //ignore units in the fog
+                .map(UnitInPool::unit)
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.myMineralPos)))
+                .orElse(null);
+        attackGroundPos = (attackUnit != null) ? attackUnit.getPosition().toPoint2d() : GameCache.baseList.get(2).getResourceMidPoint();
     }
 
 
@@ -354,7 +356,7 @@ public class ArmyManager {
         }
     }
 
-    private static void setAttackLocation() {
+    private static void setGroundTarget() {
         UnitInPool closestEnemyGround = getClosestEnemyGroundUnit();
         if (closestEnemyGround != null) {
             attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
@@ -364,6 +366,7 @@ public class ArmyManager {
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
                 System.out.println("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
+                System.out.println("Time.nowClock() = " + Time.nowClock());
                 System.out.println("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
                 System.out.println("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
                 GameCache.allEnemiesList.remove(closestEnemyGround);
@@ -387,31 +390,33 @@ public class ArmyManager {
                 attackGroundPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
             }
         }
+    }
 
+    private static void setAirTarget() {
         //send single vikings at the closest non-threatening air, and set the main air attack target
         UnitInPool closestEnemyAir;
         do {
             closestEnemyAir = getClosestEnemyAirUnit();
         } while (doPeelOffVikingForEasyTarget(closestEnemyAir));
         attackAirPos = (closestEnemyAir != null) ? closestEnemyAir.unit().getPosition().toPoint2d() : attackGroundPos;
-
     }
 
     private static boolean doPeelOffVikingForEasyTarget(UnitInPool closestEnemyAir) {
-        if (closestEnemyAir == null) {
-            return false;
-        }
-        if (UnitUtils.NO_THREAT_ENEMY_AIR.contains(closestEnemyAir.unit().getType())) {
-            Unit closestViking = GameCache.vikingList.stream()
-                    .min(Comparator.comparing(unit -> UnitUtils.getDistance(closestEnemyAir.unit(), unit)))
-                    .orElse(null);
-            if (closestViking != null) {
-                Bot.ACTION.unitCommand(closestViking, Abilities.ATTACK, closestEnemyAir.unit(), false);
-                GameCache.vikingList.remove(closestViking);
-            }
-            GameCache.allVisibleEnemiesList.remove(closestEnemyAir);
-            return true;
-        }
+        //TODO: turn on when viking peel is good vs observers and smart not to die
+//        if (closestEnemyAir == null) {
+//            return false;
+//        }
+//        if (UnitUtils.NO_THREAT_ENEMY_AIR.contains(closestEnemyAir.unit().getType())) {
+//            Unit closestViking = GameCache.vikingList.stream()
+//                    .min(Comparator.comparing(unit -> UnitUtils.getDistance(closestEnemyAir.unit(), unit)))
+//                    .orElse(null);
+//            if (closestViking != null) {
+//                Bot.ACTION.unitCommand(closestViking, Abilities.ATTACK, closestEnemyAir.unit(), false);
+//                GameCache.vikingList.remove(closestViking);
+//            }
+//            GameCache.allVisibleEnemiesList.remove(closestEnemyAir);
+//            return true;
+//        }
         return false;
     }
 
@@ -578,146 +583,6 @@ public class ArmyManager {
             }
         }
     }
-
-//    private static void positionSiegeTanks() {
-//        List<UnitInPool> newTanks = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SIEGE_TANK, LocationConstants.insideMainWall, 8);
-//        for (Base base : GameCache.baseList) {
-//            //skip main base
-//            if (!base.isMyBase() || base.getCc().get().unit().getType() == Units.TERRAN_ORBITAL_COMMAND) {
-//                continue;
-//            }
-//
-//            List<UnitInPool> siegedTanks = base.getSiegedTanks();
-//            List<UnitInPool> unsiegedTanks = base.getUnsiegedTanks();
-//            int numTanks = siegedTanks.size() + unsiegedTanks.size();
-//            List<Unit> largeMinerals = base.getLargeMinerals();
-//
-//            //free up tanks if base is near dry
-//            if (largeMinerals.size() < Strategy.NUM_TANKS_PER_EXPANSION) {
-//                if (!siegedTanks.isEmpty()) {
-//                    Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(siegedTanks), Abilities.MORPH_UNSIEGE, false);
-//                }
-//                newTanks.addAll(unsiegedTanks);
-//                continue;
-//            }
-//
-//            //send new tanks to base
-//            while (numTanks < Strategy.NUM_TANKS_PER_EXPANSION && !newTanks.isEmpty()) {
-//                Bot.ACTION.unitCommand(newTanks.remove(0).unit(), Abilities.ATTACK, base.getCcPos(), false);
-//                numTanks++;
-//            }
-//
-//            //add extra tanks at base to newTank list
-//            while (numTanks > Strategy.NUM_TANKS_PER_EXPANSION && !unsiegedTanks.isEmpty()) {
-//                newTanks.add(unsiegedTanks.remove(0));
-//                numTanks--;
-//            }
-//
-//            //if there is idle unsieged tanks then position and siege them
-//            if (!unsiegedTanks.isEmpty() && unsiegedTanks.stream().allMatch(tank -> tank.unit().getOrders().isEmpty())) {
-//                List<Unit> outerNodes = base.getOuterBigPatches();
-//                for (Unit node : outerNodes) {
-//                    if (unsiegedTanks.isEmpty()) {
-//                        break;
-//                    }
-//                    Point2d mineralPos = node.getPosition().toPoint2d();
-//                    if (!UnitUtils.isUnitTypesNearby(Alliance.SELF, UnitUtils.SIEGE_TANK_TYPE, mineralPos, 2.5f)) {
-//                        Unit tank = unsiegedTanks.remove(0).unit();
-//                        Bot.ACTION.unitCommand(tank, Abilities.ATTACK, Position.towards(mineralPos, base.getCcPos(), 2), false)
-//                                .unitCommand(tank, Abilities.MORPH_SIEGE_MODE, true);
-//                    }
-//                }
-//            }
-//        }
-//
-//        //send left over free tanks to main base
-//        if (!newTanks.isEmpty()) {
-//            Bot.ACTION.unitCommand(UnitUtils.unitInPoolToUnitList(newTanks), Abilities.ATTACK, LocationConstants.insideMainWall, false);
-//        }
-//    }
-
-//    private static void positionLiberators() {
-//        List<Unit> availableLibs = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
-//                .filter(unit -> unit.getOrders().isEmpty() && UnitUtils.getDistance(unit, ArmyManager.retreatPos) < 3)
-//                .collect(Collectors.toList());
-//        for (int i = GameCache.baseList.size()-1; i>=0; i--) {
-//            Base base = GameCache.baseList.get(i);
-//
-//            //skip main base
-//            if (!base.isMyBase() || base.getCc().get().unit().getType() == Units.TERRAN_ORBITAL_COMMAND) {
-//                continue;
-//            }
-//
-//            List<Unit> siegedLibs = base.getSiegedLibs();
-//            List<Unit> unsiegedLibs = base.getUnsiegedLibs();
-//            int numLibs = siegedLibs.size() + unsiegedLibs.size();
-//
-//            //free up libs if base is near dry or if there are 4 newer bases
-//            if (base.getMineralPatches().size() < 3 || Base.numMyBases() - i > Strategy.MAX_BASES_TO_DEFEND) {
-//                if (!siegedLibs.isEmpty()) {
-//                    Bot.ACTION.unitCommand(siegedLibs, Abilities.MORPH_LIBERATOR_AA_MODE, false);
-//                }
-//                availableLibs.addAll(unsiegedLibs);
-//                continue;
-//            }
-//
-//            //send available libs to base
-//            while (numLibs < Strategy.NUM_LIBS_PER_EXPANSION && !availableLibs.isEmpty()) {
-//                Bot.ACTION.unitCommand(availableLibs.remove(0), Abilities.ATTACK, base.getCcPos(), false);
-//                numLibs++;
-//            }
-//
-//            //add extra libs at base to availableLibs list
-//            while (numLibs > Strategy.NUM_LIBS_PER_EXPANSION && !unsiegedLibs.isEmpty()) {
-//                availableLibs.add(unsiegedLibs.remove(0));
-//                numLibs--;
-//            }
-//
-//            //if there is idle unsieged libs then position and siege them
-//            if (!unsiegedLibs.isEmpty() && unsiegedLibs.stream().allMatch(lib -> lib.getOrders().isEmpty())) {
-//                List<Point2d> libPositions = base.getLiberatorPositions();
-//                for (Point2d libPos : libPositions) {
-//                    if (unsiegedLibs.isEmpty()) {
-//                        break;
-//                    }
-//                    if (!UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_LIBERATOR_AG, libPos, 1)) {
-//                        Unit lib = unsiegedLibs.remove(0);
-//                        float offset = Base.getLibDistanceFromCC() - 5;
-//                        Point2d zonePos = Position.towards(base.getCcPos(), libPos, offset);
-//                        Bot.ACTION.unitCommand(lib, Abilities.MOVE, libPos, false)
-//                                .unitCommand(lib, Abilities.MORPH_LIBERATOR_AG_MODE, zonePos, true);
-//                        break; //keep 2 libs from going to the same positions at the same time
-//                    }
-//                }
-//            }
-//        }
-//
-//        //TODO: be way smarter with extra libs than this blind siege up below
-//        //TODO: change loop below when GameState.baseList tracks enemy bases too
-//        if (!availableLibs.isEmpty()) {
-//            //if all extra libs are at home with nowhere to go, siege the enemy bases
-//            if (availableLibs.stream().allMatch(unit -> UnitUtils.getDistance(unit, ArmyManager.retreatPos) < 3)) {
-//                //get list of enemy townhalls sorted by closest to me
-//                List<UnitInPool> enemyCommandStructures = Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.enemyCommandStructures.contains(u.unit().getType()));
-//                enemyCommandStructures.sort(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), ArmyManager.retreatPos)));
-//                //siege one liberator on each base
-//                for (int i=0; i<enemyCommandStructures.size() && !availableLibs.isEmpty(); i++) {
-//                    Bot.ACTION.unitCommand(availableLibs.remove(0), Abilities.MORPH_LIBERATOR_AG_MODE, enemyCommandStructures.get(i).unit().getPosition().toPoint2d(), false);
-//                }
-//                //a-move leftover libs to their death (enemy 3rd base, then nat, then main)
-//                if (!availableLibs.isEmpty()) {
-//                    Bot.ACTION.unitCommand(availableLibs, Abilities.ATTACK, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), false)
-//                            .unitCommand(availableLibs, Abilities.ATTACK, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), true)
-//                            .unitCommand(availableLibs, Abilities.ATTACK, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), true);
-//                }
-//            }
-//
-//            //send left over free libs to main base
-//            else {
-//                Bot.ACTION.unitCommand(availableLibs, Abilities.ATTACK, ArmyManager.retreatPos, false);
-//            }
-//        }
-//    }
 
     private static void positionLiberators() { //positions only 1 liberator per game loop
         Unit idleLib = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
@@ -927,6 +792,7 @@ public class ArmyManager {
         boolean isParasitic = banshee.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
         boolean isDecloakBuffed = UnitUtils.hasDecloakBuff(banshee);
         boolean isHomeUnderAttack = !defensePos.equals(retreatPos);
+        int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
         //always flee if locked on by cyclone
         if (banshee.getBuffs().contains(Buffs.LOCK_ON)) {
@@ -934,7 +800,7 @@ public class ArmyManager {
                 Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
             else {
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
             }
         }
         //shoot when available
@@ -954,24 +820,24 @@ public class ArmyManager {
                 Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
             }
             else {
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
             }
         }
         //go home if low health
-        else if (canRepair && UnitUtils.getHealthPercentage(banshee) < Strategy.RETREAT_HEALTH) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+        else if (canRepair && UnitUtils.getHealthPercentage(banshee) < healthToRepair) {
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
         }
 
         else if (isUnsafe) {
             if (isInDetectionRange) {
                 //retreat
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED &&
                     banshee.getEnergy().get() > 3 + ((UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() > 2) ? 2 : 0)) { //additional energy for time to flee tempest range
                 if (isInBansheeRange) {
                     //retreat
-                    if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                    if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
                 }
                 else {
                     //attack
@@ -984,18 +850,18 @@ public class ArmyManager {
             }
             else {
                 //retreat
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
             }
         }
         //go to repair bay when waiting on cloak, and not needed for defense
         else if (isWaitingForCloak(canCloak, cloakState) && !isHomeUnderAttack) {
             //retreat
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
         }
         else {
             if (isInBansheeRange) {
                 //retreat
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
             }
             else {
                 //attack
@@ -1025,7 +891,7 @@ public class ArmyManager {
             else if (order.getAbility() == Abilities.MOVE &&
                     order.getTargetedWorldSpacePosition().isPresent() &&
                     order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.retreatPos) < 1) {
-                currentCommand = ArmyCommands.HOME;
+                currentCommand = ArmyCommands.RETREAT;
             }
         }
         return currentCommand;
@@ -1037,6 +903,8 @@ public class ArmyManager {
         int y = InfluenceMaps.toMapCoord(viking.getPosition().getY());
         boolean isUnsafe = InfluenceMaps.pointThreatToAirFromGround[x][y] > 0;
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
+        int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
+
 
         //keep vikings back if tempests are on the map, but no other toss air units are visible TODO: include outnumbered viking count too???
         if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty() && //TODO: change below to use Gamestate.allVisibleEnemiesMap
@@ -1055,7 +923,7 @@ public class ArmyManager {
 
         //always flee if locked on by cyclone
         if (viking.getBuffs().contains(Buffs.LOCK_ON)) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(viking);
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
         }
         //shoot when available
         else if (canAttack && isInVikingRange) {
@@ -1069,20 +937,16 @@ public class ArmyManager {
         //Under 100% health and at repair bay
         else if (canRepair &&
                 UnitUtils.getHealthPercentage(viking) < 100 &&
-                viking.getPosition().toPoint2d().distance(retreatPos) < 3) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(viking);
-        }
-        //go home if there are no air threats and viking under 100% health
-        else if (!Strategy.enemyHasAirThreat && viking.getHealth().get() < viking.getHealthMax().get()) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(viking);
+                UnitUtils.getDistance(viking, retreatPos) < 3) {
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
         }
         //go home if low health
-        else if (canRepair && UnitUtils.getHealthPercentage(viking) < Strategy.RETREAT_HEALTH) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(viking);
+        else if (canRepair && UnitUtils.getHealthPercentage(viking) < healthToRepair) {
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
         }
         //in range then back up
         else if (isUnsafe || isInVikingRange) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(viking);
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
         }
         //out of range, then move in
         else {
@@ -1103,21 +967,23 @@ public class ArmyManager {
                 : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
+        int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
+
 
         //always flee if locked on by cyclone
         if (raven.getBuffs().contains(Buffs.LOCK_ON)) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(raven);
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
         }
 
         //stay in repair bay not on offensive and until 100% health
         else if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && raven.getPosition().toPoint2d().distance(retreatPos) < 3) {
-            if (lastCommand != ArmyCommands.HOME) armyRetreating.add(raven);
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
         }
 
         //go home to repair if low
-        else if (canRepair && UnitUtils.getHealthPercentage(raven) < Strategy.RETREAT_HEALTH + 10) {
+        else if (canRepair && UnitUtils.getHealthPercentage(raven) < healthToRepair) {
             if (!doCastTurrets || !doAutoTurretOnRetreat(raven)) {
-                if (lastCommand != ArmyCommands.HOME) armyRetreating.add(raven);
+                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
             }
         }
         //back up if in range
@@ -1125,7 +991,7 @@ public class ArmyManager {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
-                        if (lastCommand != ArmyCommands.HOME) {
+                        if (lastCommand != ArmyCommands.RETREAT) {
                             armyRetreating.add(raven);
                         }
                     }

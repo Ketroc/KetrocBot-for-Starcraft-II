@@ -11,7 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.*;
@@ -74,7 +74,9 @@ public class BuildManager {
         buildStarportLogic();
 
         //build command center logic
-        buildCCLogic();
+        if (!Strategy.EXPAND_SLOWLY || Time.nowFrames() > Time.toFrames("5:00")) {
+            buildCCLogic();
+        }
 
         //no-gas left (marines&hellbats)
         noGasProduction();
@@ -137,16 +139,16 @@ public class BuildManager {
     private static void build2ndLayerOfTech() {
         //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
-            Ketroc.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
+            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag()))); //TODO: null check
             if (!UpgradeManager.shipAttack.isEmpty()) {
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             if (!UpgradeManager.shipArmor.isEmpty()) {
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             if (LocationConstants.opponentRace == Race.ZERG) {
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
             }
             Strategy.techBuilt = true;
         }
@@ -164,7 +166,7 @@ public class BuildManager {
 
     private static void buildDepotLogic() {
         if (GameCache.mineralBank > 100 && checkIfDepotNeeded() && !LocationConstants.extraDepots.isEmpty()) {
-            Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+            KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
     }
 
@@ -172,10 +174,11 @@ public class BuildManager {
     private static void buildTurretLogic() {
         //check if we need 0, 1, or 3 turrets at each base
         int turretsRequired = 0;
-        if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty()) {
+        if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty() ||
+                (Switches.enemyCanProduceAir && LocationConstants.opponentRace == Race.TERRAN)) {
             turretsRequired = 3;
         }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Bot.OBS.getGameLoop() > Time.toFrames("3:30")) {
+        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Time.nowFrames() > Time.toFrames("3:30")) {
             turretsRequired = 1;
         }
         if (turretsRequired > 0) {
@@ -186,19 +189,19 @@ public class BuildManager {
                         if (turret.getUnit().isEmpty() &&
                                 !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
                                 !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos())) {
-                            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
+                            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
                         }
                     }
                 }
             }
             //build main base missile turrets now
             if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
-                if (LocationConstants.opponentRace == Race.TERRAN && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
-                    Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
-                    Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
+                if (Strategy.DO_ANTIDROP_TURRETS && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
                 }
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
                 Switches.doBuildMainBaseTurrets = false;
             }
         }
@@ -226,11 +229,11 @@ public class BuildManager {
                                             .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
 
                                     //remove OC morph from purchase queue
-                                    for (int i = 0; i< Ketroc.purchaseQueue.size(); i++) {
-                                        Purchase p = Ketroc.purchaseQueue.get(i);
+                                    for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+                                        Purchase p = KetrocBot.purchaseQueue.get(i);
                                         if (p instanceof PurchaseStructureMorph) {
                                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                                Ketroc.purchaseQueue.remove(i);
+                                                KetrocBot.purchaseQueue.remove(i);
                                                 break;
                                             }
                                         }
@@ -238,7 +241,7 @@ public class BuildManager {
 
                                 }
                                 else if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                    Ketroc.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
                                 }
                                 break; //don't queue scv
                             }
@@ -246,7 +249,7 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    Ketroc.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                 }
                                 break; //don't queue scv
                             }
@@ -338,11 +341,11 @@ public class BuildManager {
                     base.setCc(null);
 
                     //cancel PF morph in purchase queue
-                    for (int i = 0; i< Ketroc.purchaseQueue.size(); i++) {
-                        Purchase p = Ketroc.purchaseQueue.get(i);
+                    for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+                        Purchase p = KetrocBot.purchaseQueue.get(i);
                         if (p instanceof PurchaseStructureMorph) {
                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                Ketroc.purchaseQueue.remove(i);
+                                KetrocBot.purchaseQueue.remove(i);
                                 break;
                             }
                         }
@@ -441,7 +444,7 @@ public class BuildManager {
                     }
                 }
                 else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                    Ketroc.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                     Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
             }
@@ -479,7 +482,7 @@ public class BuildManager {
                     if (starport.unit().getAddOnTag().isEmpty() &&
                             (unitToProduce == Abilities.TRAIN_RAVEN || unitToProduce == Abilities.TRAIN_BANSHEE || unitToProduce == Abilities.TRAIN_BATTLECRUISER) &&
                             !Purchase.isStructureQueued(Units.TERRAN_STARPORT_TECHLAB)) {
-                        Ketroc.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
+                        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
                     }
                     else {
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
@@ -578,7 +581,7 @@ public class BuildManager {
         if (UnitUtils.canAfford(Units.TERRAN_STARPORT) && UnitUtils.hasTechToBuild(Units.TERRAN_STARPORT) && !LocationConstants.STARPORTS.isEmpty()) {
             if (Bot.OBS.getFoodUsed() > 197 ||
                     (GameCache.inProductionMap.getOrDefault(Units.TERRAN_STARPORT, 0) < 3 && areAllProductionStructuresBusy())) {
-                Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
@@ -599,6 +602,11 @@ public class BuildManager {
         if (Strategy.PRIORITIZE_EXPANDING) {
             if (!purchaseExpansionCC()) {
                 purchaseMacroCC();
+            }
+        }
+        else if (Strategy.BUILD_EXPANDS_IN_MAIN) {
+            if (!purchaseMacroCC()) {
+                purchaseExpansionCC();
             }
         }
         else {
@@ -622,7 +630,7 @@ public class BuildManager {
         //if an expansion position is available, build expansion CC
         Point2d expansionPos = getNextAvailableExpansionPosition();
         if (expansionPos != null) {
-            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, expansionPos));
         }
         return expansionPos != null;
     }
@@ -640,7 +648,7 @@ public class BuildManager {
             }
             else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
                 ExpansionClearing.add(base.getCcPos());
-                Ketroc.count1++;
+                KetrocBot.count1++;
             }
         }
         return null;
@@ -652,7 +660,7 @@ public class BuildManager {
 
     private static boolean purchaseMacroCC() {
         if (!LocationConstants.MACRO_OCS.isEmpty()) {
-            Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
             GameCache.numMacroOCs++;
             return true;
         }
@@ -706,7 +714,7 @@ public class BuildManager {
 
     public static int numStructuresQueued(Units structureType) {
         int count = 0;
-        for (Purchase p : Ketroc.purchaseQueue) {
+        for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructure && ((PurchaseStructure) p).getStructureType().equals(structureType)) {
                 count++;
             }
@@ -715,7 +723,7 @@ public class BuildManager {
     }
 
     public static boolean isMorphQueued(Abilities morphType) {
-        for (Purchase p : Ketroc.purchaseQueue) {
+        for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph && ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType) {
                 return true;
             }
@@ -724,7 +732,7 @@ public class BuildManager {
     }
 
     public static boolean isUpgradeQueued(Upgrades upgrade) {
-        for (Purchase p : Ketroc.purchaseQueue) {
+        for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade) {
                 return true;
             }

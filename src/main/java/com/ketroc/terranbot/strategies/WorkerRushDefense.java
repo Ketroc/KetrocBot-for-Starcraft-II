@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
@@ -144,7 +145,8 @@ public class WorkerRushDefense {
 
     private static void attackingTownHall() {
         //if townhall dead, head home and advance to defenseStep 5
-        if (GameCache.allEnemiesMap.get(townHallType).isEmpty()) {
+        List<UnitInPool> townHallList = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
+        if (townHallList.isEmpty()) {
             //send scvs home on attack-move
             Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false)
                     .unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
@@ -152,7 +154,7 @@ public class WorkerRushDefense {
             return;
         }
 
-        Unit townHall = GameCache.allEnemiesMap.get(townHallType).get(0).unit();
+        Unit townHall = townHallList.get(0).unit();
         int numEnemyWorkers = Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                 UnitUtils.getDistance(worker.unit(), townHall) < 10).size();
 

@@ -80,7 +80,7 @@ public class PurchaseStructureMorph implements Purchase {
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
         if (structure.unit().getOrders().isEmpty()) {
             System.out.println("start building " + this.morphOrAddOn.toString());
-            System.out.println("sending action " + this.morphOrAddOn + " at: " + Time.getTime());
+            System.out.println("sending action " + this.morphOrAddOn + " at: " + Time.nowClock());
             Bot.ACTION.unitCommand(structure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
             return PurchaseResult.SUCCESS;

@@ -27,13 +27,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class Ketroc extends Bot {
+public class KetrocBot extends Bot {
 
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
     public static int count1 = 0;
     public static int count2 = 0;
 
-    public Ketroc(boolean isDebugOn, String opponentId, boolean isRealTime) {
+    public KetrocBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
     }
 
@@ -46,6 +46,7 @@ public class Ketroc extends Bot {
     public void onGameStart() {
         try {
             super.onGameStart();
+            System.out.println("opponentId = " + opponentId);
 
             //set map
             LocationConstants.MAP = Bot.OBS.getGameInfo().getMapName();
@@ -57,9 +58,6 @@ public class Ketroc extends Bot {
                     .get()
                     .getRequestedRace();
 
-            //choose strategy
-            Strategy.onGameStart();
-
             //start first scv
             UnitInPool mainCC = Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
             Bot.ACTION.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
@@ -67,6 +65,11 @@ public class Ketroc extends Bot {
 
             //get map, get hardcoded map locations
             LocationConstants.onGameStart(mainCC);
+
+            //choose strategy
+            Strategy.onGameStart();
+
+
             DebugHelper.onGameStart();
 
             //build unit lists
@@ -84,14 +87,14 @@ public class Ketroc extends Bot {
 //                    .findFirst().get().getPlayerId();
 //
 //            DEBUG.debugShowMap();
-//            DEBUG.debugCreateUnit(Units.ZERG_HATCHERY,
-//                    LocationConstants.baseLocations.get(1), enemyId, 1);
+//            DEBUG.debugCreateUnit(Units.ZERG_EXTRACTOR,
+//                    GameCache.baseList.get(0).getGases().get(0).getLocation(), enemyId, 1);
 //            DEBUG.debugCreateUnit(Units.PROTOSS_ORACLE_STASIS_TRAP, LocationConstants.baseLocations.get(2), enemyId, 1);
 //
 //            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
 //                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.enemyMainBaseMidPos, 4), enemyId, 1);
 //            DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, LocationConstants.baseLocations.get(0), myId, 1);
-//            DEBUG.sendDebug();
+            DEBUG.sendDebug();
 
             Bot.ACTION.sendActions();
         }
@@ -131,7 +134,7 @@ public class Ketroc extends Bot {
                 GameCache.onStep();
 
                 //handle action errors like "cannot place building"
-//                ActionErrorManager.onStep(); //TODO: turn on for tournament
+                ActionErrorManager.onStep(); //TODO: turn on for tournament
 
                 //micro to clear expansion positions
                 ExpansionClearing.onStep();
@@ -243,7 +246,7 @@ public class Ketroc extends Bot {
                     }
 
                     Bot.DEBUG.debugTextOut("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("Purchase Queue: " + Ketroc.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    Bot.DEBUG.debugTextOut("Purchase Queue: " + KetrocBot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("BaseTarget: " + LocationConstants.baseAttackIndex, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     Bot.DEBUG.debugTextOut("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     if (ArmyManager.attackGroundPos != null) {
@@ -252,7 +255,7 @@ public class Ketroc extends Bot {
                         Bot.DEBUG.debugBoxOut(Point.of(x - 0.3f, y - 0.3f, Position.getZ(x, y)), Point.of(x + 0.3f, y + 0.3f, Position.getZ(x, y)), Color.YELLOW);
                     }
                     for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
-                        Bot.DEBUG.debugTextOut(Ketroc.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        Bot.DEBUG.debugTextOut(KetrocBot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }
                     Bot.DEBUG.debugBoxOut(Point.of(LocationConstants.enemyMineralPos.getX()-0.33f, LocationConstants.enemyMineralPos.getY()-0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Point.of(LocationConstants.enemyMineralPos.getX()+0.33f, LocationConstants.enemyMineralPos.getY()+0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Color.BLUE);
                     Bot.DEBUG.sendDebug();
@@ -261,13 +264,13 @@ public class Ketroc extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println("Bot.onStep() error at: " + Time.getTime());
+            System.out.println("Bot.onStep() error at: " + Time.nowClock());
             e.printStackTrace();
         }
     } // end onStep()
 
     private void printCurrentGameInfo() {
-        System.out.println("\n\nGame info at " + Time.getTime());
+        System.out.println("\n\nGame info at " + Time.nowClock());
         System.out.println("===================\n");
         System.out.println("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
         System.out.println("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
@@ -288,7 +291,7 @@ public class Ketroc extends Bot {
         System.out.println("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
         System.out.println("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
         System.out.println("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
-        System.out.println("BansheeBot.purchaseQueue.size() = " + Ketroc.purchaseQueue.size());
+        System.out.println("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
         System.out.println("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);
@@ -314,7 +317,7 @@ public class Ketroc extends Bot {
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {
             Unit unit = unitInPool.unit();
-            System.out.println(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + Time.getTime());
+            System.out.println(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + Time.nowClock());
 
 
             if (unit.getType() instanceof Units) {
@@ -394,12 +397,17 @@ public class Ketroc extends Bot {
                             BunkerContain.onFactoryComplete();
                         }
                         else {
+                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
+                            purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                             purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:
                         if (BunkerContain.proxyBunkerLevel == 2) {
                             BunkerContain.onTechLabComplete();
+                        }
+                        else if (Time.nowFrames() < Time.toFrames("5:00")) {
+                            KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, GameCache.factoryList.get(0)));
                         }
                         break;
                     case TERRAN_STARPORT:
@@ -516,7 +524,7 @@ public class Ketroc extends Bot {
 
     @Override
     public void onUpgradeCompleted(Upgrade upgrade) {
-        System.out.println(upgrade + " finished at: " + Time.getTime());
+        System.out.println(upgrade + " finished at: " + Time.nowClock());
 
         //add to list of completed upgrades
         GameCache.upgradesCompleted.add((Upgrades)upgrade);
@@ -581,6 +589,7 @@ public class Ketroc extends Bot {
         setNextGameStrategy();
         System.out.println("count1 = " + count1);
         System.out.println("count2 = " + count2);
+        System.out.println("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
         try {
             control().saveReplay(Path.of(System.currentTimeMillis() + ".SC2Replay"));

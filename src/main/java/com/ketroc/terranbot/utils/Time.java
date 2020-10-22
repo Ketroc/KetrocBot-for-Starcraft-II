@@ -22,23 +22,23 @@ public class Time {
         return toFrames(toSeconds(time));
     }
 
-    public static String toTime(int seconds) {
+    public static String toClock(int seconds) {
         return seconds/60 + ":" + String.format("%02d", seconds%60);
     }
 
-    public static String toTime(long frames) {
-        return toTime(toSeconds(frames));
+    public static String toClock(long frames) {
+        return toClock(toSeconds(frames));
     }
 
-    public static String getTime() {
-        return toTime(getFrame());
+    public static String nowClock() {
+        return toClock(nowFrames());
     }
 
-    public static int getSeconds() {
-        return toSeconds(getFrame());
+    public static int nowSeconds() {
+        return toSeconds(nowFrames());
     }
 
-    public static long getFrame() {
+    public static long nowFrames() {
         return Bot.OBS.getGameLoop();
     }
 

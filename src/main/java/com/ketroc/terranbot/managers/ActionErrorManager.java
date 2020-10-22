@@ -29,12 +29,12 @@ public class ActionErrorManager {
                 Units structureType = Bot.abilityToUnitType.get(ability);
                 StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get()); //TODO: warning.getUnitTag = scv unit.  <-- use this!!
                 if (structureScv == null) {
-                    System.out.println("structure not found at: " + Time.getTime() + " for ability: " + ability);
+                    System.out.println("structure not found at: " + Time.nowClock() + " for ability: " + ability);
                     continue;
                 }
                 Point2d pos = structureScv.structurePos;
                 Unit scv = structureScv.getScv().unit();
-                System.out.println("Action Error at " + Time.getTime() + ".  Structure: " + structureType);
+                System.out.println("Action Error at " + Time.nowClock() + ".  Structure: " + structureType);
                 System.out.println("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
 
                 if (isBlockedByCreep(actionResult)) {

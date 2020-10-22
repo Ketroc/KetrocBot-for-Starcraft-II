@@ -20,6 +20,10 @@ public class UnitUtils {
     public static final Set<Units> GAS_GEYSER_TYPE = new HashSet<>(Set.of(
             Units.NEUTRAL_RICH_VESPENE_GEYSER, Units.NEUTRAL_SPACE_PLATFORM_GEYSER, Units.NEUTRAL_VESPENE_GEYSER,
             Units.NEUTRAL_PROTOSS_VESPENE_GEYSER, Units.NEUTRAL_PURIFIER_VESPENE_GEYSER, Units.NEUTRAL_SHAKURAS_VESPENE_GEYSER));
+    public static final Set<Units> GAS_STRUCTURE_TYPES = new HashSet<>(Set.of(
+            Units.TERRAN_REFINERY, Units.TERRAN_REFINERY_RICH,
+            Units.ZERG_EXTRACTOR, Units.ZERG_EXTRACTOR_RICH,
+            Units.PROTOSS_ASSIMILATOR, Units.PROTOSS_ASSIMILATOR_RICH));
     public static final Set<Units> REFINERY_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_REFINERY, Units.TERRAN_REFINERY_RICH));
     public static final Set<Units> MINERAL_NODE_TYPE = new HashSet<>(Set.of(
@@ -59,14 +63,11 @@ public class UnitUtils {
             Units.TERRAN_STARPORT_TECHLAB, Units.TERRAN_TECHLAB, Units.TERRAN_BARRACKS_REACTOR,
             Units.TERRAN_FACTORY_REACTOR, Units.TERRAN_STARPORT_REACTOR, Units.TERRAN_REACTOR));
     public static Set<Units> EVIDENCE_OF_AIR = new HashSet<>(Set.of(
-            Units.TERRAN_FUSION_CORE, Units.TERRAN_STARPORT, Units.TERRAN_VIKING_FIGHTER,
-            Units.TERRAN_VIKING_ASSAULT, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
-            Units.TERRAN_RAVEN, Units.TERRAN_MEDIVAC, Units.TERRAN_LIBERATOR,
-            Units.TERRAN_LIBERATOR_AG, Units.PROTOSS_STARGATE, Units.PROTOSS_FLEET_BEACON,
-            Units.PROTOSS_TEMPEST, Units.PROTOSS_ORACLE,Units.PROTOSS_ORACLE_STASIS_TRAP,
-            Units.PROTOSS_VOIDRAY, Units.ZERG_SPIRE, Units.ZERG_GREATER_SPIRE,
-            Units.ZERG_MUTALISK, Units.ZERG_CORRUPTOR, Units.ZERG_BROODLORD,
-            Units.ZERG_BROODLORD_COCOON));
+            Units.TERRAN_FUSION_CORE, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
+            Units.PROTOSS_STARGATE, Units.PROTOSS_FLEET_BEACON, Units.PROTOSS_TEMPEST,
+            Units.PROTOSS_ORACLE,Units.PROTOSS_ORACLE_STASIS_TRAP, Units.PROTOSS_VOIDRAY,
+            Units.ZERG_SPIRE, Units.ZERG_GREATER_SPIRE, Units.ZERG_MUTALISK,
+            Units.ZERG_CORRUPTOR, Units.ZERG_BROODLORD, Units.ZERG_BROODLORD_COCOON));
     public static final Set<Units> INFESTOR_TYPE = new HashSet<>(Set.of(
             Units.ZERG_INFESTOR, Units.ZERG_INFESTOR_BURROWED));
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
@@ -81,7 +82,7 @@ public class UnitUtils {
             Abilities.BUILD_FACTORY, Abilities.BUILD_STARPORT, Abilities.BUILD_ARMORY,
             Abilities.BUILD_FUSION_CORE));
     public static final Set<Units> NO_THREAT_ENEMY_AIR = new HashSet<>(Set.of(
-            Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED, Units.TERRAN_BANSHEE,
+            Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED,
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE
     ));
     public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(

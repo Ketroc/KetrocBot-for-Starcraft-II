@@ -54,7 +54,7 @@ public class PurchaseUpgrade implements Purchase {
         }
         //if structure not producing unit/upgrade
         if (structure.unit().getOrders().isEmpty()) {
-            System.out.println("sending action " + this.upgrade + " at: " + Time.getTime());
+            System.out.println("sending action " + this.upgrade + " at: " + Time.nowClock());
             Abilities upgradeAbility = (Abilities) Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
             switch (upgradeAbility) {
                 case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:

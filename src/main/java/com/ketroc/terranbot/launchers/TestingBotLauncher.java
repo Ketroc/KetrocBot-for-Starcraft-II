@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.terranbot.bots.Ketroc;
 import com.ketroc.terranbot.bots.TestingBot;
 
 import java.nio.file.Paths;
@@ -37,11 +36,11 @@ public class TestingBotLauncher {
         //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
         //        .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("SubmarineLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));

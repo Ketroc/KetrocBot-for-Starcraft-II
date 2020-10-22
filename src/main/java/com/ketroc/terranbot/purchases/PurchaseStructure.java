@@ -211,7 +211,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
             this.scv = availableScvs.get(0).unit();
         }
-        System.out.println("sending action " + buildAction + " at: " + Time.getTime() + " at pos: " + position.toString());
+        System.out.println("sending action " + buildAction + " at: " + Time.nowClock() + " at pos: " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
@@ -221,7 +221,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     public PurchaseResult buildRefinery() {
         Abilities buildAction = (Abilities)structureData.getAbility().get();
         for (Base base : GameCache.baseList) {
-            if (base.isMyBase() && base.isComplete(0.60f)) {
+            if (base.isMyBase() && base.isComplete(0.55f)) {
                 for (Gas gas : base.getGases()) {
                     //if geyser is available and isn't empty
                     if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
@@ -235,7 +235,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             this.scv = availableScvs.get(0).unit();
                             gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
-                            System.out.println("sending action " + Abilities.BUILD_REFINERY + " at: " + Time.getTime());
+                            System.out.println("sending action " + Abilities.BUILD_REFINERY + " at: " + Time.nowClock());
                             Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);

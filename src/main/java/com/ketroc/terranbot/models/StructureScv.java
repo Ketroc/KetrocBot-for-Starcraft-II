@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -176,7 +176,7 @@ public class StructureScv {
                     if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
                         if (!ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked unit
                             ExpansionClearing.add(structureScv.structurePos);
-                            Ketroc.count2++;
+                            KetrocBot.count2++;
                         }
                     }
 
@@ -235,14 +235,14 @@ public class StructureScv {
                 if (LocationConstants.proxyBarracksPos == null || structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
                     LocationConstants._3x3Structures.add(structureScv.structurePos);
                 }
-                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
                 LocationConstants._3x3Structures.add(structureScv.structurePos);
-                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             default:
-                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
         }
     }

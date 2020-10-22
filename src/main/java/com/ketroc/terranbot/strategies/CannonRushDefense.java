@@ -5,12 +5,13 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 
@@ -24,9 +25,9 @@ public class CannonRushDefense {
     public static void onStep() {
         switch (cannonRushStep) {
             case 0: //was a pylon built in my vision in the first 2min of the game
-                if (Bot.OBS.getGameLoop() < Time.toFrames("1:50") &&
-                        !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PYLON).stream()
-                                .anyMatch(pylon -> UnitUtils.getDistance(pylon.unit(), LocationConstants.baseLocations.get(0)) < 40)) {
+                if (Time.nowFrames() < Time.toFrames("1:50") &&
+                        !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.PROTOSS_PYLON,
+                                LocationConstants.myMineralPos, 40).isEmpty()) {
                     cannonRushStep++;
                 }
                 break;
@@ -50,10 +51,6 @@ public class CannonRushDefense {
 
                 for (ScvTarget scvTarget : ScvTarget.targets) {
                     //attack with scvs
-                    if (scvTarget.targetUnit.unit().getType() == Units.PROTOSS_PROBE) {
-                        System.out.println("scvTarget.numScvs = " + scvTarget.numScvs);
-                        System.out.println("scvTarget.scvs.size() = " + scvTarget.scvs.size());
-                    }
                     for (int i = 0; i < scvTarget.numScvs - scvTarget.scvs.size() && !availableScvs.isEmpty(); i++) {
                         UnitInPool newScv = availableScvs.remove(0);
                         Bot.ACTION.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
@@ -75,10 +72,10 @@ public class CannonRushDefense {
                     Bot.ACTION.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
                 }
 
-                if (Ketroc.isDebugOn) Bot.DEBUG.debugTextOut("targets list size: " + ScvTarget.targets.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6)) / 1080.0)), Color.WHITE.WHITE, 12);
+                if (KetrocBot.isDebugOn) Bot.DEBUG.debugTextOut("targets list size: " + ScvTarget.targets.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6)) / 1080.0)), Color.WHITE.WHITE, 12);
                 int i = 1;
                 for (ScvTarget target : ScvTarget.targets) {
-                    if (Ketroc.isDebugOn) Bot.DEBUG.debugTextOut("scvs: " + target.scvs.size() + " on: " + (Units)target.targetUnit.unit().getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6 + i++)) / 1080.0)), Color.WHITE, 12);
+                    if (KetrocBot.isDebugOn) Bot.DEBUG.debugTextOut("scvs: " + target.scvs.size() + " on: " + (Units)target.targetUnit.unit().getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6 + i++)) / 1080.0)), Color.WHITE, 12);
                 }
 
                 //check if safe to build/expand (only pylons remaining)

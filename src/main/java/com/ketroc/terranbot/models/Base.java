@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.InfluenceMaps;
@@ -359,7 +359,7 @@ public class Base {
         }
 
         //cancel queued up turrets for this base
-        Ketroc.purchaseQueue.removeIf(
+        KetrocBot.purchaseQueue.removeIf(
                 p -> p instanceof PurchaseStructure &&
                         ((PurchaseStructure) p).getStructureType() == Units.TERRAN_MISSILE_TURRET &&
                         ((PurchaseStructure) p).getPosition().distance(ccPos) < 10);

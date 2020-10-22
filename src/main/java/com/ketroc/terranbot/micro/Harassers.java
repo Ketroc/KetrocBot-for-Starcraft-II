@@ -17,7 +17,7 @@ public class Harassers {
     public static BansheeHarasser counterClockwiseBanshee;
 
     public static void onStep() {
-        if (!Strategy.MASS_RAVENS) {
+        if (Strategy.DO_BANSHEE_HARASS) {
             removeHarassers();
             getNewHarassers();
             giveBansheeCommands();

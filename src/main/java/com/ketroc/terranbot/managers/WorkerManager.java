@@ -13,7 +13,7 @@ import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.*;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
@@ -186,7 +186,7 @@ public class WorkerManager {
             }
 
 
-            if (Ketroc.isDebugOn) {
+            if (KetrocBot.isDebugOn) {
                 Point2d thirdScvPos = thirdScv.getPosition().toPoint2d();
                 Point2d overloadedPatchPos = Bot.OBS.getUnit(overloadedPatch).unit().getPosition().toPoint2d();
                 Point2d availablePatchPos = availablePatch.getPosition().toPoint2d();
@@ -216,7 +216,7 @@ public class WorkerManager {
                         if (StructureScv.scvBuildingList.stream()
                                 .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getLocation()) < 1)) {
                             if (!Purchase.isStructureQueued(Units.TERRAN_REFINERY)) {
-                                Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
+                                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
                                 return;
                             }
                         }

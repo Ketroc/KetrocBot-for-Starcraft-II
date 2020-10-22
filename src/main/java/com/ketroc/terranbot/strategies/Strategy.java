@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.Switches;
-import com.ketroc.terranbot.bots.Ketroc;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -67,7 +67,10 @@ public class Strategy {
     public static boolean MASS_RAVENS;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
+    public static boolean BUILD_EXPANDS_IN_MAIN;
+    public static boolean EXPAND_SLOWLY = true;
     public static boolean DO_SEEKER_MISSILE;
+    public static boolean DO_ANTIDROP_TURRETS;
     public static int AUTOTURRET_AT_ENERGY = 150;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
 
@@ -79,7 +82,7 @@ public class Strategy {
     public static int floatBaseAt = 50; //heath% to float base away at
 
     public static void onGameStart() {
-        SKIP_FRAMES = (Ketroc.isRealTime) ? 6 : 2;
+        SKIP_FRAMES = (KetrocBot.isRealTime) ? 6 : 2;
         getGameStrategyChoice();
 
         if (ANTI_NYDUS_BUILD) {
@@ -105,7 +108,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2; //TODO selectedStrategy % numStrategies;
+        selectedStrategy = selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -128,8 +131,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2; //selectedStrategy % numStrategies;
-
+        selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -151,7 +153,7 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = 1; //selectedStrategy % numStrategies;
+        selectedStrategy = selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -168,6 +170,57 @@ public class Strategy {
         }
     }
 
+    private static int getStrategyByOpponentId() {
+        if (KetrocBot.opponentId == null) {
+            return -1;
+        }
+        switch (KetrocBot.opponentId) {
+            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
+                DO_ANTIDROP_TURRETS = true;
+                return 0;
+            case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
+                return 1;
+            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //Blinkerbot
+            case "9bd53605-334c-4f1c-95a8-4a735aae1f2d": //MadAI
+            case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
+                return 1;
+            case "16ab8b85-cf8b-4872-bd8d-ebddacb944a5": //sharpy_PVP_EZ
+                Switches.enemyCanProduceAir = true;
+                return 1;
+            case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
+                DO_INCLUDE_TANKS = false;
+                DO_INCLUDE_LIBS = false;
+                return 0;
+            case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
+                Switches.enemyCanProduceAir = true;
+                DO_INCLUDE_TANKS = false;
+                DO_INCLUDE_LIBS = false;
+                DO_BANSHEE_HARASS = false;
+                BUILD_EXPANDS_IN_MAIN = true;
+                EXPAND_SLOWLY = true;
+                return 0;
+            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+                DO_INCLUDE_TANKS = false;
+                DO_BANSHEE_HARASS = false;
+                EXPAND_SLOWLY = true;
+                return 0;
+            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
+                BUILD_EXPANDS_IN_MAIN = true;
+                EXPAND_SLOWLY = true;
+                return 1;
+            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+                BUILD_EXPANDS_IN_MAIN = true;
+                return 1;
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+                BUILD_EXPANDS_IN_MAIN = true;
+                return 0;
+            default:
+                return -1;
+        }
+    }
+
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
@@ -181,10 +234,17 @@ public class Strategy {
 
     private static void setStrategyNumber() {
         try {
+            //hardcoded strategies by ID
+            int strategyByOpponentId = getStrategyByOpponentId();
+            if (strategyByOpponentId != -1) {
+                selectedStrategy = strategyByOpponentId;
+                return;
+            }
+
             String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
             String lastOpponentId = fileText[0];
             int opponentStrategy = Integer.valueOf(fileText[1]);
-            if (!lastOpponentId.equals(Ketroc.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
                 selectedStrategy = 0;
             }
             else {
@@ -236,12 +296,12 @@ public class Strategy {
                     List<UnitInPool> scvNearDepot = WorkerManager.getAllScvs(LocationConstants.extraDepots.get(0), 6);
                     if (!scvNearDepot.isEmpty()) {
                         scv_TvtFastStart = scvNearDepot.get(0); //TODO: null check
-                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
+                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
                     }
                     else {
-                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        Ketroc.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     }
                     Switches.tvtFastStart = false;
                 }
@@ -265,9 +325,9 @@ public class Strategy {
 
     public static void antiNydusBuild() {
         //rax after depot, 2nd depot after cc since cc is late, earlier 2nd gas
-        Ketroc.purchaseQueue.add(1, Ketroc.purchaseQueue.remove(3));
-        Ketroc.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
-        Ketroc.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(1, KetrocBot.purchaseQueue.remove(3));
+        KetrocBot.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
 
         //get closest STARPORTS position
         Point2d closestStarportPos = LocationConstants.STARPORTS.stream()
@@ -275,7 +335,7 @@ public class Strategy {
                 .get();
 
         //build rax at closest position
-        ((PurchaseStructure) Ketroc.purchaseQueue.get(1)).setPosition(closestStarportPos);
+        ((PurchaseStructure) KetrocBot.purchaseQueue.get(1)).setPosition(closestStarportPos);
 
         //save MID_WALL_3X3 for barracks' later position
         LocationConstants._3x3Structures.remove(0);

@@ -199,7 +199,7 @@ public class DroneDrill extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println("Bot.onStep() error at: " + Time.getTime());
+            System.out.println("Bot.onStep() error at: " + Time.nowClock());
             e.printStackTrace();
         }
     } // end onStep()

@@ -72,7 +72,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         if (delaySeconds == -1) {
             return nextFrame();
         }
-        long gameFrame = Time.toFrames(delaySeconds);
+        long gameFrame = Time.nowFrames() + Time.toFrames(delaySeconds);
         return gameFrame - (gameFrame % Strategy.SKIP_FRAMES);
     }
 

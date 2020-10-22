@@ -267,12 +267,13 @@ public class GameCache {
 
                     //check if enemy can create air units
                     if (!Switches.enemyCanProduceAir &&
-                            UnitUtils.EVIDENCE_OF_AIR.contains(unitType) &&
-                            LocationConstants.opponentRace != Race.TERRAN) {
-                        Bot.ACTION.sendChat("Have our viking pilots updated their wills?  I smell enemy air units.", ActionChat.Channel.BROADCAST);
+                            UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
+                        Bot.ACTION.sendChat("Wake up our viking pilots. I smell enemy air.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
                         Strategy.DO_INCLUDE_LIBS = false;
-                        Strategy.DO_INCLUDE_TANKS = false;
+                        if (LocationConstants.opponentRace != Race.TERRAN) {
+                            Strategy.DO_INCLUDE_TANKS = false;
+                        }
                     }
 
                     //set enemy cloaked variable TODO: zerg burrow upgrade not accounted for

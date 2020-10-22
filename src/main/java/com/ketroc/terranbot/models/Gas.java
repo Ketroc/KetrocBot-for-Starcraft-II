@@ -1,7 +1,10 @@
 package com.ketroc.terranbot.models;
 
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class Gas {
     private Unit geyser;
@@ -39,6 +42,15 @@ public class Gas {
 
     public void setLocation(Point2d location) {
         this.location = location;
+    }
+
+
+    // ============= METHODS ==============
+
+    public boolean isAvailable() {
+        return refinery == null &&
+                geyser.getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY &&
+                UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.GAS_STRUCTURE_TYPES, location, 1).isEmpty();
     }
 
 }
