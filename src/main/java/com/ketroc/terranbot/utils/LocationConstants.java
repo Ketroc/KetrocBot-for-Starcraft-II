@@ -2138,7 +2138,6 @@ public class LocationConstants {
             FACTORY = Point2d.of(38.5f, 114.5f);
 
             STARPORTS.add(Point2d.of(28.5f, 131.5f));
-            STARPORTS.add(Point2d.of(30.5f, 127.5f));
             STARPORTS.add(Point2d.of(31.5f, 127.5f));
             STARPORTS.add(Point2d.of(33.5f, 124.5f));
             STARPORTS.add(Point2d.of(32.5f, 121.5f));
@@ -2155,8 +2154,8 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(40.5f, 121.5f));
 
             TURRETS.add(Point2d.of(46.0f, 140.0f));
-            TURRETS.add(Point2d.of(43.0f, 140.0f));
             TURRETS.add(Point2d.of(37.0f, 135.0f));
+            TURRETS.add(Point2d.of(43.0f, 140.0f));
 
             MACRO_OCS.add(Point2d.of(46.5f, 135.5f));
             MACRO_OCS.add(Point2d.of(47.5f, 130.5f));

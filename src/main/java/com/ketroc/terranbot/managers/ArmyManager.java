@@ -27,7 +27,6 @@ public class ArmyManager {
     public static Point2d retreatPos;
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
-    public static Point2d defensePos;
     public static Unit attackUnit;
     public static int numAutoturretsAvailable;
     public static List<Unit> armyRetreating;
@@ -97,11 +96,11 @@ public class ArmyManager {
                 Bot.ACTION.unitCommand(armyRetreating, Abilities.MOVE, retreatPos, false);
             }
             if (!armyGroundAttacking.isEmpty()) {
-                Point2d targetPos = (doOffense) ? attackGroundPos : defensePos;
+                Point2d targetPos = attackGroundPos;
                 Bot.ACTION.unitCommand(armyGroundAttacking, Abilities.ATTACK, targetPos, false);
             }
             if (!armyAirAttacking.isEmpty()) {
-                Point2d targetPos = (doOffense) ? attackAirPos : defensePos;
+                Point2d targetPos = attackAirPos;
                 Bot.ACTION.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
             }
 
@@ -791,7 +790,7 @@ public class ArmyManager {
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
         boolean isParasitic = banshee.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
         boolean isDecloakBuffed = UnitUtils.hasDecloakBuff(banshee);
-        boolean isHomeUnderAttack = !defensePos.equals(retreatPos);
+        boolean isAnyBaseUnderAttack = !doOffense && attackUnit != null;
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
         //always flee if locked on by cyclone
@@ -854,7 +853,7 @@ public class ArmyManager {
             }
         }
         //go to repair bay when waiting on cloak, and not needed for defense
-        else if (isWaitingForCloak(canCloak, cloakState) && !isHomeUnderAttack) {
+        else if (isWaitingForCloak(canCloak, cloakState) && !isAnyBaseUnderAttack) {
             //retreat
             if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
         }
