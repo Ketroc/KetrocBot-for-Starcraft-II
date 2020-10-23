@@ -295,11 +295,11 @@ public class GameCache {
                             break;
                         //are phoenixes real?
                         case PROTOSS_PHOENIX:
-                            if (!Switches.phoenixAreReal && !unit.getHallucination().orElse(false)) {
+                            if (!Switches.phoenixAreReal && !unit.getHallucination().orElse(true)) {
                                 if (!Bot.OBS.getUnits(Alliance.SELF, u ->
                                         (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
                                         u.unit().getBuildProgress() == 1 &&
-                                        UnitUtils.getDistance(u.unit(), unit) < 11 && UnitUtils.getDistance(u.unit(), unit) > 10.5).isEmpty()) { // > 10.5 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
+                                        UnitUtils.getDistance(u.unit(), unit) < 10 && UnitUtils.getDistance(u.unit(), unit) > 9.6).isEmpty()) { // > 10 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
                                     Switches.phoenixAreReal = true;
                                     if (!Switches.enemyCanProduceAir) {
                                         UnitUtils.EVIDENCE_OF_AIR.add(Units.PROTOSS_PHOENIX);

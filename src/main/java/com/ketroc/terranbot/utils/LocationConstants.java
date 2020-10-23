@@ -3649,7 +3649,7 @@ public class LocationConstants {
             basesByAngle.put(angle, basePos);
         }
 
-        basesByAngle.forEach((angle, basePos) -> {
+        basesByAngle.forEach((angle, basePos) -> { //TODO: do the full loop, not just to enemy main
             if (angle <= 0) {
                 counterClockBasePositions.add(0, basePos);
             }

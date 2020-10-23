@@ -38,7 +38,7 @@ public class BansheeHarasser {
 
     public void toggleDodgeClockwise() {
         isDodgeClockwise = !isDodgeClockwise;
-        prevDirectionChangeFrame = Bot.OBS.getGameLoop();
+        prevDirectionChangeFrame = Time.nowFrames();
     }
 
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)

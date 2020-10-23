@@ -28,18 +28,25 @@ public class ArmyManager {
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
     public static Unit attackUnit;
-    public static int numAutoturretsAvailable;
+
     public static List<Unit> armyRetreating;
     public static List<Unit> armyGroundAttacking;
     public static List<Unit> armyAirAttacking;
+
+    public static Point2d groundAttackersMidPoint;
+    public static Point2d vikingMidPoint;
+
     public static long prevSeekerFrame;
+    public static int numAutoturretsAvailable;
     public static int turretsCast;
     public static int queriesMade;
 
     public static void onStep() {
+        //set midpoints
+        setMidpoints();
+
         //set offense decision
         setDoOffense();
-
 
         //set defense position
         setAirTarget();
@@ -109,6 +116,16 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void setMidpoints() {
+        vikingMidPoint = (!GameCache.vikingList.isEmpty())
+                ? Position.midPointUnitsMedian(GameCache.vikingList)
+                : LocationConstants.baseLocations.get(0);
+        List<Unit> groundAttackers = (Strategy.MASS_RAVENS) ? GameCache.ravenList : GameCache.bansheeList;
+        groundAttackersMidPoint = (!groundAttackers.isEmpty())
+                ? Position.midPointUnitsMedian(groundAttackers)
+                : LocationConstants.baseLocations.get(0);
     }
 
     private static void searchForLastStructures() {
@@ -280,8 +297,8 @@ public class ArmyManager {
     private static void setDefensePosition() {
         attackUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> GameCache.baseList.stream()
-                        .filter(Base::isMyBase)
-                        .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
+                                .filter(Base::isMyBase)
+                                .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
                         !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
                         u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
                         !u.unit().getBurrowed().orElse(false) && //ignore burrowed units
@@ -290,7 +307,8 @@ public class ArmyManager {
                         !u.unit().getHallucination().orElse(false) && //ignore hallucs
                         UnitUtils.isVisible(u)) //ignore units in the fog
                 .map(UnitInPool::unit)
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.myMineralPos)))
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) * 2 +
+                        UnitUtils.getDistance(u, groundAttackersMidPoint)))
                 .orElse(null);
         attackGroundPos = (attackUnit != null) ? attackUnit.getPosition().toPoint2d() : GameCache.baseList.get(2).getResourceMidPoint();
     }
@@ -328,7 +346,7 @@ public class ArmyManager {
         int numInjured = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
             return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
                     UnitUtils.getHealthPercentage(u.unit()) < 100 &&
-                    u.unit().getPosition().toPoint2d().distance(LocationConstants.REPAIR_BAY) < 5;
+                    UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) < 5;
         }).size();
         if (numInjured > 0) {
             int numRepairingScvs = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of scvs currently repairing (ie, on attack move)
@@ -429,7 +447,8 @@ public class ArmyManager {
                                 u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                                 !u.unit().getHallucination().orElse(false) && //ignore hallucs
                                 UnitUtils.isVisible(u)) //ignore units in the fog
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.myMineralPos)))
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) * 2 +
+                                UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
                 .orElse(null);
         if (closestEnemyGroundUnit == null) {
             return null;
@@ -456,7 +475,9 @@ public class ArmyManager {
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
                         !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
-                .min(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)))).orElse(null);
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) * 2 +
+                        UnitUtils.getDistance(u.unit(), vikingMidPoint)))
+                .orElse(null);
     }
 
     private static void nydusResponse() {

@@ -68,7 +68,7 @@ public class Strategy {
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
     public static boolean BUILD_EXPANDS_IN_MAIN;
-    public static boolean EXPAND_SLOWLY = true;
+    public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
     public static boolean DO_ANTIDROP_TURRETS;
     public static int AUTOTURRET_AT_ENERGY = 150;
