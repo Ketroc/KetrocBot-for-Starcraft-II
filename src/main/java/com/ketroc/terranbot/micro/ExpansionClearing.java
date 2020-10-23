@@ -191,8 +191,8 @@ public class ExpansionClearing {
 
     public static void remove(ExpansionClearing expo) {
         Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
-        expo.removeRaven();
         expoClearList.remove(expo);
+        expo.removeRaven();
     }
 
     public static boolean contains(Point2d expansionPos) {
