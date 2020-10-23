@@ -206,6 +206,9 @@ public class ExpansionClearing {
                         (u.unit().getDisplayType() == DisplayType.SNAPSHOT || //TODO: add not autoturret to snapshots
                                 (!u.unit().getFlying().orElse(false) && //is ground unit
                                         u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED && //is not cloaked
-                                        !u.unit().getType().toString().contains("BURROWED")))).isEmpty(); //is not burrowed
+                                        !u.unit().getType().toString().contains("BURROWED")
+                                )
+                        )
+        ).isEmpty(); //is not burrowed
     }
 }

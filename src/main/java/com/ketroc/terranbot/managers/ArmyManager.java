@@ -307,7 +307,7 @@ public class ArmyManager {
                         !u.unit().getHallucination().orElse(false) && //ignore hallucs
                         UnitUtils.isVisible(u)) //ignore units in the fog
                 .map(UnitInPool::unit)
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) * 2 +
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u, groundAttackersMidPoint)))
                 .orElse(null);
         attackGroundPos = (attackUnit != null) ? attackUnit.getPosition().toPoint2d() : GameCache.baseList.get(2).getResourceMidPoint();
@@ -447,7 +447,7 @@ public class ArmyManager {
                                 u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                                 !u.unit().getHallucination().orElse(false) && //ignore hallucs
                                 UnitUtils.isVisible(u)) //ignore units in the fog
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) * 2 +
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                                 UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
                 .orElse(null);
         if (closestEnemyGroundUnit == null) {
@@ -475,7 +475,7 @@ public class ArmyManager {
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
                         !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) * 2 +
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), vikingMidPoint)))
                 .orElse(null);
     }

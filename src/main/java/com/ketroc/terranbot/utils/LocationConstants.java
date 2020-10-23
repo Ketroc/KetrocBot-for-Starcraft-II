@@ -1368,7 +1368,7 @@ public class LocationConstants {
             enemyMineralPos = Point2d.of(190f, 173.5f);
 
             WALL_2x2 = Point2d.of(78.0f, 77.0f);
-            WALL_3x3 = Point2d.of(81f, 80f);
+            WALL_3x3 = Point2d.of(81.5f, 79.5f);
             MID_WALL_2x2 = Point2d.of(80f, 77f);
             MID_WALL_3x3 = Point2d.of(80.5f, 76.5f);
 
