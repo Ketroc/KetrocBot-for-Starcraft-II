@@ -764,7 +764,7 @@ public class ArmyManager {
         }
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
             if (LocationConstants.opponentRace == Race.PROTOSS) {
-                answer = Math.max(6, answer);
+                answer = Math.max(4, answer);
             }
             else {
                 answer = Math.max(2, answer);
