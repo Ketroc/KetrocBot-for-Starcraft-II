@@ -1087,7 +1087,7 @@ public class ArmyManager {
 
     private static boolean castSeeker(Unit raven) {
         //cast seeker only once every 3sec
-        if (Bot.OBS.getGameLoop() < prevSeekerFrame + 70) {
+        if (Time.nowFrames() < prevSeekerFrame + 70) {
             return false;
         }
         float ravenEnergy = raven.getEnergy().orElse(0f);
@@ -1101,7 +1101,7 @@ public class ArmyManager {
                 return false;
             }
             Bot.ACTION.unitCommand(raven, Abilities.EFFECT_ANTI_ARMOR_MISSILE, targetUnitList.get(0).unit(), false);
-            prevSeekerFrame = Bot.OBS.getGameLoop();
+            prevSeekerFrame = Time.nowFrames();
             return true;
         }
         return false;

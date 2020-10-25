@@ -264,7 +264,7 @@ public class BuildManager {
                     case TERRAN_ORBITAL_COMMAND:
                         if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
                             //scan enemy main at 4:30
-                            if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Bot.OBS.getGameLoop() > Time.toFrames("4:30")) {
+                            if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
                                 Bot.ACTION.unitCommand(cc, Abilities.EFFECT_SCAN,
                                         Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
                                 Switches.scoutScanComplete = true;

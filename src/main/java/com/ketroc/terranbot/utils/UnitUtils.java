@@ -270,7 +270,7 @@ public class UnitUtils {
     }
 
     public static boolean isVisible(UnitInPool unitInPool) {
-        return unitInPool.getLastSeenGameLoop() == Bot.OBS.getGameLoop();
+        return unitInPool.getLastSeenGameLoop() == Time.nowFrames();
     }
 
     public static boolean canMove(UnitType unitType) {

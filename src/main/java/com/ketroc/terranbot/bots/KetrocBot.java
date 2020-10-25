@@ -111,14 +111,14 @@ public class KetrocBot extends Bot {
                 Chat.respondToBots(chat);
             }
 
-            if (Bot.OBS.getGameLoop() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
-                if (Bot.OBS.getGameLoop() == Strategy.SKIP_FRAMES) {
+            if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
+                if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
                     Bot.ACTION.sendChat("Last updated: Oct 17, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
                 Optional<StructureScv> first = StructureScv.scvBuildingList.stream()
-                        .filter(structureScv -> structureScv.scvAddedFrame + Time.toFrames("4:30") < Bot.OBS.getGameLoop())
+                        .filter(structureScv -> structureScv.scvAddedFrame + Time.toFrames("4:30") < Time.nowFrames())
                         .findFirst();
                 if (first.isPresent()) {
                     System.out.println("Stalled StructureScv = \n" + first);
@@ -147,7 +147,7 @@ public class KetrocBot extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Bot.OBS.getGameLoop() % Time.toFrames("2:00") == 0) { //every 5min
+//                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min TODO:fix for skipped frames
 //                    printCurrentGameInfo();
 //                }
 

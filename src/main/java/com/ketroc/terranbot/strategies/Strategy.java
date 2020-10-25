@@ -108,7 +108,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -131,7 +131,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -153,7 +153,7 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 1;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -175,47 +175,47 @@ public class Strategy {
             return -1;
         }
         switch (KetrocBot.opponentId) {
-            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
-            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
-                DO_ANTIDROP_TURRETS = true;
-                return 0;
-            case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
-                return 1;
-            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
-            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //Blinkerbot
-            case "9bd53605-334c-4f1c-95a8-4a735aae1f2d": //MadAI
-            case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
-                return 1;
-            case "16ab8b85-cf8b-4872-bd8d-ebddacb944a5": //sharpy_PVP_EZ
-                Switches.enemyCanProduceAir = true;
-                return 1;
-            case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
-                DO_INCLUDE_TANKS = false;
-                DO_INCLUDE_LIBS = false;
-                return 0;
-            case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
-                Switches.enemyCanProduceAir = true;
-                DO_INCLUDE_TANKS = false;
-                DO_INCLUDE_LIBS = false;
-                DO_BANSHEE_HARASS = false;
-                BUILD_EXPANDS_IN_MAIN = true;
-                EXPAND_SLOWLY = true;
-                return 0;
+//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+//            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
+//                DO_ANTIDROP_TURRETS = true;
+//                return 0;
+//            case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
+//                return 1;
+//            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+//            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //Blinkerbot
+//            case "9bd53605-334c-4f1c-95a8-4a735aae1f2d": //MadAI
+//            case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
+//                return 1;
+//            case "16ab8b85-cf8b-4872-bd8d-ebddacb944a5": //sharpy_PVP_EZ
+//                Switches.enemyCanProduceAir = true;
+//                return 1;
+//            case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
+//                DO_INCLUDE_TANKS = false;
+//                DO_INCLUDE_LIBS = false;
+//                return 0;
+//            case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
+//                Switches.enemyCanProduceAir = true;
+//                DO_INCLUDE_TANKS = false;
+//                DO_INCLUDE_LIBS = false;
+//                DO_BANSHEE_HARASS = false;
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                EXPAND_SLOWLY = true;
+//                return 0;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
                 DO_INCLUDE_TANKS = false;
                 DO_BANSHEE_HARASS = false;
                 EXPAND_SLOWLY = true;
                 return 0;
-            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
-                BUILD_EXPANDS_IN_MAIN = true;
-                EXPAND_SLOWLY = true;
-                return 1;
-            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                BUILD_EXPANDS_IN_MAIN = true;
-                return 1;
-            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                BUILD_EXPANDS_IN_MAIN = true;
-                return 0;
+//            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                EXPAND_SLOWLY = true;
+//                return 1;
+//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                return 1;
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                return 0;
             default:
                 return -1;
         }

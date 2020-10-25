@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.managers.ActionErrorManager;
+import com.ketroc.terranbot.utils.Time;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ public class TestingBot extends Bot {
     public void onStep() {
         super.onStep();
         ActionErrorManager.onStep();
-//        if (Bot.OBS.getGameLoop() == 10) {
+//        if (Time.nowFrames() == 10) {
 //            Unit scv = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).get(0).unit();
 //            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)));
 //            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)));
@@ -71,7 +72,7 @@ public class TestingBot extends Bot {
 ////                System.out.println(observation().getUnit(mineralNode).unit().getPosition().toPoint2d());
 ////            }
 ////        }
-        if (OBS.getGameLoop() == 100) {
+        if (Time.nowFrames() == 100) {
             long start = System.currentTimeMillis();
             List<Point2d> expansions = Tester.calculateExpansionLocations(OBS);
             System.out.println(System.currentTimeMillis()-start);
@@ -172,7 +173,7 @@ public class TestingBot extends Bot {
 //        }
         ACTION.sendActions();
         DEBUG.sendDebug();
-        if (OBS.getGameLoop() == 100) {
+        if (Time.nowFrames() == 100) {
             int q = 1;
         }
 

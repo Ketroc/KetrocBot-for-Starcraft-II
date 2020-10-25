@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.Time;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +40,13 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
     // **************************************
     public static void onStep() {
         delayedChats.stream()
-                .filter(chat -> Bot.OBS.getGameLoop() >= chat.gameFrame)
+                .filter(chat -> Time.nowFrames() >= chat.gameFrame)
                 .forEach(DelayedChat::executeAction);
-        delayedChats.removeIf(chat -> Bot.OBS.getGameLoop() >= chat.gameFrame);
+        delayedChats.removeIf(chat -> Time.nowFrames() >= chat.gameFrame);
     }
 
     public static long getDelayedGameFrame(int delaySeconds) {
-        long gameLoop = Bot.OBS.getGameLoop() + (long)(delaySeconds * 22.4);
+        long gameLoop = Time.nowFrames() + (long)(delaySeconds * 22.4);
         gameLoop -= gameLoop % Strategy.SKIP_FRAMES;
         return gameLoop;
     }

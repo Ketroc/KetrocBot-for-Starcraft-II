@@ -228,14 +228,14 @@ public class BunkerContain {
             if (!barracks.unit().getOrders().isEmpty() && barracks.unit().getOrders().get(0).getAbility() == Abilities.TRAIN_MARINE) {
                 Bot.ACTION.unitCommand(barracks.unit(), Abilities.CANCEL_LAST, false);
             }
-            DelayedAction.delayedActions.add(new DelayedAction(Bot.OBS.getGameLoop()+2, Abilities.LIFT_BARRACKS, barracks));
+            DelayedAction.delayedActions.add(new DelayedAction(Time.nowFrames()+2, Abilities.LIFT_BARRACKS, barracks));
             DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.LAND, barracks, LocationConstants._3x3Structures.remove(0)));
             isBarracksSentHome = true;
         }
     }
 
     private static void sendFirstScv() {
-        if (!isFirstScvSent && Bot.OBS.getGameLoop() >= 222) {
+        if (!isFirstScvSent && Time.nowFrames() >= 222) {
             Unit firstScv = repairScvList.get(0).unit();
             if (UnitUtils.isCarryingResources(firstScv)) {
                 Bot.ACTION.unitCommand(firstScv, Abilities.HARVEST_RETURN, false)
@@ -251,7 +251,7 @@ public class BunkerContain {
     }
 
     private static void sendScoutScvs() {
-        if (!isScoutScvsSent && Bot.OBS.getGameLoop() >= Time.toFrames("0:39")) {
+        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:39")) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10);
             scoutScvs = availableScvs.subList(0, 2);
             Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, LocationConstants.baseLocations.get(2), false)
@@ -263,7 +263,7 @@ public class BunkerContain {
         }
         else if (!scoutScvs.isEmpty()) {
             //if proxy barracks found
-            if (Bot.OBS.getGameLoop() < Time.toFrames("3:00")) {
+            if (Time.nowFrames() < Time.toFrames("3:00")) {
                 List<UnitInPool> enemyBarracks = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BARRACKS);
                 if (!enemyBarracks.isEmpty()) {
                     List<UnitInPool> enemyScv = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_SCV, enemyBarracks.get(0).unit().getPosition().toPoint2d(), 5);
@@ -526,7 +526,7 @@ public class BunkerContain {
             else {
                 Bot.ACTION.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
                 DelayedAction.delayedActions.add(
-                        new DelayedAction(Bot.OBS.getGameLoop()+2, Abilities.EFFECT_SALVAGE, bunker));
+                        new DelayedAction(Time.nowFrames()+2, Abilities.EFFECT_SALVAGE, bunker));
             }
         }
         else {

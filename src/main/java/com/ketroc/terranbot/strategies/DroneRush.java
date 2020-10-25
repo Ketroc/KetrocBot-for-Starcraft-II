@@ -50,7 +50,7 @@ public class DroneRush {
                     return;
                 }
             }
-            if (Bot.OBS.getGameLoop() == Time.toFrames("4:30")) {
+            if (Time.nowFrames() == Time.toFrames("4:30")) {
                 System.out.println("Drone list contents:");
                 droneList.forEach(unitInPool -> System.out.println(unitInPool));
             }
@@ -312,7 +312,7 @@ public class DroneRush {
         }
         if (isDronesClustered()) {
             Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
-            long attackFrame = Bot.OBS.getGameLoop() + (Strategy.SKIP_FRAMES * 3);
+            long attackFrame = Time.nowFrames() + (Strategy.SKIP_FRAMES * 3);
             droneList.forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
             long clusterFrame = attackFrame + (Strategy.SKIP_FRAMES * 3);

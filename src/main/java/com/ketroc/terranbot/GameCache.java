@@ -364,7 +364,7 @@ public class GameCache {
             if (!base.isMyBase() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
                 continue;
             }
-            base.lastScoutedFrame = Bot.OBS.getGameLoop();
+            base.lastScoutedFrame = Time.nowFrames();
 
             //update cc
             base.setCc(base.getUpdatedUnit(Units.TERRAN_PLANETARY_FORTRESS, base.getCc(), base.getCcPos()));
@@ -472,7 +472,7 @@ public class GameCache {
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemy -> enemy.getLastSeenGameLoop() +
-                        ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 0) >= Bot.OBS.getGameLoop())
+                        ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 0) >= Time.nowFrames())
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
 
         //check for fungal mapping

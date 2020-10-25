@@ -14,6 +14,7 @@ import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
@@ -285,7 +286,7 @@ public class ScvRush {
         }
         if (isScvsClustered()) {
             Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
-            long attackFrame = Bot.OBS.getGameLoop() + (Strategy.SKIP_FRAMES * 3);
+            long attackFrame = Time.nowFrames() + (Strategy.SKIP_FRAMES * 3);
             scvList.stream().forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
             long clusterFrame = attackFrame + (Strategy.SKIP_FRAMES * 3);

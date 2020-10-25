@@ -90,8 +90,8 @@ public class DroneDrill extends Bot {
         super.onStep();
         availableDrones = getAvailableDrones();
         try {
-            if (OBS.getGameLoop() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
-                if (OBS.getGameLoop() == Strategy.SKIP_FRAMES) {
+            if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
+                if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
                     DroneDrill.ACTION.sendChat("Last updated: Sept 24, 2020", ActionChat.Channel.BROADCAST);
                 }
                 //free up ignored units
@@ -111,7 +111,7 @@ public class DroneDrill extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Bot.OBS.getGameLoop() % Time.toFrames("5:00") == 0) { //every 5min
+//                if (Time.nowFrames() % Time.toFrames("5:00") == 0) { //every 5min TODO:Fix for skipped frames
 //                    printCurrentGameInfo();
 //                }
 

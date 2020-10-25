@@ -30,7 +30,7 @@ public class ProxyHatchDefense {
 
     private static void setIsProxyHatch() {
         if (!isProxyHatch) {
-            if (Bot.OBS.getGameLoop() < Time.toFrames("3:00")) {
+            if (Time.nowFrames() < Time.toFrames("3:00")) {
                 List<UnitInPool> hatcheryList =
                         UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.ZERG_HATCHERY, LocationConstants.baseLocations.get(1), 4);
                 if (!hatcheryList.isEmpty()) {

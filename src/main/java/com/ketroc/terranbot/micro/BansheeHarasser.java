@@ -43,7 +43,7 @@ public class BansheeHarasser {
 
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)
     public boolean changedDirectionRecently() {
-        return prevDirectionChangeFrame + 75 > Bot.OBS.getGameLoop();
+        return prevDirectionChangeFrame + 75 > Time.nowFrames();
     }
 
     private void nextBase() {

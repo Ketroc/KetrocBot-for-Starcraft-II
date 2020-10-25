@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Ignored;
@@ -197,11 +198,11 @@ public class BasicMover {
 
     public void toggleDodgeClockwise() {
         isDodgeClockwise = !isDodgeClockwise;
-        prevDirectionChangeFrame = Bot.OBS.getGameLoop();
+        prevDirectionChangeFrame = Time.nowFrames();
     }
 
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)
     public boolean changedDirectionRecently() {
-        return prevDirectionChangeFrame + 75 > Bot.OBS.getGameLoop();
+        return prevDirectionChangeFrame + 75 > Time.nowFrames();
     }
 }

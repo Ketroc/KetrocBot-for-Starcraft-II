@@ -13,6 +13,7 @@ import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class StructureScv {
         this.structurePos = structurePos;
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
-        scvAddedFrame = Bot.OBS.getGameLoop();
+        scvAddedFrame = Time.nowFrames();
         setScv(scv);
     }
 
@@ -48,7 +49,7 @@ public class StructureScv {
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
         this.isGas = true;
         this.gasGeyser = gasGeyser;
-        scvAddedFrame = Bot.OBS.getGameLoop();
+        scvAddedFrame = Time.nowFrames();
         setScv(scv);
     }
 
@@ -65,7 +66,7 @@ public class StructureScv {
             Ignored.remove(scv.getTag());
         }
         this.scv = scv;
-        scvAddedFrame = Bot.OBS.getGameLoop();
+        scvAddedFrame = Time.nowFrames();
         Ignored.add(new IgnoredUnit(scv.getTag()));
         if (structureType == Units.TERRAN_COMMAND_CENTER) {
             ArmyManager.sendBioProtection(structurePos);

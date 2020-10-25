@@ -71,7 +71,7 @@ public class WorkerRushDefense {
             }
             switch (defenseStep) {
                 case 0: //probe rush check
-                    if (Bot.OBS.getGameLoop() < Time.toFrames("2:23") &&
+                    if (Time.nowFrames() < Time.toFrames("2:23") &&
                             UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).size() > 5 &&
                             UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.baseLocations.get(0), 50).size() > 5) {
                         defenseStep++;

@@ -98,15 +98,15 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
     // **************************************
     public static void onStep() {
         delayedActions.stream()
-                .filter(action -> Bot.OBS.getGameLoop() >= action.gameFrame)
+                .filter(action -> Time.nowFrames() >= action.gameFrame)
                 .forEach(delayedAction -> {
                     if (!delayedAction.executeAction()) System.out.println("Action not performed: " + delayedAction.toString());
                 });
-        delayedActions.removeIf(action -> Bot.OBS.getGameLoop() >= action.gameFrame);
+        delayedActions.removeIf(action -> Time.nowFrames() >= action.gameFrame);
     }
 
     public static long nextFrame() {
-        return Bot.OBS.getGameLoop() + Strategy.SKIP_FRAMES;
+        return Time.nowFrames() + Strategy.SKIP_FRAMES;
     }
 
 }
