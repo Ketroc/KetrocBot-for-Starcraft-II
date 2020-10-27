@@ -103,15 +103,9 @@ public class GameCache {
         wallStructures.clear();
         burningStructures.clear();
 
-        for (int i = 0; i< allEnemiesList.size(); i++) {
-            //if currently on screen, or a snapshot, or dead, remove it
-            UnitInPool enemy = allEnemiesList.get(i);
-            if (UnitUtils.isVisible(enemy) ||
-                    enemy.unit().getDisplayType() == DisplayType.SNAPSHOT ||
-                    !enemy.isAlive()) {
-                allEnemiesList.remove(i--);
-            }
-        }
+        allEnemiesList.removeIf(enemy -> UnitUtils.isVisible(enemy) ||
+                enemy.unit().getDisplayType() == DisplayType.SNAPSHOT ||
+                !enemy.isAlive());
 
         for (UnitInPool unitInPool: Bot.OBS.getUnits()) {
             Unit unit = unitInPool.unit();

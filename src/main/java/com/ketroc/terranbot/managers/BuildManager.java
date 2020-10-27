@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class BuildManager {
+    public static int MIN_BANSHEES = 1;
     public static final List<Abilities> BUILD_ACTIONS = Arrays.asList(
             Abilities.BUILD_REFINERY, Abilities.BUILD_COMMAND_CENTER, Abilities.BUILD_STARPORT, Abilities.BUILD_SUPPLY_DEPOT,
             Abilities.BUILD_ARMORY, Abilities.BUILD_BARRACKS, Abilities.BUILD_BUNKER, Abilities.BUILD_ENGINEERING_BAY,
@@ -530,8 +531,8 @@ public class BuildManager {
             return Abilities.TRAIN_VIKING_FIGHTER;
         }
 
-        //maintain a banshee count of 1
-        if (numBanshees < 1) {
+        //maintain a banshee count of 1 (2 vs zerg with mass ravens)
+        if (numBanshees < MIN_BANSHEES) {
             return Abilities.TRAIN_BANSHEE;
         }
 

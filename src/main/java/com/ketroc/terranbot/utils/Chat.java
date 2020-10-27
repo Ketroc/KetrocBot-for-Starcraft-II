@@ -16,6 +16,9 @@ public class Chat {
         botResponses.put("Hidden units detected", "Can you really say they're hiding if they kill everything you have?");
         botResponses.put("Scanning for enemy structures", "You consider terran structures an enemy??? Then start by killing your own structures.");
         botResponses.put("unarmed mine", "Sorry, I can't hear you over the sound of widow mines exploding...  You said something about my arms?");
+
+        //Sproutch responses
+        botResponses.put("sprr", "New game. Andy does a shot every time you yell: Sproutch.");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(

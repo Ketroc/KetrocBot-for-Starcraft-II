@@ -88,7 +88,10 @@ public class UnitUtils {
     public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN
     ));
-
+    public static final Set<Units> BASE_BLOCKERS = new HashSet<>(Set.of(
+            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
+            Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP
+    ));
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
 

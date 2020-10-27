@@ -440,13 +440,13 @@ public class ArmyManager {
     private static UnitInPool getClosestEnemyGroundUnit() {
         UnitInPool closestEnemyGroundUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> //(Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
-                        !u.unit().getFlying().orElse(true) && //ground unit
+                        !u.unit().getFlying().orElse(false) && //ground unit
                                 u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
                                 !u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
+                                !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
                                 u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
-                                u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
-                                !u.unit().getHallucination().orElse(false) && //ignore hallucs
-                                UnitUtils.isVisible(u)) //ignore units in the fog
+                                !u.unit().getHallucination().orElse(false)) //ignore hallucs
+                                //UnitUtils.isVisible(u)) //ignore units in the fog
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                                 UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
                 .orElse(null);

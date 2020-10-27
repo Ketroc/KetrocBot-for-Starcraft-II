@@ -7,6 +7,8 @@ import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.managers.BuildManager;
+import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.KetrocBot;
@@ -15,6 +17,7 @@ import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.DelayedChat;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -84,10 +87,11 @@ public class Strategy {
     public static void onGameStart() {
         SKIP_FRAMES = (KetrocBot.isRealTime) ? 6 : 2;
         getGameStrategyChoice();
-
-        if (ANTI_NYDUS_BUILD) {
-            antiNydusBuild();
-        }
+//
+//        if (ANTI_NYDUS_BUILD) {
+//            antiNydusBuild();
+//        }
+//        setSproutchStrategy();
     }
 
     private static void getGameStrategyChoice() {
@@ -169,6 +173,48 @@ public class Strategy {
                 break;
         }
     }
+    //TODO: delete
+    private static void setSproutchStrategy() {
+        try {
+            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
+            String lastOpponentId = fileText[0];
+            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
+            String lastOpponentResult = fileText[2];
+            //game 1
+            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+                System.out.println("Game 1 - banshees");
+                selectedStrategy = 0;
+            }
+            //game 2
+            else if (lastOpponentStrategy == 0) {
+                System.out.println("Game 2 - ravens");
+                selectedStrategy = 1;
+            }
+            //game 3
+            else {
+                System.out.println("Game 3");
+                selectedStrategy = (lastOpponentResult.equals("L")) ? 0 : 1;
+            }
+
+            if (selectedStrategy == 0) {
+                DelayedChat.add("Mass Banshee Strategy");
+            }
+            else {
+                DelayedChat.add("Mass Raven Strategy");
+                massRavenStrategy();
+            }
+        }
+        catch (Exception e) {
+            selectedStrategy = 1;
+            e.printStackTrace();
+        }
+        Switches.enemyCanProduceAir = true;
+        DO_INCLUDE_TANKS = false;
+        DO_INCLUDE_LIBS = false;
+        DO_BANSHEE_HARASS = false;
+        BUILD_EXPANDS_IN_MAIN = true;
+        EXPAND_SLOWLY = true;
+    }
 
     private static int getStrategyByOpponentId() {
         if (KetrocBot.opponentId == null) {
@@ -224,7 +270,16 @@ public class Strategy {
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
-        UpgradeManager.shipAttack.clear(); //no attack upgrades
+
+        //2 +1 banshees kill a creep tumor so adjust banshee count and upgrades to this
+        BuildManager.MIN_BANSHEES = 2;
+        UpgradeManager.shipArmor.addAll(UpgradeManager.shipAttack);
+        if (LocationConstants.opponentRace == Race.ZERG) { //ship weapons 1 first, for banshees to 2-shot tumors
+            UpgradeManager.shipArmor.add(0, UpgradeManager.shipArmor.remove(3));
+        }
+        UpgradeManager.shipAttack.clear(); //no 2nd armory
+
+        LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
@@ -243,12 +298,19 @@ public class Strategy {
 
             String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
             String lastOpponentId = fileText[0];
-            int opponentStrategy = Integer.valueOf(fileText[1]);
+            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
+            String lastResult = fileText[2];
+            //start at 0 for new opponent
             if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
                 selectedStrategy = 0;
             }
-            else {
-                selectedStrategy = opponentStrategy;
+            //stay on same strategy if I win
+            else if (lastResult.equals("W")) {
+                selectedStrategy = lastOpponentStrategy;
+            }
+            //next strategy if I lose
+            else if (lastResult.equals("L")) {
+                selectedStrategy = lastOpponentStrategy + 1;
             }
         }
         catch (IOException e) {

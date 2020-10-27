@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.models.IgnoredUnit;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -52,6 +53,8 @@ public class ExpansionClearing {
     }
 
     public boolean clearExpansion() {
+        turretMicro();
+
         //abandon clearing if a command structure is on location
         if (!Bot.OBS.getUnits(structure -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(structure.unit().getType()) &&
                 UnitUtils.getDistance(structure.unit(), expansionPos) < 5).isEmpty()) {
@@ -99,7 +102,7 @@ public class ExpansionClearing {
         }
         //turret has expired
         else if (!turret.isAlive()) {
-            turret = null;
+            removeTurret();
             raven.targetPos = expansionPos;
             isTurretActive = false;
         }
@@ -108,6 +111,23 @@ public class ExpansionClearing {
             raven.onStep();
         }
         return false;
+    }
+
+    private void turretMicro() {
+        if (turret != null && turret.isAlive() && turret.unit().getWeaponCooldown().orElse(1f) == 0) {
+            attackBlockingEnemyUnit();
+        }
+    }
+
+    private void attackBlockingEnemyUnit() {
+        int turretRange = (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) ? 7 : 6;
+        UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.BASE_BLOCKERS, expansionPos, turretRange).stream()
+                .map(UnitInPool::unit)
+                .filter(enemy -> enemy.getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED)
+                .min(Comparator.comparing(enemy -> enemy.getHealth().orElse(Float.MAX_VALUE)))
+                .ifPresent(enemy ->
+                        Bot.ACTION.unitCommand(turret.unit(), Abilities.ATTACK, enemy, false));
+
     }
 
     public boolean hasAutoturretQueued(Unit raven) {
@@ -121,6 +141,13 @@ public class ExpansionClearing {
         }
     }
 
+    private void removeTurret() {
+        if (turret != null) {
+            Ignored.remove(turret.getTag());
+            turret = null;
+        }
+    }
+
     private boolean testExpansionPos() {
         return !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, expansionPos, 6).isEmpty() &&
                 Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, expansionPos);
@@ -131,6 +158,9 @@ public class ExpansionClearing {
                 .stream()
                 .findFirst()
                 .orElse(null);
+        if (turret != null) {
+            Ignored.add(new IgnoredUnit(turret.getTag()));
+        }
     }
 
     private Point2d getTurretPos(Point2d centerPoint) {
@@ -193,6 +223,7 @@ public class ExpansionClearing {
         Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
         expoClearList.remove(expo);
         expo.removeRaven();
+        expo.removeTurret();
     }
 
     public static boolean contains(Point2d expansionPos) {
@@ -201,7 +232,7 @@ public class ExpansionClearing {
 
     //if a visible unit is blocking an expansion (like a hatchery or stalker)
     public static boolean isVisiblyBlockedByUnit(Point2d expansionPos) {
-        return Bot.OBS.getUnits(Alliance.ENEMY, u ->
+        return !Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 UnitUtils.getDistance(u.unit(), expansionPos) < 5 && //is within 5 distance
                         (u.unit().getDisplayType() == DisplayType.SNAPSHOT || //TODO: add not autoturret to snapshots
                                 (!u.unit().getFlying().orElse(false) && //is ground unit

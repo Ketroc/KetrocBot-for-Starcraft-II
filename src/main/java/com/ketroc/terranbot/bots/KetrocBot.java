@@ -32,6 +32,7 @@ public class KetrocBot extends Bot {
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
     public static int count1 = 0;
     public static int count2 = 0;
+    public static boolean didSproutch = false;
 
     public KetrocBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
@@ -113,7 +114,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Oct 17, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Oct 25, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
@@ -606,11 +607,9 @@ public class KetrocBot extends Bot {
                 .getResult();
 
         Path path = Paths.get("./data/prevResult.txt");
-        if (result == Result.DEFEAT) {
-            Strategy.selectedStrategy++;
-        }
+        char charResult = (result == Result.DEFEAT) ? 'L' : 'W';
         try {
-            Files.write(path, (Bot.opponentId + "~" + Strategy.selectedStrategy).getBytes());
+            Files.write(path, (Bot.opponentId + "~" + Strategy.selectedStrategy + "~" + charResult).getBytes());
         }
         catch (IOException e) {
             e.printStackTrace();
