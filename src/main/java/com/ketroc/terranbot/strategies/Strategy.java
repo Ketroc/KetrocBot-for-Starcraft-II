@@ -316,7 +316,6 @@ public class Strategy {
         catch (IOException e) {
             e.printStackTrace();
         }
-        selectedStrategy = 0; //TODO: delete - for testing
     }
 
     public static void onStep() {

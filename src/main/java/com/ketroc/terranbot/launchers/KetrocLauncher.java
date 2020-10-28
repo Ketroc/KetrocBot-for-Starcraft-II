@@ -25,7 +25,7 @@ public class KetrocLauncher {
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
@@ -33,12 +33,12 @@ public class KetrocLauncher {
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
         //        .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("SubmarineLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));

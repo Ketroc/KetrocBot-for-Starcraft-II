@@ -686,7 +686,7 @@ public class BuildManager {
         if (supplyCap == 200) { // max supply available
             return false;
         }
-        // TODO: decide based on current production rate rather than hardcoded 10
+
         if (supplyCap - curSupply + supplyInProduction() >= supplyPerProductionCycle()) { //if not nearing supply block
             return false;
         }
@@ -694,21 +694,25 @@ public class BuildManager {
         return true;
     }
 
+    //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
         return Math.min(Strategy.maxScvs - Bot.OBS.getFoodWorkers(), Base.numMyBases()) * 2 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
-                GameCache.starportList.size() * 2;
+                GameCache.starportList.size() * 2 +
+                (int)GameCache.factoryList.stream()
+                        .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)
+                        .count() * 2;
     }
 
     private static int supplyInProduction() {
-        //include every depot
+        //include supply of every depot in production
         int supply = 8 * (int) StructureScv.scvBuildingList.stream().filter(scv -> scv.buildAbility == Abilities.BUILD_SUPPLY_DEPOT).count();
-        //include CCs that are 40%+ done
-        for (StructureScv scv : StructureScv.scvBuildingList) {
-            List<UnitInPool> cc = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_COMMAND_CENTER, scv.structurePos, 1);
-            if (!cc.isEmpty() && cc.get(0).unit().getBuildProgress() > 0.4) {
-                supply += 14;
-            }
-        }
+
+        //include supply of CCs that are 60%+ done production
+        supply += StructureScv.scvBuildingList.stream()
+                .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER)
+                .filter(structureScv -> structureScv.getStructureUnit() != null &&
+                        structureScv.getStructureUnit().unit().getBuildProgress() > 0.6)
+                .count() * 14;
 
         return supply;
     }
