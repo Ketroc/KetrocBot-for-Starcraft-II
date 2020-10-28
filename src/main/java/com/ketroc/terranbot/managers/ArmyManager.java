@@ -447,23 +447,25 @@ public class ArmyManager {
                                 u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                                 !u.unit().getHallucination().orElse(false)) //ignore hallucs
                                 //UnitUtils.isVisible(u)) //ignore units in the fog
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
-                                UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
+                .min(Comparator.comparing(u ->
+                        UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
+                        UnitUtils.getDistance(u.unit(), groundAttackersMidPoint) +
+                        ((UnitUtils.getDistance(u.unit(), attackGroundPos) < 5) ? -3 : 0))) //preference to maintaining similar target preventing wiggling
                 .orElse(null);
-        if (closestEnemyGroundUnit == null) {
-            return null;
-        }
-
-        //swap closest enemy base if it's closer than closest enemy unit
-        UnitInPool closestEnemyBase = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.enemyCommandStructures.contains(enemy.unit().getType()))
-                .stream()
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myMineralPos)))
-                .orElse(null);
-        if (closestEnemyBase != null &&
-                UnitUtils.getDistance(closestEnemyBase.unit(), LocationConstants.myMineralPos) <
-                        UnitUtils.getDistance(closestEnemyGroundUnit.unit(), LocationConstants.myMineralPos)) {
-            return closestEnemyBase;
-        }
+//        if (closestEnemyGroundUnit == null) {
+//            return null;
+//        }
+//
+//        //swap closest enemy base if it's closer than closest enemy unit
+//        UnitInPool closestEnemyBase = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.enemyCommandStructures.contains(enemy.unit().getType()))
+//                .stream()
+//                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myMineralPos)))
+//                .orElse(null);
+//        if (closestEnemyBase != null &&
+//                UnitUtils.getDistance(closestEnemyBase.unit(), LocationConstants.myMineralPos) <
+//                        UnitUtils.getDistance(closestEnemyGroundUnit.unit(), LocationConstants.myMineralPos)) {
+//            return closestEnemyBase;
+//        }
 
         return closestEnemyGroundUnit;
     }
