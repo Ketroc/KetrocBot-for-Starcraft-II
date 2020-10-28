@@ -43,7 +43,7 @@ public class ArmyManager {
 
     public static void onStep() {
         //set midpoints
-        setMidpoints();
+        setArmyMidpoints();
 
         //set offense decision
         setDoOffense();
@@ -118,7 +118,7 @@ public class ArmyManager {
         sendMarinesHellbats();
     }
 
-    private static void setMidpoints() {
+    private static void setArmyMidpoints() {
         vikingMidPoint = (!GameCache.vikingList.isEmpty())
                 ? Position.midPointUnitsMedian(GameCache.vikingList)
                 : LocationConstants.baseLocations.get(0);

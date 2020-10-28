@@ -63,7 +63,7 @@ public class StructureScv {
 
     public void setScv(UnitInPool scv) {
         if (this.scv != null) {
-            Ignored.remove(scv.getTag());
+            Ignored.remove(this.scv.getTag());
         }
         this.scv = scv;
         scvAddedFrame = Time.nowFrames();

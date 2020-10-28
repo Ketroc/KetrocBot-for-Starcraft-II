@@ -18,7 +18,7 @@ public class Chat {
         botResponses.put("unarmed mine", "Sorry, I can't hear you over the sound of widow mines exploding...  You said something about my arms?");
 
         //Sproutch responses
-        botResponses.put("sprr", "New game. Andy does a shot every time you yell: Sproutch.");
+        //botResponses.put("sprr", "New game. Andy does a shot every time you yell: Sproutch.");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(

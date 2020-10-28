@@ -62,7 +62,7 @@ public class ActionErrorManager {
                         //TODO: add scv to trapped unit code
                         int q=0;
                     }
-                    //scv got stuck en route
+                    //scv got stuck en route, TODO: or location unreachable by any scv
                     else {
                         //switch scv
                         structureScv.setScv(WorkerManager.getOneScv());

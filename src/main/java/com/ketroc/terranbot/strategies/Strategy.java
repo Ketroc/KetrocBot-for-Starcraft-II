@@ -35,11 +35,11 @@ public class Strategy {
 
     public static boolean DO_INCLUDE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
-    public static final int MAX_TANKS = 12;
+    public static final int MAX_TANKS = 10;
 
     public static boolean DO_INCLUDE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
-    public static final int MAX_LIBS = 12;
+    public static final int MAX_LIBS = 10;
 
     public static final int FUNGAL_FRAMES = 16; //# of frames for fungal to land after being cast
     public static float VIKING_BANSHEE_RATIO = 0.2f;
