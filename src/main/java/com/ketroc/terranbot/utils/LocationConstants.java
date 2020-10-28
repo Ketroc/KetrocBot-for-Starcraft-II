@@ -3362,8 +3362,8 @@ public class LocationConstants {
             case MapNames.GOLDEN_WALL:
                 baseLocations.add(Point2d.of(32.5f, 50.5f));
                 baseLocations.add(Point2d.of(40.5f, 77.5f));
-                baseLocations.add(Point2d.of(42.5f, 109.5f));
                 baseLocations.add(Point2d.of(71.5f, 71.5f));
+                baseLocations.add(Point2d.of(42.5f, 109.5f));
                 baseLocations.add(Point2d.of(39.5f, 141.5f));
                 baseLocations.add(Point2d.of(75.5f, 130.5f));
                 baseLocations.add(Point2d.of(51.5f, 30.5f));
@@ -3372,8 +3372,8 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(156.5f, 30.5f));
                 baseLocations.add(Point2d.of(132.5f, 130.5f));
                 baseLocations.add(Point2d.of(168.5f, 141.5f));
-                baseLocations.add(Point2d.of(136.5f, 71.5f));
                 baseLocations.add(Point2d.of(165.5f, 109.5f));
+                baseLocations.add(Point2d.of(136.5f, 71.5f));
                 baseLocations.add(Point2d.of(167.5f, 77.5f));
                 baseLocations.add(Point2d.of(175.5f, 50.5f));
                 break;
@@ -3631,6 +3631,9 @@ public class LocationConstants {
         if (!isTopSpawn) {
             Collections.reverse(baseLocations);
         }
+//        if (MAP.equals(MapNames.GOLDEN_WALL)) { //expand to gold base first
+//            baseLocations.add(1, baseLocations.remove(2));
+//        }
     }
 
     public static void setClockBaseLists() {

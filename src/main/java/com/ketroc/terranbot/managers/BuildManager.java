@@ -438,7 +438,9 @@ public class BuildManager {
             if (!factory.getActive().get()) {
                 if (factory.getAddOnTag().isPresent()) {
                     //2 tanks per expansion base
-                    if (GameCache.siegeTankList.size() < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
+                    int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true) +
+                            Ignored.numOfType(UnitUtils.SIEGE_TANK_TYPE);
+                    if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
                             UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
                         Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
                         Cost.updateBank(Units.TERRAN_SIEGE_TANK);
@@ -503,7 +505,8 @@ public class BuildManager {
         int numBanshees = UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true);
         int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int numLiberators = UnitUtils.getNumFriendlyUnits(Units.TERRAN_LIBERATOR, true) + UnitUtils.getNumFriendlyUnits(Units.TERRAN_LIBERATOR_AG, false);
+        int numLiberators = UnitUtils.getNumFriendlyUnits(UnitUtils.LIBERATOR_TYPE, true) +
+                Ignored.numOfType(UnitUtils.LIBERATOR_TYPE);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
         int vikingsByRatio  = (int)(numBanshees * Strategy.VIKING_BANSHEE_RATIO);
         if (vikingsByRatio > vikingsRequired) { //build vikings 1:1 with banshees until 1.5x vikings required

@@ -9,7 +9,10 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.LibDefender;
+import com.ketroc.terranbot.micro.TankDefender;
 import com.ketroc.terranbot.micro.Target;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.DefenseUnitPositions;
@@ -622,8 +625,9 @@ public class ArmyManager {
                     for (DefenseUnitPositions libPos : base.getLiberators()) {
                         if (libPos.getUnit().isEmpty()) {
                             libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
-                            Bot.ACTION.unitCommand(idleLib, Abilities.MOVE, Position.towards(libPos.getPos(), base.getCcPos(), -2), false)
-                                    .unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE, Position.towards(libPos.getPos(), base.getCcPos(), 5), true);
+//                            Bot.ACTION.unitCommand(idleLib, Abilities.MOVE, Position.towards(libPos.getPos(), base.getCcPos(), -2), false)
+//                                    .unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE, Position.towards(libPos.getPos(), base.getCcPos(), 5), true);
+                            UnitMicroList.add(new LibDefender(libPos.getUnit().get(), libPos.getPos(), base.getCcPos()));
                             isLibPlaced = true;
                             break outer;
                         }
@@ -662,8 +666,9 @@ public class ArmyManager {
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit().isEmpty()) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-                            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, tankPos.getPos(), false)
-                                    .unitCommand(idleTank, Abilities.MORPH_SIEGE_MODE, true);
+//                            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, tankPos.getPos(), false)
+//                                    .unitCommand(idleTank, Abilities.MORPH_SIEGE_MODE, true);
+                            UnitMicroList.add(new TankDefender(tankPos.getUnit().get(), tankPos.getPos()));
                             isTankPlaced = true;
                             break outer;
                         }

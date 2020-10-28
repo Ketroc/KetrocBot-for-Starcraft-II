@@ -16,6 +16,7 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.managers.*;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.micro.Harassers;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.strategies.*;
@@ -140,6 +141,9 @@ public class KetrocBot extends Bot {
                 //micro to clear expansion positions
                 ExpansionClearing.onStep();
 
+                //Do individual unit micro
+                UnitMicroList.onStep();
+
                 //check switches
                 Switches.onStep();
 
@@ -220,7 +224,7 @@ public class KetrocBot extends Bot {
                     for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
                         Bot.DEBUG.debugTextOut("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
                                 " raven: " + ((ExpansionClearing.expoClearList.get(i).raven != null)
-                                        ? ExpansionClearing.expoClearList.get(i).raven.mover.unit().getPosition().toPoint2d()
+                                        ? ExpansionClearing.expoClearList.get(i).raven.unit.unit().getPosition().toPoint2d()
                                         : "none"),
                                 Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }

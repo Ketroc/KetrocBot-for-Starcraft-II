@@ -523,7 +523,9 @@ public class WorkerManager {
         }
 
         List<Unit> scvs = getDeepestMineralScvs(scvsNeeded);
-        Bot.ACTION.unitCommand(scvs, Abilities.SMART, targetNode, false);
+        if (!scvs.isEmpty()) {
+            Bot.ACTION.unitCommand(scvs, Abilities.SMART, targetNode, false);
+        }
     }
 
     private static Unit getMiningNodeAtBase(Point2d basePos) {

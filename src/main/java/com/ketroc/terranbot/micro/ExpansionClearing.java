@@ -38,7 +38,7 @@ public class ExpansionClearing {
 
     private void addRaven() {
         if (raven != null) {
-            Ignored.remove(raven.mover.getTag());
+            Ignored.remove(raven.unit.getTag());
             raven = null;
         }
         Tag nearestRaven = GameCache.ravenList.stream()
@@ -62,11 +62,11 @@ public class ExpansionClearing {
         }
 
         //get a new raven
-        if (raven == null || !raven.mover.isAlive()) {
+        if (raven == null || !raven.unit.isAlive()) {
             addRaven();
         }
         //raven is travelling to expansion
-        else if (turret == null && UnitUtils.getDistance(raven.mover.unit(), expansionPos) > 3 && !isTurretActive) {
+        else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
             raven.onStep();
         }
         else if (turret == null) {
@@ -77,7 +77,7 @@ public class ExpansionClearing {
                 //determine autoturret position
                 Point2d centerPoint = getCenterPoint();
                 if (centerPoint != null) {
-                    if (raven.mover.unit().getEnergy().orElse(0f) < 50) {
+                    if (raven.unit.unit().getEnergy().orElse(0f) < 50) {
                         addRaven();
                         return false;
                     }
@@ -86,7 +86,7 @@ public class ExpansionClearing {
                     //cast autoturret
                     if (turretPos != null) {
                         raven.targetPos = turretPos;
-                        Bot.ACTION.unitCommand(raven.mover.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+                        Bot.ACTION.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
                         isTurretActive = true;
                     }
                 }
@@ -136,7 +136,7 @@ public class ExpansionClearing {
 
     private void removeRaven() {
         if (raven != null) {
-            Ignored.remove(raven.mover.getTag());
+            Ignored.remove(raven.unit.getTag());
             raven = null;
         }
     }
@@ -154,7 +154,7 @@ public class ExpansionClearing {
     }
 
     private void setTurret() {
-        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.mover.unit().getPosition().toPoint2d(), 5f)
+        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.unit.unit().getPosition().toPoint2d(), 5f)
                 .stream()
                 .findFirst()
                 .orElse(null);

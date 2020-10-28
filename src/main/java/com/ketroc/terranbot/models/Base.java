@@ -364,6 +364,8 @@ public class Base {
                         ((PurchaseStructure) p).getStructureType() == Units.TERRAN_MISSILE_TURRET &&
                         ((PurchaseStructure) p).getPosition().distance(ccPos) < 10);
 
+        //TODO: cancel tanks and liberators (send on offense?  send back to main base?  need arrivalRange, and 2nd onCompletion option in micro classes)
+
 
     }
 
