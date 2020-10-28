@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
+import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
@@ -69,7 +70,10 @@ public class StructureScv {
         scvAddedFrame = Time.nowFrames();
         Ignored.add(new IgnoredUnit(scv.getTag()));
         if (structureType == Units.TERRAN_COMMAND_CENTER) {
-            ArmyManager.sendBioProtection(structurePos);
+            GameCache.baseList.stream()
+                    .filter(base -> base.getCcPos().distance(structurePos) < 1)
+                    .findFirst()
+                    .ifPresent(base -> ArmyManager.sendBioProtection(base.getResourceMidPoint()));
         }
     }
 
