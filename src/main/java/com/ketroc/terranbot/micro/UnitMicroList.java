@@ -1,23 +1,26 @@
 package com.ketroc.terranbot.micro;
 
-import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.terranbot.models.Ignored;
 import com.ketroc.terranbot.models.IgnoredUnit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UnitMicroList {
-    public static List<BasicMover> unitMicroList = new ArrayList<>();
+    public static List<BasicUnitMicro> unitMicroList = new ArrayList<>();
 
     public static void onStep() {
-        unitMicroList.forEach(BasicMover::onStep);
-        unitMicroList.removeIf(basicMover -> basicMover.removeMe);
+        unitMicroList.forEach(BasicUnitMicro::onStep);
+        List<Tag> removeList = unitMicroList.stream()
+                .filter(basicUnitMicro -> basicUnitMicro.removeMe)
+                .map(basicUnitMicro -> basicUnitMicro.unit.getTag())
+                .collect(Collectors.toList());
+        removeList.forEach(tag -> UnitMicroList.remove(tag));
     }
 
-    public static void add(BasicMover microUnit) {
+    public static void add(BasicUnitMicro microUnit) {
         Ignored.add(new IgnoredUnit(microUnit.unit.getTag()));
         unitMicroList.add(microUnit);
     }

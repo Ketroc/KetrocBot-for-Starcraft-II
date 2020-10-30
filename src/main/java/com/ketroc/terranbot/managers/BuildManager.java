@@ -401,7 +401,7 @@ public class BuildManager {
             }
 
             //make marines if wall under attack
-            else if (UnitUtils.isWallUnderAttack()) {
+            else if (UnitUtils.isWallUnderAttack() || ArmyManager.enemyInMain()) {
                 if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                     Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                     Cost.updateBank(Units.TERRAN_MARINE);
@@ -605,12 +605,16 @@ public class BuildManager {
     private static void addCCToPurchaseQueue() {
         if (Strategy.PRIORITIZE_EXPANDING) {
             if (!purchaseExpansionCC()) {
-                purchaseMacroCC();
+                if (!purchaseMacroCC()) {
+                    purchaseExtraCC();
+                }
             }
         }
         else if (Strategy.BUILD_EXPANDS_IN_MAIN) {
             if (!purchaseMacroCC()) {
-                purchaseExpansionCC();
+                if (!purchaseExpansionCC()) {
+                    purchaseExtraCC();
+                }
             }
         }
         else {
@@ -618,16 +622,39 @@ public class BuildManager {
             int numScvs = Bot.OBS.getFoodWorkers();
             if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
                 purchaseMacroCC();
-            } else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
+            }
+            else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
                 if (!purchaseMacroCC()) {
-                    purchaseExpansionCC();
+                    if (!purchaseExpansionCC()) {
+                        purchaseExtraCC();
+                    }
                 }
-            } else {
+            }
+            else {
                 if (!purchaseExpansionCC()) {
-                    purchaseMacroCC();
+                    if (!purchaseMacroCC()) {
+                        purchaseExtraCC();
+                    }
                 }
             }
         }
+    }
+
+    private static void purchaseExtraCC() {
+//        if (GameCache.mineralBank > 3000 && enemyHasMineralPatches()) {
+//            Point2d ccPos = Placement.getNextExtraCCPos();
+//            if (ccPos != null) {
+//                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
+//            }
+//        }
+    }
+
+    private static boolean enemyHasMineralPatches() {
+        return GameCache.baseList.stream()
+                .filter(base -> !base.isMyBase())
+                .anyMatch(base -> !base.isMyBase() &&
+                        base.lastScoutedFrame + Time.toFrames("5:00") > Time.nowFrames() &&
+                        !base.getMineralPatches().isEmpty());
     }
 
     private static boolean purchaseExpansionCC() {
@@ -665,7 +692,6 @@ public class BuildManager {
     private static boolean purchaseMacroCC() {
         if (!LocationConstants.MACRO_OCS.isEmpty()) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
-            GameCache.numMacroOCs++;
             return true;
         }
         return false;

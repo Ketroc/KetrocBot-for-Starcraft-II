@@ -21,9 +21,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BasicMover {
+public class BasicUnitMicro {
     public UnitInPool unit;
     public Point2d targetPos;
+    public boolean prioritizeLiving;
     public boolean isGround;
     public boolean canAttackAir;
     public boolean canAttackGround;
@@ -35,16 +36,21 @@ public class BasicMover {
     private long prevDirectionChangeFrame;
     public boolean removeMe;
 
-    public BasicMover(UnitInPool unit, Point2d targetPos) {
+    public BasicUnitMicro(UnitInPool unit, Point2d targetPos, boolean prioritizeLiving) {
         this.unit = unit;
         this.targetPos = targetPos;
+        this.prioritizeLiving = prioritizeLiving;
         this.isGround = !unit.unit().getFlying().orElse(false);
         setWeaponInfo();
         this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getMovementSpeed().orElse(0f);
-        Ignored.add(new IgnoredUnit(unit.getTag()));
     }
 
     public void onStep() {
+        if (unit == null || !unit.isAlive()) {
+            onFailure();
+            return;
+        }
+
         threatMap = (isGround) ? InfluenceMaps.pointThreatToGround : InfluenceMaps.pointThreatToAir;
 
         //attack if available
@@ -80,6 +86,7 @@ public class BasicMover {
     }
 
     public void onFailure() {
+        removeMe = true;
         return;
     }
 

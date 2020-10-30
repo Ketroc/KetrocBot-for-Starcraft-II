@@ -28,7 +28,6 @@ public class GameCache {
 
     public static final List<Upgrades> upgradesCompleted = new ArrayList<>(); //completed upgrades
 
-    public static int numMacroOCs = 0;
     public static final List<Unit> ccList = new ArrayList<>();
     public static final List<UnitInPool> availableScvs = new ArrayList<>();
     public static final List<UnitInPool> allScvs = new ArrayList<>();
@@ -354,7 +353,7 @@ public class GameCache {
         //************************
         List<UnitInPool> enemyCCs = Bot.OBS.getUnits(Alliance.ENEMY, enemyCC -> UnitUtils.enemyCommandStructures.contains(enemyCC.unit().getType())); //TODO: refactor when allEnemiesList doesn't duplicate snapshots
         for (Base base : baseList) { //TODO: handle FlyingCCs
-            //ignore bases that aren't mine and aren't visible
+            //ignore bases that aren't mine AND aren't visible
             if (!base.isMyBase() && Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE) {
                 continue;
             }

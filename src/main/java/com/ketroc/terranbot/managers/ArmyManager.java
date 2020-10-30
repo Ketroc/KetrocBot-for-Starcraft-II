@@ -9,10 +9,8 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.micro.LibDefender;
-import com.ketroc.terranbot.micro.TankDefender;
+import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.micro.Target;
-import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.DefenseUnitPositions;
@@ -599,11 +597,19 @@ public class ArmyManager {
     }
 
     private static void positionMarines() {
-        List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
-        if (!bunkerList.isEmpty()) {
-            for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
-                if (marine.getOrders().isEmpty()) { //for each idle marine
-                    Bot.ACTION.unitCommand(marine, Abilities.SMART, bunkerList.get(0), false);
+        if (enemyInMain()) {
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
+                    .forEach(marine ->
+                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, false).onStep()
+                    );
+        }
+        else {
+            List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
+            if (!bunkerList.isEmpty()) {
+                for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
+                    if (marine.getOrders().isEmpty()) { //for each idle marine
+                        Bot.ACTION.unitCommand(marine, Abilities.SMART, bunkerList.get(0), false);
+                    }
                 }
             }
         }
@@ -1273,5 +1279,9 @@ public class ArmyManager {
         if (!bio.isEmpty()) {
             Bot.ACTION.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
         }
+    }
+
+    static boolean enemyInMain() {
+        return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackGroundPos);
     }
 }

@@ -26,7 +26,7 @@ public class ExpansionClearing {
 
     public Point2d expansionPos;
     private int defenseStep;
-    public BasicMover raven;
+    public BasicUnitMicro raven;
     public List<UnitInPool> blockers;
     public UnitInPool turret;
     public boolean isTurretActive;
@@ -48,7 +48,8 @@ public class ExpansionClearing {
                 .map(Unit::getTag)
                 .orElse(null);
         if (nearestRaven != null) {
-            this.raven = new BasicMover(Bot.OBS.getUnit(nearestRaven), expansionPos);
+            this.raven = new BasicUnitMicro(Bot.OBS.getUnit(nearestRaven), expansionPos, true);
+            Ignored.add(new IgnoredUnit(raven.unit.getTag()));
         }
     }
 

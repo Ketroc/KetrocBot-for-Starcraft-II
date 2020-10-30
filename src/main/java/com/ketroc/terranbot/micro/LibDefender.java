@@ -6,11 +6,11 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.utils.Position;
 
-public class LibDefender extends BasicMover {
+public class LibDefender extends BasicUnitMicro {
     Point2d ccPos;
 
     public LibDefender(UnitInPool unit, Point2d targetPos, Point2d ccPos) {
-        super(unit, targetPos);
+        super(unit, targetPos, true);
         this.ccPos = ccPos;
     }
 

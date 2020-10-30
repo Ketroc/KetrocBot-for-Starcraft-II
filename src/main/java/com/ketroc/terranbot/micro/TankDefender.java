@@ -5,10 +5,10 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
 
-public class TankDefender extends BasicMover {
+public class TankDefender extends BasicUnitMicro {
 
     public TankDefender(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos);
+        super(unit, targetPos, true);
     }
 
     @Override
