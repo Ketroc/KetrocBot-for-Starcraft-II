@@ -51,7 +51,6 @@ public class WorkerManager {
         List<Unit> enemyScoutWorkers = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType);
         List<UnitInPool> myScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, LocationConstants.baseLocations.get(0), 50f);
         for (Unit enemyWorker : enemyScoutWorkers) {
-            Point2d enemyWorkerPos = enemyWorker.getPosition().toPoint2d();
             if (UnitUtils.getDistance(enemyWorker, LocationConstants.baseLocations.get(0)) < 40) {
                 Optional<Unit> attackingScv = myScvs.stream()
                         .map(UnitInPool::unit)
@@ -207,10 +206,7 @@ public class WorkerManager {
 
         //loop through bases
         for (Base base : GameCache.baseList) {
-            if (base.isMyBase() && base.isComplete(0.60f) //&&
-                    //GameCache.mineralBank * 2  > GameCache.gasBank * 3 && GameCache.mineralBank > 100
-                    //GameCache.mineralBank * 2  > GameCache.gasBank * 3 && GameCache.mineralBank > 100
-            ) {
+            if (base.isMyBase() && base.isComplete(0.60f)) {
                 for (Gas gas : base.getGases()) {
                     if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
                         if (StructureScv.scvBuildingList.stream()
@@ -410,47 +406,20 @@ public class WorkerManager {
         //put any leftover idle scvs to work
         scvsToMove.removeIf(scv -> !scv.getOrders().isEmpty());
         if (!scvsToMove.isEmpty()) {
-            //if no minerals left on map, join the attack
+            //if no minerals left on map, join the attack as auto-repairers
             if (GameCache.defaultRallyNode == null) {
-                scvsToMove.stream().filter(scv -> scv.getBuffs().contains(Buffs.AUTOMATED_REPAIR)).forEach(scv -> Bot.ACTION.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, false));
-                UnitUtils.queueUpAttackOfEveryBase(scvsToMove);
+                scvsToMove.stream()
+                        .filter(scv -> !scv.getBuffs().contains(Buffs.AUTOMATED_REPAIR))
+                        .forEach(scv -> Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV));
+                //UnitUtils.queueUpAttackOfEveryBase(scvsToMove);
+                Bot.ACTION.unitCommand(scvsToMove, Abilities.ATTACK, ArmyManager.groundAttackersMidPoint, false);
             }
             //mine from newest base (or if dried up, distance-mine)
             else {
                 Bot.ACTION.unitCommand(scvsToMove, Abilities.SMART, GameCache.defaultRallyNode, false);
             }
         }
-
-//        //rally all CCs to the newest base's mineral line
-//        if (!Switches.tvtFastStart && GameState.mineralNodeRally != null && !GameState.ccList.isEmpty()) {
-//            Bot.ACTION.unitCommand(GameState.ccList, Abilities.RALLY_COMMAND_CENTER, GameState.mineralNodeRally, false);
-//        }
     }
-
-//    public static void changeGasIncome() {
-//        if (toggleWorkersInGas()) {
-//            List<UnitInPool> allAvailableScvs = getAllAvailableScvs();
-//            if (!allAvailableScvs.isEmpty()) {
-//                GameCache.baseList.stream()
-//                        .filter(base -> base.isMyBase() && base.isComplete())
-//                        .flatMap(base -> base.getGases().stream())
-//                        .map(Gas::getRefinery)
-//                        .filter(refinery -> refinery != null && refinery.getBuildProgress() == 1 && refinery.getAssignedHarvesters().orElse(scvsPerGas) != scvsPerGas)
-//                        .forEach(refinery -> {
-//                            if (refinery.getAssignedHarvesters().get() < scvsPerGas) {
-//                                Unit scvToAdd = allAvailableScvs.stream()
-//                                        .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), refinery)))
-//                                        .get().unit();
-//                                allAvailableScvs.remove(scvToAdd);
-//                                Bot.ACTION.unitCommand(scvToAdd, Abilities.SMART, refinery, false);
-//                            }
-//                            else {
-//
-//                            }
-//                        });
-//            }
-//        }
-//    }
 
     public static boolean toggleWorkersInGas() {
         //skip logic until there are at least 2 refineries

@@ -2,9 +2,11 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -35,6 +37,7 @@ public class BuildManager {
             Abilities.BUILD_FACTORY, Abilities.BUILD_FUSION_CORE, Abilities.BUILD_GHOST_ACADEMY, Abilities.BUILD_MISSILE_TURRET,
             Abilities.BUILD_SENSOR_TOWER
     );
+    private static boolean isMuleSpamming;
 
     public static void onStep() {
         //build armories etc
@@ -51,6 +54,9 @@ public class BuildManager {
 
         //keep CCs active (make scvs, morph ccs, call mules)
         ccActivityLogic();
+
+        //spam mules on opponent
+        spamMulesOnEnemyBase();
 
         //turn low health expansion command centers into macro OCs
         saveDyingCCs();
@@ -81,6 +87,53 @@ public class BuildManager {
 
         //no-gas left (marines&hellbats)
         noGasProduction();
+    }
+
+    private static void spamMulesOnEnemyBase() {
+        List<Unit> ocList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        int numMulesAvailable = ocList.stream()
+                .mapToInt(oc -> oc.getEnergy().orElse(0f).intValue() / 50)
+                .sum();
+
+        //if ocs has energy pooled up and scan is needed to mule enemy
+        if (isMuleSpamming || ocList.stream().anyMatch(oc -> oc.getEnergy().orElse(0f) >= 199)) {
+            isMuleSpamming = true;
+            for (Base base : GameCache.baseList) {
+                if (baseReadyForMuleSpam(base)) {
+                    base.prevMuleSpamFrame = Time.nowFrames();
+                    for (Unit mineralNode : base.getMineralPatches()) {
+                        Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
+                        Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
+                        numMulesAvailable -= 2;
+                        if (numMulesAvailable < 1) {
+                            isMuleSpamming = false;
+                            return;
+                        }
+                    }
+                }
+            }
+            if (numMulesAvailable > 4) {
+                scanNextBase(ocList);
+            }
+            else {
+                isMuleSpamming = false;
+            }
+        }
+    }
+
+    //checks if base is enemy owned, has minerals, is being scanned, and has no mules
+    private static boolean baseReadyForMuleSpam(Base base) {
+        return base.isEnemyBase &&
+                !base.getMineralPatches().isEmpty() &&
+                isScanningThisBase(base.getCcPos()) &&
+                base.prevMuleSpamFrame + Time.toFrames(10) < Time.nowFrames();
+    }
+
+    private static void scanNextBase(List<Unit> ocList) {
+        GameCache.baseList.stream()
+                .filter(base -> base.isEnemyBase && !base.getMineralPatches().isEmpty() && !isScanningThisBase(base.getCcPos()))
+                .findFirst()
+                .ifPresent(base -> Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, base.getCcPos(), false));
     }
 
     private static void noGasProduction() {
@@ -121,7 +174,7 @@ public class BuildManager {
                 Position.toWholePoint(
                         Position.towards(expansionPos, LocationConstants.enemyMainBaseMidPos, 8)
                 )
-        , 4).stream()
+                , 4).stream()
                 .sorted(Comparator.comparing(landPos -> landPos.distance(expansionPos)))
                 .collect(Collectors.toList());
 
@@ -178,14 +231,13 @@ public class BuildManager {
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty() ||
                 (Switches.enemyCanProduceAir && LocationConstants.opponentRace == Race.TERRAN)) {
             turretsRequired = 3;
-        }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Time.nowFrames() > Time.toFrames("3:30")) {
+        } else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat || Time.nowFrames() > Time.toFrames("3:30")) {
             turretsRequired = 1;
         }
         if (turretsRequired > 0) {
             for (Base base : GameCache.baseList) {
                 if (base.isMyBase() && !base.isMyMainBase() && base.isComplete()) {
-                    for (int i=0; i<turretsRequired; i++) {
+                    for (int i = 0; i < turretsRequired; i++) {
                         DefenseUnitPositions turret = base.getTurrets().get(i);
                         if (turret.getUnit().isEmpty() &&
                                 !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
@@ -211,7 +263,7 @@ public class BuildManager {
     private static void ccActivityLogic() {
         for (Unit cc : GameCache.ccList) {
             if (cc.getBuildProgress() == 1.0f && !cc.getActive().get()) {
-                switch ((Units)cc.getType()) {
+                switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
                             if (UnitUtils.hasTechToBuild(Units.TERRAN_ORBITAL_COMMAND)) {
@@ -230,7 +282,7 @@ public class BuildManager {
                                             .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
 
                                     //remove OC morph from purchase queue
-                                    for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+                                    for (int i = 0; i < KetrocBot.purchaseQueue.size(); i++) {
                                         Purchase p = KetrocBot.purchaseQueue.get(i);
                                         if (p instanceof PurchaseStructureMorph) {
                                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
@@ -240,14 +292,12 @@ public class BuildManager {
                                         }
                                     }
 
-                                }
-                                else if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                } else if (!isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
                                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
                                 }
                                 break; //don't queue scv
                             }
-                        }
-                        else { //if base that will become a PF TODO: use same logic as OC
+                        } else { //if base that will become a PF TODO: use same logic as OC
                             if (UnitUtils.hasTechToBuild(Units.TERRAN_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
                                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
@@ -277,28 +327,36 @@ public class BuildManager {
                                             new DelayedAction(delay, Abilities.MOVE, Bot.OBS.getUnit(marine.getTag()), GameCache.baseList.get(GameCache.baseList.size() - 1).getCcPos()));
                                     delay += 60;
                                 }
-                            }
-                            else {
+                            } else if (GameCache.mineralBank < 3000) {
                                 //calldown mule
                                 boolean didMule = false;
-                                for (int i = GameCache.baseList.size()-1; i >= 0; i--) {
+                                for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
                                     Base base = GameCache.baseList.get(i);
-                                    if (base.isMyBase() && base.getCc().map(UnitInPool::unit).map(Unit::getType).orElse(Units.INVALID) == Units.TERRAN_PLANETARY_FORTRESS) {
-                                        if (base.getCc().map(UnitInPool::unit).map(Unit::getBuildProgress).orElse(0f) == 1.0f && !base.getMineralPatches().isEmpty()) {
-                                            Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, base.getMineralPatches().get(0), false);
-                                            didMule = true;
-                                            break;
+                                    if (base.isMyBase()) {
+                                        int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
+                                        if (numMules < base.getMineralPatches().size()) {
+                                            Unit mineralPatch = base.getMineralPatches().stream()
+                                                    .filter(patch -> patch.getDisplayType() == DisplayType.VISIBLE)
+                                                    .min(Comparator.comparing(patch -> UnitUtils.getDistance(patch, base.getCcPos())))
+                                                    .orElse(null);
+                                            if (mineralPatch != null) {
+                                                Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, base.getMineralPatches().get(0), false);
+                                                didMule = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                                 //if no base minerals, then distance mule closest mineral patch
                                 if (!didMule) {
                                     Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
-                                                    node.unit().getDisplayType() == DisplayType.VISIBLE)
+                                            node.unit().getDisplayType() == DisplayType.VISIBLE)
                                             .stream()
                                             .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), cc)))
                                             .map(UnitInPool::unit)
-                                            .ifPresent(nearestMineral -> Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, nearestMineral, false));
+                                            .ifPresent(nearestMineral -> {
+                                                Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, nearestMineral, false);
+                                            });
                                 }
                             }
                         }
@@ -342,7 +400,7 @@ public class BuildManager {
                     base.setCc(null);
 
                     //cancel PF morph in purchase queue
-                    for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+                    for (int i = 0; i < KetrocBot.purchaseQueue.size(); i++) {
                         Purchase p = KetrocBot.purchaseQueue.get(i);
                         if (p instanceof PurchaseStructureMorph) {
                             if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
@@ -390,7 +448,7 @@ public class BuildManager {
 //                    }
                 }
                 //time to lift off barracks
-                else if (barracks.getType() == Units.TERRAN_BARRACKS){
+                else if (barracks.getType() == Units.TERRAN_BARRACKS) {
                     LocationConstants.STARPORTS.add(0, barracks.getPosition().toPoint2d());
                     Bot.ACTION.unitCommand(barracks, Abilities.LIFT, false);
                 }
@@ -445,8 +503,7 @@ public class BuildManager {
                         Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
                         Cost.updateBank(Units.TERRAN_SIEGE_TANK);
                     }
-                }
-                else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
+                } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                     Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
@@ -459,8 +516,7 @@ public class BuildManager {
         if (factory.unit().getBuildProgress() == 1f) {
             if (factory.unit().getActive().orElse(true)) {
                 Bot.ACTION.unitCommand(factory.unit(), Abilities.CANCEL_LAST, false);
-            }
-            else {
+            } else {
                 Point2d behindMainBase = Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 10);
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     BunkerContain.onFactoryLift();
@@ -486,8 +542,7 @@ public class BuildManager {
                             (unitToProduce == Abilities.TRAIN_RAVEN || unitToProduce == Abilities.TRAIN_BANSHEE || unitToProduce == Abilities.TRAIN_BATTLECRUISER) &&
                             !Purchase.isStructureQueued(Units.TERRAN_STARPORT_TECHLAB)) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
-                    }
-                    else {
+                    } else {
                         Bot.ACTION.unitCommand(starport.unit(), unitToProduce, false);
                         Cost.updateBank(unitType);
                     }
@@ -508,9 +563,9 @@ public class BuildManager {
         int numLiberators = UnitUtils.getNumFriendlyUnits(UnitUtils.LIBERATOR_TYPE, true) +
                 Ignored.numOfType(UnitUtils.LIBERATOR_TYPE);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
-        int vikingsByRatio  = (int)(numBanshees * Strategy.VIKING_BANSHEE_RATIO);
+        int vikingsByRatio = (int) (numBanshees * Strategy.VIKING_BANSHEE_RATIO);
         if (vikingsByRatio > vikingsRequired) { //build vikings 1:1 with banshees until 1.5x vikings required
-            vikingsRequired = Math.min((int)(vikingsRequired * 1.8), vikingsByRatio);
+            vikingsRequired = Math.min((int) (vikingsRequired * 1.8), vikingsByRatio);
         }
         int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 4 : 2;
 
@@ -552,7 +607,7 @@ public class BuildManager {
         }
 
         //get defensive liberators for each expansion up to 6
-        if (Strategy.DO_INCLUDE_LIBS && numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases()-1))) {
+        if (Strategy.DO_INCLUDE_LIBS && numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases() - 1))) {
             return Abilities.TRAIN_LIBERATOR;
         }
         //get 1 raven for observers
@@ -598,8 +653,8 @@ public class BuildManager {
                 GameCache.factoryList.stream()
                         .noneMatch(u -> u.unit().getType() == Units.TERRAN_FACTORY &&
                                 (u.unit().getOrders().isEmpty() ||
-                                u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                                u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.8f));
+                                        u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
+                                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.8f));
     }
 
     private static void addCCToPurchaseQueue() {
@@ -609,28 +664,24 @@ public class BuildManager {
                     purchaseExtraCC();
                 }
             }
-        }
-        else if (Strategy.BUILD_EXPANDS_IN_MAIN) {
+        } else if (Strategy.BUILD_EXPANDS_IN_MAIN) {
             if (!purchaseMacroCC()) {
                 if (!purchaseExpansionCC()) {
                     purchaseExtraCC();
                 }
             }
-        }
-        else {
+        } else {
             int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
             int numScvs = Bot.OBS.getFoodWorkers();
             if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
                 purchaseMacroCC();
-            }
-            else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
+            } else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
                 if (!purchaseMacroCC()) {
                     if (!purchaseExpansionCC()) {
                         purchaseExtraCC();
                     }
                 }
-            }
-            else {
+            } else {
                 if (!purchaseExpansionCC()) {
                     if (!purchaseMacroCC()) {
                         purchaseExtraCC();
@@ -641,12 +692,12 @@ public class BuildManager {
     }
 
     private static void purchaseExtraCC() {
-//        if (GameCache.mineralBank > 3000 && enemyHasMineralPatches()) {
-//            Point2d ccPos = Placement.getNextExtraCCPos();
-//            if (ccPos != null) {
-//                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
-//            }
-//        }
+        if (GameCache.mineralBank > 2000 && enemyHasMineralPatches()) {
+            Point2d ccPos = Placement.getNextExtraCCPos();
+            if (ccPos != null) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
+            }
+        }
     }
 
     private static boolean enemyHasMineralPatches() {
@@ -667,7 +718,7 @@ public class BuildManager {
     }
 
     private static Point2d getNextAvailableExpansionPosition() {
-        List<Base> expansionOptions =  GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
+        List<Base> expansionOptions = GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
                 .filter(base -> base.isUntakenBase() &&
                         !base.isDryedUp() &&
                         InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, base.getCcPos()) == 0)
@@ -676,8 +727,7 @@ public class BuildManager {
         for (Base base : expansionOptions) {
             if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
                 return base.getCcPos();
-            }
-            else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
+            } else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
                 ExpansionClearing.add(base.getCcPos());
                 KetrocBot.count1++;
             }
@@ -698,7 +748,7 @@ public class BuildManager {
     }
 
     public static boolean ccToBeOC(Point2d ccPos) {
-        for (int i=1; i<LocationConstants.baseLocations.size(); i++) {
+        for (int i = 1; i < LocationConstants.baseLocations.size(); i++) {
             if (ccPos.distance(LocationConstants.baseLocations.get(i)) < 1) {
                 return false;
             }
@@ -727,7 +777,7 @@ public class BuildManager {
     private static int supplyPerProductionCycle() {
         return Math.min(Strategy.maxScvs - Bot.OBS.getFoodWorkers(), Base.numMyBases()) * 2 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
                 GameCache.starportList.size() * 2 +
-                (int)GameCache.factoryList.stream()
+                (int) GameCache.factoryList.stream()
                         .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)
                         .count() * 2;
     }
@@ -777,8 +827,8 @@ public class BuildManager {
     public static List<Point2d> calculateTurretPositions(Point2d ccPos) {//pick position away from enemy main base like a knight move (3.5x1.5)
         float xCC = ccPos.getX();
         float yCC = ccPos.getY();
-        float xEnemy = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1).getX();
-        float yEnemy = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1).getY();
+        float xEnemy = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1).getX();
+        float yEnemy = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1).getY();
         float xDistance = xEnemy - xCC;
         float yDistance = yEnemy - yCC;
         float xMove = 1.5f;
@@ -790,18 +840,16 @@ public class BuildManager {
 
         if (Math.abs(xDistance) > Math.abs(yDistance)) { //move 3.5x1.5
             yMove = 3.5f;
-        }
-        else { //move 1x3
+        } else { //move 1x3
             xMove = 3.5f;
         }
         xTurret1 = xCC + xMove;
         xTurret2 = xCC - xMove;
 
-        if (xDistance*yDistance > 0) {
+        if (xDistance * yDistance > 0) {
             yTurret1 = yCC - yMove;
             yTurret2 = yCC + yMove;
-        }
-        else {
+        } else {
             yTurret1 = yCC + yMove;
             yTurret2 = yCC - yMove;
         }
@@ -823,4 +871,11 @@ public class BuildManager {
                         !enemy.unit().getFlying().orElse(false)).isEmpty();  //default false to handle structure snapshots
     }
 
+    private static boolean isScanningThisBase(Point2d basePos) {
+        return Bot.OBS.getEffects().stream()
+                .anyMatch(e -> e.getAlliance().orElse(Alliance.ENEMY) == Alliance.SELF &&
+                        e.getEffect() == Effects.SCANNER_SWEEP &&
+                        basePos.distance(e.getPositions().iterator().next()) < 1);
+    }
 }
+

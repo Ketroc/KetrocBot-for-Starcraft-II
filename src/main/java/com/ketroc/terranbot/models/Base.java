@@ -36,6 +36,7 @@ public class Base {
     private static float libDistanceFromCC = -1;
     private boolean continueUnsieging;
     private boolean onMyBaseDeath;
+    public long prevMuleSpamFrame;
 
     // ============= CONSTRUCTORS ============
 

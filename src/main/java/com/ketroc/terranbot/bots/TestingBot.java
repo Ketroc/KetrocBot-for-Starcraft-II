@@ -1,14 +1,24 @@
 package com.ketroc.terranbot.bots;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
+import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.managers.ActionErrorManager;
+import com.ketroc.terranbot.utils.DebugHelper;
+import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
+import com.ketroc.terranbot.utils.UnitUtils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +27,12 @@ public class TestingBot extends Bot {
     public static UnitInPool marine;
     public float z;
     public Unit commandCenter;
-
+    public int myId;
+    public int enemyId;
+    public int neutralId = 16;
+    public Point2d mySpawnPos;
+    public Point2d enemySpawnPos;
+    public List<Point2d> possibleCcPosList;
     public TestingBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
     }
@@ -25,14 +40,24 @@ public class TestingBot extends Bot {
     @Override
     public void onGameStart() {
         super.onGameStart();
+        myId = Bot.OBS.getPlayerId();
+        enemyId = Bot.OBS.getGameInfo().getPlayersInfo().stream()
+                .map(PlayerInfo::getPlayerId)
+                .filter(id -> id != myId)
+                .findFirst()
+                .get();
+        mySpawnPos = Bot.OBS.getStartLocation().toPoint2d();
+        enemySpawnPos = Bot.OBS.getGameInfo().getStartRaw().get().getStartLocations().stream()
+                .filter(pos -> mySpawnPos.distance(pos) > 10)
+                .findFirst().get();
 
-        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-        int playerId = observation().getPlayerId();
-//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), 0, 1);
-//        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), playerId, 1);
-//        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), playerId, 1);
-////        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), observation().getGameInfo().getPlayersInfo().iterator().next().getPlayerId(), 1);
-        debug().sendDebug();
+
+//        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
+//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), neutralId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), myId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
+////        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), enemyId, 1);
+//        debug().sendDebug();
 
 //        commandCenter = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
 //        z = commandCenter.getPosition().getZ();
@@ -53,130 +78,96 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
-        ActionErrorManager.onStep();
-//        if (Time.nowFrames() == 10) {
-//            Unit scv = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).get(0).unit();
-//            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(140, 130)));
-//            System.out.println("Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)) = " + Bot.QUERY.pathingDistance(scv, Point2d.of(40, 40)));
-//        }
-
-//        List<Unit> scvs = observation().getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream().map(UnitInPool::unit).collect(Collectors.toList());
-//        actions().unitCommand(scvs.remove(0), Abilities.BUILD_COMMAND_CENTER, Point2d.of(1, 250), false);
-////        List<UnitInPool> scvs = observation().getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV &&
-////                !scv.unit().getOrders().isEmpty());
-////
-////        if (!scvs.isEmpty()) {
-////            Tag mineralNode = scvs.get(0).unit().getOrders().get(0).getTargetedUnitTag().orElse(null);
-////
-////            if (mineralNode != null) {
-////                System.out.println(observation().getUnit(mineralNode).unit().getPosition().toPoint2d());
-////            }
-////        }
-        if (Time.nowFrames() == 100) {
+        if (Time.nowFrames() == 300) {
             long start = System.currentTimeMillis();
-            List<Point2d> expansions = Tester.calculateExpansionLocations(OBS);
-            System.out.println(System.currentTimeMillis()-start);
-            List<Unit> scvs = OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream().map(UnitInPool::unit).collect(Collectors.toList());
-            //expansions.forEach(p -> ACTION.unitCommand(scvs.remove(0), Abilities.BUILD_COMMAND_CENTER, p, false));
+            possibleCcPosList = possibleCcPos();
+            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
+            System.out.println("possibleCcPos() time = " + (System.currentTimeMillis() - start));
+            System.out.println("possibleCcPosList.size() = " + possibleCcPosList.size());
+            Point2d ccPos = queryPossibleCcList();
+            System.out.println("possibleCcPosList.size() after query = " + possibleCcPosList.size());
         }
-
-
-        List<UnitInPool> cyclone = Bot.OBS.getUnits(Alliance.SELF, c -> c.unit().getType() == Units.TERRAN_CYCLONE);
-        int w=0;
-
-        //testing how to cancel a unit production
-//        if (observation().getGameLoop() > 20) {
-//            Unit barracks = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BARRACKS).get(0).unit();
-//            if (barracks.getActive().orElse(true)) {
-//                actions().unitCommand(barracks, Abilities.CANCEL_LAST, false);
-//                System.out.println("cancelled rax unit");
-//            }
-//
-//            Unit cc = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
-//            if (cc.getActive().orElse(true)) {
-//                actions().unitCommand(cc, Abilities.CANCEL, false);
-//                System.out.println("cancelled cc unit");
-//            }
-//        }
-
-
-//        if (observation().getGameLoop() > 705) {
-//            List<Unit> lowHellions = UnitUtils.unitInPoolToUnitList(observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_HELLION && z - u.unit().getPosition().getZ() > 1));
-//            List<Unit> highHellions = UnitUtils.unitInPoolToUnitList(observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_HELLION && z - u.unit().getPosition().getZ() <= 1));
-//            Unit medivac = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).get(0).unit();
-//            if (medivac.getCargoSpaceTaken().orElse(0) > 0) {
-//                actions().unitCommand(medivac, Abilities.UNLOAD_ALL_AT_MEDIVAC, medivac, false);
-//            }
-//            if (!lowHellions.isEmpty()) {
-//                actions().unitCommand(lowHellions, Abilities.SMART, medivac, false);
-//            }
-//            if (!highHellions.isEmpty()) {
-//                actions().unitCommand(highHellions, Abilities.SMART, commandCenter, false);
-//            }
-//        }
-
-
-
-
-//        if (observation().getGameLoop() == 305) {
-//            Set<Tag> bunkers = new HashSet<>();
-//            bunkers.add(observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BUNKER).get(0).getTag());
-//            actions().unitCommand(bunkers, Abilities.UNLOAD_UNIT_BUNKER, false);
-//            actions().sendActions();
-//            System.out.println("done");
-//        }
-//        List<UnitInPool> enemies = observation().getUnits(Alliance.ENEMY);
-//        if (!enemies.isEmpty()) {
-//            int x = 0;
-//        }
-
-
-//        if (observation().getGameLoop() == 30) {
-//            bunker = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).get(0);
-//            marine = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).get(0);
-//        }
-//        if (observation().getGameLoop() == 300) {
-//            List<Unit> both = new ArrayList<>();
-//            both.add(bunker.unit());
-//            both.add(marine.unit());
-//            actions().unitCommand(both, Abilities.CANCEL_QUEUE1, false);
-//            actions().sendActions();
-//        }
-//        if (observation().getGameLoop() == 305) {
-//            actions().unitCommand(marine.unit(), Abilities.CANCEL_QUEUE1, false);
-//            actions().sendActions();
-//        }
-//        if (observation().getGameLoop() == 310) {
-//            actions().unitCommand(bunker.unit(), Abilities.CANCEL_QUEUE1, false);
-//            actions().sendActions();
-//        }
-//        if (observation().getGameLoop() == 315) {
-//            actions().unitCommand(bunker.unit(), Abilities.CANCEL_QUEUE1, marine.unit(), false);
-//            actions().sendActions();
-//        }
-//        if (observation().getGameLoop() == 320) {
-//            actions().unitCommand(marine.unit(), Abilities.CANCEL_QUEUE1, bunker.unit(), false);
-//            actions().sendActions();
-//        }
-//        if (observation().getGameLoop() == 325) {
-//            actions().unitCommand(marine.getTag(), Abilities.CANCEL_QUEUE1, bunker.unit(), false);
-//            actions().sendActions();
-//            System.out.println("done");
-//        }
-//        //print z coordinate
-//        List<UnitInPool> scvs = observation().getUnits(Alliance.SELF,
-//                u -> u.unit().getType() == Units.TERRAN_SCV &&
-//                !u.unit().getOrders().isEmpty() &&
-//                u.unit().getOrders().get(0).getAbility() == Abilities.MOVE);
-//        if (!scvs.isEmpty()) {
-//            System.out.println("z: " + scvs.get(0).unit().getPosition().getZ());
-//        }
+        if (Time.nowFrames() == 400) {
+            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
+        }
+        if (Time.nowFrames() == 1000) {
+            Point2d ccPos = queryPossibleCcList();
+            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
+        }
         ACTION.sendActions();
         DEBUG.sendDebug();
-        if (Time.nowFrames() == 100) {
-            int q = 1;
+        if (Time.nowFrames() == 300 || Time.nowFrames() == 400 || Time.nowFrames() == 1400) {
+            int q = 0;
+        }
+    }
+
+    public List<Point2d> possibleCcPos() {
+        Point2d SCREEN_TOP_RIGHT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP1().toPoint2d();
+        float minX = 2.5f;
+        float minY = 3.5f;
+        float maxX = SCREEN_TOP_RIGHT.getX() - 3.5f;
+        float maxY = SCREEN_TOP_RIGHT.getY() - 2.5f;
+        List<Point2d> resourceNodePosList = Bot.OBS.getUnits(Alliance.NEUTRAL, u ->
+                UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) ||
+                UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType()))
+                .stream()
+                .map(UnitInPool::unit)
+                .map(Unit::getPosition)
+                .map(Point::toPoint2d)
+                .collect(Collectors.toList());
+
+
+        List<Point2d> uncheckedPosList = new ArrayList<>();
+        for (float x = minX; x <= maxX; x += 3) {
+            for (float y = minY; y <= maxY; y += 3) {
+                Point2d thisPos = Point2d.of(x, y);
+                if (enemySpawnPos.distance(thisPos) > 100 &&
+                        checkCcCorners(x, y) &&
+                        resourceNodePosList.stream().noneMatch(p -> p.distance(thisPos) < 6)) {
+                    uncheckedPosList.add(thisPos);
+                }
+            }
+        }
+        uncheckedPosList = uncheckedPosList.stream().sorted(Comparator.comparing(p -> p.distance(mySpawnPos))).collect(Collectors.toList());
+
+        return uncheckedPosList;
+    }
+
+    private Point2d queryPossibleCcList() {
+        long start = System.currentTimeMillis();
+        List<QueryBuildingPlacement> queryList = possibleCcPosList.stream()
+                .map(p -> QueryBuildingPlacement
+                        .placeBuilding()
+                        .useAbility(Abilities.BUILD_COMMAND_CENTER)
+                        .on(p).build())
+                .collect(Collectors.toList());
+        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+        System.out.println("giant query = " + (System.currentTimeMillis() - start));
+        for (int i=0; i<placementList.size(); i++) {
+            if (!placementList.get(i).booleanValue()) {
+                placementList.remove(i);
+                possibleCcPosList.remove(i--);
+            }
         }
 
+        return null;
+    }
+
+    private boolean checkCcCorners(float x, float y) {
+        Point2d top = Point2d.of(x, y+2.5f);
+        Point2d bottom = Point2d.of(x, y-3.5f);
+        Point2d left = Point2d.of(x-2.5f, y);
+        Point2d right = Point2d.of(x+3.5f, y);
+        Point2d center = Point2d.of(x, y);
+        Point2d topLeft = Point2d.of(x-2.5f, y+2.5f);
+        Point2d topRight = Point2d.of(x+3.5f, y+2.5f);
+        Point2d botLeft = Point2d.of(x-2.5f, y-3.5f);
+        Point2d botRight = Point2d.of(x+3.5f, y-3.5f);
+        return Bot.OBS.isPlacable(topLeft) && Bot.OBS.isPlacable(topRight) &&
+                Bot.OBS.isPlacable(botLeft) && Bot.OBS.isPlacable(botRight) &&
+                Bot.OBS.isPlacable(top) && Bot.OBS.isPlacable(bottom) &&
+                Bot.OBS.isPlacable(left) && Bot.OBS.isPlacable(right) &&
+                Bot.OBS.isPlacable(center);
     }
 
     @Override

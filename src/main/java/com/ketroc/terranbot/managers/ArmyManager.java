@@ -1281,7 +1281,10 @@ public class ArmyManager {
         }
     }
 
-    static boolean enemyInMain() {
+    public static boolean enemyInMain() {
+        if (attackGroundPos == null) {
+            return false;
+        }
         return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackGroundPos);
     }
 }

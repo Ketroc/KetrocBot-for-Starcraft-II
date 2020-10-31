@@ -114,6 +114,10 @@ public class GameCache {
                 continue;
             }
 
+            if (unit.getType() == Units.Other.of(1726)) {
+                int sldkfj=0;
+            }
+
             if (unit.getType() instanceof Units.Other) {
                 float x = unit.getPosition().getX();
                 float y = unit.getPosition().getY();
@@ -406,9 +410,9 @@ public class GameCache {
             if (cc.getIdealHarvesters().isEmpty()) {
                 System.out.println("error on GameCache::414");
             }
-            if ((cc.getAssignedHarvesters().get() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) { //DEBUG: got No value present on this line
-                if (GameCache.defaultRallyNode == null) {
-                    GameCache.defaultRallyNode = base.getRallyNode();
+            if (!base.getMineralPatches().isEmpty()) {
+                if (defaultRallyNode == null) {
+                    defaultRallyNode = base.getRallyNode();
                 }
             }
 
@@ -435,9 +439,17 @@ public class GameCache {
 
         }
 
-        //if all my bases have no minerals left, set rally position to nearest mineral patch elsewhere
-        if (GameCache.defaultRallyNode == null) {
-            GameCache.defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, LocationConstants.baseLocations.get(0));
+        //if all my bases have no minerals left, distance mine to an untaken base
+        if (defaultRallyNode == null) {
+            baseList.stream()
+                    .filter(base -> base.isUntakenBase() && !base.getMineralPatches().isEmpty())
+                    .findFirst()
+                    .ifPresent(base -> defaultRallyNode = base.getMineralPatches().get(0));
+        }
+
+        //if no minerals to distance mine either, then mine nearest mineral wall
+        if (defaultRallyNode == null) {
+            defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
         }
 
 
@@ -465,7 +477,7 @@ public class GameCache {
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemy -> enemy.getLastSeenGameLoop() +
-                        ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 0) >= Time.nowFrames())
+                        ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 24) >= Time.nowFrames())
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
 
         //check for fungal mapping

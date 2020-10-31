@@ -373,7 +373,7 @@ public class Strategy {
     public static void setMaxScvs() {
         //if no minerals left on the map
         if (GameCache.defaultRallyNode == null) {
-            maxScvs = 5;
+            maxScvs = 6;
         }
         //if maxed out on macro OCs
         else if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {

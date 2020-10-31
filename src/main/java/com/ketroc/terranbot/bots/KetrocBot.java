@@ -68,9 +68,11 @@ public class KetrocBot extends Bot {
             //get map, get hardcoded map locations
             LocationConstants.onGameStart(mainCC);
 
+            //initialize list of extra cc positions
+            Placement.onGameStart();
+
             //choose strategy
             Strategy.onGameStart();
-
 
             DebugHelper.onGameStart();
 
@@ -402,6 +404,7 @@ public class KetrocBot extends Bot {
                             BunkerContain.onFactoryComplete();
                         }
                         else {
+                            Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
                             purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
                             purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                             purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
