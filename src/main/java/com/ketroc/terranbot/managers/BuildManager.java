@@ -2,7 +2,6 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
@@ -90,29 +89,36 @@ public class BuildManager {
 
     private static void spamMulesOnEnemyBase() {
         List<Unit> ocList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        int ocCount = (int)ocList.stream().filter(oc -> oc.getEnergy().get() >= 50f).count(); //OCs with mule energy
         int numMulesAvailable = ocList.stream()
                 .mapToInt(oc -> oc.getEnergy().orElse(0f).intValue() / 50)
                 .sum();
 
         //if ocs has energy pooled up and scan is needed to mule enemy
-        if (isMuleSpamming || ocList.stream().anyMatch(oc -> oc.getEnergy().orElse(0f) >= 199)) {
+        if (isMuleSpamming || numMulesAvailable > 30 || ocList.stream().anyMatch(oc -> oc.getEnergy().orElse(0f) >= 199)) {
             isMuleSpamming = true;
             for (Base base : GameCache.baseList) {
-                if (baseReadyForMuleSpam(base)) {
-                    base.prevMuleSpamFrame = Time.nowFrames();
+                if (isBaseReadyForMuleSpam(base)) {
                     for (Unit mineralNode : base.getMineralPatches()) {
                         Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
                         Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
                         numMulesAvailable -= 2;
-                        if (numMulesAvailable < 1) {
+                        ocCount -= 2;
+                        if (numMulesAvailable <= 0) {
                             isMuleSpamming = false;
                             return;
                         }
+                        if (ocCount <= 0) {
+                            return;
+                        }
                     }
+                    base.prevMuleSpamFrame = Time.nowFrames();
                 }
             }
             if (numMulesAvailable > 4) {
-                scanNextBase(ocList);
+                if (!scanNextBase(ocList)) {
+                    isMuleSpamming = muleMyBases(ocList, ocCount, numMulesAvailable);
+                }
             }
             else {
                 isMuleSpamming = false;
@@ -120,22 +126,48 @@ public class BuildManager {
         }
     }
 
+    private static boolean muleMyBases(List<Unit> ocList, int ocCount, int numMulesAvailable) {
+        for (int i=GameCache.baseList.size()-1; i >= 0; i--) {
+            Base base = GameCache.baseList.get(i);
+            if (base.isReadyForMining() && base.prevMuleSpamFrame + Time.toFrames(64) < Time.nowFrames()) {
+                for (Unit mineral : base.getMineralPatches()) {
+                    base.prevMuleSpamFrame = Time.nowFrames();
+                    Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineral, false);
+                    Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineral, false);
+                    ocCount -= 2;
+                    numMulesAvailable -= 2;
+                    if (numMulesAvailable <= 0) {
+                        return false;
+                    }
+                    if (ocCount <= 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     //checks if base is enemy owned, has minerals, is being scanned, and has no mules
-    private static boolean baseReadyForMuleSpam(Base base) {
+    private static boolean isBaseReadyForMuleSpam(Base base) {
         return !base.isMyBase() &&
                 !base.getMineralPatches().isEmpty() &&
                 isMineralsVisible(base.getMineralPatches()) &&
                 base.prevMuleSpamFrame + Time.toFrames(10) < Time.nowFrames();
     }
 
-    private static void scanNextBase(List<Unit> ocList) {
-        GameCache.baseList.stream()
+    private static boolean scanNextBase(List<Unit> ocList) {
+        Base nextBase = GameCache.baseList.stream()
                 .filter(base -> !base.isMyBase() &&
                         base.prevMuleSpamFrame + Time.toFrames(30) < Time.nowFrames() &&
                         !base.getMineralPatches().isEmpty() &&
                         !isMineralsVisible(base.getMineralPatches()))
                 .findFirst()
-                .ifPresent(base -> Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, base.getCcPos(), false));
+                .orElse(null);
+        if (nextBase != null) {
+            Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, nextBase.getCcPos(), false);
+        }
+        return nextBase != null;
     }
 
     private static void noGasProduction() {
