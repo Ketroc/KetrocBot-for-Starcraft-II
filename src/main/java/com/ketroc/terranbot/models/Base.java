@@ -431,4 +431,11 @@ public class Base {
         return (int) GameCache.baseList.stream().filter(base -> base.isMyBase()).count();
     }
 
+    public boolean isReadyForMining() {
+        return isMyBase() &&
+                cc != null &&
+                cc.unit().getBuildProgress() == 1 &&
+                cc.unit().getType() != Units.TERRAN_COMMAND_CENTER_FLYING &&
+                UnitUtils.getDistance(cc.unit(), ccPos) < 1;
+    }
 }

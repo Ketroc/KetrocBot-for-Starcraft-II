@@ -334,7 +334,7 @@ public class BuildManager {
                                 boolean didMule = false;
                                 for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
                                     Base base = GameCache.baseList.get(i);
-                                    if (base.isMyBase()) {
+                                    if (base.isReadyForMining()) {
                                         int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
                                         if (numMules < base.getMineralPatches().size()) {
                                             Unit mineralPatch = base.getMineralPatches().stream()

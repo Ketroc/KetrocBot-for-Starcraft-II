@@ -114,10 +114,6 @@ public class GameCache {
                 continue;
             }
 
-            if (unit.getType() == Units.Other.of(1726)) {
-                int sldkfj=0;
-            }
-
             if (unit.getType() instanceof Units.Other) {
                 float x = unit.getPosition().getX();
                 float y = unit.getPosition().getY();
