@@ -338,7 +338,7 @@ public class WorkerManager {
         //loop through bases
         for (Base base : GameCache.baseList) {
             if (base.isMyBase() && base.isComplete()) {
-                Unit cc = base.getCc().get().unit();
+                Unit cc = base.getCc().unit();
 
                 //get available scvs at this base
                 List<UnitInPool> availableScvs = getAvailableMineralScvs(base.getCcPos(), 10);

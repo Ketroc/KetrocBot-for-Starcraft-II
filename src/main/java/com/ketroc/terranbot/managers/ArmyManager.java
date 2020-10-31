@@ -629,11 +629,11 @@ public class ArmyManager {
             outer: for (Base base : allButEnemyStarterBases) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions libPos : base.getLiberators()) {
-                        if (libPos.getUnit().isEmpty()) {
+                        if (libPos.getUnit() == null) {
                             libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
 //                            Bot.ACTION.unitCommand(idleLib, Abilities.MOVE, Position.towards(libPos.getPos(), base.getCcPos(), -2), false)
 //                                    .unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE, Position.towards(libPos.getPos(), base.getCcPos(), 5), true);
-                            UnitMicroList.add(new LibDefender(libPos.getUnit().get(), libPos.getPos(), base.getCcPos()));
+                            UnitMicroList.add(new LibDefender(libPos.getUnit(), libPos.getPos(), base.getCcPos()));
                             isLibPlaced = true;
                             break outer;
                         }
@@ -670,11 +670,11 @@ public class ArmyManager {
             outer: for (Base base : allButEnemyStarterBases) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
-                        if (tankPos.getUnit().isEmpty()) {
+                        if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
 //                            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, tankPos.getPos(), false)
 //                                    .unitCommand(idleTank, Abilities.MORPH_SIEGE_MODE, true);
-                            UnitMicroList.add(new TankDefender(tankPos.getUnit().get(), tankPos.getPos()));
+                            UnitMicroList.add(new TankDefender(tankPos.getUnit(), tankPos.getPos()));
                             isTankPlaced = true;
                             break outer;
                         }
@@ -694,7 +694,8 @@ public class ArmyManager {
 
     private static void emptyBunker() {
         //if PF at natural
-        if (GameCache.baseList.get(1).getCc().map(UnitInPool::unit).map(Unit::getType).orElse(null) == Units.TERRAN_PLANETARY_FORTRESS) {
+        if (GameCache.baseList.get(1).getCc() != null &&
+                GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) {
             //salvage bunker
             List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
             if (!bunkerList.isEmpty()) {

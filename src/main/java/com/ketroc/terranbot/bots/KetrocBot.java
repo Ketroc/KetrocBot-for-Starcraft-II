@@ -356,12 +356,13 @@ public class KetrocBot extends Bot {
                         }
 
                         //get OC
-                        if (GameCache.baseList.get(0).getCc().map(UnitInPool::unit).map(Unit::getType).orElse(Units.INVALID) == Units.TERRAN_COMMAND_CENTER) {
+                        if (GameCache.baseList.get(0).getCc() != null &&
+                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER) {
                             if (BunkerContain.proxyBunkerLevel == 2) {
-                                purchaseQueue.add(purchaseQueue.size()-2, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc().get())); //TODO: only first time (or only if base isn't OC already)
+                                purchaseQueue.add(purchaseQueue.size()-2, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
                             }
                             else {
-                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc().get()));
+                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                             }
                         }
 
@@ -503,7 +504,7 @@ public class KetrocBot extends Bot {
                                 //remove from base defense tank
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions tankPos : base.getTanks()) {
-                                        if (unit.getTag().equals(tankPos.getUnit().map(UnitInPool::unit).map(Unit::getTag).orElse(null))) {
+                                        if (unit.getTag().equals(tankPos.getUnit().getTag())) {
                                             tankPos.setUnit(null);
                                         }
                                     }
@@ -513,7 +514,7 @@ public class KetrocBot extends Bot {
                                 //remove from base defense liberator
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions libPos : base.getLiberators()) {
-                                        if (unit.getTag().equals(libPos.getUnit().map(UnitInPool::unit).map(Unit::getTag).orElse(null))) {
+                                        if (unit.getTag().equals(libPos.getUnit().getTag())) {
                                             libPos.setUnit(null);
                                         }
                                     }

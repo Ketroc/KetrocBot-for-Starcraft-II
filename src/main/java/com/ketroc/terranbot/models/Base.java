@@ -67,8 +67,8 @@ public class Base {
         this.mineralPatches = mineralPatches;
     }
 
-    public Optional<UnitInPool> getCc() {
-        return Optional.ofNullable(cc);
+    public UnitInPool getCc() {
+        return cc;
     }
 
     public void setCc(UnitInPool cc) {
@@ -291,9 +291,9 @@ public class Base {
         return bigPatches.subList(0, 2);
     }
 
-    public UnitInPool getUpdatedUnit(Units unitType, Optional<UnitInPool> unit, Point2d pos) {
+    public UnitInPool getUpdatedUnit(Units unitType, UnitInPool unit, Point2d pos) {
         //check for new structure
-        if (unit.isEmpty()) {
+        if (unit == null) {
             UnitInPool newUnit;
             if (UnitUtils.COMMAND_CENTER_TYPE.contains(unitType)) {
                 newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, pos, 1).stream()
@@ -308,10 +308,10 @@ public class Base {
         }
 
         //check for dead structure
-        if (!unit.get().isAlive()) {
+        if (!unit.isAlive()) {
             return null;
         }
-        return unit.get();
+        return unit;
     }
 
     public boolean isMyMainBase() {
@@ -373,8 +373,8 @@ public class Base {
     //make this bases liberators aa mode and idle so they can be picked up for a new base TODO: time delay this
     private void freeUpLiberators() {
         for (DefenseUnitPositions libPos : getLiberators()) {
-            if (libPos.getUnit().isPresent()) {
-                Unit baseLib = libPos.getUnit().get().unit();
+            if (libPos.getUnit() != null) {
+                Unit baseLib = libPos.getUnit().unit();
                 if (baseLib.getType() == Units.TERRAN_LIBERATOR_AG) {
                     Bot.ACTION.unitCommand(baseLib, Abilities.MORPH_LIBERATOR_AA_MODE, false);
                 } else {
@@ -388,8 +388,8 @@ public class Base {
     //make this bases tanks unsiege and idle so they can be picked up for a new base TODO: time delay this
     private void freeUpTanks() {
         for (DefenseUnitPositions tankPos : getTanks()) {
-            if (tankPos.getUnit().isPresent()) {
-                Unit tank = tankPos.getUnit().get().unit();
+            if (tankPos.getUnit() != null) {
+                Unit tank = tankPos.getUnit().unit();
                 if (tank.getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
                     Bot.ACTION.unitCommand(tank, Abilities.MORPH_UNSIEGE, false);
                 } else {

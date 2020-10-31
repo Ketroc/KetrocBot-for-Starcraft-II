@@ -6,7 +6,6 @@ import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -123,15 +122,18 @@ public class BuildManager {
 
     //checks if base is enemy owned, has minerals, is being scanned, and has no mules
     private static boolean baseReadyForMuleSpam(Base base) {
-        return base.isEnemyBase &&
+        return !base.isMyBase() &&
                 !base.getMineralPatches().isEmpty() &&
-                isScanningThisBase(base.getCcPos()) &&
+                isMineralsVisible(base.getMineralPatches()) &&
                 base.prevMuleSpamFrame + Time.toFrames(10) < Time.nowFrames();
     }
 
     private static void scanNextBase(List<Unit> ocList) {
         GameCache.baseList.stream()
-                .filter(base -> base.isEnemyBase && !base.getMineralPatches().isEmpty() && !isScanningThisBase(base.getCcPos()))
+                .filter(base -> !base.isMyBase() &&
+                        base.prevMuleSpamFrame + Time.toFrames(30) < Time.nowFrames() &&
+                        !base.getMineralPatches().isEmpty() &&
+                        !isMineralsVisible(base.getMineralPatches()))
                 .findFirst()
                 .ifPresent(base -> Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, base.getCcPos(), false));
     }
@@ -239,7 +241,7 @@ public class BuildManager {
                 if (base.isMyBase() && !base.isMyMainBase() && base.isComplete()) {
                     for (int i = 0; i < turretsRequired; i++) {
                         DefenseUnitPositions turret = base.getTurrets().get(i);
-                        if (turret.getUnit().isEmpty() &&
+                        if (turret.getUnit() == null &&
                                 !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
                                 !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos())) {
                             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
@@ -388,7 +390,7 @@ public class BuildManager {
             if (!base.isMyBase()) {
                 continue;
             }
-            Unit cc = base.getCc().get().unit();
+            Unit cc = base.getCc().unit();
 
             //if complete CC or incomplete PF, low health, and ground attacking enemy nearby
             if (cc.getType() == Units.TERRAN_COMMAND_CENTER && cc.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(cc) < Strategy.floatBaseAt
@@ -871,11 +873,8 @@ public class BuildManager {
                         !enemy.unit().getFlying().orElse(false)).isEmpty();  //default false to handle structure snapshots
     }
 
-    private static boolean isScanningThisBase(Point2d basePos) {
-        return Bot.OBS.getEffects().stream()
-                .anyMatch(e -> e.getAlliance().orElse(Alliance.ENEMY) == Alliance.SELF &&
-                        e.getEffect() == Effects.SCANNER_SWEEP &&
-                        basePos.distance(e.getPositions().iterator().next()) < 1);
+    private static boolean isMineralsVisible(List<Unit> mineralPatches) {
+        return mineralPatches.stream().allMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE);
     }
 }
 

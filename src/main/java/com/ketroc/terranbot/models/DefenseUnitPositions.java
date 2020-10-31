@@ -22,8 +22,8 @@ public class DefenseUnitPositions {
         this.pos = pos;
     }
 
-    public Optional<UnitInPool> getUnit() {
-        return Optional.ofNullable(unit);
+    public UnitInPool getUnit() {
+        return unit;
     }
 
     public void setUnit(UnitInPool unit) {

@@ -381,7 +381,7 @@ public class GameCache {
             }
 
             //nothing else required if enemy base or untaken base
-            if (base.isEnemyBase || base.getCc().isEmpty()) {
+            if (base.isEnemyBase || base.getCc() == null) {
                 continue;
             }
 
@@ -392,10 +392,10 @@ public class GameCache {
 
             //set default rally node for any base
             //TODO: remove - for debugging
-            if (base.getCc().isEmpty()) {
+            if (base.getCc() == null) {
                 System.out.println("error on GameCache::387");
             }
-            Unit cc = base.getCc().get().unit();
+            Unit cc = base.getCc().unit();
             if (cc.getAssignedHarvesters().isEmpty()) {
                 System.out.println("error on GameCache::391");
                 System.out.println("base index: " + baseList.indexOf(base));
@@ -404,7 +404,7 @@ public class GameCache {
                 System.out.println("cc.getBuildProgress() = " + cc.getBuildProgress());
                 System.out.println("FlyingCC.flyingCCs.size() = " + FlyingCC.flyingCCs.size());
                 System.out.println("base.isEnemyBase = " + base.isEnemyBase);
-                System.out.println("base.getCc().isPresent() = " + base.getCc().isPresent());
+                System.out.println("base.getCc() == null?: " + base.getCc() == null);
 
             }
             if (cc.getIdealHarvesters().isEmpty()) {
