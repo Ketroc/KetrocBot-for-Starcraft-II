@@ -1002,11 +1002,16 @@ public class ArmyManager {
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
-
+        boolean isParasitic = raven.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
 
         //always flee if locked on by cyclone
         if (raven.getBuffs().contains(Buffs.LOCK_ON)) {
             if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+        }
+
+        //fly to enemy main if parasitic'ed
+        else if (isParasitic) {
+            Bot.ACTION.unitCommand(raven, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
 
         //stay in repair bay not on offensive and until 100% health
