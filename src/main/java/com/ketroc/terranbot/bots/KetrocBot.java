@@ -213,6 +213,7 @@ public class KetrocBot extends Bot {
                 BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
                 WorkerManager.onStep(); //fix workers, make refineries
                 ArmyManager.onStep(); //decide army movements
+                MuleMessages.onStep(); //make minimap troll messages with mules
                 LocationConstants.onStep(); //manage which enemy base to target
 
                 purchaseQueue.remove(toRemove);

@@ -24,6 +24,7 @@ public class LocationConstants {
     public static Point2d insideMainWall;
     public static Point2d mainBaseMidPos;
     public static Point2d enemyMainBaseMidPos;
+    public static final List<Point2d> muleLetterPosList = new ArrayList<>();
 
 
     public static boolean isTopSpawn;
@@ -453,6 +454,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForDeathAura(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(100.5f, 97.5f));
+        muleLetterPosList.add(Point2d.of(108.5f, 98.5f));
         if (isTopPos) {
             //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(119.5f, 83.5f);
@@ -859,6 +862,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForEternalEmpire(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(80.5f, 83.5f));
+        muleLetterPosList.add(Point2d.of(89.5f, 83.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(77.5f, 54.5f);
             proxyBunkerPos = Point2d.of(42.5f, 58.5f);
@@ -1001,6 +1006,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForEverDream(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(84.5f, 122.5f));
+        muleLetterPosList.add(Point2d.of(95.5f, 122.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(97.5f, 88.5f);
             proxyBunkerPos = Point2d.of(49.5f, 73.5f);
@@ -1143,6 +1150,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForGoldenWall(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(100.5f, 91.5f));
+        muleLetterPosList.add(Point2d.of(100.5f, 76.5f));
         if (isTopPos) { //left spawn
             proxyBarracksPos = Point2d.of(132.5f, 97.5f);
             proxyBunkerPos = Point2d.of(158.5f, 76.5f);
@@ -1284,6 +1293,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForIceAndChrome(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(134.5f, 104.5f));
+        muleLetterPosList.add(Point2d.of(145.5f, 107.5f));
         if (isTopPos) {
             //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(116.5f, 111.5f);
@@ -1974,6 +1985,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForPillarsOfGold(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(75.5f, 86.5f));
+        muleLetterPosList.add(Point2d.of(86.5f, 74.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(79.5f, 62.5f);
             proxyBunkerPos = Point2d.of(61.5f, 37.5f);
@@ -2403,6 +2416,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForSubmarine(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(51.5f, 55.5f));
+        muleLetterPosList.add(Point2d.of(63.5f, 55.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(105.5f, 78.5f);
             proxyBunkerPos = Point2d.of(124.5f, 61.5f);

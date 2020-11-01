@@ -3,20 +3,18 @@ package com.ketroc.terranbot.bots;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.Tester;
-import com.ketroc.terranbot.managers.ActionErrorManager;
-import com.ketroc.terranbot.utils.DebugHelper;
+import com.ketroc.terranbot.models.MuleMessages;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -33,6 +31,9 @@ public class TestingBot extends Bot {
     public Point2d mySpawnPos;
     public Point2d enemySpawnPos;
     public List<Point2d> possibleCcPosList;
+
+    public Point2d depotPos;
+
     public TestingBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
     }
@@ -51,13 +52,23 @@ public class TestingBot extends Bot {
                 .filter(pos -> mySpawnPos.distance(pos) > 10)
                 .findFirst().get();
 
+        //set map
+        LocationConstants.MAP = Bot.OBS.getGameInfo().getMapName();
 
-//        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
+        //set enemy race
+        LocationConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
+                .filter(playerInfo -> playerInfo.getPlayerId() != Bot.OBS.getPlayerId())
+                .findFirst()
+                .get()
+                .getRequestedRace();
+        LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
+
+        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), neutralId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
-////        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), enemyId, 1);
-//        debug().sendDebug();
+//        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), enemyId, 1);
+        debug().sendDebug();
 
 //        commandCenter = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
 //        z = commandCenter.getPosition().getZ();
@@ -72,31 +83,43 @@ public class TestingBot extends Bot {
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
         System.out.println((Units)unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
+//
+//        switch ((Units)unit.getType()) {
+//            case TERRAN_SUPPLY_DEPOT:
+//                depotPos = unit.getPosition().toPoint2d().add(Point2d.of(0.5f, 0.5f));
+//                System.out.println("start");
+//                break;
+//            case TERRAN_SENSOR_TOWER:
+//                //System.out.println("pos: " + unit.getPosition().toPoint2d());
+//                Point2d p = unit.getPosition().toPoint2d().sub(depotPos);
+//                System.out.println("G.add(" + p.getX() + "f, " + p.getY() + "f);");
+//        }
 
     }
 
     @Override
     public void onStep() {
         super.onStep();
-        if (Time.nowFrames() == 300) {
-            long start = System.currentTimeMillis();
-            possibleCcPosList = possibleCcPos();
-            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
-            System.out.println("possibleCcPos() time = " + (System.currentTimeMillis() - start));
-            System.out.println("possibleCcPosList.size() = " + possibleCcPosList.size());
-            Point2d ccPos = queryPossibleCcList();
-            System.out.println("possibleCcPosList.size() after query = " + possibleCcPosList.size());
-        }
-        if (Time.nowFrames() == 400) {
-            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
-        }
-        if (Time.nowFrames() == 1000) {
-            Point2d ccPos = queryPossibleCcList();
-            possibleCcPosList.forEach(point2d -> DebugHelper.drawBox(point2d, Color.BLUE, 0.2f));
-        }
+
+//        List<Unit> ocList = Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_ORBITAL_COMMAND).stream()
+//                .map(UnitInPool::unit)
+//                .collect(Collectors.toList());
+//        if (Time.nowFrames() == 1400) {
+//            for (Point2d botCornerPos : LocationConstants.muleLetterPosList) {
+//                Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, botCornerPos.add(Point2d.of(3f, 5f)), false);
+//            }
+//        }
+//        if (Time.nowFrames() == 1500) {
+//            for (Point2d botCornerPos : LocationConstants.muleLetterPosList) {
+//                for (Point2d letter : MuleMessages.G) {
+//                    Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, botCornerPos.add(letter), false);
+//                }
+//            }
+//        }
+
         ACTION.sendActions();
         DEBUG.sendDebug();
-        if (Time.nowFrames() == 300 || Time.nowFrames() == 400 || Time.nowFrames() == 1400) {
+        if (false) {
             int q = 0;
         }
     }
@@ -173,6 +196,7 @@ public class TestingBot extends Bot {
     @Override
     public void onUnitIdle(UnitInPool unitInPool) {
     }
+
 
 
 }

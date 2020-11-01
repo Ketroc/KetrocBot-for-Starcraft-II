@@ -145,6 +145,7 @@ public class BuildManager {
                 }
             }
         }
+        MuleMessages.doTrollMule = true;
         return true;
     }
 
