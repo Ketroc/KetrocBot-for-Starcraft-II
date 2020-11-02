@@ -48,7 +48,7 @@ public class Strategy {
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.5f;
-    public static final int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
+    public static int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
     public static boolean enemyHasAirThreat;
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
@@ -112,7 +112,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 0;//selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -135,7 +135,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 0;//selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -157,7 +157,7 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = 0;//selectedStrategy % numStrategies;
+        selectedStrategy = 1;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -281,9 +281,12 @@ public class Strategy {
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
+        DO_INCLUDE_LIBS = false;
+        DO_INCLUDE_TANKS = false;
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
+        RETREAT_HEALTH = 50;
         AUTOTURRET_AT_ENERGY = 50;
         DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
     }

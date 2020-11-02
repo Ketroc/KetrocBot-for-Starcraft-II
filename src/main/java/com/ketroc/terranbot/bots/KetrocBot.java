@@ -515,7 +515,7 @@ public class KetrocBot extends Bot {
                                 //remove from base defense liberator
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions libPos : base.getLiberators()) {
-                                        if (unit.getTag().equals(libPos.getUnit().getTag())) {
+                                        if (libPos.getUnit() != null && unit.getTag().equals(libPos.getUnit().getTag())) {
                                             libPos.setUnit(null);
                                         }
                                     }
