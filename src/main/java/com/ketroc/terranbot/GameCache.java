@@ -357,7 +357,8 @@ public class GameCache {
             //ignore bases that aren't mine AND aren't visible
             if (!base.isMyBase() &&
                     Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE &&
-                    base.getMineralPatches().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE)) {
+                    base.getMineralPatches().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE) &&
+                    (base.lastScoutedFrame != 0 || !base.getMineralPatches().isEmpty())) {
                 continue;
             }
             base.lastScoutedFrame = Time.nowFrames();

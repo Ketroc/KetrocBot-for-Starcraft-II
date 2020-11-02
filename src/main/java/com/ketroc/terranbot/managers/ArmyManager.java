@@ -274,7 +274,7 @@ public class ArmyManager {
             if (!doOffense && numAutoturretsAvailable > 15) {
                 doOffense = true;
             }
-            else if (doOffense && numAutoturretsAvailable < 4) {
+            else if (doOffense && numAutoturretsAvailable < 6) {
                 doOffense = false;
             }
         }
@@ -1026,6 +1026,13 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
             }
         }
+
+        //go home to repair if mass raven strategy and no energy for autoturrets
+        else if (Strategy.MASS_RAVENS && UnitUtils.getHealthPercentage(raven) < 100 &&
+                raven.getEnergy().orElse(0f) < 45) {
+            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+        }
+
         //back up if in range
         else if (isUnsafe || inRange) {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {

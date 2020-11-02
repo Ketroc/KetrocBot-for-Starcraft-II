@@ -505,7 +505,7 @@ public class KetrocBot extends Bot {
                                 //remove from base defense tank
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions tankPos : base.getTanks()) {
-                                        if (unit.getTag().equals(tankPos.getUnit().getTag())) {
+                                        if (tankPos.getUnit() != null && unit.getTag().equals(tankPos.getUnit().getTag())) {
                                             tankPos.setUnit(null);
                                         }
                                     }
