@@ -82,7 +82,7 @@ public class TestingBot extends Bot {
     @Override
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
-        System.out.println((Units)unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
+        System.out.println(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
 //
 //        switch ((Units)unit.getType()) {
 //            case TERRAN_SUPPLY_DEPOT:

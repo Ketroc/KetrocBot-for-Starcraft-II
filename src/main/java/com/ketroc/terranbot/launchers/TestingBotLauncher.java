@@ -33,7 +33,7 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
@@ -42,7 +42,7 @@ public class TestingBotLauncher {
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("SubmarineLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("SubmarineLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));

@@ -764,19 +764,20 @@ public class ArmyManager {
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
+                case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
+                case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
+                case PROTOSS_ORACLE:
                     answer += 0.8;
                     hasDetector = true;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
                     answer += 1.5;
                     break;
-                case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
-                case ZERG_CORRUPTOR: case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
-                case PROTOSS_ORACLE:
-                    answer += 1;
+                case ZERG_CORRUPTOR:
+                    answer += 1.3;
                     break;
                 case PROTOSS_PHOENIX:
-                    answer += 3;
+                    answer += 2;
                     break;
                 case PROTOSS_VOIDRAY:
                     answer += 1.5;

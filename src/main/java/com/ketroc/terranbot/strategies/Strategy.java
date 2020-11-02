@@ -112,7 +112,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2;//selectedStrategy % numStrategies;
+        selectedStrategy = 0;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -135,7 +135,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2;//selectedStrategy % numStrategies;
+        selectedStrategy = 0;//selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -157,7 +157,7 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = 1;//selectedStrategy % numStrategies;
+        selectedStrategy = 0;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -280,6 +280,7 @@ public class Strategy {
         UpgradeManager.shipAttack.clear(); //no 2nd armory
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
+        maxScvs = 80;
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;

@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 
 public class Placement {
     public static List<Point2d> possibleCcPosList;
+    public static float MIN_DISTANCE_FROM_ENEMY_MAIN;
 
     public static void onGameStart() {
+        MIN_DISTANCE_FROM_ENEMY_MAIN = (LocationConstants.MAP == MapNames.GOLDEN_WALL) ? 130 : 100;
         setPossibleCcPos();
         queryPossibleCcList();
     }
@@ -42,7 +44,7 @@ public class Placement {
         for (float x = minX; x <= maxX; x += 3) {
             for (float y = minY; y <= maxY; y += 3) {
                 Point2d thisPos = Point2d.of(x, y);
-                if (LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1).distance(thisPos) > 100 &&
+                if (LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1).distance(thisPos) > MIN_DISTANCE_FROM_ENEMY_MAIN &&
                         checkCcCorners(x, y) &&
                         resourceNodePosList.stream().noneMatch(p -> p.distance(thisPos) < 6)) {
                     possibleCcPosList.add(thisPos);

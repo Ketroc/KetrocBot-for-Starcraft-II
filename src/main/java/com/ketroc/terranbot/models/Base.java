@@ -110,12 +110,15 @@ public class Base {
 
     public List<DefenseUnitPositions> getTurrets() {
         if (turrets.isEmpty() && !isMyMainBase()) {
+            //middle turret
             turrets.add(new DefenseUnitPositions(
                     Position.moveClearExactly(resourceMidPoint, ccPos, 3.5f), null));
+
+            //extra side turrets
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 110), ccPos, 3.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 110), ccPos, 4.5f), null));
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -110), ccPos, 3.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -110), ccPos, 4.5f), null));
         }
         return turrets;
     }

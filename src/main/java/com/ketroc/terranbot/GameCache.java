@@ -104,7 +104,8 @@ public class GameCache {
 
         allEnemiesList.removeIf(enemy -> UnitUtils.isVisible(enemy) ||
                 enemy.unit().getDisplayType() == DisplayType.SNAPSHOT ||
-                !enemy.isAlive());
+                !enemy.isAlive() ||
+                enemy.getLastSeenGameLoop() + Time.toFrames("5:00") < Time.nowFrames()); //5min memory to deal with uncleared units
 
         for (UnitInPool unitInPool: Bot.OBS.getUnits()) {
             Unit unit = unitInPool.unit();
