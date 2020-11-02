@@ -271,7 +271,7 @@ public class ArmyManager {
             numAutoturretsAvailable = GameCache.ravenList.stream()
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
-            if (!doOffense && numAutoturretsAvailable > 15) {
+            if (!doOffense && numAutoturretsAvailable > 25) {
                 doOffense = true;
             }
             else if (doOffense && numAutoturretsAvailable < 6) {
