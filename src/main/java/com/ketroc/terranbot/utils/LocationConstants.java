@@ -25,6 +25,8 @@ public class LocationConstants {
     public static Point2d mainBaseMidPos;
     public static Point2d enemyMainBaseMidPos;
     public static final List<Point2d> muleLetterPosList = new ArrayList<>();
+    public static Point2d pointOnMyRamp;
+    public static Point2d pointOnEnemyRamp;
 
 
     public static boolean isTopSpawn;
@@ -139,15 +141,23 @@ public class LocationConstants {
         Point2d enemyNatPos = baseLocations.get(baseLocations.size() - 2);
         float enemyNatZ = Bot.OBS.terrainHeight(enemyNatPos);
 
+        float rampZ = (homeZ + natZ) / 2;
+
         for (int x = xMin; x <= xMax; x++) {
             for (int y = yMin; y <= yMax; y++) {
                 Point2d thisPos = Point2d.of(x/2f, y/2f);
                 float thisZ = Bot.OBS.terrainHeight(thisPos);
                 if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInMainBase[x][y] = true;
+                    if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(natPos) < 15) {
+                        pointOnMyRamp = Point2d.of(x/2, y/2);
+                    }
                 }
                 else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyMainBase[x][y] = true;
+                    if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(enemyNatPos) < 15) {
+                        pointOnEnemyRamp = Point2d.of(x/2, y/2);
+                    }
                 }
                 else if (thisPos.distance(natPos) < 15 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
@@ -155,6 +165,8 @@ public class LocationConstants {
                 else if (thisPos.distance(enemyNatPos) < 15 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;
                 }
+
+
             }
         }
     }

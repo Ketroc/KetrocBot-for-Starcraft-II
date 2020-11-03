@@ -49,6 +49,7 @@ public class BunkerContain {
     public static final Set<Units> repairTargets = Set.of(
             Units.TERRAN_SCV, Units.TERRAN_BUNKER, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_SIEGE_TANK, Units.TERRAN_MISSILE_TURRET);
     private static boolean isBarracksSentHome;
+    private static Point2d enemyPos;
 
     public static void onGameStart() {
         //exit
@@ -57,27 +58,11 @@ public class BunkerContain {
         }
         barracksPos = LocationConstants.proxyBarracksPos;
         bunkerPos = LocationConstants.proxyBunkerPos;
-        behindBunkerPos = getBehindBunkerPos();
-        siegeTankPos = Position.towards(behindBunkerPos, bunkerPos, -1.4f);
+        enemyPos = getEnemyPos();
+        behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
+        siegeTankPos = Position.towards(bunkerPos, enemyPos, -3.3f);
         marinesNeeded = (LocationConstants.opponentRace == Race.TERRAN) ? 5 : 4;
         scoutProxy = (LocationConstants.opponentRace == Race.TERRAN);
-    }
-
-    public static void addRepairScv(UnitInPool scv) {
-        repairScvList.add(scv);
-        Ignored.add(new IgnoredUnit(scv.getTag()));
-    }
-
-    public static void removeRepairScv(UnitInPool scv) {
-        repairScvList.remove(scv);
-        Ignored.remove(scv.getTag());
-    }
-
-    private static Point2d getBehindBunkerPos() {
-        Point2d enemyMain = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1);
-        Point2d enemyNat = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2);
-        Point2d betweenMainAndNat = Position.towards(enemyNat, enemyMain, (float)enemyMain.distance(enemyNat)/4);
-        return Position.towards(bunkerPos, betweenMainAndNat,-2);
     }
 
     public static void onStep() {
@@ -156,6 +141,22 @@ public class BunkerContain {
 
         }
 
+    }
+
+    public static void addRepairScv(UnitInPool scv) {
+        repairScvList.add(scv);
+        Ignored.add(new IgnoredUnit(scv.getTag()));
+    }
+
+    public static void removeRepairScv(UnitInPool scv) {
+        repairScvList.remove(scv);
+        Ignored.remove(scv.getTag());
+    }
+
+    private static Point2d getEnemyPos() {
+        Point2d enemyNat = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2);
+        Point2d enemyRamp = LocationConstants.pointOnEnemyRamp;
+        return Position.towards(enemyRamp, enemyNat, (float)enemyRamp.distance(enemyNat)/3);
     }
 
     private static void bunkerTargetting() {
@@ -559,87 +560,94 @@ public class BunkerContain {
         }
     }
 
-    private static Point2d calcTurretPosition() {
-        boolean xBigger = Math.abs(bunkerPos.getX() - behindBunkerPos.getX()) > Math.abs(bunkerPos.getY() - behindBunkerPos.getY());
-        if (xBigger) {
-            Point2d testPoint = Position.towards(bunkerPos, behindBunkerPos, 1.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 0.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -0.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -1.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 1.5f, -2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 0.5f, -2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -0.5f, -2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-        }
-        else {
-            Point2d testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 0.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 1.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -0.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -1.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 1.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 0.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, -0.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 2.5f);
-            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
-                return testPoint;
-            }
-        }
-        System.out.println("--- ERROR ---- NO PROXY TURRET POSITION FOUND -----");
-        return null;
+    private static Point2d calcTurretPosition(boolean isClockwise) {
+        float angle = (isClockwise) ? 15 : -15;
+        Point2d turretPos = Position.toWholePoint(
+                Position.towards(
+                        Position.rotate(behindBunkerPos, enemyPos, angle), enemyPos, -2));
+        return Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 3);
     }
+
+//        boolean xBigger = Math.abs(bunkerPos.getX() - behindBunkerPos.getX()) > Math.abs(bunkerPos.getY() - behindBunkerPos.getY());
+//        if (xBigger) {
+//            Point2d testPoint = Position.towards(bunkerPos, behindBunkerPos, 1.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 0.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -0.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -1.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 1.5f, -2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 0.5f, -2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -0.5f, -2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//        }
+//        else {
+//            Point2d testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 0.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 1.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, -0.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, 2.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -1.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 1.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 0.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, -0.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//            testPoint = Position.towards(bunkerPos, behindBunkerPos, -2.5f, 2.5f);
+//            if (Bot.QUERY.placement(Abilities.BUILD_MISSILE_TURRET, testPoint)) {
+//                return testPoint;
+//            }
+//        }
+//        System.out.println("--- ERROR ---- NO PROXY TURRET POSITION FOUND -----");
+//        return null;
+//    }
 
     private static void onBarracksStarted(UnitInPool bar) {
         barracks = bar;
@@ -734,13 +742,33 @@ public class BunkerContain {
     public static void onEngineeringBayComplete(UnitInPool engBay) {
         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
         List<Unit> availableScvs = getAvailableRepairScvs();
-        Point2d turretPos = calcTurretPosition();
+        int factoryIndex = getDepotPurchaseIndex();
+        Point2d turretPos = calcTurretPosition(true);
         if (turretPos != null) {
             if (!availableScvs.isEmpty()) {
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(availableScvs.get(0), Units.TERRAN_MISSILE_TURRET, turretPos));
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(availableScvs.get(0), Units.TERRAN_MISSILE_TURRET, turretPos));
             } else {
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
             }
         }
+        turretPos = calcTurretPosition(false);
+        if (turretPos != null) {
+            if (availableScvs.size() > 1) {
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(availableScvs.get(1), Units.TERRAN_MISSILE_TURRET, turretPos));
+            } else {
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+            }
+        }
+    }
+
+    private static int getDepotPurchaseIndex() {
+        for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+            Purchase p = KetrocBot.purchaseQueue.get(i);
+            if (p instanceof PurchaseStructure &&
+                    ((PurchaseStructure) p).getStructureType() == Units.TERRAN_SUPPLY_DEPOT) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

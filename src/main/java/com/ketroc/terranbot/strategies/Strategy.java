@@ -112,7 +112,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2;//selectedStrategy % numStrategies;
+        selectedStrategy = 1;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -281,7 +281,7 @@ public class Strategy {
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
-        DO_INCLUDE_LIBS = false;
+        DO_INCLUDE_LIBS = true;
         DO_INCLUDE_TANKS = false;
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;

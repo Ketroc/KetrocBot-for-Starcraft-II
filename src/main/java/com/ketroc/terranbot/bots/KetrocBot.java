@@ -117,7 +117,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Oct 25, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Nov 3, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
@@ -266,6 +266,8 @@ public class KetrocBot extends Bot {
                         Bot.DEBUG.debugTextOut(KetrocBot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     }
                     Bot.DEBUG.debugBoxOut(Point.of(LocationConstants.enemyMineralPos.getX()-0.33f, LocationConstants.enemyMineralPos.getY()-0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Point.of(LocationConstants.enemyMineralPos.getX()+0.33f, LocationConstants.enemyMineralPos.getY()+0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Color.BLUE);
+                    DebugHelper.drawBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
+                    DebugHelper.drawBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
                     Bot.DEBUG.sendDebug();
                 }
                 Bot.ACTION.sendActions();
@@ -360,7 +362,7 @@ public class KetrocBot extends Bot {
                         if (GameCache.baseList.get(0).getCc() != null &&
                                 GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER) {
                             if (BunkerContain.proxyBunkerLevel == 2) {
-                                purchaseQueue.add(purchaseQueue.size()-2, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
+                                purchaseQueue.add(purchaseQueue.size()-3, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
                             }
                             else {
                                 purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
@@ -626,32 +628,5 @@ public class KetrocBot extends Bot {
         System.out.println("==========================");
         System.out.println("  Result: " + result.toString());
         System.out.println("==========================");
-    }
-
-    public Unit findScvNearestBase(Unit cc) {
-        return findNearestScv(cc.getPosition().toPoint2d(), true);
-    }
-
-    public Unit findNearestScv(Point2d pt, boolean isHoldingMinerals) {
-        List<UnitInPool> scvList;
-        scvList = observation().getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV && //is scv
-                ((isHoldingMinerals) ? scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) : true));  //is holding minerals
-
-        UnitInPool closestScv = scvList.get(0);
-        double closestDistance = pt.distance(closestScv.unit().getPosition().toPoint2d());
-        scvList.remove(0);
-        for (UnitInPool scv : scvList) {
-            double curDistance = pt.distance(scv.unit().getPosition().toPoint2d());
-            if (curDistance < closestDistance) {
-                closestScv = scv;
-                closestDistance = curDistance;
-            }
-        }
-
-        return closestScv.unit();
-    }
-
-    public Unit findNearestScv(Point2d pt) {
-        return findNearestScv(pt, false);
     }
 }
