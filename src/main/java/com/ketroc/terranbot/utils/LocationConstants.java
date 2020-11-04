@@ -54,6 +54,7 @@ public class LocationConstants {
     public static List<Point2d> MACRO_OCS = new ArrayList<>();
     public static Point2d proxyBarracksPos;
     public static Point2d proxyBunkerPos;
+    public static Point2d proxyBunkerPos2;
 
     public static List<Point2d> baseLocations = new ArrayList<>();
     public static List<Point2d> clockBasePositions = new ArrayList<>();
@@ -1023,6 +1024,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(97.5f, 88.5f);
             proxyBunkerPos = Point2d.of(49.5f, 73.5f);
+            proxyBunkerPos2 = Point2d.of(66.5f, 78.5f);
 
             reaperBlockDepots.add(Point2d.of(136.0f, 144.0f));
             reaperBlock3x3s.add(Point2d.of(138.5f, 144.5f));
@@ -1093,6 +1095,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(100.5f, 123.5f);
             proxyBunkerPos = Point2d.of(151.5f, 138.5f);
+            proxyBunkerPos2 = Point2d.of(131.5f, 133.5f);
 
             reaperBlockDepots.add(Point2d.of(64.0f, 68.0f));
             reaperBlock3x3s.add(Point2d.of(61.5f, 67.5f));

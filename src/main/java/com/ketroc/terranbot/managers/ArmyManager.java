@@ -64,9 +64,6 @@ public class ArmyManager {
         //respond to nydus
         nydusResponse();
 
-        //pf targetting
-        pfTargetting();
-
         //positioning siege tanks && tank targetting
         if (BunkerContain.proxyBunkerLevel != 2) {
             positionTanks();
@@ -112,11 +109,71 @@ public class ArmyManager {
                 Bot.ACTION.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
             }
 
+            pfTargetting();
+            libTargetting();
             autoturretTargetting();
         }
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void libTargetting() {
+        for (Base base : GameCache.baseList) {
+            for (DefenseUnitPositions libPos : base.getLiberators()) {
+                if (libPos.getUnit() != null && libPos.getUnit().isAlive()) {
+                    Unit lib = libPos.getUnit().unit();
+                    if (lib.getType() == Units.TERRAN_LIBERATOR_AG && lib.getWeaponCooldown().orElse(1f) == 0f) {
+                        Point2d libZone = Position.towards(lib.getPosition().toPoint2d(), base.getCcPos(), 5);
+                        Unit targetUnit = getLibTarget(lib, libZone);
+                        if (targetUnit != null) {
+                            Bot.ACTION.unitCommand(lib, Abilities.ATTACK, targetUnit, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static Unit getLibTarget(Unit lib, Point2d libZone) {
+        List<UnitInPool> enemyTargets = UnitUtils.getEnemyTargetsNear(libZone, 5);
+        int libDamage = getLibDamage(lib);
+        float bestRemainder = Float.MAX_VALUE;
+        Unit bestTargetUnit = null;
+        for (UnitInPool enemy : enemyTargets) {
+            //always target immortals (without barrier) first
+            if (enemy.unit().getType() == Units.PROTOSS_IMMORTAL) {
+                return enemy.unit();
+            }
+
+            //subtract enemy armor (assume max upgrades) TODO: determine enemy upgrades
+            libDamage -= (Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType()).getArmor().orElse(0f) + 3);
+            float enemyHp = enemy.unit().getHealth().orElse(1f) + enemy.unit().getShield().orElse(0f);
+            float remainder = enemyHp % libDamage;
+            if (enemyHp > libDamage) { //preference to 1-shot kills
+                remainder += 15;
+            }
+            if (remainder < bestRemainder) {
+                bestRemainder = remainder;
+                bestTargetUnit = enemy.unit();
+            }
+        }
+        return bestTargetUnit;
+    }
+
+    private static int getLibDamage(Unit lib) {
+        if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
+            return 90;
+        }
+        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
+            return 85;
+        }
+        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
+            return 80;
+        }
+        else {
+            return 75;
+        }
     }
 
     private static void setArmyMidpoints() {
@@ -156,14 +213,7 @@ public class ArmyManager {
     }
 
     private static Optional<Unit> selectTarget(Unit turret) {
-        List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                UnitUtils.getDistance(enemy.unit(), turret) <= 8 &&
-                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !enemy.unit().getHallucination().orElse(false) &&
-                !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                (enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.NOT_CLOAKED) ||
-                        enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED_DETECTED);
+        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsNear(turret, 8);
 
         Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
@@ -179,7 +229,7 @@ public class ArmyManager {
                 enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
             }
             float enemyValue = enemyHP/(enemyCost*damageMultiple);
-            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER)) {
+            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }
@@ -189,7 +239,7 @@ public class ArmyManager {
     private static float getDamageMultiple(Unit enemy) {
         switch ((Units)enemy.getType()) {
             case PROTOSS_IMMORTAL:
-                return 1.5f;
+                return 2;
             case ZERG_BANELING:
                 return 2;
             case ZERG_INFESTOR: case ZERG_INFESTOR_BURROWED:
@@ -1057,23 +1107,22 @@ public class ArmyManager {
     //drop auto-turrets near enemy before going home to repair
     private static boolean doAutoTurretOnRetreat(Unit raven) {
         if (raven.getEnergy().orElse(0f) >= 50 && UnitUtils.getDistance(raven, attackGroundPos) < 12 && attackUnit != null) {
-            return castAutoTurret(raven, false);
+            return castAutoTurret(raven, 0);
         }
         return false;
     }
 
-    //drop auto-turrets near enemy when max energy
+    //drop auto-turrets near enemy
     private static boolean doAutoTurret(Unit raven) {
         if (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY) {
-            return castAutoTurret(raven, true);
+            return castAutoTurret(raven, 2);
         }
         return false;
     }
 
-    private static boolean castAutoTurret(Unit raven, boolean useForwardPosition) {
-        float castRange = (useForwardPosition) ? 2f : 0f;
+    private static boolean castAutoTurret(Unit raven, float towardsEnemyDistance) {
         Point2d turretPos = Position.toWholePoint(
-                Position.towards(raven.getPosition().toPoint2d(), attackGroundPos, castRange));
+                Position.towards(raven.getPosition().toPoint2d(), attackGroundPos, towardsEnemyDistance));
         List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
                 .filter(p -> p.distance(attackGroundPos) < 8)
                 .filter(p -> Bot.OBS.isPlacable(p))
@@ -1108,6 +1157,9 @@ public class ArmyManager {
             Bot.ACTION.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
             turretsCast++;
             return true;
+        }
+        else if (attackUnit != null && !UnitUtils.canMove(attackUnit.getType()) && towardsEnemyDistance < 4) {
+            castAutoTurret(raven, 4);
         }
         return false;
     }

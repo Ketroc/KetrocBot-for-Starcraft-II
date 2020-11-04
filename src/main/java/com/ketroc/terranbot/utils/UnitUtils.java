@@ -73,7 +73,8 @@ public class UnitUtils {
     public static final Set<Units> INFESTOR_TYPE = new HashSet<>(Set.of(
             Units.ZERG_INFESTOR, Units.ZERG_INFESTOR_BURROWED));
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
-            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET));
+            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET,
+            Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING));
     public static final Set<Units> LONG_RANGE_ENEMIES = new HashSet<>(Set.of(
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
             Units.TERRAN_RAVEN, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
@@ -474,4 +475,17 @@ public class UnitUtils {
         return b;
     }
 
+    public static List<UnitInPool> getEnemyTargetsNear(Unit unit, float range) {
+        return getEnemyTargetsNear(unit.getPosition().toPoint2d(), range);
+    }
+
+    public static List<UnitInPool> getEnemyTargetsNear(Point2d pos, float range) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                getDistance(enemy.unit(), pos) <= range &&
+                !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                !enemy.unit().getHallucination().orElse(false) &&
+                !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED);
+    }
 }

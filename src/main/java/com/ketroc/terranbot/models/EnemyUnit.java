@@ -79,7 +79,7 @@ public class EnemyUnit {
         if (airAttackRange != 0) {
             airAttackRange += kitingBuffer;
         }
-        pfTargetLevel = getPFTargetValue((Units) enemy.getType());
+        pfTargetLevel = getPFTargetValue(enemy);
         isDetector = detectRange > 0f;
         detectRange += kitingBuffer;
         isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
@@ -242,8 +242,8 @@ public class EnemyUnit {
         return 0;
     }
 
-    public static byte getPFTargetValue(Units unitType) {
-        switch (unitType) {
+    public static byte getPFTargetValue(Unit enemy) {
+        switch ((Units)enemy.getType()) {
             case TERRAN_MARINE:
                 return 5;
             case TERRAN_MARAUDER:
@@ -277,7 +277,10 @@ public class EnemyUnit {
             case PROTOSS_COLOSSUS:
                 return 3;
             case PROTOSS_IMMORTAL:
-                return 9;
+                if (enemy.getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
+                    return 0;
+                }
+                return 15;
             case PROTOSS_HIGH_TEMPLAR:
                 return 15;
             case PROTOSS_ARCHON:

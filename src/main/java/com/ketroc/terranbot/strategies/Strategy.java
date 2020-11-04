@@ -112,7 +112,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 1;//selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
@@ -271,18 +271,18 @@ public class Strategy {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
 
-        //2 +1 banshees kill a creep tumor so adjust banshee count and upgrades to this
-        BuildManager.MIN_BANSHEES = 2;
         UpgradeManager.shipArmor.addAll(UpgradeManager.shipAttack);
-        if (LocationConstants.opponentRace == Race.ZERG) { //ship weapons 1 first, for banshees to 2-shot tumors
+        //get 2 banshees and +1attack for creep clearing and early defense
+        if (LocationConstants.opponentRace == Race.ZERG) {
             UpgradeManager.shipArmor.add(0, UpgradeManager.shipArmor.remove(3));
+            BuildManager.MIN_BANSHEES = 2;
         }
         UpgradeManager.shipAttack.clear(); //no 2nd armory
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
         DO_INCLUDE_LIBS = true;
-        DO_INCLUDE_TANKS = false;
+        DO_INCLUDE_TANKS = true;
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;

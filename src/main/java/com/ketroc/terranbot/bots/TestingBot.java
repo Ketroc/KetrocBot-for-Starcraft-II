@@ -1,12 +1,15 @@
 package com.ketroc.terranbot.bots;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.spatial.PointI;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.models.MuleMessages;
@@ -65,9 +68,9 @@ public class TestingBot extends Bot {
 
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), neutralId, 1);
-//        debug().debugCreateUnit(Units.TERRAN_CYCLONE, Point2d.of(100, 100), myId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_MULE, Point2d.of(90, 100), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
-//        debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(114, 120), enemyId, 1);
+        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
         debug().sendDebug();
 
 //        commandCenter = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();
@@ -100,22 +103,18 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
-
 //        List<Unit> ocList = Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_ORBITAL_COMMAND).stream()
 //                .map(UnitInPool::unit)
 //                .collect(Collectors.toList());
-//        if (Time.nowFrames() == 1400) {
-//            for (Point2d botCornerPos : LocationConstants.muleLetterPosList) {
-//                Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_SCAN, botCornerPos.add(Point2d.of(3f, 5f)), false);
-//            }
-//        }
-//        if (Time.nowFrames() == 1500) {
-//            for (Point2d botCornerPos : LocationConstants.muleLetterPosList) {
-//                for (Point2d letter : MuleMessages.G) {
-//                    Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, botCornerPos.add(letter), false);
-//                }
-//            }
-//        }
+        if (Time.nowFrames() == 100) {
+
+        }
+        if (Time.nowFrames() == 200) {
+
+        }
+        if (Time.nowFrames() == 600) {
+
+        }
 
         ACTION.sendActions();
         DEBUG.sendDebug();

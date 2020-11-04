@@ -196,7 +196,7 @@ public class BunkerContain {
         float bestTargetHP = Float.MAX_VALUE;
         for (UnitInPool enemy : enemiesInRange) {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
-            if (enemyHP < bestTargetHP && !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER)) {
+            if (enemyHP < bestTargetHP && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
                 bestTargetHP = enemyHP;
                 bestTarget = enemy;
             }
@@ -361,7 +361,7 @@ public class BunkerContain {
             }
             //no enemies
             else if (closestEnemy == null) {
-                Bot.ACTION.unitCommand(tank, Abilities.ATTACK, siegeTankPos, false);
+                Bot.ACTION.unitCommand(tank, Abilities.MOVE, siegeTankPos, false);
             }
             //enemies in range
             else {
@@ -656,7 +656,9 @@ public class BunkerContain {
 
     public static void onBarracksComplete() {
         //change proxyBunker scv to nearest scv
-        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SCV, bunkerPos), Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
+        KetrocBot.purchaseQueue.addFirst(
+                new PurchaseStructure(UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SCV, bunkerPos),
+                        Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
     }
 
     private static void onBunkerStarted(UnitInPool bunk) {

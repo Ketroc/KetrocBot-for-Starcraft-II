@@ -234,7 +234,7 @@ public class BansheeHarasser {
                 enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
             }
             float enemyValue = enemyHP/enemyCost;
-            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER)) {
+            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }
