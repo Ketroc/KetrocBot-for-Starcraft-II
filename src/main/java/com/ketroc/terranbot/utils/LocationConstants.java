@@ -470,9 +470,9 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(100.5f, 97.5f));
         muleLetterPosList.add(Point2d.of(108.5f, 98.5f));
         if (isTopPos) {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(119.5f, 83.5f);
             proxyBunkerPos = Point2d.of(129.5f, 48.5f);
+            proxyBunkerPos2 = Point2d.of(138.5f, 67.5f);
 
             reaperBlockDepots.add(Point2d.of(49.0f, 130.0f));
             reaperBlock3x3s.add(Point2d.of(46.5f, 128.5f));
@@ -540,9 +540,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(30.0f, 149.0f));
             extraDepots.add(Point2d.of(41.0f, 133.0f));
         } else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(72.5f, 105.5f);
             proxyBunkerPos = Point2d.of(62.5f, 139.5f);
+            proxyBunkerPos2 = Point2d.of(53.5f, 120.5f);
 
             reaperBlockDepots.add(Point2d.of(143.0f, 58.0f)); //reaperJump1
             reaperBlock3x3s.add(Point2d.of(145.5f, 59.5f));
@@ -880,6 +880,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(77.5f, 54.5f);
             proxyBunkerPos = Point2d.of(42.5f, 58.5f);
+            proxyBunkerPos2 = Point2d.of(54.5f, 50.5f);
 
             reaperBlockDepots.add(Point2d.of(130.0f, 127.0f));
             reaperBlockDepots.add(Point2d.of(130.0f, 125.0f));
@@ -949,6 +950,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(96.5f, 117.5f);
             proxyBunkerPos = Point2d.of(133.5f, 113.5f);
+            proxyBunkerPos2 = Point2d.of(121.5f, 121.5f);
 
             reaperBlockDepots.add(Point2d.of(46.0f, 45.0f));
             reaperBlockDepots.add(Point2d.of(46.0f, 47.0f));
@@ -1169,7 +1171,8 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(100.5f, 76.5f));
         if (isTopPos) { //left spawn
             proxyBarracksPos = Point2d.of(132.5f, 97.5f);
-            proxyBunkerPos = Point2d.of(158.5f, 76.5f);
+            proxyBunkerPos = Point2d.of(158.5f, 77.5f);
+            //proxyBunkerPos2 unnecessary
 
             myMineralPos = Point2d.of(25f, 51.5f);
             enemyMineralPos = Point2d.of(183f, 51.5f);
@@ -1239,7 +1242,8 @@ public class LocationConstants {
         }
         else {
             proxyBarracksPos = Point2d.of(68.5f, 98.5f);
-            proxyBunkerPos = Point2d.of(49.5f, 76.5f);
+            proxyBunkerPos = Point2d.of(49.5f, 77.5f);
+            //proxyBunkerPos2 unnecessary
 
             myMineralPos = Point2d.of(183f, 51.5f);
             enemyMineralPos = Point2d.of(25f, 51.5f);
@@ -1311,9 +1315,9 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(134.5f, 104.5f));
         muleLetterPosList.add(Point2d.of(145.5f, 107.5f));
         if (isTopPos) {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(116.5f, 111.5f);
             proxyBunkerPos = Point2d.of(77.5f, 96.5f);
+            proxyBunkerPos2 = Point2d.of(97.5f, 79.5f);
 
             reaperBlockDepots.add(Point2d.of(164.0f, 165.0f));
             reaperBlockDepots.add(Point2d.of(168.0f, 161.0f));
@@ -1380,9 +1384,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(171.0f, 160.0f));
         }
         else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(128.5f, 149.5f);
             proxyBunkerPos = Point2d.of(178.5f, 139.5f);
+            proxyBunkerPos2 = Point2d.of(158.5f, 156.5f);
 
             reaperBlockDepots.add(Point2d.of(92.0f, 71.0f)); //reaperJump1
             reaperBlockDepots.add(Point2d.of(88.0f, 75.0f)); //reaperJump3
@@ -1726,6 +1730,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(122.5f, 91.5f);
             proxyBunkerPos = Point2d.of(140.5f, 59.5f);
+            proxyBunkerPos2 = Point2d.of(131.5f, 53.5f);
 
             myMineralPos = Point2d.of(34f, 139.5f);
             enemyMineralPos = Point2d.of(158f, 32.5f);
@@ -1796,6 +1801,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(65.5f, 80.5f);
             proxyBunkerPos = Point2d.of(51.5f, 112.5f);
+            proxyBunkerPos2 = Point2d.of(60.5f, 118.5f);
 
             myMineralPos = Point2d.of(158f, 32.5f);
             enemyMineralPos = Point2d.of(34f, 139.5f);
@@ -2005,6 +2011,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(79.5f, 62.5f);
             proxyBunkerPos = Point2d.of(61.5f, 37.5f);
+            proxyBunkerPos2 = Point2d.of(51.5f, 56.5f);
 
             reaperBlockDepots.add(Point2d.of(123.0f, 122.0f));
             reaperBlockDepots.add(Point2d.of(120.0f, 125.0f));
@@ -2072,6 +2079,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(88.5f, 109.5f);
             proxyBunkerPos = Point2d.of(106.5f, 134.5f);
+            proxyBunkerPos2 = Point2d.of(116.5f, 115.5f);
 
             reaperBlockDepots.add(Point2d.of(45.0f, 50.0f));
             reaperBlockDepots.add(Point2d.of(48.0f, 47.0f));
@@ -2436,6 +2444,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(105.5f, 78.5f);
             proxyBunkerPos = Point2d.of(124.5f, 61.5f);
+            proxyBunkerPos2 = Point2d.of(108.5f, 45.5f);
 
             WALL_2x2 = Point2d.of(40.0f, 117.0f);
             MID_WALL_2x2 = Point2d.of(42.0f, 117.0f);
@@ -2507,9 +2516,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(36.0f, 122.0f));
         }
         else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
             proxyBarracksPos = Point2d.of(62.5f, 85.5f);
             proxyBunkerPos = Point2d.of(43.5f, 102.5f);
+            proxyBunkerPos2 = Point2d.of(59.5f, 118.5f);
 
             WALL_2x2 = Point2d.of(128.0f, 47.0f);
             WALL_3x3 = Point2d.of(124.5f, 49.5f);

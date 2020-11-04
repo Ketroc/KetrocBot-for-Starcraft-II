@@ -70,7 +70,7 @@ public class TestingBot extends Bot {
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), neutralId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_MULE, Point2d.of(90, 100), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
-        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
+//        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
         debug().sendDebug();
 
 //        commandCenter = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0).unit();

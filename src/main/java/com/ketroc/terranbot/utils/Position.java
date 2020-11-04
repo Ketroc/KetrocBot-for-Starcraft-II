@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -11,6 +12,7 @@ import com.github.ocraft.s2client.protocol.unit.UnitSnapshot;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -279,42 +281,17 @@ public class Position {
     }
 
     public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius) {
-        if (Bot.QUERY.placement(placementAbility, pos)) {
-            return pos;
-        }
-        float x = pos.getX();
-        float y = pos.getY();
-        boolean isMoveUp = true;
-        boolean isMoveRight = true;
-        boolean isMoveVertical = true;
-        int xLength = 1;
-        int yLength = 1;
-        int numTurns = searchRadius*4 + 1;
-        for (int count=0; count<numTurns; count++) {
-            if (isMoveVertical) {
-                for (int i = 0; i < yLength; i++) {
-                    y += (isMoveUp) ? 1 : -1;
-                    Point2d testPos = Point2d.of(x, y);
-                    if (Bot.QUERY.placement(placementAbility, testPos)) {
-                        return testPos;
-                    }
-                }
-                yLength++;
-                isMoveUp = !isMoveUp;
-                isMoveVertical = !isMoveVertical;
-            }
-            else {
-                for (int i = 0; i < xLength; i++) {
-                    x += (isMoveRight) ? 1 : -1;
-                    Point2d testPos = Point2d.of(x, y);
-                    if (Bot.QUERY.placement(placementAbility, testPos)) {
-                        return testPos;
-                    }
-                }
-                xLength++;
-                isMoveRight = !isMoveRight;
-                isMoveVertical = !isMoveVertical;
-            }
+        List<Point2d> possiblePosList = getSpiralList(pos, searchRadius).stream()
+                .sorted(Comparator.comparing(p -> p.distance(pos)))
+                .collect(Collectors.toList());
+
+        List<QueryBuildingPlacement> queryList = possiblePosList.stream()
+                .map(p -> QueryBuildingPlacement.placeBuilding().useAbility(placementAbility).on(p).build())
+                .collect(Collectors.toList());
+
+        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+        if (placementList.contains(true)) {
+            return possiblePosList.get(placementList.indexOf(true));
         }
         return null;
     }

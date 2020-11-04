@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -18,10 +19,7 @@ import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,7 +59,7 @@ public class BunkerContain {
         enemyPos = getEnemyPos();
         behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
         siegeTankPos = Position.towards(bunkerPos, enemyPos, -3.3f);
-        marinesNeeded = (LocationConstants.opponentRace == Race.TERRAN) ? 5 : 4;
+        marinesNeeded = (LocationConstants.opponentRace == Race.TERRAN && LocationConstants.proxyBunkerPos2 != null) ? 5 : 4;
         scoutProxy = (LocationConstants.opponentRace == Race.TERRAN);
     }
 
@@ -564,8 +562,30 @@ public class BunkerContain {
         float angle = (isClockwise) ? 15 : -15;
         Point2d turretPos = Position.toWholePoint(
                 Position.towards(
-                        Position.rotate(behindBunkerPos, enemyPos, angle), enemyPos, -2));
-        return Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 3);
+                        Position.rotate(behindBunkerPos,
+                                Position.towards(behindBunkerPos, enemyPos, 10),
+                                angle
+                        ),
+                        enemyPos,
+                        -2.7f
+                )
+        );
+        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        Point2d bestPlacementPos = Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 2);
+        if (bestPlacementPos == null) {
+            turretPos = Position.toWholePoint(
+                    Position.towards(
+                            Position.rotate(behindBunkerPos,
+                                    Position.towards(behindBunkerPos, enemyPos, 10),
+                                    angle
+                            ),
+                            enemyPos,
+                            -5f
+                    )
+            );
+            bestPlacementPos = Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 4);
+        }
+        return bestPlacementPos;
     }
 
 //        boolean xBigger = Math.abs(bunkerPos.getX() - behindBunkerPos.getX()) > Math.abs(bunkerPos.getY() - behindBunkerPos.getY());
@@ -651,7 +671,8 @@ public class BunkerContain {
 
     private static void onBarracksStarted(UnitInPool bar) {
         barracks = bar;
-        Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, LocationConstants.BUNKER_NATURAL, false);
+        Point2d bunkerNatural = (LocationConstants.proxyBunkerPos2 == null) ? behindBunkerPos : LocationConstants.BUNKER_NATURAL;
+        Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, bunkerNatural, false);
     }
 
     public static void onBarracksComplete() {

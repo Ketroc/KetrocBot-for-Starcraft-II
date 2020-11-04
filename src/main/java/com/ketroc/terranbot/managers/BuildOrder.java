@@ -26,12 +26,10 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(BunkerContain.repairScvList.get(0).unit(), Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    LocationConstants.BUNKER_NATURAL = LocationConstants.proxyBunkerPos2;
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(BunkerContain.repairScvList.get(0).unit(), Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
-
-//                    Point2d factoryPos = (LocationConstants.MAP.equals(MapNames.ZEN) || LocationConstants.MAP.equals(MapNames.THUNDERBIRD))
-//                            ? LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3)
-//                            : LocationConstants.FACTORY;
+                    if (LocationConstants.proxyBunkerPos2 != null) {
+                        LocationConstants.BUNKER_NATURAL = LocationConstants.proxyBunkerPos2;
+                        KetrocBot.purchaseQueue.add(new PurchaseStructure(BunkerContain.repairScvList.get(0).unit(), Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
+                    }
                     Point2d factoryPos = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3);
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));

@@ -15,7 +15,7 @@ public class DebugHelper {
     }
 
     public static void drawBox(Point2d pos, Color color, float radius) {
-        //z = Bot.OBS.terrainHeight(pos) + 0.5f;
+        z = Bot.OBS.terrainHeight(pos) + 0.5f;
         if (Bot.isDebugOn) {
             float x = pos.getX();
             float y = pos.getY();
