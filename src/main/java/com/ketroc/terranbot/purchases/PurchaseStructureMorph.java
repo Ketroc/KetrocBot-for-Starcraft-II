@@ -8,6 +8,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.Time;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class PurchaseStructureMorph implements Purchase {
     private static final float CANCEL_THRESHOLD = 0.4f;
@@ -92,7 +93,7 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean shouldCancelPreviousOrder() {
-        if (!structure.unit().getOrders().isEmpty() && structure.unit().getOrders().get(0).getAbility() == Abilities.TRAIN_SCV) {
+        if (UnitUtils.getOrder(structure.unit()) == Abilities.TRAIN_SCV) {
             int minerals = GameCache.mineralBank;
             int gas = GameCache.gasBank;
 

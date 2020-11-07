@@ -337,7 +337,7 @@ public class DroneRush {
     }
 
     private static boolean isScvAttacking(Unit scv) {
-        return !scv.getOrders().isEmpty() && scv.getOrders().get(0).getAbility() == Abilities.ATTACK;
+        return UnitUtils.getOrder(scv) == Abilities.ATTACK;
     }
 
 

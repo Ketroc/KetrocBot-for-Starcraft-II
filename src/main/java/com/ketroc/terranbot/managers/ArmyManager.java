@@ -402,8 +402,7 @@ public class ArmyManager {
         if (numInjured > 0) {
             int numRepairingScvs = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of scvs currently repairing (ie, on attack move)
                 return u.unit().getType() == Units.TERRAN_SCV &&
-                        !u.unit().getOrders().isEmpty() &&
-                        (u.unit().getOrders().get(0).getAbility() == Abilities.ATTACK || u.unit().getOrders().get(0).getAbility() == Abilities.EFFECT_REPAIR);
+                        (UnitUtils.getOrder(u.unit()) == Abilities.ATTACK || UnitUtils.getOrder(u.unit()) == Abilities.EFFECT_REPAIR);
             }).size();  //TODO: move this to GameState.startFrame() ??
             int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs; //decide 5 or 10 total scvs to repair at dock
             if (numScvsToSend > 1) {
@@ -1042,7 +1041,7 @@ public class ArmyManager {
     //return true if autoturret cast
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
         //wait for raven to auto-turret before giving a new command
-        if (!raven.getOrders().isEmpty() && raven.getOrders().get(0).getAbility() == Abilities.EFFECT_AUTO_TURRET) {
+        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
             return;
         }
 

@@ -112,7 +112,7 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 1;//selectedStrategy % numStrategies;
+        selectedStrategy = 2;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:

@@ -44,7 +44,7 @@ public class ActionErrorManager {
                 }
                 else if (isBlockedByUnit(actionResult)) {
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
-                            numBlockingEnemyUnits(pos, ability) == 0) {
+                            numBlockingEnemyUnits(pos, Bot.abilityToUnitType.get(ability)) == 0) {
                         ExpansionClearing.add(pos);
                     }
                     else {
@@ -54,7 +54,7 @@ public class ActionErrorManager {
                 }
                 else if (isPathBlocked(actionResult)) {
                     //blocked by enemy structure
-                    if (numBlockingEnemyUnits(pos, ability) != 0) {
+                    if (numBlockingEnemyUnits(pos, Bot.abilityToUnitType.get(ability)) != 0) {
                         StructureScv.cancelProduction(structureType, pos);
                     }
                     //scv is trapped
@@ -73,19 +73,6 @@ public class ActionErrorManager {
         actionErrorList.clear();
     }
 
-    public static void isPlaceable(Units structureType, Point2d pos) {
-        Abilities buildAbility = (Abilities)Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().orElse(Abilities.INVALID);
-        if (!Bot.QUERY.placement(buildAbility, pos)) {
-            List<UnitInPool> nearbyUnits = Bot.OBS.getUnits(u -> !u.unit().getFlying().orElse(true) &&
-                    UnitUtils.getDistance(u.unit(), pos) < UnitUtils.getStructureRadius(buildAbility));
-
-            //if blocking units are nearby
-            if (nearbyUnits.stream().anyMatch(u -> u.unit().getAlliance() == Alliance.ENEMY || !UnitUtils.canMove(u.unit().getType()))) {
-
-            }
-        }
-    }
-
     private static boolean isBlockedByCreep(ActionResult r) {
         return r == ActionResult.CANT_BUILD_TOO_CLOSE_TO_CREEP_SOURCE || r == ActionResult.CANT_LAND_TOO_CLOSE_TO_CREEP_SOURCE;
     }
@@ -99,9 +86,9 @@ public class ActionErrorManager {
         return r == ActionResult.COULDNT_REACH_TARGET;
     }
 
-    private static int numBlockingEnemyUnits(Point2d structurePos, Abilities buildAction) {
+    private static int numBlockingEnemyUnits(Point2d structurePos, Units structureType) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                UnitUtils.getDistance(enemy.unit(), structurePos) < UnitUtils.getStructureRadius(buildAction)*1.6 &&
+                UnitUtils.getDistance(enemy.unit(), structurePos) < UnitUtils.getStructureRadius(structureType)*1.6 &&
                 !enemy.unit().getFlying().orElse(true) &&
                 !enemy.unit().getType().toString().contains("BURROWED") &&
                 enemy.unit().getCloakState().orElse(CloakState.CLOAKED) != CloakState.CLOAKED &&

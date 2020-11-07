@@ -1,6 +1,7 @@
 package com.ketroc.terranbot.utils;
 
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.strategies.Strategy;
 
 public class Time {
     public static final double FRAMES_PER_SECOND = 22.4;
@@ -10,7 +11,9 @@ public class Time {
     }
 
     public static long toFrames(int seconds) {
-        return (long)(seconds * FRAMES_PER_SECOND);
+        long frames = (long) (seconds * FRAMES_PER_SECOND);
+        frames -= frames % Strategy.SKIP_FRAMES;
+        return frames;
     }
 
     public static int toSeconds(String time) {

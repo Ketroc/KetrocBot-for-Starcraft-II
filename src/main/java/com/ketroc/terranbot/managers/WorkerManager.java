@@ -152,8 +152,7 @@ public class WorkerManager {
         for (Base base : GameCache.baseList) {
             List<Unit> harvestingScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, base.getCcPos(), 10).stream()
                     .map(UnitInPool::unit)
-                    .filter(scv -> !scv.getOrders().isEmpty() &&
-                            scv.getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER &&
+                    .filter(scv -> UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER &&
                             scv.getOrders().get(0).getTargetedUnitTag().isPresent())
                     .collect(Collectors.toList());
 

@@ -85,6 +85,7 @@ public class KetrocBot extends Bot {
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
 
+            LocationConstants.MACRO_OCS.clear(); //TODO: delete - for testing
 //            int myId = Bot.OBS.getPlayerId();
 //            int enemyId = Bot.OBS.getGameInfo().getPlayersInfo().stream()
 //                    .filter(p -> p.getPlayerId() != myId)
@@ -481,6 +482,12 @@ public class KetrocBot extends Bot {
                 switch (alliance) {
                     case SELF:
                         switch ((Units) unit.getType()) {
+                            case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND:
+                                //if macro OC
+                                if (GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(unit, base.getCcPos()) < 1)) {
+                                    Placement.possibleCcPosList.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                                }
+                                break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
                                 LocationConstants.extraDepots.add(unit.getPosition().toPoint2d());
                                 break;
@@ -604,7 +611,7 @@ public class KetrocBot extends Bot {
         System.out.println("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
         try {
-            control().saveReplay(Path.of(System.currentTimeMillis() + ".SC2Replay"));
+            control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
             e.printStackTrace();
         }

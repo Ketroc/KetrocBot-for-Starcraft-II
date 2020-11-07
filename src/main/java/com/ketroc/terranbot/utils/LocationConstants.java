@@ -472,7 +472,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(119.5f, 83.5f);
             proxyBunkerPos = Point2d.of(129.5f, 48.5f);
-            proxyBunkerPos2 = Point2d.of(138.5f, 67.5f);
+            proxyBunkerPos2 = Point2d.of(137.5f, 68.5f);
 
             reaperBlockDepots.add(Point2d.of(49.0f, 130.0f));
             reaperBlock3x3s.add(Point2d.of(46.5f, 128.5f));
@@ -542,7 +542,7 @@ public class LocationConstants {
         } else {
             proxyBarracksPos = Point2d.of(72.5f, 105.5f);
             proxyBunkerPos = Point2d.of(62.5f, 139.5f);
-            proxyBunkerPos2 = Point2d.of(53.5f, 120.5f);
+            proxyBunkerPos2 = Point2d.of(54.5f, 119.5f);
 
             reaperBlockDepots.add(Point2d.of(143.0f, 58.0f)); //reaperJump1
             reaperBlock3x3s.add(Point2d.of(145.5f, 59.5f));
@@ -1315,9 +1315,9 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(134.5f, 104.5f));
         muleLetterPosList.add(Point2d.of(145.5f, 107.5f));
         if (isTopPos) {
-            proxyBarracksPos = Point2d.of(116.5f, 111.5f);
+            proxyBarracksPos = Point2d.of(107.5f, 95.5f);
             proxyBunkerPos = Point2d.of(77.5f, 96.5f);
-            proxyBunkerPos2 = Point2d.of(97.5f, 79.5f);
+            proxyBunkerPos2 = Point2d.of(98.5f, 80.5f);
 
             reaperBlockDepots.add(Point2d.of(164.0f, 165.0f));
             reaperBlockDepots.add(Point2d.of(168.0f, 161.0f));
@@ -1384,9 +1384,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(171.0f, 160.0f));
         }
         else {
-            proxyBarracksPos = Point2d.of(128.5f, 149.5f);
+            proxyBarracksPos = Point2d.of(148.5f, 139.5f);
             proxyBunkerPos = Point2d.of(178.5f, 139.5f);
-            proxyBunkerPos2 = Point2d.of(158.5f, 156.5f);
+            proxyBunkerPos2 = Point2d.of(157.5f, 155.5f);
 
             reaperBlockDepots.add(Point2d.of(92.0f, 71.0f)); //reaperJump1
             reaperBlockDepots.add(Point2d.of(88.0f, 75.0f)); //reaperJump3
@@ -2444,7 +2444,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(105.5f, 78.5f);
             proxyBunkerPos = Point2d.of(124.5f, 61.5f);
-            proxyBunkerPos2 = Point2d.of(108.5f, 45.5f);
+            proxyBunkerPos2 = Point2d.of(107.5f, 45.5f);
 
             WALL_2x2 = Point2d.of(40.0f, 117.0f);
             MID_WALL_2x2 = Point2d.of(42.0f, 117.0f);
@@ -2518,7 +2518,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(62.5f, 85.5f);
             proxyBunkerPos = Point2d.of(43.5f, 102.5f);
-            proxyBunkerPos2 = Point2d.of(59.5f, 118.5f);
+            proxyBunkerPos2 = Point2d.of(60.5f, 118.5f);
 
             WALL_2x2 = Point2d.of(128.0f, 47.0f);
             WALL_3x3 = Point2d.of(124.5f, 49.5f);
@@ -3365,14 +3365,14 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(142.5f, 110.5f));
                 baseLocations.add(Point2d.of(115.5f, 134.5f));
                 baseLocations.add(Point2d.of(79.5f, 146.5f));
-                baseLocations.add(Point2d.of(86.5f, 126.5f));
                 baseLocations.add(Point2d.of(131.5f, 83.5f));
+                baseLocations.add(Point2d.of(86.5f, 126.5f));
                 baseLocations.add(Point2d.of(126.5f, 55.5f));
                 baseLocations.add(Point2d.of(33.5f, 139.5f));
                 baseLocations.add(Point2d.of(49.5f, 116.5f));
                 baseLocations.add(Point2d.of(142.5f, 32.5f));
-                baseLocations.add(Point2d.of(44.5f, 88.5f));
                 baseLocations.add(Point2d.of(89.5f, 45.5f));
+                baseLocations.add(Point2d.of(44.5f, 88.5f));
                 baseLocations.add(Point2d.of(96.5f, 25.5f));
                 baseLocations.add(Point2d.of(60.5f, 37.5f));
                 baseLocations.add(Point2d.of(33.5f, 61.5f));

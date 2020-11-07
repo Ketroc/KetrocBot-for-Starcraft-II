@@ -177,7 +177,7 @@ public class Position {
         return Point2d.of((float)(vector.getX() / length), (float)(vector.getY() / length));
     }
 
-    public static Point2d nearestHalfPoint(Point2d point) {
+    public static Point2d toNearestHalfPoint(Point2d point) {
         return Point2d.of(roundToNearestHalf(point.getX()), roundToNearestHalf(point.getY()));
     }
 
@@ -195,7 +195,7 @@ public class Position {
 
     //moves this point on 1 plane to the closest point clear of the obstacle
     public static Point2d moveClear(Point2d pointToMove, Unit obstacle, float minDistance) {
-        Point2d obstaclePoint = nearestHalfPoint(obstacle.getPosition().toPoint2d());
+        Point2d obstaclePoint = toNearestHalfPoint(obstacle.getPosition().toPoint2d());
         return moveClear(pointToMove, obstaclePoint, minDistance);
     }
 

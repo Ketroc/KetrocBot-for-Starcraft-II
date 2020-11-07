@@ -103,17 +103,18 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
-//        List<Unit> ocList = Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_ORBITAL_COMMAND).stream()
-//                .map(UnitInPool::unit)
-//                .collect(Collectors.toList());
+        Unit cc = Bot.OBS.getUnits(u -> u.unit().getType().toString().contains("COMMAND")).stream()
+                .map(UnitInPool::unit)
+                .findFirst()
+                .get();
         if (Time.nowFrames() == 100) {
-
+            System.out.println("cc.getTag() = " + cc.getTag());
         }
-        if (Time.nowFrames() == 200) {
-
+        if (Time.nowFrames() == 800) {
+            System.out.println("cc.getTag() = " + cc.getTag());
         }
-        if (Time.nowFrames() == 600) {
-
+        if (Time.nowFrames() == 1600) {
+            System.out.println("cc.getTag() = " + cc.getTag());
         }
 
         ACTION.sendActions();

@@ -13,6 +13,7 @@ import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.Gas;
 import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.LocationConstants;
@@ -190,9 +191,11 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
         //position unplaceable
         Abilities buildAction = (Abilities)structureData.getAbility().get();
-        if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
+        if (!Bot.QUERY.placement(buildAction, position)) { //if clear of creep and enemy ground units/structures
+        //if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
             //if structure blocks location
-            if (!Bot.OBS.getUnits(u -> position.distance(u.unit().getPosition().toPoint2d()) < UnitUtils.getStructureRadius(buildAction) && !UnitUtils.canMove(u.unit().getType())).isEmpty() ||
+            if ((!Bot.OBS.getUnits(u -> UnitUtils.getDistance(u.unit(), position) < UnitUtils.getStructureRadius(structureType) &&
+                    !UnitUtils.canMove(u.unit().getType())).isEmpty()) ||
                     Bot.OBS.hasCreep(position)) {
                 makePositionAvailableAgain(position);
                 return PurchaseResult.CANCEL;
@@ -202,14 +205,22 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
         }
 
-        if (this.scv == null) { //select an scv if none was provided
-            List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
-            if (availableScvs.isEmpty()) {
-                System.out.println("cancelled " + structureType + " because no scv available");
-                makePositionAvailableAgain(position);
-                return PurchaseResult.CANCEL;
+        if (scv == null) { //select an scv if none was provided
+            if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && LocationConstants.baseLocations.get(0).distance(position) > 50) {
+                BunkerContain.repairScvList.stream()
+                        .filter(u -> !StructureScv.isScvProducing(u.unit()))
+                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), position)))
+                        .ifPresent(u -> scv = u.unit());
             }
-            this.scv = availableScvs.get(0).unit();
+            if (scv == null) {
+                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
+                if (availableScvs.isEmpty()) {
+                    System.out.println("cancelled " + structureType + " because no scv available");
+                    makePositionAvailableAgain(position);
+                    return PurchaseResult.CANCEL;
+                }
+                scv = availableScvs.get(0).unit();
+            }
         }
         System.out.println("sending action " + buildAction + " at: " + Time.nowClock() + " at pos: " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);

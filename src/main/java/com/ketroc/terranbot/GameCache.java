@@ -159,6 +159,7 @@ public class GameCache {
                     allFriendliesMap.get(unitType).add(unit);
 
                     //build unitType specific lists
+                    Abilities curOrder = UnitUtils.getOrder(unit);
                     switch (unitType) {
                         case TERRAN_COMMAND_CENTER: case TERRAN_PLANETARY_FORTRESS: case TERRAN_ORBITAL_COMMAND:
                         case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
@@ -181,24 +182,24 @@ public class GameCache {
                             if (LocationConstants.isWallStructure(unit)) {
                                 GameCache.wallStructures.add(unit);
                             }
-                            if (!unit.getOrders().isEmpty()) {
-                                Units unitProducing = Bot.abilityToUnitType.get(unit.getOrders().get(0).getAbility());
+                            if (curOrder != null) {
+                                Units unitProducing = Bot.abilityToUnitType.get(curOrder);
                                 inProductionMap.put(unitProducing, inProductionMap.getOrDefault(unitProducing, 0) + 1);
                             }
                         case TERRAN_BARRACKS_FLYING:
                             barracksList.add(unitInPool);
                             break;
                         case TERRAN_FACTORY:
-                            if (!unit.getOrders().isEmpty()) {
-                                Units unitProducing = Bot.abilityToUnitType.get(unit.getOrders().get(0).getAbility());
+                            if (curOrder != null) {
+                                Units unitProducing = Bot.abilityToUnitType.get(curOrder);
                                 inProductionMap.put(unitProducing, inProductionMap.getOrDefault(unitProducing, 0) + 1);
                             }
                         case TERRAN_FACTORY_FLYING:
                             factoryList.add(unitInPool);
                             break;
                         case TERRAN_STARPORT:
-                            if (!unit.getOrders().isEmpty()) {
-                                Units unitProducing = Bot.abilityToUnitType.get(unit.getOrders().get(0).getAbility());
+                            if (curOrder != null) {
+                                Units unitProducing = Bot.abilityToUnitType.get(curOrder);
                                 inProductionMap.put(unitProducing, inProductionMap.getOrDefault(unitProducing, 0) + 1);
                             }
                         case TERRAN_STARPORT_FLYING:

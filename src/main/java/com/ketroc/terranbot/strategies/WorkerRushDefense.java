@@ -59,7 +59,7 @@ public class WorkerRushDefense {
                 Unit cc = GameCache.ccList.get(0);
                 int numWorkersNearCC = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, cc.getPosition().toPoint2d(), 12).size();
                 if (numWorkersNearCC > 0 && cc.getType() == Units.TERRAN_COMMAND_CENTER) {
-                    if (!cc.getOrders().isEmpty() && cc.getOrders().get(0).getAbility() == Abilities.TRAIN_SCV) {
+                    if (UnitUtils.getOrder(cc) == Abilities.TRAIN_SCV) {
                         Bot.ACTION.unitCommand(cc, Abilities.CANCEL_LAST, false);
                     } else {
                         Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.LIFT_COMMAND_CENTER, false);

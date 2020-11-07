@@ -116,9 +116,9 @@ public class Base {
 
             //extra side turrets
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 110), ccPos, 4.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 100), ccPos, 3.5f), null));
             turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -110), ccPos, 4.5f), null));
+                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -100), ccPos, 3.5f), null));
         }
         return turrets;
     }
@@ -244,7 +244,7 @@ public class Base {
     public List<Unit> getUnsiegedLibs() {
         List<UnitInPool> idleLibs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_LIBERATOR &&
                 u.unit().getPosition().toPoint2d().distance(ccPos) < 4 &&
-                (u.unit().getOrders().isEmpty() || u.unit().getOrders().get(0).getAbility() != Abilities.ATTACK));
+                (UnitUtils.getOrder(u.unit()) != Abilities.ATTACK));
         return UnitUtils.toUnitList(idleLibs);
     }
 

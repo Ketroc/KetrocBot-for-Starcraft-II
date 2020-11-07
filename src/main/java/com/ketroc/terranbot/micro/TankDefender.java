@@ -12,7 +12,9 @@ public class TankDefender extends BasicUnitMicro {
     }
 
     @Override
-    public void onCompletion() {
-        Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
+    public void onArrival() {
+        super.onArrival();
+        Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false)
+                .unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, true);
     }
 }

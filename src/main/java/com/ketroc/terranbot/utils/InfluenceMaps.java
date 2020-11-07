@@ -1,6 +1,8 @@
 package com.ketroc.terranbot.utils;
 
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 
 public class InfluenceMaps {
 
@@ -44,6 +46,28 @@ public class InfluenceMaps {
 
     public static int getValue(int[][] map, float x, float y) {
         return map[toMapCoord(x)][toMapCoord(y)];
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getAirThreatToStructure(Unit structure) {
+        return getThreatToStructure(pointThreatToAir, structure);
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getGroundThreatToStructure(Unit structure) {
+        return getThreatToStructure(pointThreatToGround, structure);
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getThreatToStructure(int[][] map, Unit structure) {
+        Point2d structurePos = Position.toNearestHalfPoint(structure.getPosition().toPoint2d());
+        float x = structurePos.getX();
+        float y = structurePos.getY();
+        float radius = UnitUtils.getStructureRadius((Units)structure.getType());
+        return Math.max(getValue(map, x + radius, y + radius),
+                Math.max(getValue(map, x - radius, y + radius),
+                        Math.max(getValue(map, x + radius, y - radius),
+                                getValue(map, x - radius, y - radius))));
     }
 
     public static int toMapCoord(float coord) {

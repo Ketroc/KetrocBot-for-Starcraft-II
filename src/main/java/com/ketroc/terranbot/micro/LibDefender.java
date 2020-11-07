@@ -15,8 +15,8 @@ public class LibDefender extends BasicUnitMicro {
     }
 
     @Override
-    public void onCompletion() {
-        super.onCompletion();
+    public void onArrival() {
+        super.onArrival();
         Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, Position.towards(targetPos, ccPos, -2), false)
                 .unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, Position.towards(targetPos, ccPos, 5), true);
     }

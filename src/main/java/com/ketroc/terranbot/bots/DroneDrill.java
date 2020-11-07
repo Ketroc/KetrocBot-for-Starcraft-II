@@ -480,7 +480,7 @@ public class DroneDrill extends Bot {
 
     public static boolean isProducing(Abilities training) {
         for (Unit egg : UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EGG)) {
-            if (egg.getOrders().get(0).getAbility() == training) {
+            if (UnitUtils.getOrder(egg) == training) {
                 return true;
             }
         }

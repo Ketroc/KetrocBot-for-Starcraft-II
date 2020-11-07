@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
 
@@ -112,7 +113,7 @@ public class _12PoolBot extends S2Agent {
     private boolean isUnitInEgg(Abilities trainUnitType) {
         List<Unit> eggs = myUnits.getOrDefault(Units.ZERG_EGG, Collections.emptyList());
         for (Unit egg : eggs) {
-            if (egg.getOrders().get(0).getAbility() == trainUnitType) {
+            if (UnitUtils.getOrder(egg) == trainUnitType) {
                 return true;
             }
         }

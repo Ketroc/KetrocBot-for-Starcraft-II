@@ -182,8 +182,7 @@ public class UnitUtils {
 
     public static int numRepairingScvs(Unit repairTarget) {
         return (int)getFriendlyUnitsOfType(Units.TERRAN_SCV).stream()
-                .filter(scv -> !scv.getOrders().isEmpty() &&
-                        scv.getOrders().get(0).getAbility() == Abilities.EFFECT_REPAIR &&
+                .filter(scv -> UnitUtils.getOrder(scv) == Abilities.EFFECT_REPAIR &&
                         scv.getOrders().get(0).getTargetedUnitTag().orElse(Tag.of(0L)).equals(repairTarget.getTag()))
                 .count();
     }
@@ -412,8 +411,7 @@ public class UnitUtils {
     }
 
     public static boolean isAttacking(Unit unit, Unit target) {
-        return !unit.getOrders().isEmpty() &&
-                unit.getOrders().get(0).getAbility() == Abilities.ATTACK &&
+        return UnitUtils.getOrder(unit) == Abilities.ATTACK &&
                 target.getTag().equals(unit.getOrders().get(0).getTargetedUnitTag().orElse(null));
     }
 
@@ -426,30 +424,30 @@ public class UnitUtils {
         return GameCache.wallStructures.stream().anyMatch(unit -> unit.getType() == Units.TERRAN_SUPPLY_DEPOT); //if depot is raised then unsafe to expand
     }
 
-    public static float getStructureRadius(Abilities buildAction) {
-        StructureSize size = getSize(buildAction);
+    public static float getStructureRadius(Units structureType) {
+        StructureSize size = getSize(structureType);
         switch (size) {
             case _1x1:
-                return 0.3f; //0.5 actual
+                return 0.5f;
             case _2x2:
-                return 0.7f; //1 actual
+                return 1;
             case _3x3:
-                return 1.1f; //1.5 actual
+                return 1.5f;
             default: //_5x5
-                return 2.2f; //2.5 actual
+                return 2.5f;
         }
     }
 
-    public static StructureSize getSize(Abilities buildAction) {
-        switch (buildAction) {
-            case BUILD_COMMAND_CENTER:
+    public static StructureSize getSize(Units structureType) {
+        switch (structureType) {
+            case TERRAN_COMMAND_CENTER:
                 return StructureSize._5x5;
-            case BUILD_ENGINEERING_BAY: case BUILD_BARRACKS: case BUILD_BUNKER: case BUILD_ARMORY: case BUILD_FACTORY:
-            case BUILD_STARPORT: case BUILD_FUSION_CORE: case BUILD_GHOST_ACADEMY:
+            case TERRAN_ENGINEERING_BAY: case TERRAN_BARRACKS: case TERRAN_BUNKER: case TERRAN_ARMORY: case TERRAN_FACTORY:
+            case TERRAN_STARPORT: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY:
                 return StructureSize._3x3;
-            case BUILD_MISSILE_TURRET: case BUILD_SUPPLY_DEPOT:
+            case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT:
                 return StructureSize._2x2;
-            default: //case BUILD_SENSOR_TOWER:
+            default: //case TERRAN_SENSOR_TOWER:
                 return StructureSize._1x1;
         }
     }
@@ -487,5 +485,12 @@ public class UnitUtils {
                 !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                 enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED);
+    }
+
+    public static Abilities getOrder(Unit unit) {
+        if (!unit.getOrders().isEmpty() && unit.getOrders().get(0).getAbility() instanceof Abilities) {
+            return (Abilities) unit.getOrders().get(0).getAbility();
+        }
+        return null;
     }
 }

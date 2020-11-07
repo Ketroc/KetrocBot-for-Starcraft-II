@@ -13,11 +13,13 @@ import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class StructureScv {
@@ -164,9 +166,19 @@ public class StructureScv {
 
             //if assigned scv is dead add another
             if (!structureScv.scv.isAlive()) {
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
-                if (!availableScvs.isEmpty()) {
-                    structureScv.setScv(availableScvs.get(0));
+                if (BunkerContain.proxyBunkerLevel > 0 &&
+                        Time.nowFrames() < Time.toFrames("5:00") &&
+                        structureScv.structurePos.distance(LocationConstants.pointOnMyRamp) > 50) {
+                    BunkerContain.repairScvList.stream()
+                            .filter(u -> !StructureScv.isScvProducing(u.unit()))
+                            .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))
+                            .ifPresent(u -> structureScv.setScv(u));
+                }
+                if (!structureScv.scv.isAlive()) {
+                    List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
+                    if (!availableScvs.isEmpty()) {
+                        structureScv.setScv(availableScvs.get(0));
+                    }
                 }
             }
 
@@ -185,20 +197,9 @@ public class StructureScv {
                         }
                     }
 
-
-                    //if under threat, requeue
-//                    if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structureScv.structurePos) > 0 ||
-//                            UnitUtils.isWallUnderAttack()) {
-                        requeueCancelledStructure(structureScv);
-                        remove(structureScv);
-                        i--;
-//                    }
-//                    else {
-//                        Cost.updateBank(structureScv.structureType);
-//                        if (Bot.QUERY.placement(structureScv.buildAbility, structureScv.structurePos)) {
-//                            Bot.ACTION.unitCommand(structureScv.scv.unit(), structureScv.buildAbility, structureScv.structurePos, false);
-//                        }
-//                    }
+                    requeueCancelledStructure(structureScv);
+                    remove(structureScv);
+                    i--;
                 }
                 //if structure started but not complete
                 else if (structure.unit().getBuildProgress() < 1.0f) {

@@ -13,12 +13,9 @@ import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.models.Ignored;
-import com.ketroc.terranbot.models.IgnoredUnit;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class BasicUnitMicro {
@@ -46,8 +43,9 @@ public class BasicUnitMicro {
     }
 
     public void onStep() {
+        isGround = !unit.unit().getFlying().orElse(false);
         if (unit == null || !unit.isAlive()) {
-            onFailure();
+            onDeath();
             return;
         }
 
@@ -65,27 +63,26 @@ public class BasicUnitMicro {
             }
         }
 
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 0.3) {
-            onCompletion();
-        }
-        //continue moving to target
-        else if (isSafe()) {
-            if (!isMovingToTargetPos()) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
-            }
-        }
         //detour if needed
-        else {
+        if (!isSafe()) {
             Point2d detourPos = findDetourPos();
             Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
         }
+        //finishing step on arrival
+        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 0.3) {
+            onArrival();
+        }
+        //continue moving to target
+        else if (!isMovingToTargetPos()) {
+            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+        }
     }
 
-    public void onCompletion() {
+    public void onArrival() {
         removeMe = true;
     }
 
-    public void onFailure() {
+    public void onDeath() {
         removeMe = true;
         return;
     }

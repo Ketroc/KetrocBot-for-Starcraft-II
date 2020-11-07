@@ -14,6 +14,8 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
+import com.ketroc.terranbot.micro.StructureFloater;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
@@ -301,7 +303,11 @@ public class BuildManager {
                 switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
-                            if (UnitUtils.hasTechToBuild(Units.TERRAN_ORBITAL_COMMAND)) {
+                            if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
+                                Bot.ACTION.unitCommand(cc, Abilities.LIFT, false);
+                                UnitMicroList.add(new StructureFloater(cc));
+                            }
+                            else if (UnitUtils.hasTechToBuild(Units.TERRAN_ORBITAL_COMMAND)) {
 
                                 //if not main cc, and if needed for expansion
                                 if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isNeededForExpansion()) {
@@ -348,7 +354,11 @@ public class BuildManager {
                         }
                         break;
                     case TERRAN_ORBITAL_COMMAND:
-                        if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
+                        if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
+                            Bot.ACTION.unitCommand(cc, Abilities.LIFT, false);
+                            UnitMicroList.add(new StructureFloater(cc));
+                        }
+                        else if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
                             //scan enemy main at 4:30
                             if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
                                 Bot.ACTION.unitCommand(cc, Abilities.EFFECT_SCAN,
@@ -446,7 +456,7 @@ public class BuildManager {
                     }
                 }
                 //cancel PF upgrade
-                else if (cc.getOrders().get(0).getAbility() == Abilities.MORPH_PLANETARY_FORTRESS) {
+                else if (UnitUtils.getOrder(cc) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     Bot.ACTION.unitCommand(cc, Abilities.CANCEL_MORPH_PLANETARY_FORTRESS, false);
                 }
                 //cancel scv production
@@ -588,7 +598,7 @@ public class BuildManager {
 
     private static boolean isCloakInProduction() {
         return UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                .anyMatch(techLab -> !techLab.getOrders().isEmpty() && techLab.getOrders().get(0).getAbility() == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
+                .anyMatch(techLab -> UnitUtils.getOrder(techLab) == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
     }
 
     public static Abilities decideStarportUnit() { //never max out without a raven
@@ -783,12 +793,10 @@ public class BuildManager {
     }
 
     public static boolean ccToBeOC(Point2d ccPos) {
-        for (int i = 1; i < LocationConstants.baseLocations.size(); i++) {
-            if (ccPos.distance(LocationConstants.baseLocations.get(i)) < 1) {
-                return false;
-            }
-        }
-        return true;
+        return LocationConstants.baseLocations
+                .subList(1, LocationConstants.baseLocations.size()) //ignore main base location
+                .stream()
+                .noneMatch(p -> ccPos.distance(p) < 1);
     }
 
     private static boolean checkIfDepotNeeded() {
@@ -892,13 +900,13 @@ public class BuildManager {
     }
 
     public static boolean isPlaceable(Point2d pos, Abilities buildAction) { //TODO: not perfect.  sometimes return false positive
-        Point2d gridPos = Position.nearestHalfPoint(pos);
+        Point2d gridPos = Position.toNearestHalfPoint(pos);
 
         //if creep is there
         if (Bot.OBS.hasCreep(pos)) {
             return false;
         }
-        float distance = UnitUtils.getStructureRadius(buildAction);
+        float distance = UnitUtils.getStructureRadius(Bot.abilityToUnitType.get(buildAction));
 
         //if enemy ground unit/structure there
         return Bot.OBS.getUnits(Alliance.ENEMY,

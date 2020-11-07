@@ -87,7 +87,7 @@ public class BansheeHarasser {
         }
 
         //find a path
-        Point2d headedTo = (retreatForRepairs) ? LocationConstants.REPAIR_BAY : getTargetLocation();
+        Point2d headedTo = getTargetLocation();
         giveMovementCommand(headedTo);
     }
 
@@ -207,7 +207,9 @@ public class BansheeHarasser {
             Point2d p = banshee.unit().getPosition().toPoint2d();
 
             //health:threat threshold
-            return !isDetected(p) && InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, p) > banshee.unit().getHealth().get()/30;
+            return !isDetected(p) &&
+                    (InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, p) > banshee.unit().getHealth().get()/30 ||
+                    banshee.unit().getBuffs().contains(Buffs.LOCK_ON));
         }
         return false;
     }

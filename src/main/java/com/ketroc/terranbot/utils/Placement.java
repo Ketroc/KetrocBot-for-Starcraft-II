@@ -67,6 +67,7 @@ public class Placement {
                         .on(p).build())
                 .collect(Collectors.toList());
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
+        System.out.println("giant query size = " + placementList.size());
         System.out.println("giant query = " + (System.currentTimeMillis() - start));
         for (int i=0; i<placementList.size(); i++) {
             if (!placementList.get(i).booleanValue()) {
@@ -81,7 +82,16 @@ public class Placement {
         if (possibleCcPosList.isEmpty()) {
             return null;
         }
-        return possibleCcPosList.remove(0);
+        Point2d nextCCPos = possibleCcPosList.remove(0);
+        removeCcPosConflicts(nextCCPos);
+        return nextCCPos;
+    }
+
+    //removes all the cc points that would overlap with nextCC
+    private static void removeCcPosConflicts(Point2d nextCCPos) {
+        possibleCcPosList.removeIf(p ->
+                Math.abs(p.getX() - nextCCPos.getX()) < 5 &&
+                Math.abs(p.getY() - nextCCPos.getY()) < 5);
     }
 
     private static boolean checkCcCorners(float x, float y) {
