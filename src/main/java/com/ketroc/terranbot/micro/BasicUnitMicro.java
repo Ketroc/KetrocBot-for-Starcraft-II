@@ -69,7 +69,7 @@ public class BasicUnitMicro {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
         }
         //finishing step on arrival
-        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 0.3) {
+        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 1) {
             onArrival();
         }
         //continue moving to target
