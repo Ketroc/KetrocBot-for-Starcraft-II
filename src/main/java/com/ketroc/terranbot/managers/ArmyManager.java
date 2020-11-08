@@ -869,7 +869,7 @@ public class ArmyManager {
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
         boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
-        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) == 0f && InfluenceMaps.pointThreatToAir[x][y] < 200;
+        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) < 0.1f && InfluenceMaps.pointThreatToAir[x][y] < 200;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
@@ -981,7 +981,7 @@ public class ArmyManager {
         return currentCommand;
     }
 
-    private static void giveVikingCommand(Unit viking) { //never kites outside of range of air units... always engages maintaining max range TODO: change this for tempests
+    private static void giveVikingCommand(Unit viking) { //never kites outside of range of air units... always engages maintaining max range
         ArmyCommands lastCommand = getCurrentCommand(viking);
         int x = InfluenceMaps.toMapCoord(viking.getPosition().getX());
         int y = InfluenceMaps.toMapCoord(viking.getPosition().getY());
@@ -1002,7 +1002,7 @@ public class ArmyManager {
         }
 
         boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
-        boolean canAttack = viking.getWeaponCooldown().orElse(1f) == 0f;
+        boolean canAttack = viking.getWeaponCooldown().orElse(1f) < 0.1f;
         boolean isParasitic = viking.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
 
         //always flee if locked on by cyclone

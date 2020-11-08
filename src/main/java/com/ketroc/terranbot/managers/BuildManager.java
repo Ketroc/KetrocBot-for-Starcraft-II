@@ -906,7 +906,7 @@ public class BuildManager {
         if (Bot.OBS.hasCreep(pos)) {
             return false;
         }
-        float distance = UnitUtils.getStructureRadius(Bot.abilityToUnitType.get(buildAction));
+        float distance = UnitUtils.getStructureRadius(Bot.abilityToUnitType.get(buildAction)) * 0.8f;
 
         //if enemy ground unit/structure there
         return Bot.OBS.getUnits(Alliance.ENEMY,

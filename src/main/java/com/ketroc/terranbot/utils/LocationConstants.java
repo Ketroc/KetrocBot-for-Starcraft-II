@@ -879,7 +879,7 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(89.5f, 83.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(77.5f, 54.5f);
-            proxyBunkerPos = Point2d.of(42.5f, 58.5f);
+            proxyBunkerPos = Point2d.of(42.5f, 59.5f);
             proxyBunkerPos2 = Point2d.of(54.5f, 50.5f);
 
             reaperBlockDepots.add(Point2d.of(130.0f, 127.0f));
@@ -949,7 +949,7 @@ public class LocationConstants {
         }
         else {
             proxyBarracksPos = Point2d.of(96.5f, 117.5f);
-            proxyBunkerPos = Point2d.of(133.5f, 113.5f);
+            proxyBunkerPos = Point2d.of(133.5f, 112.5f);
             proxyBunkerPos2 = Point2d.of(121.5f, 121.5f);
 
             reaperBlockDepots.add(Point2d.of(46.0f, 45.0f));

@@ -465,6 +465,19 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
+        Unit unit = unitInPool.unit();
+        switch ((Units)unit.getType()) {
+            case TERRAN_SIEGE_TANK:
+                if (BunkerContain.proxyBunkerLevel == 2) {
+                    BunkerContain.onTankCreated(unitInPool);
+                }
+                break;
+            case TERRAN_MARINE:
+                if (BunkerContain.proxyBunkerLevel > 0) {
+                    BunkerContain.onMarineCreated(unitInPool);
+                }
+                break;
+        }
     }
 
     @Override

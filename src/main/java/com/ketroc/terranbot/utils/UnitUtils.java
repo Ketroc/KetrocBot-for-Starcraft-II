@@ -95,6 +95,12 @@ public class UnitUtils {
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
             Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP
     ));
+    public static final Set<Units> DESTRUCTIBLES = new HashSet<>(Set.of(
+            Units.NEUTRAL_UNBUILDABLE_BRICKS_DESTRUCTIBLE, Units.NEUTRAL_UNBUILDABLE_PLATES_DESTRUCTIBLE,
+            Units.NEUTRAL_DESTRUCTIBLE_DEBRIS6X6, Units.NEUTRAL_DESTRUCTIBLE_ROCK6X6,
+            Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_BL_UR, Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_UL_BR,
+            Units.NEUTRAL_DESTRUCTIBLE_ROCK_EX1_DIAGONAL_HUGE_BL_UR
+    ));
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
 
@@ -493,4 +499,13 @@ public class UnitUtils {
         }
         return null;
     }
+
+    public static void patrolInPlace(Unit unit, Point2d pos) {
+        Bot.ACTION.unitCommand(unit, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+    }
+
+    public static void patrolInPlace(List<Unit> unitList, Point2d pos) {
+        Bot.ACTION.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+    }
+
 }
