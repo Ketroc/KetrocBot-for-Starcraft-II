@@ -83,7 +83,7 @@ public class BunkerContain {
             ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
         if (Time.nowFrames() == Time.toFrames("1:10")) {
-            addAnotherRepairScv();
+            addNewRepairScv();
         }
         sendFirstScv();
         if (scoutProxy) {
@@ -333,9 +333,6 @@ public class BunkerContain {
                     }
                 }
             }
-            scoutScvs.stream()
-                    .filter(scv -> UnitUtils.getDistance(scv.unit(), behindBunkerPos) < 2)
-                    .forEach(scv -> addRepairScv(scv));
             scoutScvs.removeIf(scv -> UnitUtils.getDistance(scv.unit(), behindBunkerPos) < 2);
 
             //send to bunker if idle
@@ -543,7 +540,7 @@ public class BunkerContain {
         }
     }
 
-    public static void addAnotherRepairScv() {
+    public static void addNewRepairScv() {
         UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
         addRepairScv(newScv);
         Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
@@ -687,9 +684,9 @@ public class BunkerContain {
         bunker = bunk;
         Bot.ACTION.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
 
-        //send out 2nd scv
+        //send out another scv
         if (!scoutProxy) {
-            addAnotherRepairScv();
+            addNewRepairScv();
         }
 
         //use a repairSCV to build proxy factory

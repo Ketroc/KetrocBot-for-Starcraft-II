@@ -18,7 +18,7 @@ public class BuildOrder {
 
     public static void onGameStart() {
         if (BunkerContain.proxyBunkerLevel != 0) {
-            BunkerContain.addAnotherRepairScv();
+            BunkerContain.addNewRepairScv();
         }
         switch (LocationConstants.opponentRace) { //TODO: fix so that bunker contain can be used vs any race with code 1 or 2
             case TERRAN:
