@@ -19,6 +19,8 @@ import java.util.*;
 public class LocationConstants {
     public static final Point2d SCREEN_BOTTOM_LEFT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP0().toPoint2d();
     public static final Point2d SCREEN_TOP_RIGHT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP1().toPoint2d();
+    public static final int MIN_X = (int) SCREEN_BOTTOM_LEFT.getX();
+    public static final int MIN_Y = (int) SCREEN_BOTTOM_LEFT.getY();
     public static final int MAX_X = (int) SCREEN_TOP_RIGHT.getX();
     public static final int MAX_Y = (int) SCREEN_TOP_RIGHT.getY();
     public static Point2d insideMainWall;
@@ -3677,8 +3679,8 @@ public class LocationConstants {
 
     public static void setClockBaseLists() {
         Map<Double, Point2d> basesByAngle = new TreeMap<>();
-        float midX = MAX_X/2f;
-        float midY = MAX_Y/2f;
+        float midX = (MAX_X - MIN_X)/2f + MIN_X;
+        float midY = (MAX_Y - MIN_Y)/2f + MIN_Y;
         Point2d homeBasePos = baseLocations.get(0);
         double homeBaseAngle = Math.toDegrees(Math.atan2(homeBasePos.getX()-midX, homeBasePos.getY()-midY));
         Point2d enemyBasePos = baseLocations.get(baseLocations.size() - 1);

@@ -170,15 +170,10 @@ public class BunkerContain {
 
     public static void onMarineCreated(UnitInPool marine) {
         if (LocationConstants.proxyBunkerPos2 != null && getMarineCount() == 1) {
-            UnitInPool antiReaperBunker =
-                    UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos2, 1)
-                    .stream().findFirst().orElse(null);
-            if (antiReaperBunker != null) {
-                UnitMicroList.add(new BunkerMarine(marine, antiReaperBunker));
-            }
+            UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos2));
             return;
         }
-        UnitMicroList.add(new BunkerMarine(marine, bunker));
+        UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos));
     }
 
     public static void addRepairScv(UnitInPool scv) {
@@ -514,11 +509,19 @@ public class BunkerContain {
         }
     }
 
-    private static List<Unit> getAvailableRepairScvs() {
+    public static List<Unit> getAvailableRepairScvs() {
         return repairScvList.stream()
                 .map(UnitInPool::unit)
                 .filter(scv -> !StructureScv.isScvProducing(scv))
                 .collect(Collectors.toList());
+    }
+
+    public static Unit getClosestAvailableRepairScvs(Point2d targetPos) {
+        return repairScvList.stream()
+                .map(UnitInPool::unit)
+                .filter(scv -> !StructureScv.isScvProducing(scv))
+                .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv, targetPos)))
+                .orElse(null);
     }
 
     private static void replaceDeadScvs() {
@@ -702,7 +705,7 @@ public class BunkerContain {
                 if (purchase instanceof PurchaseStructure) {
                     PurchaseStructure p = (PurchaseStructure) purchase;
                     if (p.getStructureType() == Units.TERRAN_FACTORY) {
-                        return p.getScv().getTag().equals(scv);
+                        return p.getScv() != null && p.getScv().getTag().equals(scv);
                     }
                 }
             }
@@ -755,23 +758,14 @@ public class BunkerContain {
 
     public static void onEngineeringBayComplete(UnitInPool engBay) {
         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
-        List<Unit> availableScvs = getAvailableRepairScvs();
         int factoryIndex = getDepotPurchaseIndex();
         Point2d turretPos = calcTurretPosition(true);
         if (turretPos != null) {
-            if (!availableScvs.isEmpty()) {
-                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-            } else {
-                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-            }
+            KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
         }
         turretPos = calcTurretPosition(false);
         if (turretPos != null) {
-            if (availableScvs.size() > 1) {
-                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-            } else {
-                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-            }
+            KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
         }
     }
 

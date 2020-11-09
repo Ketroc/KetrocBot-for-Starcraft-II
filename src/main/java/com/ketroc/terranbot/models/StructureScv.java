@@ -230,6 +230,7 @@ public class StructureScv {
             case TERRAN_COMMAND_CENTER:
             case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
             case TERRAN_BUNKER:
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
             case TERRAN_SUPPLY_DEPOT:
                 LocationConstants.extraDepots.add(structureScv.structurePos);

@@ -1,7 +1,7 @@
 package com.ketroc.terranbot.managers;
 
 public enum ArmyCommands {
-    RETREAT,
+    HOME,
     ATTACK,
     DIVE,
     EMPTY

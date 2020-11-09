@@ -620,10 +620,10 @@ public class GameCache {
     }
 
     public static void buildInfluenceMap() throws Exception {
-        int xMin = 0;
-        int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
-        int yMin = 0;
-        int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
+        int xMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_X);
+        int xMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_X);
+        int yMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_Y);
+        int yMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_Y);
 
         InfluenceMaps.pointDetected = new boolean[800][800];
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];

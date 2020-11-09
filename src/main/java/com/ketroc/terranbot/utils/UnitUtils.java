@@ -251,12 +251,12 @@ public class UnitUtils {
                 attackRange = 5;
                 break;
         }
-        Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons();
-        for (Weapon weapon : weapons) {
-            if (weapon.getTargetType() == targetType || weapon.getTargetType() == Weapon.TargetType.ANY) {
-                attackRange = weapon.getRange() + unit.getRadius();
-            }
-        }
+        attackRange = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
+                .filter(weapon -> weapon.getTargetType() == targetType ||
+                        weapon.getTargetType() == Weapon.TargetType.ANY)
+                .findFirst()
+                .map(Weapon::getRange)
+                .orElse(0f);
         if (attackRange > 0) {
             attackRange += unit.getRadius();
         }
@@ -508,4 +508,14 @@ public class UnitUtils {
         Bot.ACTION.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
     }
 
+    public static Unit getEnemyInRange(Unit myUnit) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                !enemy.unit().getHallucination().orElse(false) &&
+                (myUnit.getFlying().orElse(false) ? getAirAttackRange(enemy.unit()) : getGroundAttackRange(enemy.unit()))
+                        > UnitUtils.getDistance(myUnit, enemy.unit()))
+                .stream()
+                .findFirst()
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
 }

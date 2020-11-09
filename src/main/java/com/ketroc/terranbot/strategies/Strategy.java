@@ -112,14 +112,18 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2;//selectedStrategy % numStrategies;
+        selectedStrategy = 1;//selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                DelayedChat.add("Bunker Contain Strategy");
+                DelayedChat.add(100, "choosing:  ULTIMATE STRATEGY !!!");
+                DelayedChat.add(500, "was defeated!");
+                DelayedChat.add(500, "has left the game!");
+                DelayedChat.add(750, "...");
+                DelayedChat.add(850, "Ultimate Strategy failed. Trying: Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 2;
                 break;
             case 2:
@@ -135,7 +139,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 2;//selectedStrategy % numStrategies;
+        selectedStrategy = 0;//selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -259,9 +263,9 @@ public class Strategy {
 //            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                return 1;
-//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-//                BUILD_EXPANDS_IN_MAIN = true;
-//                return 0;
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+                //BUILD_EXPANDS_IN_MAIN = true;
+                return 1;
             default:
                 return -1;
         }

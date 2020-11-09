@@ -207,10 +207,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
         if (scv == null) { //select an scv if none was provided
             if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && LocationConstants.baseLocations.get(0).distance(position) > 50) {
-                BunkerContain.repairScvList.stream()
-                        .filter(u -> !StructureScv.isScvProducing(u.unit()))
-                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), position)))
-                        .ifPresent(u -> scv = u.unit());
+                scv = BunkerContain.getClosestAvailableRepairScvs(position);
             }
             if (scv == null) {
                 List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);

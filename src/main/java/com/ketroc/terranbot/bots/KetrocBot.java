@@ -85,7 +85,6 @@ public class KetrocBot extends Bot {
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
 
-            LocationConstants.MACRO_OCS.clear(); //TODO: delete - for testing
 //            int myId = Bot.OBS.getPlayerId();
 //            int enemyId = Bot.OBS.getGameInfo().getPlayersInfo().stream()
 //                    .filter(p -> p.getPlayerId() != myId)

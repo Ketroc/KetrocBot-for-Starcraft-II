@@ -35,27 +35,22 @@ public class Position {
 
     private static float inBoundsX(float x) {
         x = Math.min(x, LocationConstants.MAX_X);
-        x = Math.max(x, 0);
+        x = Math.max(x, LocationConstants.MIN_X);
         return x;
     }
 
     private static float inBoundsY(float y) {
         y = Math.min(y, LocationConstants.MAX_Y);
-        y = Math.max(y, 0);
+        y = Math.max(y, LocationConstants.MIN_Y);
         return y;
     }
 
     private static boolean isOutOfBoundsX(float x) {
-        return x > LocationConstants.MAX_X || x < 0;
+        return x > LocationConstants.MAX_X || x < LocationConstants.MIN_X;
     }
 
     private static boolean isOutOfBoundsY(float y) {
-        return y > LocationConstants.MAX_Y || y < 0;
-    }
-
-    public static boolean atEdgeOfMap(Point2d p) {
-        return p.getX() == 0 || p.getX() == LocationConstants.MAX_X ||
-                p.getY() == 0 || p.getY() == LocationConstants.MAX_Y;
+        return y > LocationConstants.MAX_Y || y < LocationConstants.MIN_Y;
     }
 
     public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {

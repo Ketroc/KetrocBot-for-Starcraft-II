@@ -139,7 +139,7 @@ public class EnemyUnit {
 
     private float getKitingBuffer(Unit enemy) {
         if (!UnitUtils.canMove(enemy.getType())) {
-            return 0.5f;
+            return enemy.getRadius() + 0.25f;
         }
         return Strategy.KITING_BUFFER;
     }

@@ -30,7 +30,7 @@ public class ArmyManager {
     public static Point2d attackAirPos;
     public static Unit attackUnit;
 
-    public static List<Unit> armyRetreating;
+    public static List<Unit> armyGoingHome;
     public static List<Unit> armyGroundAttacking;
     public static List<Unit> armyAirAttacking;
 
@@ -88,7 +88,7 @@ public class ArmyManager {
             searchForLastStructures();
         }
         else {
-            armyRetreating = new ArrayList<>();
+            armyGoingHome = new ArrayList<>();
             armyGroundAttacking = new ArrayList<>();
             armyAirAttacking = new ArrayList<>();
 
@@ -97,8 +97,8 @@ public class ArmyManager {
             ravenMicro();
 
             //send actions
-            if (!armyRetreating.isEmpty()) {
-                Bot.ACTION.unitCommand(armyRetreating, Abilities.MOVE, retreatPos, false);
+            if (!armyGoingHome.isEmpty()) {
+                Bot.ACTION.unitCommand(armyGoingHome, Abilities.MOVE, retreatPos, false);
             }
             if (!armyGroundAttacking.isEmpty()) {
                 Point2d targetPos = attackGroundPos;
@@ -813,10 +813,13 @@ public class ArmyManager {
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
+                    answer += 0.3;
+                    hasDetector = true;
+                    break;
                 case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
                 case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
                 case PROTOSS_ORACLE:
-                    answer += 0.8;
+                    answer += 0.5;
                     hasDetector = true;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
@@ -847,12 +850,7 @@ public class ArmyManager {
             answer = Math.max(10, answer);
         }
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
-            if (LocationConstants.opponentRace == Race.PROTOSS) {
-                answer = Math.max(4, answer);
-            }
-            else {
-                answer = Math.max(2, answer);
-            }
+            answer = Math.max(2, answer);
         }
         else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             answer = Math.max((LocationConstants.opponentRace == Race.PROTOSS) ? 2 : 3, answer); //minimum vikings if he has a detector
@@ -884,7 +882,8 @@ public class ArmyManager {
                 Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
             else {
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+                retreatUnitFromCyclone(banshee);
+                //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
         }
         //shoot when available
@@ -896,32 +895,18 @@ public class ArmyManager {
         else if (isParasitic) {
             Bot.ACTION.unitCommand(banshee, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
-        //staying in repair bay if not full health and if needing energy
-        else if (canRepair && //not broke
-                UnitUtils.getDistance(banshee, retreatPos) < 3 && //at repair bay
-                UnitUtils.getHealthPercentage(banshee) < 100) { //wait for heal
-            if (cloakState == CloakState.CLOAKED_ALLIED && !isUnsafe) {
-                Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
-            }
-            else {
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
-            }
-        }
-        //go home if low health
-        else if (canRepair && UnitUtils.getHealthPercentage(banshee) < healthToRepair) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
-        }
-
         else if (isUnsafe) {
             if (isInDetectionRange) {
                 //retreat
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+                retreatMyUnit(banshee);
+                //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED &&
                     banshee.getEnergy().get() > 3 + ((UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() > 2) ? 2 : 0)) { //additional energy for time to flee tempest range
-                if (isInBansheeRange) {
+                if (isInBansheeRange) { //maintain max range
                     //retreat
-                    if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+                    retreatMyUnit(banshee);
+                    //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
                 }
                 else {
                     //attack
@@ -934,23 +919,84 @@ public class ArmyManager {
             }
             else {
                 //retreat
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+                retreatMyUnit(banshee);
+                //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
         }
-        //go to repair bay when waiting on cloak, and not needed for defense
+        //staying in repair bay if not full health and if needing energy
+        else if (canRepair && //not broke
+                UnitUtils.getDistance(banshee, retreatPos) < 3 && //at repair bay
+                UnitUtils.getHealthPercentage(banshee) < 100) { //wait for heal
+            if (cloakState == CloakState.CLOAKED_ALLIED && !isUnsafe) {
+                Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
+            }
+            else {
+                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
+            }
+        }
+        //go home if low health
+        else if (canRepair && UnitUtils.getHealthPercentage(banshee) < healthToRepair) {
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
+        }
+        //go to repair bay when waiting on cloak and not needed for defense
         else if (isWaitingForCloak(canCloak, cloakState) && !isAnyBaseUnderAttack) {
             //retreat
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
         }
         else {
             if (isInBansheeRange) {
                 //retreat
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(banshee);
+                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
             }
             else {
                 //attack
                 if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
             }
+        }
+    }
+
+    private static void retreatMyUnit(Unit myUnit) {
+        //get closest enemy effect
+        Point2d enemyPos = Bot.OBS.getEffects().stream()
+                .filter(e ->
+                        (e.getEffect() == Effects.PSI_STORM_PERSISTENT || e.getEffect() == Effects.RAVAGER_CORROSIVE_BILE_CP) &&
+                        e.getRadius().orElse(0f) + myUnit.getRadius() > UnitUtils.getDistance(myUnit, e.getPositions().iterator().next()))
+                .findFirst()
+                .map(e -> e.getPositions().iterator().next())
+                .orElse(null);
+
+        //get an enemy that is within its attack range
+        if (enemyPos == null) {
+            Unit closestEnemy = UnitUtils.getEnemyInRange(myUnit);
+            if (closestEnemy != null) {
+                enemyPos = closestEnemy.getPosition().toPoint2d();
+            }
+        }
+
+        //if no enemy in range
+        if (enemyPos == null) {
+            armyGoingHome.add(myUnit);
+        }
+        else {
+            //retreat command away from enemy position
+            Bot.ACTION.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4f), false);
+        }
+    }
+
+    private static void retreatUnitFromCyclone(Unit myUnit) {
+        Point2d cyclonePos = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_CYCLONE).stream()
+                .map(u -> u.unit().getPosition().toPoint2d())
+                .filter(cyclone -> UnitUtils.getDistance(myUnit, cyclone) <= 14.1)
+                .min(Comparator.comparing(cyclone -> UnitUtils.getDistance(myUnit, cyclone)))
+                .orElse(null);
+
+        //if no cyclone visible in range
+        if (cyclonePos == null) {
+            armyGoingHome.add(myUnit);
+        }
+        else {
+            //retreat command away from nearest cyclone position
+            Bot.ACTION.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -4f), false);
         }
     }
 
@@ -975,7 +1021,7 @@ public class ArmyManager {
             else if (order.getAbility() == Abilities.MOVE &&
                     order.getTargetedWorldSpacePosition().isPresent() &&
                     order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.retreatPos) < 1) {
-                currentCommand = ArmyCommands.RETREAT;
+                currentCommand = ArmyCommands.HOME;
             }
         }
         return currentCommand;
@@ -990,7 +1036,7 @@ public class ArmyManager {
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
 
-        //keep vikings back if tempests are on the map, but no other toss air units are visible TODO: include outnumbered viking count too???
+        //keep vikings back if tempests are on the map, but no other toss air units are visible
         if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty() && //TODO: change below to use Gamestate.allVisibleEnemiesMap
                 Bot.OBS.getUnits(Alliance.ENEMY,
                         e -> (e.unit().getType() == Units.PROTOSS_PHOENIX || e.unit().getType() == Units.PROTOSS_VOIDRAY || e.unit().getType() == Units.PROTOSS_INTERCEPTOR)
@@ -1007,7 +1053,8 @@ public class ArmyManager {
 
         //always flee if locked on by cyclone
         if (viking.getBuffs().contains(Buffs.LOCK_ON)) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
+            retreatUnitFromCyclone(viking);
+            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(viking);
         }
         //shoot when available
         else if (canAttack && isInVikingRange) {
@@ -1018,19 +1065,24 @@ public class ArmyManager {
         else if (isParasitic) {
             Bot.ACTION.unitCommand(viking, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
+        //in enemy attack range, then back up
+        else if (isUnsafe) {
+            retreatMyUnit(viking);
+            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(viking);
+        }
         //Under 100% health and at repair bay
         else if (canRepair &&
                 UnitUtils.getHealthPercentage(viking) < 100 &&
                 UnitUtils.getDistance(viking, retreatPos) < 3) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
         }
         //go home if low health
         else if (canRepair && UnitUtils.getHealthPercentage(viking) < healthToRepair) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
         }
         //in range then back up
-        else if (isUnsafe || isInVikingRange) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(viking);
+        else if (isInVikingRange) {
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
         }
         //out of range, then move in
         else {
@@ -1056,7 +1108,8 @@ public class ArmyManager {
 
         //always flee if locked on by cyclone
         if (raven.getBuffs().contains(Buffs.LOCK_ON)) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+            retreatUnitFromCyclone(raven);
+            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(raven);
         }
 
         //fly to enemy main if parasitic'ed
@@ -1064,22 +1117,22 @@ public class ArmyManager {
             Bot.ACTION.unitCommand(raven, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
 
-        //stay in repair bay not on offensive and until 100% health
+        //stay in repair bay if not on offensive or under 100% health
         else if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && raven.getPosition().toPoint2d().distance(retreatPos) < 3) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
         }
 
         //go home to repair if low
         else if (canRepair && UnitUtils.getHealthPercentage(raven) < healthToRepair) {
             if (!doCastTurrets || !doAutoTurretOnRetreat(raven)) {
-                if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
             }
         }
 
         //go home to repair if mass raven strategy and no energy for autoturrets
         else if (Strategy.MASS_RAVENS && UnitUtils.getHealthPercentage(raven) < 100 &&
                 raven.getEnergy().orElse(0f) < 45) {
-            if (lastCommand != ArmyCommands.RETREAT) armyRetreating.add(raven);
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
         }
 
         //back up if in range
@@ -1087,8 +1140,9 @@ public class ArmyManager {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
-                        if (lastCommand != ArmyCommands.RETREAT) {
-                            armyRetreating.add(raven);
+                        if (lastCommand != ArmyCommands.HOME) {
+                            retreatMyUnit(raven);
+                            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(raven);
                         }
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {
@@ -1279,63 +1333,6 @@ public class ArmyManager {
         int newX = (int)(((b.getX() - a.getX()) * ratio) + a.getX());
         int newY = (int)(((b.getY() - a.getY()) * ratio) + a.getY());
         return Point2d.of(newX, newY);
-    }
-
-    public static Point2d getNextRavenPosition(Point2d curPosition, boolean isLeft, boolean isAttacking) {
-        boolean moveClockwise = (isLeft && isAttacking) || (!isLeft && !isAttacking);
-        int x = (int)curPosition.getX();
-        int y = (int)curPosition.getY();
-
-        //top left corner
-        if (y == LocationConstants.MAX_Y && x == 0) {
-            return (moveClockwise) ? Point2d.of(LocationConstants.MAX_X, LocationConstants.MAX_Y) : Point2d.of(0, 0);
-        }
-        //top right corner
-        if (y == LocationConstants.MAX_Y && x == LocationConstants.MAX_X) {
-            return (moveClockwise) ? Point2d.of(LocationConstants.MAX_X, 0) : Point2d.of(0, LocationConstants.MAX_Y);
-        }
-        //bottom left corner
-        if (y == 0 && x == 0) {
-            return (moveClockwise) ? Point2d.of(0, LocationConstants.MAX_Y) : Point2d.of(LocationConstants.MAX_X, 0);
-        }
-        //bottom right corner
-        if (y == 0 && x == LocationConstants.MAX_X) {
-            return (moveClockwise) ? Point2d.of(0, 0) : Point2d.of(LocationConstants.MAX_X, LocationConstants.MAX_Y);
-        }
-        //along bottom
-        else if (y == 0) {
-            return (moveClockwise) ? Point2d.of(0, y) : Point2d.of(LocationConstants.MAX_X, y);
-        }
-        //along top
-        else if (y == LocationConstants.MAX_Y) {
-            return (moveClockwise) ? Point2d.of(LocationConstants.MAX_X, y) : Point2d.of(0, y);
-        }
-        //along left
-        else if (x == 0) {
-            return (moveClockwise) ? Point2d.of(x, LocationConstants.MAX_Y) : Point2d.of(x, 0);
-        }
-        //along right
-        else if (x == LocationConstants.MAX_X) {
-            return (moveClockwise) ? Point2d.of(x, 0) : Point2d.of(x, LocationConstants.MAX_Y);
-        }
-        //out from edge
-        else {
-            //return nearest edge
-            float xDistanceFromEdge = x;
-            int newX = 0;
-            float yDistanceFromEdge = y;
-            int newY = 0;
-
-            if (yDistanceFromEdge > LocationConstants.MAX_Y - y) {
-                yDistanceFromEdge = LocationConstants.MAX_Y - y;
-                newY = LocationConstants.MAX_Y;
-            }
-            if (xDistanceFromEdge > LocationConstants.MAX_X - x) {
-                xDistanceFromEdge = LocationConstants.MAX_X - x;
-                newX = LocationConstants.MAX_X;
-            }
-            return (xDistanceFromEdge < yDistanceFromEdge) ? Point2d.of(newX, y) : Point2d.of(x, newY);
-        }
     }
 
     public static void sendBioProtection(Point2d expansionPos) {
