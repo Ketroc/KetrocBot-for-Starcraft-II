@@ -185,7 +185,7 @@ public class Position {
     }
 
     public static float roundToNearestHalf(float number) {
-        return Math.round(number * 2) / 2;
+        return Math.round(number * 2) / 2f;
     }
 
     //moves this point on 1 plane to the closest point clear of the obstacle

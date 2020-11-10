@@ -1,5 +1,6 @@
 package com.ketroc.terranbot.bots;
 
+import com.github.ocraft.s2client.bot.gateway.ObservationInterface;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
@@ -12,6 +13,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.spatial.PointI;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.models.MuleMessages;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
@@ -67,7 +69,8 @@ public class TestingBot extends Bot {
         LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(108.5f, 100.5f), neutralId, 1);
+//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 100.5f), myId, 1);
+//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_MULE, Point2d.of(90, 100), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
@@ -108,7 +111,7 @@ public class TestingBot extends Bot {
                 .findFirst()
                 .get();
         if (Time.nowFrames() == 100) {
-            System.out.println("cc.getTag() = " + cc.getTag());
+            Tester.calculateExpansionLocations(Bot.OBS);
         }
         if (Time.nowFrames() == 800) {
             System.out.println("cc.getTag() = " + cc.getTag());

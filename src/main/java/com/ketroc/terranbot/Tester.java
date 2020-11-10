@@ -94,9 +94,9 @@ public class Tester {
         int queryCount = 0;
         for (Map.Entry<Point2d, List<UnitInPool>> cluster : clusters.entrySet()) {
             Point2d nodeMidPoint = cluster.getKey();
-            Point2d basePos = nodeMidPoint;
+            Point2d basePos = Position.toHalfPoint(nodeMidPoint);
             List<UnitInPool> nodes = cluster.getValue();
-            DebugHelper.drawBox(basePos, Color.RED, 0.25f);
+            //DebugHelper.drawBox(basePos, Color.RED, 0.25f);
 //            nodes = nodes.stream()
 //                    .sorted(Comparator.comparing(node -> UnitUtils.getDistance(node.unit(), nodeMidPoint)))
 //                    .collect(Collectors.toList());
@@ -106,18 +106,87 @@ public class Tester {
 //                bestGuess = bestGuess.add(Position.towards(nodePos, nodeMidPoint, 8.5f));
 //            }
 //            bestGuess = bestGuess.div(4);
-            Point2d bestGuess = nodeMidPoint;
+
+
             for (int i=0; i<6; i++) {
-                Point2d finalBestGuess = bestGuess;
+                Point2d finalBestGuess = basePos;
                 Point2d closestNodePos = nodes.stream()
                         .min(Comparator.comparing(node -> UnitUtils.getDistance(node.unit(), finalBestGuess))).get()
                         .unit().getPosition().toPoint2d();
-                bestGuess = Position.towards(closestNodePos, bestGuess, 6.2f);
+                basePos = Position.towards(closestNodePos, basePos, 5f);
             }
-            bestGuess = Point2d.of((int)bestGuess.getX() + 0.5f, (int)bestGuess.getY() + 0.5f);
-            DebugHelper.drawBox(bestGuess, Color.YELLOW, 0.26f);
+            basePos = Position.toHalfPoint(Point2d.of(basePos.getX(), basePos.getY()));
+            //DebugHelper.drawBox(basePos, Color.YELLOW, 0.26f);
 
-            queryCount += findPosition(expansionLocations, nodes, nodeMidPoint, bestGuess);
+            boolean didAdjust = true;
+            while (didAdjust) {
+                didAdjust = false;
+                nodes = nodes.stream()
+                        .sorted(Comparator.comparing(u -> u.unit().getPosition().toPoint2d().distance(nodeMidPoint)))
+                        .collect(Collectors.toList());
+                for (int i = 0; i < nodes.size(); i++) {
+                    UnitInPool node = nodes.get(i);
+                    Point2d nodePos = Position.toNearestHalfPoint(node.unit().getPosition().toPoint2d());
+                    boolean isMineralNode = node.unit().getType().toString().contains("MINERAL");
+                    float xMinDistCenter = isMineralNode ? 6.5f : 7;
+                    float xMinDistCorner = isMineralNode ? 5.5f : 6;
+                    float yMinDistCenter = isMineralNode ? 6f : 7;
+                    float yMinDistCorner = isMineralNode ? 5f : 6;
+                    float xDist = Math.abs(nodePos.getX() - basePos.getX());
+                    float yDist = Math.abs(nodePos.getY() - basePos.getY());
+                    DebugHelper.drawBox(basePos, Color.YELLOW, 0.26f);
+                    DebugHelper.drawBox(nodePos, Color.RED, 0.26f);
+                    Bot.DEBUG.sendDebug();
+                    int skldfj = 0;
+                    if (xDist < yDist) {
+                        if (xDist < xMinDistCorner && yDist < yMinDistCenter) {
+                            basePos = moveYFromNodeBy(basePos, nodePos, yMinDistCenter);
+                            didAdjust = true;
+                            break;
+                        } else if (xDist < xMinDistCenter && yDist < yMinDistCorner) {
+                            basePos = moveYFromNodeBy(basePos, nodePos, yMinDistCorner);
+                            didAdjust = true;
+                            break;
+                        }
+                    } else {
+                        if (yDist < yMinDistCorner && xDist < xMinDistCenter) {
+                            basePos = moveXFromNodeBy(basePos, nodePos, xMinDistCenter);
+                            didAdjust = true;
+                            break;
+                        } else if (yDist < yMinDistCenter && xDist < xMinDistCorner) {
+                            basePos = moveXFromNodeBy(basePos, nodePos, xMinDistCorner);
+                            didAdjust = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            DebugHelper.drawBox(basePos, Color.GREEN, 2.5f);
+
+
+
+//TODO: this is the best guess that is 95% accurate
+
+//            Point2d bestGuess = nodeMidPoint;
+//            for (int i=0; i<6; i++) {
+//                Point2d finalBestGuess = bestGuess;
+//                Point2d closestNodePos = nodes.stream()
+//                        .min(Comparator.comparing(node -> UnitUtils.getDistance(node.unit(), finalBestGuess))).get()
+//                        .unit().getPosition().toPoint2d();
+//                bestGuess = Position.towards(closestNodePos, bestGuess, 6.2f);
+//            }
+//            bestGuess = Point2d.of((int)bestGuess.getX() + 0.5f, (int)bestGuess.getY() + 0.5f);
+//            DebugHelper.drawBox(bestGuess, Color.YELLOW, 0.26f);
+//
+//            queryCount += findPosition(expansionLocations, nodes, nodeMidPoint, bestGuess);
+
+
+
+
+
+
+
+
 
 
 //            boolean moveUp = nodes.stream().filter(u -> u.unit().getPosition().toPoint2d().getY() < nodeMidPoint.getY()).count() > nodes.size()/2f;
@@ -179,6 +248,28 @@ public class Tester {
         }
         Bot.DEBUG.sendDebug();
         return expansionLocations;
+    }
+
+    private static Point2d moveXFromNodeBy(Point2d origin, Point2d nodePos, float distance) {
+        float newX = 0;
+        if (origin.getX() < nodePos.getX()) {
+            newX = nodePos.getX() - distance;
+        }
+        else {
+            newX = nodePos.getX() + distance;
+        }
+        return Point2d.of(newX, origin.getY());
+    }
+
+    private static Point2d moveYFromNodeBy(Point2d origin, Point2d nodePos, float distance) {
+        float newY = 0;
+        if (origin.getY() < nodePos.getY()) {
+            newY = nodePos.getY() - distance;
+        }
+        else {
+            newY = nodePos.getY() + distance;
+        }
+        return Point2d.of(origin.getX(), newY);
     }
 
     private static int findPosition(List<Point2d> expansionLocations, List<UnitInPool> nodes, Point2d nodeMidPoint, Point2d bestGuess) {
