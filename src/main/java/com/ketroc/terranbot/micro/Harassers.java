@@ -5,6 +5,8 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -73,12 +75,16 @@ public class Harassers {
     }
 
     private static Tag getNewBanshee() { //TODO: complete stub
-        return UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BANSHEE).stream()
-                .filter(banshee -> UnitUtils.getHealthPercentage(banshee) >= 99)
-                .filter(banshee -> banshee.getCloakState().orElse(CloakState.CLOAKED_ALLIED) == CloakState.NOT_CLOAKED)
-                .filter(banshee -> banshee.getEnergy().orElse(0f) >= 50)
-                .map(Unit::getTag)
-                .findFirst()
-                .orElse(null);
+        Tag bansheeTag = null;
+        if (BunkerContain.proxyBunkerLevel != 2 || GameCache.bansheeList.size() >= 2) { //priority 1 banshee in main army in TvT bunker contain
+            bansheeTag = GameCache.bansheeList.stream()
+                    .filter(banshee -> UnitUtils.getHealthPercentage(banshee) >= 99)
+                    .filter(banshee -> banshee.getCloakState().orElse(CloakState.CLOAKED_ALLIED) == CloakState.NOT_CLOAKED)
+                    .filter(banshee -> banshee.getEnergy().orElse(0f) >= 50)
+                    .map(Unit::getTag)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return bansheeTag;
     }
 }

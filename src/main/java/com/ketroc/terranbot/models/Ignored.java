@@ -44,7 +44,7 @@ public abstract class Ignored {
     public static int numOfType(Set<Units> unitTypes) {
         return (int)ignoredUnits.stream()
                 .map(ignored -> Bot.OBS.getUnit(ignored.unitTag))
-                .filter(u -> unitTypes.contains(u.unit().getType()))
+                .filter(u -> u != null && unitTypes.contains(u.unit().getType()))
                 .count();
     }
 

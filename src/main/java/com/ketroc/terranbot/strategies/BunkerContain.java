@@ -595,7 +595,9 @@ public class BunkerContain {
         else {
             //send marines home on a-move
             List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-            Bot.ACTION.unitCommand(marines, Abilities.ATTACK, LocationConstants.insideMainWall, false);
+            if (!marines.isEmpty()) {
+                Bot.ACTION.unitCommand(marines, Abilities.ATTACK, LocationConstants.insideMainWall, false);
+            }
         }
 
         //set up scvs to be sent to mine

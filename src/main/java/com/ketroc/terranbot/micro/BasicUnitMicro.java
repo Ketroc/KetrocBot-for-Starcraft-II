@@ -173,7 +173,7 @@ public class BasicUnitMicro {
     }
 
     private Point2d findDetourPos() {
-        return findDetourPos(3.5f);
+        return findDetourPos(2f);
     }
 
     private Point2d findDetourPos(float rangeCheck) {

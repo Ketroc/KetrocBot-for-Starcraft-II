@@ -614,6 +614,11 @@ public class BuildManager {
         }
         int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 4 : 2;
 
+        //start with main army banshee in TvT bunker contain
+        if (BunkerContain.proxyBunkerLevel == 2 && numBanshees == 0) {
+            return Abilities.TRAIN_BANSHEE;
+        }
+
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
             return Abilities.TRAIN_RAVEN;
