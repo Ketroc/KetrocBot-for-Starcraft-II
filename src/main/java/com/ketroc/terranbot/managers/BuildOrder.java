@@ -25,6 +25,7 @@ public class BuildOrder {
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     Point2d factoryPos = Position.towards(
                             LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3),

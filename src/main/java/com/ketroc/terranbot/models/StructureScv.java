@@ -4,6 +4,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
@@ -14,6 +15,7 @@ import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.BunkerContain;
+import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -191,7 +193,8 @@ public class StructureScv {
 
                     //any unit within 5 that is a snapshot, or a non-cloaked/non-burrowed unit
                     if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
-                        if (!ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked unit
+                        if (UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 10 &&
+                                !ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked
                             ExpansionClearing.add(structureScv.structurePos);
                             KetrocBot.count2++;
                         }

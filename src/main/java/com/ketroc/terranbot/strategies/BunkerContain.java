@@ -285,7 +285,7 @@ public class BunkerContain {
     }
 
     private static void sendScoutScvs() {
-        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:36")) {
+        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:35")) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
             scoutScvs = availableScvs.subList(0, 2);
             Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false)
@@ -660,7 +660,7 @@ public class BunkerContain {
 
     public static void onBarracksComplete() {
         //add proxy bunker
-        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
+        //KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
 
         if (LocationConstants.proxyBunkerPos2 != null) {
             //add 2nd proxy bunker

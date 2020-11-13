@@ -380,12 +380,8 @@ public class BuildManager {
                                     if (base.isReadyForMining()) {
                                         int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
                                         if (numMules < base.getMineralPatches().size()) {
-                                            Unit mineralPatch = base.getMineralPatches().stream()
-                                                    .filter(patch -> patch.getDisplayType() == DisplayType.VISIBLE)
-                                                    .min(Comparator.comparing(patch -> UnitUtils.getDistance(patch, base.getCcPos())))
-                                                    .orElse(null);
-                                            if (mineralPatch != null) {
-                                                Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, base.getMineralPatches().get(0), false);
+                                            if (base.getRallyNode() != null) {
+                                                Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, base.getRallyNode(), false);
                                                 didMule = true;
                                                 break;
                                             }
@@ -777,7 +773,8 @@ public class BuildManager {
         for (Base base : expansionOptions) {
             if (Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos())) {
                 return base.getCcPos();
-            } else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
+            }
+            else if (!ExpansionClearing.isVisiblyBlockedByUnit(base.getCcPos())) { //UnitUtils.isExpansionCreepBlocked(base.getCcPos())
                 ExpansionClearing.add(base.getCcPos());
                 KetrocBot.count1++;
             }

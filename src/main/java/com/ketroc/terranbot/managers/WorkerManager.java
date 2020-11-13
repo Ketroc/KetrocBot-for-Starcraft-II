@@ -38,7 +38,23 @@ public class WorkerManager {
         toggleWorkersInGas();
         buildRefineryLogic();
         defendWorkerHarass(); //TODO: this method break scvrush micro
+        preventMulesFromDyingWithMineralsInHand();
+    }
 
+    //any mule in one of my bases that can't complete another mining round, will a-move + autorepair instead
+    private static void preventMulesFromDyingWithMineralsInHand() {
+        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MULE).stream()
+                .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
+                        mule.getBuffDurationRemain().orElse(0) < 144 &&
+                        UnitUtils.getDistance(mule,
+                                UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, mule.getPosition().toPoint2d())
+                        ) < 3)
+                .forEach(mule -> {
+                    Bot.ACTION.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
+                    if (!mule.getBuffs().contains(Buffs.AUTOMATED_REPAIR)) {
+                        Bot.ACTION.toggleAutocast(mule.getTag(), Abilities.EFFECT_REPAIR_MULE);
+                    }
+                });
     }
 
     private static void defendWorkerHarass() {

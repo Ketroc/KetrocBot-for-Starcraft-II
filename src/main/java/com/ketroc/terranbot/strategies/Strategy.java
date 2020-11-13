@@ -94,8 +94,34 @@ public class Strategy {
 //        setSproutchStrategy();
     }
 
+    private static void setMicroMachineStrategy() {
+        try {
+            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
+            String lastOpponentId = fileText[0];
+            String microMachine = "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5";
+            if (microMachine.equals(KetrocBot.opponentId) && !microMachine.equals(lastOpponentId)) {
+                System.out.println("microMachine = " + microMachine);
+                System.out.println("KetrocBot.opponentId = " + KetrocBot.opponentId);
+                System.out.println("lastOpponentId = " + lastOpponentId);
+                DelayedChat.add(100, "choosing:  ULTIMATE STRATEGY !!!");
+                DelayedChat.add(500, "was defeated!");
+                DelayedChat.add(500, "has left the game!");
+                DelayedChat.add(750, "...");
+                DelayedChat.add(850, "Ultimate Strategy failed. Trying: Bunker Contain Strategy");
+            }
+            else {
+                DelayedChat.add(100, "Bunker Contain Strategy2");
+            }
+            selectedStrategy = 1;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void getGameStrategyChoice() {
-        setStrategyNumber();
+        setMicroMachineStrategy();
+        //setStrategyNumber();
         switch (LocationConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
@@ -112,18 +138,13 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 1;//selectedStrategy % numStrategies;
+        selectedStrategy = selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                DelayedChat.add(100, "choosing:  ULTIMATE STRATEGY !!!");
-                DelayedChat.add(500, "was defeated!");
-                DelayedChat.add(500, "has left the game!");
-                DelayedChat.add(750, "...");
-                DelayedChat.add(850, "Ultimate Strategy failed. Trying: Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 2;
                 break;
             case 2:
@@ -264,7 +285,7 @@ public class Strategy {
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                return 1;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                //BUILD_EXPANDS_IN_MAIN = true;
+                BUILD_EXPANDS_IN_MAIN = true;
                 return 1;
             default:
                 return -1;

@@ -33,11 +33,11 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
-        //        .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
@@ -47,7 +47,7 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WorldofSleepersLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
 
         while (s2Coordinator.update()) {
 

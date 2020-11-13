@@ -388,7 +388,9 @@ public class GameCache {
 
             //set this base's rally node
             if (!base.getMineralPatches().isEmpty()) {
-                base.setRallyNode(base.getMineralPatches().get(0));
+                base.setRallyNode(base.getMineralPatches().stream()
+                        .max(Comparator.comparing(node -> node.getMineralContents().orElse(0)))
+                        .orElse(null));
             }
 
             //set default rally node for any base
