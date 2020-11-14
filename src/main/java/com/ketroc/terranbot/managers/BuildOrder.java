@@ -8,10 +8,14 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.purchases.PurchaseStructureMorph;
+import com.ketroc.terranbot.purchases.PurchaseUnit;
+import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class BuildOrder {
     public static UnitInPool proxyScv;
@@ -25,17 +29,19 @@ public class BuildOrder {
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos2));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    Point2d factoryPos = Position.towards(
-                            LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3),
-                            LocationConstants.pointOnMyRamp,
-                            3);
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+//                    Point2d factoryPos = Position.towards(
+//                            LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3),
+//                            LocationConstants.pointOnMyRamp,
+//                            3);
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                 }
                 else if (Strategy.EXPAND_SLOWLY) {
                     PfExpand2BaseOpener();
@@ -69,7 +75,7 @@ public class BuildOrder {
                 if (BunkerContain.proxyBunkerLevel != 0) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2)); //WALL_2x2
                     LocationConstants.extraDepots.remove(LocationConstants.WALL_2x2);
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(BunkerContain.repairScvList.get(0).unit(), Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
                     //Bot.purchaseQueue.add(new PurchaseStructure(BunkerContain.repairScvList.get(0).unit(), Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));

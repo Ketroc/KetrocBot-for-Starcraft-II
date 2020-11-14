@@ -361,12 +361,7 @@ public class KetrocBot extends Bot {
                         //get OC
                         if (GameCache.baseList.get(0).getCc() != null &&
                                 GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER) {
-                            if (BunkerContain.proxyBunkerLevel == 2) {
-                                purchaseQueue.add(purchaseQueue.size()-3, new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc())); //TODO: only first time (or only if base isn't OC already)
-                            }
-                            else {
-                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
-                            }
+                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                         }
 
                         //queue factory

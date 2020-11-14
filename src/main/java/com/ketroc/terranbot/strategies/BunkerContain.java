@@ -82,7 +82,7 @@ public class BunkerContain {
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
-        if (Time.nowFrames() == Time.toFrames("1:10")) {
+        if (Time.nowFrames() == Time.toFrames("1:06")) {
             addNewRepairScv();
         }
         sendFirstScv();
@@ -285,7 +285,7 @@ public class BunkerContain {
     }
 
     private static void sendScoutScvs() {
-        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:35")) {
+        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:25")) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
             scoutScvs = availableScvs.subList(0, 2);
             Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false)
@@ -656,26 +656,33 @@ public class BunkerContain {
 
     private static void onBarracksStarted(UnitInPool bar) {
         barracks = bar;
+
+        //queue marine
+        KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
     }
 
     public static void onBarracksComplete() {
         //add proxy bunker
         //KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
 
-        if (LocationConstants.proxyBunkerPos2 != null) {
-            //add 2nd proxy bunker
-            KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos2));
+        if (proxyBunkerLevel == 2) {
+            //add remainder of build order
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+            Point2d factoryPos = Position.towards(
+                    LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3),
+                    LocationConstants.pointOnMyRamp,
+                    3);
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+
             //set barracks rally
             Bot.ACTION.unitCommand(barracks.unit(),
                     Abilities.RALLY_BUILDING,
                     Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.pointOnMyRamp, 2),
                             false);
-//            //send barracks scv into enemy main as reaper distraction
-//            Unit barracksScv = repairScvList.stream()
-//                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), barracksPos)))
-//                    .get().unit();
-//            Bot.ACTION.unitCommand(barracksScv, Abilities.MOVE, Position.towards(bunkerPos, LocationConstants.pointOnEnemyRamp, 2), false)
-//                    .unitCommand(barracksScv, Abilities.HOLD_POSITION, true);
         }
         else {
             Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);

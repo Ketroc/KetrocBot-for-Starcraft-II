@@ -215,7 +215,8 @@ public class WorkerManager {
     private static void buildRefineryLogic() {
         //don't build new refineries yet
         if ((LocationConstants.opponentRace == Race.ZERG && GameCache.ccList.size() < 3) ||
-                (LocationConstants.opponentRace == Race.PROTOSS && GameCache.ccList.size() < 3)) {
+                (LocationConstants.opponentRace == Race.PROTOSS && GameCache.ccList.size() < 3) ||
+                (LocationConstants.opponentRace == Race.TERRAN && GameCache.ccList.size() < 2)) {
             return;
         }
 
