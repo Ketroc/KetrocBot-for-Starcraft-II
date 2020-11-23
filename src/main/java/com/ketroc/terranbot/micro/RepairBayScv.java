@@ -18,7 +18,12 @@ public class RepairBayScv extends BasicUnitMicro {
 
     @Override
     public void onArrival() {
-        Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
-        removeMe = true;
+        Abilities order = UnitUtils.getOrder(unit.unit());
+        if (order == Abilities.MOVE || order == Abilities.HARVEST_GATHER || order == Abilities.HARVEST_RETURN) {
+            Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
+        }
+        else if (order != Abilities.ATTACK && order != Abilities.EFFECT_REPAIR) {
+            removeMe = true;
+        }
     }
 }

@@ -438,15 +438,10 @@ public class ArmyManager {
     }
 
     private static int getNumRepairingScvs() {
-        Set<UnitInPool> repairingScvs = new HashSet<>(Bot.OBS.getUnits(Alliance.SELF, u ->
-                u.unit().getType() == Units.TERRAN_SCV &&
-                UnitUtils.getDistance(u.unit(), LocationConstants.REPAIR_BAY) < 3 &&
-                UnitUtils.getOrder(u.unit()) == Abilities.ATTACK));
-        repairingScvs.addAll(UnitMicroList.unitMicroList.stream()
+        return (int)UnitMicroList.unitMicroList.stream()
                 .filter(basicUnitMicro -> basicUnitMicro instanceof RepairBayScv)
-                .map(basicUnitMicro -> basicUnitMicro.unit)
-                .collect(Collectors.toList()));
-        return repairingScvs.size();
+                .count();
+
     }
 
     private static List<UnitInPool> getRepairBayScvs(int numScvsToSend) {

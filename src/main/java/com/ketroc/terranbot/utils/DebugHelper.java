@@ -39,11 +39,13 @@ public class DebugHelper {
             float right = x + radius;
             float bottom = y - radius;
             float top = y + radius;
-            Bot.DEBUG.debugBoxOut(Point.of(left, bottom, z+3), Point.of(right, top, z+3), color);
-            Bot.DEBUG.debugLineOut(Point.of(left, top, z+3), Point.of(left, top, z-3), color);
-            Bot.DEBUG.debugLineOut(Point.of(left, bottom, z+3), Point.of(left, bottom, z-3), color);
-            Bot.DEBUG.debugLineOut(Point.of(right, top, z+3), Point.of(right, top, z-3), color);
-            Bot.DEBUG.debugLineOut(Point.of(right, bottom, z+3), Point.of(right, bottom, z-3), color);
+            float up = z + 2;
+            float down = z - 3;
+            Bot.DEBUG.debugBoxOut(Point.of(left, bottom, up), Point.of(right, top, up), color);
+            Bot.DEBUG.debugLineOut(Point.of(left, top, up), Point.of(left, top, down), color);
+            Bot.DEBUG.debugLineOut(Point.of(left, bottom, up), Point.of(left, bottom, down), color);
+            Bot.DEBUG.debugLineOut(Point.of(right, top, up), Point.of(right, top, down), color);
+            Bot.DEBUG.debugLineOut(Point.of(right, bottom, up), Point.of(right, bottom, down), color);
         }
     }
 
