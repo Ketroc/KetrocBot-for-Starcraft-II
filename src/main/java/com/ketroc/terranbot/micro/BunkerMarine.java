@@ -12,6 +12,10 @@ import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class BunkerMarine extends BasicUnitMicro {
+    public BunkerMarine(Unit unit, Point2d bunkerPos) {
+        super(unit, Position.towards(bunkerPos, LocationConstants.proxyBarracksPos, 2f), false);
+    }
+
     public BunkerMarine(UnitInPool unit, Point2d bunkerPos) {
         super(unit, Position.towards(bunkerPos, LocationConstants.proxyBarracksPos, 2f), false);
     }

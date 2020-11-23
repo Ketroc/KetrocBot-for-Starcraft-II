@@ -1,10 +1,7 @@
 package com.ketroc.terranbot.bots;
 
 import com.github.ocraft.s2client.bot.S2Agent;
-import com.github.ocraft.s2client.bot.gateway.ActionInterface;
-import com.github.ocraft.s2client.bot.gateway.DebugInterface;
-import com.github.ocraft.s2client.bot.gateway.ObservationInterface;
-import com.github.ocraft.s2client.bot.gateway.QueryInterface;
+import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
@@ -18,6 +15,7 @@ public class Bot extends S2Agent {
     public static ObservationInterface OBS;
     public static QueryInterface QUERY;
     public static DebugInterface DEBUG;
+    public static ControlInterface CONTROL;
     public static boolean isDebugOn;
     public static boolean isRealTime;
     public static String opponentId;
@@ -36,6 +34,7 @@ public class Bot extends S2Agent {
         ACTION = actions();
         QUERY = query();
         DEBUG = debug();
+        CONTROL = control();
 
         //load abilityToUnitType map
         Bot.OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {

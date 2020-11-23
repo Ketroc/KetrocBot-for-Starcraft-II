@@ -30,7 +30,7 @@ public class Switches {
 
     public static boolean hotkey8; //begin planetary doom
     public static boolean includeTanks;
-    public static boolean scoutScanComplete; //TODO: turned off
+    public static boolean scoutScanComplete;
     public static boolean doBuildMainBaseTurrets = true;
 
     public static void onStep() {

@@ -14,6 +14,7 @@ import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UpgradeManager {
     public static final List<Upgrades> shipAttack = new ArrayList<>(List.of(
@@ -89,15 +90,23 @@ public class UpgradeManager {
         if (starportUpgradeList.isEmpty()) {
             return;
         }
-        Upgrades nextUpgrade = starportUpgradeList.get(0);
-        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                .filter(unit -> unit.getOrders().isEmpty())
+        List<Upgrades> starportUpgradesInProgress = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                .filter(unit -> UnitUtils.getOrder(unit) != null)
+                .map(unit -> Bot.abilityToUpgrade.get(unit.getOrders().get(0).getAbility()))
+                .collect(Collectors.toList());
+        starportUpgradeList.stream()
+                .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
                 .findFirst()
-                .ifPresent(techLab -> {
-                            if (!Purchase.isUpgradeQueued(nextUpgrade)) {
-                                KetrocBot.purchaseQueue.add(new PurchaseUpgrade(nextUpgrade, Bot.OBS.getUnit(techLab.getTag())));
-                            }
-                        });
+                .ifPresent(upgrade -> {
+                        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                                .filter(unit -> unit.getOrders().isEmpty())
+                                .findFirst()
+                                .ifPresent(techLab -> {
+                                    if (!Purchase.isUpgradeQueued(upgrade)) {
+                                        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
+                                    }
+                                });
+                });
     }
 
     private static void getStarportUpgrades() { //TODO: don't start if making vikings

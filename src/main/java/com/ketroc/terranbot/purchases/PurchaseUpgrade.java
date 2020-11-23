@@ -3,9 +3,11 @@ package com.ketroc.terranbot.purchases;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.Time;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class PurchaseUpgrade implements Purchase {
     private UnitInPool structure;
@@ -15,7 +17,6 @@ public class PurchaseUpgrade implements Purchase {
     // ============ CONSTRUCTORS =============
 
     public PurchaseUpgrade(Upgrades upgrade, UnitInPool structure) {
-
         this.upgrade = upgrade;
         this.structure = structure;
         setCost();
@@ -44,6 +45,7 @@ public class PurchaseUpgrade implements Purchase {
     }
 
     // ============= METHODS ==============
+    //TODO: have build method find structure rather than constructor passing it in
     public PurchaseResult build() {
         if (!structure.isAlive()) {
             return PurchaseResult.CANCEL;
@@ -84,4 +86,5 @@ public class PurchaseUpgrade implements Purchase {
     public String getType() {
         return upgrade.toString();
     }
+
 }

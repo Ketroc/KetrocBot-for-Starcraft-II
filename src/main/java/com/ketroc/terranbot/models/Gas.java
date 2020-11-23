@@ -36,7 +36,7 @@ public class Gas {
         this.refinery = refinery;
     }
 
-    public Point2d getLocation() {
+    public Point2d getPosition() {
         return location;
     }
 

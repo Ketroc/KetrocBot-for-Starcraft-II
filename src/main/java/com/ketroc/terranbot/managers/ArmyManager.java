@@ -29,6 +29,7 @@ public class ArmyManager {
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
     public static Unit attackUnit;
+    public static boolean isAttackUnitRetreating;
 
     public static List<Unit> armyGoingHome;
     public static List<Unit> armyGroundAttacking;
@@ -57,6 +58,7 @@ public class ArmyManager {
         else {
             setDefensePosition();
         }
+        setIsAttackUnitRetreating();
 
         // lift & lower depot walls
         raiseAndLowerDepots();
@@ -116,6 +118,16 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void setIsAttackUnitRetreating() {
+        isAttackUnitRetreating = false;
+        if (attackUnit != null && UnitUtils.canMove(attackUnit.getType())) {
+            float facing = (float)Math.toDegrees(attackUnit.getFacing());
+            float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
+            float angleDiff = Position.getAngleDifference(facing, attackAngle);
+            isAttackUnitRetreating = angleDiff < 50;
+        }
     }
 
     private static void libTargetting() {
@@ -361,7 +373,16 @@ public class ArmyManager {
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u, groundAttackersMidPoint)))
                 .orElse(null);
-        attackGroundPos = (attackUnit != null) ? attackUnit.getPosition().toPoint2d() : GameCache.baseList.get(2).getResourceMidPoint();
+
+        if (attackUnit != null) {
+            attackGroundPos = attackUnit.getPosition().toPoint2d();
+        }
+        else if (GameCache.baseList.get(2).isMyBase()) {
+            attackGroundPos = GameCache.baseList.get(2).getResourceMidPoint();
+        }
+        else {
+            attackGroundPos = LocationConstants.insideMainWall;
+        }
     }
 
 
@@ -400,27 +421,49 @@ public class ArmyManager {
                     UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) < 5;
         }).size();
         if (numInjured > 0) {
-            int numRepairingScvs = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of scvs currently repairing (ie, on attack move)
-                return u.unit().getType() == Units.TERRAN_SCV &&
-                        (UnitUtils.getOrder(u.unit()) == Abilities.ATTACK || UnitUtils.getOrder(u.unit()) == Abilities.EFFECT_REPAIR);
-            }).size();  //TODO: move this to GameState.startFrame() ??
-            int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs; //decide 5 or 10 total scvs to repair at dock
-            if (numScvsToSend > 1) {
-                List<Unit> availableScvs = UnitUtils.toUnitList(WorkerManager.getAvailableScvs(LocationConstants.REPAIR_BAY, 30, false)); //TODO: sort, or 2 calls? -so closest scvs repair
-                if (availableScvs.size() > numScvsToSend) {
-                    availableScvs = availableScvs.subList(0, numScvsToSend);
+            int numRepairingScvs = getNumRepairingScvs();
+            DebugHelper.addInfoLine("numRepairingScvs: " + numRepairingScvs);
+            int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs;
+            if (numScvsToSend > 0) {
+                List<UnitInPool> repairScvs = getRepairBayScvs(numScvsToSend);
+                repairScvs.stream().forEach(scv -> UnitMicroList.add(new RepairBayScv(scv)));
+                Bot.ACTION.toggleAutocast(
+                        repairScvs.stream()
+                                .filter(scv -> !scv.unit().getBuffs().contains(Buffs.AUTOMATED_REPAIR))
+                                .map(UnitInPool::getTag)
+                                .collect(Collectors.toList()),
+                        Abilities.EFFECT_REPAIR_SCV);
+            }
+        }
+    }
+
+    private static int getNumRepairingScvs() {
+        Set<UnitInPool> repairingScvs = new HashSet<>(Bot.OBS.getUnits(Alliance.SELF, u ->
+                u.unit().getType() == Units.TERRAN_SCV &&
+                UnitUtils.getDistance(u.unit(), LocationConstants.REPAIR_BAY) < 3 &&
+                UnitUtils.getOrder(u.unit()) == Abilities.ATTACK));
+        repairingScvs.addAll(UnitMicroList.unitMicroList.stream()
+                .filter(basicUnitMicro -> basicUnitMicro instanceof RepairBayScv)
+                .map(basicUnitMicro -> basicUnitMicro.unit)
+                .collect(Collectors.toList()));
+        return repairingScvs.size();
+    }
+
+    private static List<UnitInPool> getRepairBayScvs(int numScvsToSend) {
+        List<UnitInPool> repairScvs = new ArrayList<>();
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase()) {
+                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(base.getCcPos(), 10, true, true);
+                if (availableScvs.size() >= numScvsToSend) {
+                    repairScvs.addAll(availableScvs.subList(0, numScvsToSend));
+                    break;
                 }
-                if (!availableScvs.isEmpty()) {
-                    for (Unit scv : availableScvs) { //turn on autocast repair for all scvs selected
-                        if (!scv.getBuffs().contains(Buffs.AUTOMATED_REPAIR)) {
-                            Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV);
-                        }
-                    }
-                    Bot.ACTION.unitCommand(availableScvs, Abilities.ATTACK, retreatPos, false); //a-move scvs to repair station and queue up mining minerals afterwards
-                    //.unitCommand(availableScvs, Abilities.SMART, GameState.mineralNodeRally.unit(), true);
+                else if (!availableScvs.isEmpty()) {
+                    repairScvs.addAll(availableScvs);
                 }
             }
         }
+        return repairScvs;
     }
 
     private static void setGroundTarget() {
@@ -1031,7 +1074,7 @@ public class ArmyManager {
         ArmyCommands lastCommand = getCurrentCommand(viking);
         int x = InfluenceMaps.toMapCoord(viking.getPosition().getX());
         int y = InfluenceMaps.toMapCoord(viking.getPosition().getY());
-        boolean isUnsafe = InfluenceMaps.pointThreatToAirFromGround[x][y] > 0;
+        boolean isUnsafe = InfluenceMaps.pointThreatToAirFromGround[x][y] > 0; //don't fear enemy air units
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
@@ -1043,8 +1086,9 @@ public class ArmyManager {
                         && !e.unit().getHallucination().orElse(false)).isEmpty()) {
             isUnsafe = InfluenceMaps.pointVikingsStayBack[x][y];
         }
-        else if (GameCache.vikingList.size() <= UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size()) {
-            isUnsafe = InfluenceMaps.pointThreatToAir[x][y] > 0;
+        //fear enemy vikings if he has more
+        else if (GameCache.vikingList.size() < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size()) {
+            isUnsafe = InfluenceMaps.pointThreatToAirPlusBuffer[x][y] > 2;
         }
 
         boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
@@ -1092,15 +1136,16 @@ public class ArmyManager {
 
     //return true if autoturret cast
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
+
         //wait for raven to auto-turret before giving a new command
-        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
+        if (!isAttackUnitRetreating && UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
             return;
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
         boolean isUnsafe = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
                 ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, raven.getPosition().toPoint2d()) > 0
-                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
+                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d()) > 0;
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
@@ -1142,7 +1187,6 @@ public class ArmyManager {
                     if (isUnsafe) {
                         if (lastCommand != ArmyCommands.HOME) {
                             retreatMyUnit(raven);
-                            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(raven);
                         }
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {
@@ -1167,7 +1211,7 @@ public class ArmyManager {
 
     //drop auto-turrets near enemy
     private static boolean doAutoTurret(Unit raven) {
-        if (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY) {
+        if (!isAttackUnitRetreating && raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY) {
             return castAutoTurret(raven, 2);
         }
         return false;
@@ -1200,7 +1244,7 @@ public class ArmyManager {
 //            for (int i=0; i<posList.size(); i++) {
 //                if (placementList.get(i)) {
 //                    best++;
-//                    DebugHelper.drawBox(posList.get(i), Color.GREEN, 0.5f);
+//                    DebugHelper.draw3dBox(posList.get(i), Color.GREEN, 0.5f);
 //                    DebugHelper.drawText(String.valueOf(best), posList.get(i), Color.GREEN);
 //                }
 //            }
@@ -1344,9 +1388,9 @@ public class ArmyManager {
     }
 
     public static boolean enemyInMain() {
-        if (attackGroundPos == null) {
+        if (attackUnit == null) {
             return false;
         }
-        return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackGroundPos);
+        return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackUnit.getPosition().toPoint2d());
     }
 }

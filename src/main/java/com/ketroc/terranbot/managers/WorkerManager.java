@@ -47,7 +47,7 @@ public class WorkerManager {
                 .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
                         mule.getBuffDurationRemain().orElse(0) < 144 &&
                         UnitUtils.getDistance(mule,
-                                UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, mule.getPosition().toPoint2d())
+                                UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, mule.getPosition().toPoint2d())
                         ) < 3)
                 .forEach(mule -> {
                     Bot.ACTION.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
@@ -226,7 +226,7 @@ public class WorkerManager {
                 for (Gas gas : base.getGases()) {
                     if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
                         if (StructureScv.scvBuildingList.stream()
-                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getLocation()) < 1)) {
+                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getPosition()) < 1)) {
                             if (!Purchase.isStructureQueued(Units.TERRAN_REFINERY)) {
                                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
                                 return;
@@ -437,11 +437,17 @@ public class WorkerManager {
         }
     }
 
-    public static boolean toggleWorkersInGas() {
+    public static void toggleWorkersInGas() {
         //skip logic until there are at least 2 refineries
         int numRefineries = UnitUtils.getNumFriendlyUnits(UnitUtils.REFINERY_TYPE, false);
         if (numRefineries <= 1) {
-            return false;
+            return;
+        }
+
+        //max gas during slow 3rd base build order
+        if (Strategy.EXPAND_SLOWLY && Time.nowFrames() < Time.toFrames("5:00")) {
+            scvsPerGas = 3;
+            return;
         }
 
         int mins = GameCache.mineralBank;
@@ -449,28 +455,23 @@ public class WorkerManager {
         if (scvsPerGas == 1) {
             if (gasBankRatio() < 0.6) {
                 scvsPerGas = 2;
-                return true;
             }
         }
         else if (scvsPerGas == 2) {
             //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (Time.nowFrames() > Time.toFrames("3:00") && (mins > 3000 || (mins > 300 && gasBankRatio() < 0.3))) {
+            if (Time.nowFrames() > Time.toFrames("3:00") && (mins > 3100 || (mins > 300 && gasBankRatio() < 0.3))) {
                 scvsPerGas = 3;
-                return true;
             }
             //go to 1 in gas
-            if (gas > 700 && gasBankRatio() > 0.75) {
+            else if (gas > 700 && gasBankRatio() > 0.75) {
                 scvsPerGas = 1;
-                return true;
             }
         }
         else if (scvsPerGas == 3) {
             if (mins < 2750 && gas > 80*GameCache.starportList.size() && gasBankRatio() > 0.5) {
                 scvsPerGas = 2;
-                return true;
             }
-        }
-        return false;
+        };
     }
 
     private static float gasBankRatio() {

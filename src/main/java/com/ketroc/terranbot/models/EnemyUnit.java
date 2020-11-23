@@ -199,7 +199,7 @@ public class EnemyUnit {
             case TERRAN_AUTO_TURRET:
                 return 6;
             case TERRAN_CYCLONE:
-                return 5;
+                return 2;
             case TERRAN_THOR:
                 return 14;
             case TERRAN_THOR_AP:

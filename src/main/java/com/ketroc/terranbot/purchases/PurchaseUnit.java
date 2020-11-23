@@ -4,8 +4,10 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.UnitUtils;
 
 public class PurchaseUnit implements Purchase {
     private Cost cost;
@@ -76,4 +78,5 @@ public class PurchaseUnit implements Purchase {
     public String getType() {
         return unitType.toString();
     }
+
 }

@@ -7,7 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.managers.BuildManager;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
@@ -150,16 +150,14 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
         }
-        if (!structureData.getTechRequirement().isPresent() || countUnitType((Units)structureData.getTechRequirement().get()) > 0) {
-            if (structureData.getAbility().get() == Abilities.BUILD_REFINERY) { //TODO: restructure this as refineries never have a tech requirement??
-                return buildRefinery();
-            }
-            else {
-                return buildOther();
-            }
+
+        if (structureData.getAbility().get() == Abilities.BUILD_REFINERY) { //TODO: restructure this as refineries never have a tech requirement??
+            return buildRefinery();
+        }
+        else if (!isTechRequired(structureType)) {
+            return buildOther();
         }
         else {
-            //if tech requirement doesn't exist TODO: add tech to purchase queue here???
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
         }
@@ -229,17 +227,20 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             if (base.isMyBase() && base.isComplete(0.55f)) {
                 for (Gas gas : base.getGases()) {
                     //if geyser is available and isn't empty
-                    if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
+                    if (gas.getRefinery() == null &&
+                            gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY &&
+                            Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.GAS_STRUCTURE_TYPES.contains(enemy.unit().getType()) &&
+                                    UnitUtils.getDistance(enemy.unit(), gas.getPosition()) < 1).isEmpty()) {
                         //if scv isn't already on the way to build at this geyser
                         if (StructureScv.scvBuildingList.stream()
-                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getLocation()) < 1)) {
-                            this.position = gas.getLocation();
+                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getPosition()) < 1)) {
+                            this.position = gas.getPosition();
                             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
                             if (availableScvs.isEmpty()) {
                                 return PurchaseResult.WAITING;
                             }
                             this.scv = availableScvs.get(0).unit();
-                            gas.setGeyser(getGeyserUnitAtPosition(gas.getLocation()));
+                            gas.setGeyser(getGeyserUnitAtPosition(gas.getPosition()));
                             System.out.println("sending action " + Abilities.BUILD_REFINERY + " at: " + Time.nowClock());
                             Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
@@ -251,6 +252,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
         }
         return PurchaseResult.CANCEL;
+    }
+
+
+    public static boolean isTechRequired(Units unitType) {
+        Units techStructureNeeded = (Units)Bot.OBS.getUnitTypeData(false).get(unitType).getTechRequirement().orElse(null);
+        if (techStructureNeeded == null) {
+            return false;
+        }
+        Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
+        if (UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, false) == 0) {
+            if (!Purchase.isStructureQueued(techStructureNeeded) &&
+                    UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, true) == 0) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
+            }
+            return true;
+        }
+        return false;
     }
 
     private void selectARallyUnit() {

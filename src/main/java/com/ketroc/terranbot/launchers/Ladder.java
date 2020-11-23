@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.bots.TestingBot;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)

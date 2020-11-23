@@ -18,10 +18,10 @@ public class KetrocLauncher {
                 .setShowBurrowed(true)
                 .setRawAffectsSelection(false)
                 .setTimeoutMS(600 * 1000)
-                //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
+//                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, null,false)),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.MEDIUM))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
@@ -30,12 +30,12 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));

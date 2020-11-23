@@ -325,4 +325,17 @@ public class Position {
         }
         return spiralList;
     }
+
+    public static float getAngle(Unit origin, Unit target) {
+        return getAngle(target.getPosition().toPoint2d(), origin.getPosition().toPoint2d());
+    }
+
+    public static float getAngle(Point2d origin, Point2d target) {
+        return ((float)Math.toDegrees(Math.atan2(origin.getX() - target.getX(), target.getY() - origin.getY())) + 270) % 360;
+    }
+
+    public static float getAngleDifference(float angle1, float angle2) {
+        float difference = Math.abs(angle1 - angle2) % 360;
+        return (difference > 180) ? Math.abs(360 - difference) : difference;
+    }
 }

@@ -62,7 +62,7 @@ public class LocationConstants {
     public static List<Point2d> clockBasePositions = new ArrayList<>();
     public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
-    public static int baseAttackIndex = 2;
+    public static int baseAttackIndex;
     public static Race opponentRace;
 
     public static void onGameStart(UnitInPool mainCC) {
@@ -74,10 +74,11 @@ public class LocationConstants {
         }
         setStructureLocations();
         setBaseLocations();
+        baseAttackIndex = LocationConstants.baseLocations.size()-2;
         setClockBaseLists();
         createBaseList(mainCC);
         insideMainWall = Position.towards(MID_WALL_3x3, baseLocations.get(0), 2.5f);
-        initEnemyRaceSpecifics();
+        setEnemyTypes();
         mapMainAndNatBases();
         mainBaseMidPos = getMainBaseMidPoint(false);
         enemyMainBaseMidPos = getMainBaseMidPoint(true);
@@ -89,41 +90,29 @@ public class LocationConstants {
 
     public static void onStep() { //TODO: rewrite this to use GameCache.baseList.isEnemyBase()
         if (Time.nowFrames() % Time.toFrames("5:00") == 0 && Base.numMyBases() >= 4) { //every ~5min
-            baseAttackIndex = Math.max(2, getNewEnemyBaseIndex());
-            skipBasesIOwn();
+            setNewEnemyBaseIndex();
         }
     }
 
-    //set baseAttackIndex to the newest enemy base I know about
-    private static int getNewEnemyBaseIndex() {
-        if (UnitUtils.enemyCommandStructures != null) { //if not an unscouted random player
-            List<UnitInPool> enemyCommandStructures = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
-            for (int i = 0; i < baseLocations.size(); i++) {
-                Point2d basePos = baseLocations.get(i);
-                if (enemyCommandStructures.stream().anyMatch(enemyBase -> UnitUtils.getDistance(enemyBase.unit(), basePos) < 1)) {
-                    return i;
-                }
+    //returns base index of newest enemy base
+    private static void setNewEnemyBaseIndex() {
+        for (int i=0; i<GameCache.baseList.size(); i++) {
+            Base base = GameCache.baseList.get(i);
+            if (base.isEnemyBase) {
+                baseAttackIndex = Math.min(baseAttackIndex, i);
             }
         }
-        return 1;
     }
 
     public static void rotateBaseAttackIndex() {
-        if (baseAttackIndex == baseLocations.size() - 1) {
+        baseAttackIndex++;
+        setNewEnemyBaseIndex();
+        if (baseAttackIndex >= baseLocations.size() - 1) {
             Switches.finishHim = true;
             Bot.ACTION.sendChat("Finish Him!", ActionChat.Channel.BROADCAST);
-        } else {
-            baseAttackIndex++;
         }
-        skipBasesIOwn();
     }
 
-    private static void skipBasesIOwn() {
-        //skip bases where I have started a CC at
-        while (baseAttackIndex < baseLocations.size() - 1 && GameCache.baseList.get(baseAttackIndex).isMyBase()) {
-            baseAttackIndex++;
-        }
-    }
 
     //make array map of all points within the main bases
     private static void mapMainAndNatBases() {
@@ -189,62 +178,6 @@ public class LocationConstants {
             GameCache.baseList.add(new Base(baseLocation));
         }
         GameCache.baseList.get(0).setCc(mainCC);
-    }
-
-    public static void setRaceStrategies() {
-        switch (opponentRace) {
-            case ZERG:
-                Strategy.DO_INCLUDE_LIBS = true;
-                Strategy.DO_INCLUDE_TANKS = true;
-                break;
-            case PROTOSS:
-                Strategy.DIVE_RANGE = 25;
-                Strategy.DO_INCLUDE_LIBS = true;
-                Strategy.DO_INCLUDE_TANKS = true;
-                break;
-            case TERRAN:
-                Strategy.DO_INCLUDE_LIBS = false;
-                Strategy.DO_INCLUDE_TANKS = true;
-                break;
-        }
-    }
-
-    public static void initEnemyRaceSpecifics() {
-        setReaperBlockWall();
-        setEnemyTypes();
-        setRaceStrategies();
-    }
-
-    private static void setReaperBlockWall() {
-        if (opponentRace == Race.TERRAN && !Strategy.EXPAND_SLOWLY) {
-            extraDepots.addAll(0, reaperBlockDepots);
-            _3x3Structures.addAll(0, reaperBlock3x3s);
-
-            //decide if middle structure in wall is a depot or barracks
-            if (!reaperBlock3x3s.isEmpty()) {
-                _3x3Structures.remove(MID_WALL_3x3);
-            }
-            else {
-                extraDepots.remove(MID_WALL_2x2);
-            }
-        }
-        else {
-            extraDepots.addAll(reaperBlockDepots);
-            _3x3Structures.addAll(reaperBlock3x3s);
-            extraDepots.remove(MID_WALL_2x2);
-        }
-
-        //remove 2nd entry of wall/midwall (duplicate) as they are both in extraDepots and in reaperBlockDepots lists
-        if (MAP.equals(MapNames.SUBMARINE)) {
-            for (int i=extraDepots.size()-1; i>=2; i--) {
-                if (extraDepots.get(i).equals(MID_WALL_2x2)) {
-                    extraDepots.remove(i);
-                }
-                else if (extraDepots.get(i).equals(WALL_2x2)) {
-                    extraDepots.remove(i);
-                }
-            }
-        }
     }
 
     public static boolean setEnemyTypes() {
@@ -1734,9 +1667,12 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(140.5f, 59.5f);
             proxyBunkerPos2 = Point2d.of(131.5f, 53.5f);
 
+            reaperBlockDepots.add(Point2d.of(52.0f, 126.0f));
+            reaperBlockDepots.add(Point2d.of(51.0f, 124.0f));
+            reaperBlock3x3s.add(Point2d.of(53.5f, 128.5f));
+
             myMineralPos = Point2d.of(34f, 139.5f);
             enemyMineralPos = Point2d.of(158f, 32.5f);
-            //REPAIR_BAY = Point2d.of(32.5f, 121.5f);
             WALL_2x2 = Point2d.of(42f, 123f);
             MID_WALL_2x2 = Point2d.of(40f, 123f);
             MID_WALL_3x3 = Point2d.of(39.5f, 123.5f);
@@ -1748,9 +1684,6 @@ public class LocationConstants {
             _3x3Structures.add(Point2d.of(49.5f, 146.5f));
 
             BUNKER_NATURAL = Point2d.of(52.5f, 113.5f);
-            //REAPER_JUMP1 = Point2d.of(52.0f, 126.0f);
-            REAPER_JUMP2 = Point2d.of(54.5f, 128.5f);
-            //REAPER_JUMP3 = Point2d.of(51.0f, 124.0f);
             FACTORY = Point2d.of(44.5f, 124.5f);
 
             STARPORTS.add(Point2d.of(45.5f, 150.5f));
@@ -1782,9 +1715,8 @@ public class LocationConstants {
             MACRO_OCS.add(Point2d.of(42.5f, 128.5f));
             MACRO_OCS.add(Point2d.of(46.5f, 133.5f));
 
-            extraDepots.add(Point2d.of(52.0f, 126.0f)); //reaperJump1
-            extraDepots.add(Point2d.of(51.0f, 124.0f)); //reaperJump3
             extraDepots.add(WALL_2x2); //wall2x2
+            extraDepots.add(MID_WALL_2x2); //wall2x2
             extraDepots.add(Point2d.of(34.0f, 123.0f));
             extraDepots.add(Point2d.of(32.0f, 123.0f));
             extraDepots.add(Point2d.of(32.0f, 121.0f));
@@ -1805,6 +1737,10 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(51.5f, 112.5f);
             proxyBunkerPos2 = Point2d.of(60.5f, 118.5f);
 
+            reaperBlockDepots.add(Point2d.of(140.0f, 46.0f));
+            reaperBlockDepots.add(Point2d.of(141.0f, 48.0f));
+            reaperBlock3x3s.add(Point2d.of(137.5f, 43.5f));
+
             myMineralPos = Point2d.of(158f, 32.5f);
             enemyMineralPos = Point2d.of(34f, 139.5f);
             //REPAIR_BAY = Point2d.of(158.5f, 49.5f);
@@ -1819,9 +1755,6 @@ public class LocationConstants {
             _3x3Structures.add(Point2d.of(161.5f, 34.5f));
             _3x3Structures.add(Point2d.of(142.5f, 26.5f));
 
-            //REAPER_JUMP1 = Point2d.of(140.0f, 46.0f);
-            REAPER_JUMP2 = Point2d.of(137.5f, 43.5f);
-            //REAPER_JUMP3 = Point2d.of(141.0f, 48.0f);
             BUNKER_NATURAL = Point2d.of(138.5f, 58.5f);
             FACTORY = Point2d.of(156.5f, 44.5f);
 
@@ -1854,9 +1787,8 @@ public class LocationConstants {
             MACRO_OCS.add(Point2d.of(139.5f, 30.5f));
             MACRO_OCS.add(Point2d.of(139.5f, 35.5f));
 
-            extraDepots.add(Point2d.of(140.0f, 46.0f)); //reaperJump1
-            extraDepots.add(Point2d.of(141.0f, 48.0f)); //reaperJump3
             extraDepots.add(WALL_2x2); //wall2x2
+            extraDepots.add(MID_WALL_2x2);
             extraDepots.add(Point2d.of(130.0f, 31.0f));
             extraDepots.add(Point2d.of(137.0f, 22.0f));
             extraDepots.add(Point2d.of(143.0f, 29.0f));
@@ -2013,7 +1945,7 @@ public class LocationConstants {
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(79.5f, 62.5f);
             proxyBunkerPos = Point2d.of(61.5f, 37.5f);
-            proxyBunkerPos2 = Point2d.of(51.5f, 56.5f);
+            proxyBunkerPos2 = Point2d.of(52.5f, 57.5f);
 
             reaperBlockDepots.add(Point2d.of(123.0f, 122.0f));
             reaperBlockDepots.add(Point2d.of(120.0f, 125.0f));
@@ -2081,7 +2013,7 @@ public class LocationConstants {
         else {
             proxyBarracksPos = Point2d.of(88.5f, 109.5f);
             proxyBunkerPos = Point2d.of(106.5f, 134.5f);
-            proxyBunkerPos2 = Point2d.of(116.5f, 115.5f);
+            proxyBunkerPos2 = Point2d.of(115.5f, 114.5f);
 
             reaperBlockDepots.add(Point2d.of(45.0f, 50.0f));
             reaperBlockDepots.add(Point2d.of(48.0f, 47.0f));

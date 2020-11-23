@@ -17,6 +17,7 @@ import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.micro.BasicUnitMicro;
 import com.ketroc.terranbot.micro.BunkerMarine;
 import com.ketroc.terranbot.micro.TankDefender;
 import com.ketroc.terranbot.micro.UnitMicroList;
@@ -75,6 +76,9 @@ public class BunkerContain {
             return;
         }
 
+        //check if contain is broken
+        abandonProxy();
+
         // ========= SCVS ===========
         if (Time.nowFrames() == Time.toFrames(13)) {
             Unit scv = WorkerManager.getClosestAvailableScv(LocationConstants.extraDepots.get(0)).unit();
@@ -89,18 +93,14 @@ public class BunkerContain {
         if (scoutProxy) {
             sendScoutScvs();
         }
-        updateScvs();
+        replaceDeadScvs();
+        scvRepairMicro();
 
         // ========= BARRACKS ===========
         if (barracks == null) {
             List<UnitInPool> allBarracks = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BARRACKS, barracksPos, 1);
             if (!allBarracks.isEmpty()) {
                 onBarracksStarted(allBarracks.get(0));
-            }
-        }
-        else if (!barracks.isAlive()) {
-            if (bunker == null || bunker.unit().getCargoSpaceTaken().orElse(0) < 1) {
-                abandonProxy();
             }
         }
         else if (!barracks.unit().getActive().orElse(true)) {
@@ -120,16 +120,9 @@ public class BunkerContain {
                 onBunkerStarted(allBunkers.get(0));
             }
         }
-        else if (!bunker.isAlive()) {
-            abandonProxy();
-            return;
-        }
-        else {
+        else if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
             bunkerTargetting();
         }
-
-        // ========= MARINES ===========
-        //marineMicro();
 
         if (BunkerContain.proxyBunkerLevel == 2) {
             // ========= FACTORY ===========
@@ -149,7 +142,6 @@ public class BunkerContain {
             }
 
             // ========= TANKS ===========
-            //tankMicro();
             siegeTankTargetting();
 
         }
@@ -183,6 +175,9 @@ public class BunkerContain {
 
     public static void removeRepairScv(UnitInPool scv) {
         repairScvList.remove(scv);
+        if (UnitUtils.getOrder(scv.unit()) != null) {
+            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
+        }
         Ignored.remove(scv.getTag());
     }
 
@@ -446,15 +441,6 @@ public class BunkerContain {
         return marineCount;
     }
 
-    private static void updateScvs() {
-        replaceDeadScvs();
-        giveScvsCommands();
-    }
-
-    private static void giveScvsCommands() {
-        scvRepairMicro();
-    }
-
     private static void scvRepairMicro() {
         List<Unit> availableScvs = getAvailableRepairScvs();
         if (availableScvs.isEmpty()) {
@@ -509,7 +495,7 @@ public class BunkerContain {
     public static List<Unit> getAvailableRepairScvs() {
         return repairScvList.stream()
                 .map(UnitInPool::unit)
-                .filter(scv -> !StructureScv.isScvProducing(scv))
+                .filter(scv -> !StructureScv.isScvProducing(scv) && UnitUtils.getOrder(scv) != Abilities.EFFECT_REPAIR)
                 .collect(Collectors.toList());
     }
 
@@ -546,18 +532,43 @@ public class BunkerContain {
         Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
     }
 
-    private static void abandonProxy() {
+    private static boolean abandonProxy() {
+        boolean bunkerDied = updateBunker();
+        boolean tank1Died = updateTank1();
+        boolean tank2Died = updateTank2();
+
+        //only check if a core defense unit died
+        if (!bunkerDied && !tank1Died && !tank2Died) {
+            return false;
+        }
+
+        //check if contain is broken
+        if (!isContainBroken()) {
+            if (bunkerDied) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
+                UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
+                        .forEach(marine -> UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos)));
+            }
+            return false;
+        }
+
+        //******************************************************
+        // CONTAIN BROKEN: cancel everything and send units home
+        //******************************************************
+
         //cancel all proxy construction in progress
         for (int i=0; i<StructureScv.scvBuildingList.size(); i++) {
             StructureScv structureScv = StructureScv.scvBuildingList.get(i);
             //if proxy structure
             if (structureScv.structurePos.distance(LocationConstants.REPAIR_BAY) > 50) {
+                structureScv.cancelProduction();
                 requeueStructure(structureScv.structureType);
                 StructureScv.remove(structureScv);
                 i--;
             }
         }
-        //cancel all proxy construction in queue
+
+        //cancel all proxy construction in purchase queue
         for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
             if (KetrocBot.purchaseQueue.get(i) instanceof PurchaseStructure) {
                 PurchaseStructure structure = (PurchaseStructure) KetrocBot.purchaseQueue.get(i);
@@ -568,25 +579,15 @@ public class BunkerContain {
             }
         }
 
-        if (barracks.isAlive()) {
-            //cancel barracks in production
-            if (barracks.unit().getBuildProgress() < 1) {
-                Bot.ACTION.unitCommand(barracks.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
-            }
-            //send completed barracks home
-            else {
-                sendBarracksHome();
-            }
+        //float barracks home
+        if (barracks.isAlive() && barracks.unit().getBuildProgress() == 1) {
+            sendBarracksHome();
         }
 
+        //salvage bunker and send marines home
         if (bunker.isAlive()) {
-            //cancel bunker in production
-            if (bunker.unit().getBuildProgress() < 1) {
-                Bot.ACTION.unitCommand(bunker.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
-            }
             //empty bunker and salvage
-            else {
+            if (bunker.unit().getBuildProgress() == 1) {
                 Bot.ACTION.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
                 DelayedAction.delayedActions.add(
                         new DelayedAction(Time.nowFrames()+2, Abilities.EFFECT_SALVAGE, bunker));
@@ -594,13 +595,19 @@ public class BunkerContain {
         }
         else {
             //send marines home on a-move
-            List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-            if (!marines.isEmpty()) {
-                Bot.ACTION.unitCommand(marines, Abilities.ATTACK, LocationConstants.insideMainWall, false);
-            }
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
+                    .forEach(marine -> UnitMicroList.add(new BasicUnitMicro(marine, LocationConstants.insideMainWall, true)));
         }
 
-        //set up scvs to be sent to mine
+        //send tanks home
+        if (tank1 != null) {
+            UnitMicroList.remove(tank1.getTag());
+        }
+        if (tank2 != null) {
+            UnitMicroList.remove(tank2.getTag());
+        }
+
+        //send scvs home
         if (!repairScvList.isEmpty()) { //TODO: does this work?  Is this required
             Bot.ACTION.unitCommand(UnitUtils.toUnitList(repairScvList), Abilities.STOP, false);
             repairScvList.forEach(scv -> Ignored.remove(scv.getTag()));
@@ -608,6 +615,37 @@ public class BunkerContain {
 
         //end proxy rush
         proxyBunkerLevel = 0;
+        return true;
+    }
+
+    private static boolean isContainBroken() {
+        return bunker == null &&
+                (tank1 == null || tank1.unit().getType() != Units.TERRAN_SIEGE_TANK_SIEGED) &&
+                (tank2 == null || tank2.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+    }
+
+    private static boolean updateBunker() {
+        if (bunker != null && !bunker.isAlive()) {
+            bunker = null;
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean updateTank1() {
+        if (tank1 != null && !tank1.isAlive()) {
+            tank1 = null;
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean updateTank2() {
+        if (tank2 != null && !tank2.isAlive()) {
+            tank2 = null;
+            return true;
+        }
+        return false;
     }
 
     private static void requeueStructure(Units structureType) {
@@ -636,7 +674,7 @@ public class BunkerContain {
                         -2.7f
                 )
         );
-        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        DebugHelper.draw3dBox(turretPos, Color.GREEN, 1f);
         Point2d bestPlacementPos = Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 2);
         if (bestPlacementPos == null) {
             turretPos = Position.toWholePoint(
@@ -662,31 +700,25 @@ public class BunkerContain {
     }
 
     public static void onBarracksComplete() {
-        //add proxy bunker
-        //KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
-
+        //add remainder of build order
         if (proxyBunkerLevel == 2) {
-            //add remainder of build order
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
             Point2d factoryPos = Position.towards(
-                    LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3),
+                    LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 3),
                     LocationConstants.pointOnMyRamp,
                     3);
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        }
 
-            //set barracks rally
-            Bot.ACTION.unitCommand(barracks.unit(),
-                    Abilities.RALLY_BUILDING,
-                    Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.pointOnMyRamp, 2),
-                            false);
-        }
-        else {
-            Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
-        }
+        //set barracks rally
+        Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null)
+                ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.pointOnMyRamp, 2)
+                : behindBunkerPos;
+        Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
     }
 
     private static void onBunkerStarted(UnitInPool bunk) {

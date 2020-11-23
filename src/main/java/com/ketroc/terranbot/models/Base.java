@@ -298,8 +298,8 @@ public class Base {
         //check for new structure
         if (unit == null) {
             UnitInPool newUnit;
-            if (UnitUtils.COMMAND_CENTER_TYPE.contains(unitType)) {
-                newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.COMMAND_CENTER_TYPE, pos, 1).stream()
+            if (UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(unitType)) {
+                newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, pos, 1).stream()
                         .filter(cc -> !cc.unit().getFlying().orElse(true)) //ignore flying CCs
                         .findFirst().orElse(null);
             }

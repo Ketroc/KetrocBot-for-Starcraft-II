@@ -12,7 +12,7 @@ public class InfluenceMaps {
     public static boolean[][] pointInVikingRange;
     public static int[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;
-    public static boolean[][] pointThreatToAirPlusBuffer;
+    public static int[][] pointThreatToAirPlusBuffer;
     public static float[][] pointSupplyInSeekerRange;
     public static int[][] pointThreatToGround;
     public static int[][] pointPFTargetValue;

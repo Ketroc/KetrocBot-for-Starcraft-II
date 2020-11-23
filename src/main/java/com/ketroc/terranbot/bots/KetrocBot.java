@@ -31,9 +31,6 @@ import java.util.*;
 public class KetrocBot extends Bot {
 
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
-    public static int count1 = 0;
-    public static int count2 = 0;
-    public static boolean didSproutch = false;
 
     public KetrocBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
@@ -117,7 +114,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Nov 3, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Nov 23, 2020", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
@@ -127,6 +124,8 @@ public class KetrocBot extends Bot {
                 if (first.isPresent()) {
                     System.out.println("Stalled StructureScv = \n" + first);
                 }
+
+                DebugHelper.onStep();
 
                 //free up ignored units
                 Ignored.onStep();
@@ -138,7 +137,7 @@ public class KetrocBot extends Bot {
                 GameCache.onStep();
 
                 //handle action errors like "cannot place building"
-                ActionErrorManager.onStep(); //TODO: turn on for tournament
+                ActionErrorManager.onStep();
 
                 //micro to clear expansion positions
                 ExpansionClearing.onStep();
@@ -219,55 +218,52 @@ public class KetrocBot extends Bot {
                 purchaseQueue.remove(toRemove);
 
                 if (isDebugOn) {
-                    int lines = 0;
-//                    DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+//                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("count1: " + count1, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("count2: " + count2, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
                     for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
-                        Bot.DEBUG.debugTextOut("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
-                                " raven: " + ((ExpansionClearing.expoClearList.get(i).raven != null)
+                        DebugHelper.addInfoLine("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
+                                " raven: " +
+                                (ExpansionClearing.expoClearList.get(i).raven != null
                                         ? ExpansionClearing.expoClearList.get(i).raven.unit.unit().getPosition().toPoint2d()
-                                        : "none"),
-                                Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                                        : "none"));
                     }
-                    Bot.DEBUG.debugTextOut("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
+                    DebugHelper.addInfoLine("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
                             .filter(ignored -> Bot.OBS.getUnit(ignored.unitTag) != null)
                             .map(ignored -> Bot.OBS.getUnit(ignored.unitTag).unit().getType())
                             .filter(unitType -> unitType == Units.TERRAN_SCV)
-                            .count(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("# Scvs Building: " + StructureScv.scvBuildingList.stream()
+                            .count());
+                    DebugHelper.addInfoLine("# Scvs Building: " + StructureScv.scvBuildingList.stream()
                             .map(structureScv -> structureScv.getScv().unit().getType())
                             .filter(unitType -> unitType == Units.TERRAN_SCV)
-                            .count(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("banshees: " + GameCache.bansheeList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("liberators: " + GameCache.liberatorList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("ravens: " + GameCache.ravenList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("vikings: " + GameCache.vikingList.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                            .count());
+                    DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
+                    DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
+                    DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
+                    DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
                     if (LocationConstants.opponentRace == Race.PROTOSS) {
-                        Bot.DEBUG.debugTextOut("tempests: " + GameCache.allEnemiesMap.getOrDefault(Units.PROTOSS_TEMPEST, Collections.emptyList()).size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
                     }
 
                     UnitInPool tempest = UnitUtils.getClosestEnemyUnitOfType(Units.PROTOSS_TEMPEST, ArmyManager.retreatPos);
                     if (tempest != null) {
-                        Bot.DEBUG.debugTextOut("vikings near tempest: " + UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, tempest.unit().getPosition().toPoint2d(), Strategy.DIVE_RANGE).size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        DebugHelper.addInfoLine("vikings near tempest: " + UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER,
+                                tempest.unit().getPosition().toPoint2d(), Strategy.DIVE_RANGE).size());
                     }
 
-                    Bot.DEBUG.debugTextOut("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("Purchase Queue: " + KetrocBot.purchaseQueue.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("BaseTarget: " + LocationConstants.baseAttackIndex, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    Bot.DEBUG.debugTextOut("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                    DebugHelper.addInfoLine("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7);
+                    DebugHelper.addInfoLine("Purchase Queue: " + KetrocBot.purchaseQueue.size());
+                    DebugHelper.addInfoLine("BaseTarget: " + LocationConstants.baseAttackIndex);
+                    DebugHelper.addInfoLine("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir);
                     if (ArmyManager.attackGroundPos != null) {
-                        int x = (int) ArmyManager.attackGroundPos.getX();
-                        int y = (int) ArmyManager.attackGroundPos.getY();
-                        Bot.DEBUG.debugBoxOut(Point.of(x - 0.3f, y - 0.3f, Position.getZ(x, y)), Point.of(x + 0.3f, y + 0.3f, Position.getZ(x, y)), Color.YELLOW);
+                        DebugHelper.draw3dBox(ArmyManager.attackGroundPos, Color.YELLOW, 0.6f);
                     }
                     for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
-                        Bot.DEBUG.debugTextOut(KetrocBot.purchaseQueue.get(i).getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+                        DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
                     }
-                    Bot.DEBUG.debugBoxOut(Point.of(LocationConstants.enemyMineralPos.getX()-0.33f, LocationConstants.enemyMineralPos.getY()-0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Point.of(LocationConstants.enemyMineralPos.getX()+0.33f, LocationConstants.enemyMineralPos.getY()+0.33f, Position.getZ(LocationConstants.enemyMineralPos)), Color.BLUE);
-                    DebugHelper.drawBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
-                    DebugHelper.drawBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
+
+                    DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
+                    DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
+                    DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
                     Bot.DEBUG.sendDebug();
                 }
                 Bot.ACTION.sendActions();
@@ -403,9 +399,14 @@ public class KetrocBot extends Bot {
                             BunkerContain.onFactoryComplete();
                         }
                         else {
+                            //start with (1 factory + 1 starport), or start with (2 starports)
                             Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
-                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
-                            purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                            if (Strategy.DO_INCLUDE_TANKS) {
+                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
+                            }
+                            else {
+                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                            }
                             purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                         }
                         break;
@@ -496,26 +497,19 @@ public class KetrocBot extends Bot {
                                 }
                                 break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
-                                LocationConstants.extraDepots.add(unit.getPosition().toPoint2d());
+                                LocationConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
                                 break;
                             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
-                                LocationConstants._3x3Structures.add(unit.getPosition().toPoint2d());
+                                LocationConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
                                 break;
-//turret build logic run every frame
-//                            case TERRAN_MISSILE_TURRET:
-//                                //rebuild turret if command center still exists
-//                                if (!UnitUtils.getUnitsNearbyOfType(alliance, UnitUtils.COMMAND_CENTER_TYPE, unit.getPosition().toPoint2d(), 10).isEmpty()) {
-//                                    purchaseQueue.add(new PurchaseStructure((Units) unit.getType(), unit.getPosition().toPoint2d()));
-//                                }
-//                                break;
                             case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
                                 if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: use same location for factory
                                     purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
                                 }
                                 break;
                             case TERRAN_STARPORT:
-                                LocationConstants.STARPORTS.add(unit.getPosition().toPoint2d());
+                                LocationConstants.STARPORTS.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 break;
                             case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                                 //remove from base defense tank
@@ -613,8 +607,6 @@ public class KetrocBot extends Bot {
     @Override
     public void onGameEnd() {
         setNextGameStrategy();
-        System.out.println("count1 = " + count1);
-        System.out.println("count2 = " + count2);
         System.out.println("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
         try {

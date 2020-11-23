@@ -13,14 +13,15 @@ public class TestingBotLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-                .setRealtime(true)
+//                .setRealtime(true)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
                 .setShowBurrowed(true)
                 .setRawAffectsSelection(true)
                 .setTimeoutMS(600 * 1000)
-                //.setProcessPath(Paths.get("C:\\Ladder\\4.8.4\\StarCraft II\\Versions\\Base73286\\SC2_x64.exe"))
+//                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
+//                .setDataVersion("B89B5D6FA7CBF6452E721311BFBC6CB2")
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(true, null,false)),
                         S2Coordinator.createComputer(Race.PROTOSS, Difficulty.VERY_EASY, AiBuild.MACRO))
@@ -33,7 +34,7 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
@@ -47,7 +48,7 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("TritonLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WorldofSleepersLE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
+        //        .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
 
         while (s2Coordinator.update()) {
 

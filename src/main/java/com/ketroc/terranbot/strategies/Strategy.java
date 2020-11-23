@@ -8,7 +8,6 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.managers.BuildManager;
-import com.ketroc.terranbot.purchases.PurchaseUpgrade;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.KetrocBot;
@@ -17,7 +16,7 @@ import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.DelayedChat;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.MapNames;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,12 +31,14 @@ public class Strategy {
     public static int SKIP_FRAMES;
     public static final boolean ANTI_DROP_TURRET = false; //TODO: temporary for ANIbot
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
+    public static boolean DO_DIVE_RAVENS = true;
+    public static boolean EARLY_BANSHEE_SPEED;
 
-    public static boolean DO_INCLUDE_TANKS;
+    public static boolean DO_INCLUDE_TANKS = true;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_TANKS = 10;
 
-    public static boolean DO_INCLUDE_LIBS;
+    public static boolean DO_INCLUDE_LIBS = true;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_LIBS = 10;
 
@@ -49,10 +50,9 @@ public class Strategy {
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.5f;
     public static int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
-    public static boolean enemyHasAirThreat;
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
-    public static final int NUM_SCVS_REPAIR_STATION = 7;
+    public static final int NUM_SCVS_REPAIR_STATION = 5;
     public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
     public static final float AUTOTURRET_RANGE = 7f;
     public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
@@ -83,6 +83,7 @@ public class Strategy {
     public static int step_TvtFastStart = 1;
     public static UnitInPool scv_TvtFastStart;
     public static int floatBaseAt = 50; //heath% to float base away at
+    private static boolean NO_RAMP_WALL;
 
     public static void onGameStart() {
         SKIP_FRAMES = (KetrocBot.isRealTime) ? 6 : 2;
@@ -103,14 +104,14 @@ public class Strategy {
                 System.out.println("microMachine = " + microMachine);
                 System.out.println("KetrocBot.opponentId = " + KetrocBot.opponentId);
                 System.out.println("lastOpponentId = " + lastOpponentId);
-                DelayedChat.add(100, "choosing:  ULTIMATE STRATEGY !!!");
+                DelayedChat.add(100, "choosing:  !!! ULTIMATE STRATEGY !!!");
                 DelayedChat.add(500, "was defeated!");
                 DelayedChat.add(500, "has left the game!");
-                DelayedChat.add(750, "...");
+                DelayedChat.add(750, "...??");
                 DelayedChat.add(850, "Ultimate Strategy failed. Trying: Bunker Contain Strategy");
             }
             else {
-                DelayedChat.add(100, "Bunker Contain Strategy2");
+                DelayedChat.add(100, "Bunker Contain Strategy");
             }
             selectedStrategy = 1;
         }
@@ -120,8 +121,8 @@ public class Strategy {
     }
 
     private static void getGameStrategyChoice() {
-        setMicroMachineStrategy();
-        //setStrategyNumber();
+        setRaceStrategies();
+        setStrategyNumber();
         switch (LocationConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
@@ -133,11 +134,23 @@ public class Strategy {
                 chooseTvZStrategy();
                 break;
         }
+        setRampWall();
+        setReaperBlockWall();
+    }
 
+    private static void setRampWall() {
+        if (NO_RAMP_WALL) {
+            LocationConstants._3x3Structures.add(LocationConstants._3x3Structures.remove(0));
+            LocationConstants._3x3Structures.add(LocationConstants._3x3Structures.remove(0));
+            LocationConstants.extraDepots.add(LocationConstants.extraDepots.remove(0));
+        }
     }
 
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
+        if (selectedStrategy == -1) {
+            selectedStrategy = 2;
+        }
         selectedStrategy = selectedStrategy % numStrategies;
 
         switch (selectedStrategy) {
@@ -160,7 +173,10 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
-        selectedStrategy = 0;//selectedStrategy % numStrategies;
+        if (selectedStrategy == -1) {
+            selectedStrategy = 2;
+        }
+        selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -182,8 +198,10 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
-        selectedStrategy = 1;//selectedStrategy % numStrategies;
-
+        if (selectedStrategy == -1) {
+            selectedStrategy = 1;
+        }
+        selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -242,10 +260,11 @@ public class Strategy {
     }
 
     private static int getStrategyByOpponentId() {
-        if (KetrocBot.opponentId == null) {
-            return -1;
-        }
-        switch (KetrocBot.opponentId) {
+//        if (KetrocBot.opponentId == null) {
+//            return -1;
+//        }
+//        switch (KetrocBot.opponentId) {
+        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                DO_ANTIDROP_TURRETS = true;
@@ -273,20 +292,29 @@ public class Strategy {
 //                EXPAND_SLOWLY = true;
 //                return 0;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-                DO_INCLUDE_TANKS = false;
+                DO_INCLUDE_TANKS = true;
                 DO_BANSHEE_HARASS = false;
                 EXPAND_SLOWLY = true;
-                return 0;
+                NO_RAMP_WALL = true;
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                return 2;
 //            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                EXPAND_SLOWLY = true;
 //                return 1;
-//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+                BUILD_EXPANDS_IN_MAIN = true;
+                DO_INCLUDE_TANKS = true;
+                DO_INCLUDE_LIBS = false;
+                DO_BANSHEE_HARASS = false;
+                DO_DIVE_RAVENS = false;
+                Switches.enemyCanProduceAir = true;
+                return 0;
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                return 1;
-            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                BUILD_EXPANDS_IN_MAIN = true;
-                return 1;
             default:
                 return -1;
         }
@@ -306,8 +334,6 @@ public class Strategy {
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
-        DO_INCLUDE_LIBS = true;
-        DO_INCLUDE_TANKS = true;
         DO_BANSHEE_HARASS = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
@@ -317,34 +343,31 @@ public class Strategy {
     }
 
     private static void setStrategyNumber() {
-        try {
+//        try {
             //hardcoded strategies by ID
-            int strategyByOpponentId = getStrategyByOpponentId();
-            if (strategyByOpponentId != -1) {
-                selectedStrategy = strategyByOpponentId;
-                return;
-            }
+            selectedStrategy = getStrategyByOpponentId();
 
-            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
-            String lastOpponentId = fileText[0];
-            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
-            String lastResult = fileText[2];
-            //start at 0 for new opponent
-            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
-                selectedStrategy = 0;
-            }
-            //stay on same strategy if I win
-            else if (lastResult.equals("W")) {
-                selectedStrategy = lastOpponentStrategy;
-            }
-            //next strategy if I lose
-            else if (lastResult.equals("L")) {
-                selectedStrategy = lastOpponentStrategy + 1;
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+            //For Best-of Series Below
+//            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
+//            String lastOpponentId = fileText[0];
+//            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
+//            String lastResult = fileText[2];
+//            //start at 0 for new opponent
+//            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+//                selectedStrategy = 0;
+//            }
+//            //stay on same strategy if I win
+//            else if (lastResult.equals("W")) {
+//                selectedStrategy = lastOpponentStrategy;
+//            }
+//            //next strategy if I lose
+//            else if (lastResult.equals("L")) {
+//                selectedStrategy = lastOpponentStrategy + 1;
+//            }
+//        }
+//        catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public static void onStep() {
@@ -429,5 +452,56 @@ public class Strategy {
 
         //save MID_WALL_3X3 for barracks' later position
         LocationConstants._3x3Structures.remove(0);
+    }
+
+    public static void setRaceStrategies() {
+        switch (LocationConstants.opponentRace) {
+            case ZERG:
+                DO_INCLUDE_LIBS = true;
+                DO_INCLUDE_TANKS = true;
+                break;
+            case PROTOSS:
+                DIVE_RANGE = 25;
+                DO_INCLUDE_LIBS = false;
+                DO_INCLUDE_TANKS = false;
+                break;
+            case TERRAN:
+                DO_DIVE_RAVENS = false;
+                DO_INCLUDE_LIBS = false;
+                DO_INCLUDE_TANKS = true;
+                break;
+        }
+    }
+
+    private static void setReaperBlockWall() {
+        if (LocationConstants.opponentRace == Race.TERRAN && !EXPAND_SLOWLY) {
+            LocationConstants.extraDepots.addAll(0, LocationConstants.reaperBlockDepots);
+            LocationConstants._3x3Structures.addAll(0, LocationConstants.reaperBlock3x3s);
+
+            //decide if middle structure in wall is a depot or barracks
+            if (!LocationConstants.reaperBlock3x3s.isEmpty()) {
+                LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
+            }
+            else {
+                LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+            }
+        }
+        else {
+            LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
+            LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
+            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+        }
+
+        //remove 2nd entry of wall/midwall (duplicate) as they are both in extraDepots and in reaperBlockDepots lists
+        if (LocationConstants.MAP.equals(MapNames.SUBMARINE)) {
+            for (int i = LocationConstants.extraDepots.size()-1; i>=2; i--) {
+                if (LocationConstants.extraDepots.get(i).equals(LocationConstants.MID_WALL_2x2)) {
+                    LocationConstants.extraDepots.remove(i);
+                }
+                else if (LocationConstants.extraDepots.get(i).equals(LocationConstants.WALL_2x2)) {
+                    LocationConstants.extraDepots.remove(i);
+                }
+            }
+        }
     }
 }

@@ -5,30 +5,29 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
+import java.util.Set;
+
 public class PurchaseStructureMorph implements Purchase {
     private static final float CANCEL_THRESHOLD = 0.4f;
 
-    private Ability morphOrAddOn;
+    private Abilities morphOrAddOn;
     private UnitInPool structure;
-    private UnitTypeData structureData;
-    private UnitTypeData morphData;
     private Cost cost;
 
     // ============= CONSTRUCTORS =============
-    public PurchaseStructureMorph(Ability morphOrAddOn, Unit structure) {
+    public PurchaseStructureMorph(Abilities morphOrAddOn, Unit structure) {
         this(morphOrAddOn, Bot.OBS.getUnit(structure.getTag()));
     }
 
-    public PurchaseStructureMorph(Ability morphOrAddOn, UnitInPool structure) {
+    public PurchaseStructureMorph(Abilities morphOrAddOn, UnitInPool structure) {
         this.morphOrAddOn = morphOrAddOn;
         this.structure = structure;
-        structureData = Bot.OBS.getUnitTypeData(false).get(structure.unit().getType());
-        morphData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(morphOrAddOn));
         setCost();
         System.out.println("Added to queue: " + this.morphOrAddOn);
     }
@@ -40,7 +39,7 @@ public class PurchaseStructureMorph implements Purchase {
         return morphOrAddOn;
     }
 
-    public void setMorphOrAddOn(Ability morphOrAddOn) {
+    public void setMorphOrAddOn(Abilities morphOrAddOn) {
         this.morphOrAddOn = morphOrAddOn;
     }
 
@@ -63,7 +62,14 @@ public class PurchaseStructureMorph implements Purchase {
         if (!structure.isAlive()) {
             return PurchaseResult.CANCEL;
         }
-        //if production under 40% and can afford if cancelled TODO: doesn't account for which cc
+
+        //if tech structure required
+        if (isTechRequired(morphOrAddOn)) {
+            Cost.updateBank(cost);
+            return PurchaseResult.WAITING;
+        }
+
+        //if production under 40% and can afford if unit production is cancelled TODO: doesn't account for which cc
         if (shouldCancelPreviousOrder()) {
             System.out.println("cancelled unit");
             Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
@@ -118,9 +124,32 @@ public class PurchaseStructureMorph implements Purchase {
         return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
     }
 
-
     @Override
     public String getType() {
         return morphOrAddOn.toString();
+    }
+
+    public static boolean isTechRequired(Abilities morphType) {
+        Units techStructureNeeded = null;
+        switch (morphType) {
+            case MORPH_ORBITAL_COMMAND:
+                techStructureNeeded = Units.TERRAN_BARRACKS;
+                break;
+            case MORPH_PLANETARY_FORTRESS:
+                techStructureNeeded = Units.TERRAN_ENGINEERING_BAY;
+                break;
+        }
+        if (techStructureNeeded == null) {
+            return false;
+        }
+        Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
+        if (UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, false) == 0) {
+            if (!Purchase.isStructureQueued(techStructureNeeded) &&
+                    UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, true) == 0) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
+            }
+            return true;
+        }
+        return false;
     }
 }

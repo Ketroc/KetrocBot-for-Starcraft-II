@@ -9,6 +9,8 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.purchases.Purchase;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,15 +19,19 @@ public class UnitUtils {
 
     public static final Set<Units> WORKER_TYPE = new HashSet<>(Set.of(
             Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE, Units.TERRAN_SCV, Units.TERRAN_MULE));
+
     public static final Set<Units> GAS_GEYSER_TYPE = new HashSet<>(Set.of(
             Units.NEUTRAL_RICH_VESPENE_GEYSER, Units.NEUTRAL_SPACE_PLATFORM_GEYSER, Units.NEUTRAL_VESPENE_GEYSER,
             Units.NEUTRAL_PROTOSS_VESPENE_GEYSER, Units.NEUTRAL_PURIFIER_VESPENE_GEYSER, Units.NEUTRAL_SHAKURAS_VESPENE_GEYSER));
+
     public static final Set<Units> GAS_STRUCTURE_TYPES = new HashSet<>(Set.of(
             Units.TERRAN_REFINERY, Units.TERRAN_REFINERY_RICH,
             Units.ZERG_EXTRACTOR, Units.ZERG_EXTRACTOR_RICH,
             Units.PROTOSS_ASSIMILATOR, Units.PROTOSS_ASSIMILATOR_RICH));
+
     public static final Set<Units> REFINERY_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_REFINERY, Units.TERRAN_REFINERY_RICH));
+
     public static final Set<Units> MINERAL_NODE_TYPE = new HashSet<>(Set.of(
             Units.NEUTRAL_MINERAL_FIELD, Units.NEUTRAL_MINERAL_FIELD750,
             Units.NEUTRAL_RICH_MINERAL_FIELD, Units.NEUTRAL_RICH_MINERAL_FIELD750,
@@ -34,25 +40,60 @@ public class UnitUtils {
             Units.NEUTRAL_LAB_MINERAL_FIELD, Units.NEUTRAL_LAB_MINERAL_FIELD750,
             Units.NEUTRAL_BATTLE_STATION_MINERAL_FIELD, Units.NEUTRAL_BATTLE_STATION_MINERAL_FIELD750,
             Units.NEUTRAL_MINERAL_FIELD_OPAQUE, Units.NEUTRAL_MINERAL_FIELD_OPAQUE900, Units.NEUTRAL_MINERAL_FIELD450));
+
     public static final Set<Units> MINERAL_WALL_TYPE = new HashSet<>(Set.of(
             Units.NEUTRAL_MINERAL_FIELD_OPAQUE, Units.NEUTRAL_MINERAL_FIELD_OPAQUE900, Units.NEUTRAL_MINERAL_FIELD450));
+
     public static final Set<Units> MINERAL_NODE_TYPE_LARGE = new HashSet<>(Set.of(
             Units.NEUTRAL_MINERAL_FIELD, Units.NEUTRAL_RICH_MINERAL_FIELD,
             Units.NEUTRAL_BATTLE_STATION_MINERAL_FIELD, Units.NEUTRAL_LAB_MINERAL_FIELD, Units.NEUTRAL_PURIFIER_MINERAL_FIELD,
             Units.NEUTRAL_PURIFIER_RICH_MINERAL_FIELD));
-    public static final Set<Units> COMMAND_CENTER_TYPE = new HashSet<>(Set.of(
+
+    public static final Set<Units> COMMAND_STRUCTURE_TYPE_TERRAN = new HashSet<>(Set.of(
             Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND, Units.TERRAN_PLANETARY_FORTRESS,
             Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING));
+
     public static final Set<Units> COMMAND_STRUCTURE_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND, Units.TERRAN_PLANETARY_FORTRESS,
             Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING,
             Units.PROTOSS_NEXUS, Units.ZERG_HATCHERY, Units.ZERG_LAIR, Units.ZERG_HIVE));
-    public static final Set<Units> SIEGE_TANK_TYPE = new HashSet<>(Set.of(
-            Units.TERRAN_SIEGE_TANK, Units.TERRAN_SIEGE_TANK_SIEGED));
-    public static final Set<Units> LIBERATOR_TYPE = new HashSet<>(Set.of(
-            Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
+
+    public static final Set<Units> SUPPLY_DEPOT_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED));
+
+    public static final Set<Units> COMMAND_CENTER_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_COMMAND_CENTER, Units.TERRAN_COMMAND_CENTER_FLYING));
+
+    public static final Set<Units> ORBITAL_COMMAND_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_ORBITAL_COMMAND, Units.TERRAN_ORBITAL_COMMAND_FLYING));
+
+    public static final Set<Units> BARRACKS_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_BARRACKS, Units.TERRAN_BARRACKS_FLYING));
+
+    public static final Set<Units> FACTORY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_FACTORY, Units.TERRAN_FACTORY_FLYING));
+
+    public static final Set<Units> STARPORT_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_STARPORT, Units.TERRAN_STARPORT_FLYING));
+
+    public static final Set<Units> HELLION_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_HELLION, Units.TERRAN_HELLION_TANK));
+
     public static final Set<Units> WIDOW_MINE_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED));
+
+    public static final Set<Units> SIEGE_TANK_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_SIEGE_TANK, Units.TERRAN_SIEGE_TANK_SIEGED));
+
+    public static final Set<Units> LIBERATOR_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
+
+    public static final Set<Units> VIKING_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_VIKING_ASSAULT));
+
+    public static final Set<Units> THOR_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
+
     public static final Set<Units> STRUCTURE_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_FUSION_CORE, Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED,
             Units.TERRAN_ENGINEERING_BAY, Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND,
@@ -64,70 +105,62 @@ public class UnitUtils {
             Units.TERRAN_REFINERY_RICH, Units.TERRAN_BARRACKS_TECHLAB, Units.TERRAN_FACTORY_TECHLAB,
             Units.TERRAN_STARPORT_TECHLAB, Units.TERRAN_TECHLAB, Units.TERRAN_BARRACKS_REACTOR,
             Units.TERRAN_FACTORY_REACTOR, Units.TERRAN_STARPORT_REACTOR, Units.TERRAN_REACTOR));
+
     public static Set<Units> EVIDENCE_OF_AIR = new HashSet<>(Set.of(
             Units.TERRAN_FUSION_CORE, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
+            Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG,
             Units.PROTOSS_STARGATE, Units.PROTOSS_FLEET_BEACON, Units.PROTOSS_TEMPEST,
             Units.PROTOSS_ORACLE,Units.PROTOSS_ORACLE_STASIS_TRAP, Units.PROTOSS_VOIDRAY,
             Units.ZERG_SPIRE, Units.ZERG_GREATER_SPIRE, Units.ZERG_MUTALISK,
             Units.ZERG_CORRUPTOR, Units.ZERG_BROODLORD, Units.ZERG_BROODLORD_COCOON));
+
     public static final Set<Units> INFESTOR_TYPE = new HashSet<>(Set.of(
             Units.ZERG_INFESTOR, Units.ZERG_INFESTOR_BURROWED));
+
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
             Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET,
             Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING));
+
     public static final Set<Units> LONG_RANGE_ENEMIES = new HashSet<>(Set.of(
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
             Units.TERRAN_RAVEN, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
+
     public static final Set<Abilities> BUILD_ABILITIES = new HashSet<>(Set.of(
             Abilities.BUILD_SUPPLY_DEPOT, Abilities.BUILD_REFINERY, Abilities.BUILD_COMMAND_CENTER,
             Abilities.BUILD_BARRACKS, Abilities.BUILD_ENGINEERING_BAY, Abilities.BUILD_MISSILE_TURRET,
             Abilities.BUILD_BUNKER, Abilities.BUILD_SENSOR_TOWER, Abilities.BUILD_GHOST_ACADEMY,
             Abilities.BUILD_FACTORY, Abilities.BUILD_STARPORT, Abilities.BUILD_ARMORY,
             Abilities.BUILD_FUSION_CORE));
+
     public static final Set<Units> NO_THREAT_ENEMY_AIR = new HashSet<>(Set.of(
             Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED,
-            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE
-    ));
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE));
+
     public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(
-            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN
-    ));
+            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN));
+
     public static final Set<Units> BASE_BLOCKERS = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
-            Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP
-    ));
+            Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP));
+
     public static final Set<Units> DESTRUCTIBLES = new HashSet<>(Set.of(
             Units.NEUTRAL_UNBUILDABLE_BRICKS_DESTRUCTIBLE, Units.NEUTRAL_UNBUILDABLE_PLATES_DESTRUCTIBLE,
             Units.NEUTRAL_DESTRUCTIBLE_DEBRIS6X6, Units.NEUTRAL_DESTRUCTIBLE_ROCK6X6,
             Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_BL_UR, Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_UL_BR,
-            Units.NEUTRAL_DESTRUCTIBLE_ROCK_EX1_DIAGONAL_HUGE_BL_UR
-    ));
+            Units.NEUTRAL_DESTRUCTIBLE_ROCK_EX1_DIAGONAL_HUGE_BL_UR));
+
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
-
-
-    public static boolean hasTechToBuild(Abilities abilityType) {
-        return hasTechToBuild(Bot.abilityToUnitType.get(abilityType));
-    }
-
-    public static boolean hasTechToBuild(Units unitType) { //TODO: create map of requirements
-        switch (unitType) {
-            case TERRAN_ORBITAL_COMMAND:
-                return !GameCache.barracksList.isEmpty();
-            case TERRAN_PLANETARY_FORTRESS:
-                if (!getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).isEmpty()) {
-                    return true;
-                }
-                break;
-            case TERRAN_STARPORT:
-                return !GameCache.factoryList.isEmpty();
-        }
-        return false;
-    }
 
     public static int getNumFriendlyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
         if (includeProducing) {
-            numUnits += numInProductionOfType(unitType);
+            if (UnitUtils.STRUCTURE_TYPE.contains(unitType)) {
+                numUnits += numStructuresProducingOrQueued(unitType);
+            }
+            else {
+                numUnits += numInProductionOfType(unitType);
+            }
         }
         return numUnits;
     }
@@ -137,10 +170,19 @@ public class UnitUtils {
         for (Units unitType : unitTypes) {
             numUnits += getFriendlyUnitsOfType(unitType).size();
             if (includeProducing) {
-                numUnits += numInProductionOfType(unitType);
+                if (UnitUtils.STRUCTURE_TYPE.contains(unitType)) {
+                    numUnits += numStructuresProducingOrQueued(unitType);
+                }
+                else {
+                    numUnits += numInProductionOfType(unitType);
+                }
             }
         }
         return numUnits;
+    }
+
+    public static int numStructuresProducingOrQueued(Units unitType) {
+        return StructureScv.numInProductionOfType(unitType) + Purchase.numStructuresQueuedOfType(unitType);
     }
 
     public static boolean canAfford(Units unitType) {
@@ -517,5 +559,38 @@ public class UnitUtils {
                 .findFirst()
                 .map(UnitInPool::unit)
                 .orElse(null);
+    }
+
+    public static Set<Units> getUnitTypeSet(Units unitType) {
+        if (unitType == null) {
+            return null;
+        }
+        switch (unitType) {
+            case TERRAN_SUPPLY_DEPOT_LOWERED: case TERRAN_SUPPLY_DEPOT:
+                return SUPPLY_DEPOT_TYPE;
+            case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_COMMAND_CENTER:
+                return COMMAND_CENTER_TYPE;
+            case TERRAN_ORBITAL_COMMAND_FLYING: case TERRAN_ORBITAL_COMMAND:
+                return ORBITAL_COMMAND_TYPE;
+            case TERRAN_BARRACKS_FLYING: case TERRAN_BARRACKS:
+                return BARRACKS_TYPE;
+            case TERRAN_FACTORY_FLYING: case TERRAN_FACTORY:
+                return FACTORY_TYPE;
+            case TERRAN_STARPORT_FLYING: case TERRAN_STARPORT:
+                return STARPORT_TYPE;
+            case TERRAN_HELLION_TANK: case TERRAN_HELLION:
+                return HELLION_TYPE;
+            case TERRAN_WIDOWMINE_BURROWED: case TERRAN_WIDOWMINE:
+                return WIDOW_MINE_TYPE;
+            case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_SIEGE_TANK:
+                return SIEGE_TANK_TYPE;
+            case TERRAN_THOR_AP: case TERRAN_THOR:
+                return THOR_TYPE;
+            case TERRAN_VIKING_ASSAULT: case TERRAN_VIKING_FIGHTER:
+                return VIKING_TYPE;
+            case TERRAN_LIBERATOR_AG: case TERRAN_LIBERATOR:
+                return LIBERATOR_TYPE;
+        }
+        return Set.of(unitType);
     }
 }

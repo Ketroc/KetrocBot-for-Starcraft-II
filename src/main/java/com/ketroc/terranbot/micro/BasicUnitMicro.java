@@ -5,13 +5,11 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.UnitTypeData;
 import com.github.ocraft.s2client.protocol.data.Weapon;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.List;
@@ -33,23 +31,34 @@ public class BasicUnitMicro {
     private long prevDirectionChangeFrame;
     public boolean removeMe;
 
+    public BasicUnitMicro(Unit unit, Point2d targetPos, boolean prioritizeLiving) {
+        this(Bot.OBS.getUnit(unit.getTag()), targetPos, prioritizeLiving);
+    }
+
     public BasicUnitMicro(UnitInPool unit, Point2d targetPos, boolean prioritizeLiving) {
         this.unit = unit;
         this.targetPos = targetPos;
         this.prioritizeLiving = prioritizeLiving;
         this.isGround = !unit.unit().getFlying().orElse(false);
+        if (isGround) {
+            threatMap = InfluenceMaps.pointThreatToGround;
+        }
+        else if (this instanceof StructureFloater) {
+            threatMap = InfluenceMaps.pointThreatToAirPlusBuffer;
+        }
+        else {
+            threatMap = InfluenceMaps.pointThreatToAir;
+        }
         setWeaponInfo();
         this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getMovementSpeed().orElse(0f);
     }
 
     public void onStep() {
-        isGround = !unit.unit().getFlying().orElse(false);
         if (unit == null || !unit.isAlive()) {
             onDeath();
             return;
         }
-
-        threatMap = (isGround) ? InfluenceMaps.pointThreatToGround : InfluenceMaps.pointThreatToAir;
+        DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //attack if available
         if (isOffCooldown()) {
@@ -69,7 +78,7 @@ public class BasicUnitMicro {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
         }
         //finishing step on arrival
-        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 1.5f) {
+        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 2.5f) {
             onArrival();
         }
         //continue moving to target

@@ -196,7 +196,6 @@ public class StructureScv {
                         if (UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 10 &&
                                 !ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked
                             ExpansionClearing.add(structureScv.structurePos);
-                            KetrocBot.count2++;
                         }
                     }
 
@@ -265,6 +264,12 @@ public class StructureScv {
     public static boolean isAlreadyInProduction(Units type) {
         return scvBuildingList.stream()
                 .anyMatch(scv -> scv.structureType == type);
+    }
+
+    public static int numInProductionOfType(Units type) {
+        return (int)scvBuildingList.stream()
+                .filter(scv -> scv.structureType == type)
+                .count();
     }
 
     //checks if an scv is within the scvBuildingList

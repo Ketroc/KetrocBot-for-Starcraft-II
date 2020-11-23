@@ -5,18 +5,19 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 
 public interface Purchase {
-    public PurchaseResult build();
-    public Cost getCost();
-    public void setCost();
-    public String getType();
+    PurchaseResult build();
+    Cost getCost();
+    void setCost();
+    String getType();
 
-    public boolean canAfford();
+    boolean canAfford();
 
-    public static boolean isMorphQueued(Abilities morphType) { //TODO: relook at this.  it looks out of place here (but it is static)
+    static boolean isMorphQueued(Abilities morphType) { //TODO: relook at this.  it looks out of place here (but it is static)
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph && ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType) {
                 return true;
@@ -25,19 +26,19 @@ public interface Purchase {
         return false;
     }
 
-    public static boolean isUpgradeQueued(Upgrades upgrade) {
+    static boolean isUpgradeQueued(Upgrades upgrade) {
         return KetrocBot.purchaseQueue.stream()
                 .anyMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade);
     }
 
-    public static boolean containsUpgrade() {
+    static boolean containsUpgrade() {
         return KetrocBot.purchaseQueue.stream()
                 .anyMatch(purchase -> purchase instanceof PurchaseUpgrade);
     }
 
 
 
-    public static boolean isUpgradeQueued(Tag structureTag) {
+    static boolean isUpgradeQueued(Tag structureTag) {
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().unit().getTag() == structureTag) {
                 return true;
@@ -46,11 +47,18 @@ public interface Purchase {
         return false;
     }
 
-    public static boolean isStructureQueued(Units unitType) {
+    static boolean isStructureQueued(Units unitType) {
         return isStructureQueued(unitType, null);
     }
 
-    public static boolean isStructureQueued(Units unitType, Point2d pos) {
+    static boolean isAddOnQueued(Unit structureUnit) {
+        return KetrocBot.purchaseQueue.stream()
+                .filter(purchase -> purchase instanceof PurchaseStructureMorph)
+                .map(purchase -> (PurchaseStructureMorph)purchase)
+                .anyMatch(p -> p.getStructure().getTag().equals(structureUnit.getTag()));
+    }
+
+    static boolean isStructureQueued(Units unitType, Point2d pos) {
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructure &&
                     ((PurchaseStructure) p).getStructureType() == unitType &&
@@ -61,7 +69,14 @@ public interface Purchase {
         return false;
     }
 
-    public static Point2d getPositionOfQueuedStructure(Units unitType) {
+    static int numStructuresQueuedOfType(Units unitType) {
+        return (int)KetrocBot.purchaseQueue.stream()
+                .filter(p -> p instanceof PurchaseStructure &&
+                        ((PurchaseStructure) p).getStructureType() == unitType)
+                .count();
+    }
+
+    static Point2d getPositionOfQueuedStructure(Units unitType) {
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructure &&
                     ((PurchaseStructure) p).getStructureType() == unitType) {
@@ -70,4 +85,5 @@ public interface Purchase {
         }
         return null;
     }
+
 }

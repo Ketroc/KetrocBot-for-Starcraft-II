@@ -29,8 +29,6 @@ public class GameCache {
     public static final List<Upgrades> upgradesCompleted = new ArrayList<>(); //completed upgrades
 
     public static final List<Unit> ccList = new ArrayList<>();
-    public static final List<UnitInPool> availableScvs = new ArrayList<>();
-    public static final List<UnitInPool> allScvs = new ArrayList<>();
     public static final List<UnitInPool> barracksList = new ArrayList<>();
     public static final List<UnitInPool> factoryList = new ArrayList<>();
     public static final List<UnitInPool> starportList = new ArrayList<>();
@@ -86,8 +84,6 @@ public class GameCache {
         starportList.clear();
         factoryList.clear();
         barracksList.clear();
-        availableScvs.clear();
-        allScvs.clear();
         allFriendliesMap.clear();
         allVisibleEnemiesList.clear();
         allVisibleEnemiesMap.clear();
@@ -205,13 +201,6 @@ public class GameCache {
                         case TERRAN_STARPORT_FLYING:
                             starportList.add(unitInPool);
                             break;
-
-                        case TERRAN_SCV:
-                            allScvs.add(unitInPool);
-                            if (unit.getOrders().isEmpty() || WorkerManager.isMiningMinerals(unitInPool)) {
-                                availableScvs.add(unitInPool);
-                            }
-                            break;
                         case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                             siegeTankList.add(unit);
                             break;
@@ -252,7 +241,8 @@ public class GameCache {
                     //update enemy race vs random player
                     if (LocationConstants.opponentRace == Race.RANDOM) {
                         LocationConstants.opponentRace = Bot.OBS.getUnitTypeData(false).get(unitType).getRace().get();
-                        LocationConstants.initEnemyRaceSpecifics();
+                        LocationConstants.setEnemyTypes();
+                        Strategy.setRaceStrategies();
                     }
 
                     //ignore hallucinations
@@ -319,11 +309,6 @@ public class GameCache {
                     else {
                         //air units
                         enemyIsAir.add(unit);
-
-                        //if enemy has any air threat
-                        if (Strategy.enemyHasAirThreat == false && !unit.getHallucination().orElse(false) && unit.getType() != Units.ZERG_OVERLORD) {
-                            Strategy.enemyHasAirThreat = true;
-                        }
                     }
                     if (unit.getDetectRange().orElse(0f) > 0f || unit.getType() == Units.PROTOSS_OBSERVER) {
                         enemyDetector.add(unit);
@@ -548,7 +533,7 @@ public class GameCache {
         //start viking dive vs detector
         if (Switches.vikingDiveTarget == null) {
             //don't dive detector if vs terran, no banshees, or if there are still voids or phoenix visible
-            if (LocationConstants.opponentRace != Race.TERRAN && //TODO: temp for vs ANIBot
+            if (Strategy.DO_DIVE_RAVENS && //TODO: temp for vs ANIBot
                     !Strategy.MASS_RAVENS &&
                     !GameCache.bansheeList.isEmpty() &&
                     (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {
@@ -631,7 +616,7 @@ public class GameCache {
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
         InfluenceMaps.pointAutoTurretTargets = new boolean[800][800];
         InfluenceMaps.pointInVikingRange = new boolean[800][800];
-        InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
+        InfluenceMaps.pointThreatToAirPlusBuffer = new int[800][800];
         InfluenceMaps.pointSupplyInSeekerRange = new float[800][800];
         InfluenceMaps.pointThreatToAir = new int[800][800];
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
@@ -670,7 +655,7 @@ public class GameCache {
 
                     //air threat range + extra buffer
                     if (enemy.airAttackRange != 0 && distance < enemy.airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER) {
-                        InfluenceMaps.pointThreatToAirPlusBuffer[x][y] = true;
+                        InfluenceMaps.pointThreatToAirPlusBuffer[x][y] += enemy.threatLevel;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.23f,y/2-0.23f, z), Point.of(x/2+0.23f,y/2+0.23f, z), Color.BLACK);
                     }
 
@@ -683,6 +668,11 @@ public class GameCache {
                     if (enemy.isDetector && distance < enemy.detectRange) {
                         InfluenceMaps.pointDetected[x][y] = true;
                         //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+                    }
+
+                    //autoturret cast range
+                    if (distance < Strategy.AUTOTURRET_RANGE && !enemy.isEffect && !enemy.isTumor) {
+                        InfluenceMaps.pointAutoTurretTargets[x][y] = true;
                     }
 
                     if (enemy.isAir) {
@@ -703,11 +693,6 @@ public class GameCache {
                         //banshee range
                         if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect) {
                             InfluenceMaps.pointInBansheeRange[x][y] = true;
-                        }
-
-                        //autoturret cast range
-                        if (distance < Strategy.AUTOTURRET_RANGE && !enemy.isEffect && !enemy.isTumor) {
-                            InfluenceMaps.pointAutoTurretTargets[x][y] = true;
                         }
 
                         //threat to air from ground

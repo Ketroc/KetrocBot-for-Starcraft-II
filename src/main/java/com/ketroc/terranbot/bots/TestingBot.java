@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
+import com.github.ocraft.s2client.protocol.query.AvailableAbilities;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -16,6 +17,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.models.MuleMessages;
 import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -71,8 +73,8 @@ public class TestingBot extends Bot {
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 100.5f), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
-//        debug().debugCreateUnit(Units.TERRAN_MULE, Point2d.of(90, 100), myId, 1);
-//        debug().debugCreateUnit(Units.TERRAN_SUPPLY_DEPOT, Point2d.of(40, 40), myId, 1);
+        debug().debugCreateUnit(Units.PROTOSS_CARRIER, Point2d.of(90, 100), myId, 1);
+        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
         debug().sendDebug();
 
@@ -106,18 +108,27 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
-        Unit cc = Bot.OBS.getUnits(u -> u.unit().getType().toString().contains("COMMAND")).stream()
+        Unit carrier = Bot.OBS.getUnits(u -> u.unit().getType() == Units.PROTOSS_CARRIER &&
+                UnitUtils.getDistance(u.unit(), Point2d.of(90, 100)) < 10)
+                .stream()
                 .map(UnitInPool::unit)
                 .findFirst()
-                .get();
-        if (Time.nowFrames() == 100) {
-            Tester.calculateExpansionLocations(Bot.OBS);
+                .orElse(null);
+        Unit baneling = Bot.OBS.getUnits(u -> u.unit().getType() == Units.ZERG_BANELING_BURROWED).stream()
+                .map(UnitInPool::unit)
+                .findFirst()
+                .orElse(null);
+        if (Time.nowFrames() == 150) {
+            AvailableAbilities abilitiesForUnit = Bot.QUERY.getAbilitiesForUnit(carrier, false);
+            int sldkfj = 0;
         }
-        if (Time.nowFrames() == 800) {
-            System.out.println("cc.getTag() = " + cc.getTag());
+        if (Time.nowFrames() == 300) {
+            Bot.ACTION.toggleAutocast(carrier.getTag(), Abilities.BUILD_INTERCEPTORS);
+            //Bot.ACTION.toggleAutocast(baneling.getTag(), Abilities.);
         }
-        if (Time.nowFrames() == 1600) {
-            System.out.println("cc.getTag() = " + cc.getTag());
+        if (Time.nowFrames() == 450) {
+            AvailableAbilities abilitiesForUnit = Bot.QUERY.getAbilitiesForUnit(carrier, false);
+            int sldkfj = 0;
         }
 
         ACTION.sendActions();
