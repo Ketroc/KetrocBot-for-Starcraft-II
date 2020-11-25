@@ -12,10 +12,7 @@ import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 
@@ -32,11 +29,11 @@ public class ScvRush {
     public static boolean onStep() {
         if (KetrocBot.isDebugOn) {
             int lines = 0;
-            Bot.DEBUG.debugTextOut("clusterEnemyNodeStep: " + ScvRush.clusterTriangleStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-            Bot.DEBUG.debugTextOut("scvRushStep: " + ScvRush.scvRushStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-            Bot.DEBUG.debugTextOut("0", LocationConstants.enemyMineralTriangle.getMiddle().unit().getPosition(), Color.WHITE, 10);
-            Bot.DEBUG.debugTextOut("1", LocationConstants.enemyMineralTriangle.getInner().unit().getPosition(), Color.WHITE, 10);
-            Bot.DEBUG.debugTextOut("2", LocationConstants.enemyMineralTriangle.getOuter().unit().getPosition(), Color.WHITE, 10);
+            DebugHelper.addInfoLine("clusterEnemyNodeStep: " + ScvRush.clusterTriangleStep);
+            DebugHelper.addInfoLine("scvRushStep: " + ScvRush.scvRushStep);
+            DebugHelper.drawText("0", LocationConstants.enemyMineralTriangle.getMiddle().unit().getPosition().toPoint2d(), Color.WHITE);
+            DebugHelper.drawText("1", LocationConstants.enemyMineralTriangle.getInner().unit().getPosition().toPoint2d(), Color.WHITE);
+            DebugHelper.drawText("2", LocationConstants.enemyMineralTriangle.getOuter().unit().getPosition().toPoint2d(), Color.WHITE);
         }
         try {
             //update snapshots
@@ -103,8 +100,10 @@ public class ScvRush {
 
         List<UnitInPool> enemyWorkers = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, enemyCommand.getPosition().toPoint2d(), 10);
 
-        //if scv count triples probe count then kill his command structure
-        if (scvList.size() >= enemyWorkers.size() * 1.5 ||
+        //if scv count is 1.5x probe count then kill his command structure
+        if ((scvList.size() >= enemyWorkers.size() * 2 ||
+                scvList.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() >
+                        enemyWorkers.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() * 2) ||
                 enemyWorkers.stream().noneMatch(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyMineralPos) < 4)) {
             for (UnitInPool scv : scvList) {
                 //if worker < 1 distance from scv, attack worker
@@ -112,20 +111,20 @@ public class ScvRush {
                         UnitUtils.getDistance(worker.unit(), scv.unit()) < 1).isEmpty()) {
                     Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.enemyMineralPos, false);
                 }
+                //if broke, attack enemy cc
+                else if (GameCache.mineralBank == 0) {
+                    Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, enemyCommand, false);
+                }
+                //otherwise repair nearby scv or attack enemy cc
                 else {
-                    List<UnitInPool> nearbyWeakScvs = Bot.OBS.getUnits(Alliance.SELF, weakScv -> weakScv.unit().getType() == Units.TERRAN_SCV &&
-                            UnitUtils.getDistance(weakScv.unit(), scv.unit()) < 2 &&
-                            weakScv.unit().getHealth().get() < weakScv.unit().getHealthMax().get());
-
-                    //if not broke and near weak scv, then repair it
-                    if (GameCache.mineralBank > 0 && !nearbyWeakScvs.isEmpty()) {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.EFFECT_REPAIR, nearbyWeakScvs.get(0).unit(), false);
-                    }
-
-                    //otherwise attack command structure
-                    else {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, enemyCommand, false);
-                    }
+                    scvList.stream()
+                            .filter(weakScv -> UnitUtils.getDistance(weakScv.unit(), scv.unit()) < 2 &&
+                                    UnitUtils.getDistance(weakScv.unit(), enemyCommand) < 20 &&
+                                    weakScv.unit().getHealth().get() < weakScv.unit().getHealthMax().get())
+                            .findFirst()
+                            .ifPresentOrElse(
+                                    weakScv -> Bot.ACTION.unitCommand(scv.unit(), Abilities.EFFECT_REPAIR, weakScv.unit(), false),
+                                    () -> Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, enemyCommand, false));
                 }
             }
             isAttackingCommand = true;
@@ -189,8 +188,7 @@ public class ScvRush {
                 clusterUp();
             }
             else {
-                UnitInPool temp = getTargetWorker(enemyWorkers);
-                Unit targetWorker = (temp == null) ? null : temp.unit();
+                Unit targetWorker = getTargetWorker(enemyWorkers);
                 if (targetWorker != null) {
                     Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, targetWorker, false);
                     //attack
@@ -259,7 +257,7 @@ public class ScvRush {
             }
         }
         else if (isScvsOffCooldown()) {
-            target = oneShotTarget(enemyWorkers);
+            target = oneShotTarget(enemyWorkers, scvList);
             if (target != null) {
                 Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, target.unit(), false);
             }
@@ -298,13 +296,14 @@ public class ScvRush {
         }
     }
 
-    private static UnitInPool oneShotTarget(List<UnitInPool> enemyWorkers) {
-        for (UnitInPool enemy : enemyWorkers) {
-            int numAttackers = Bot.OBS.getUnits(Alliance.SELF, scv ->
-                    scv.unit().getType() == Units.TERRAN_SCV && UnitUtils.getDistance(scv.unit(), enemy.unit()) <= 0.9).size();
-            if (numAttackers * 5 >= enemy.unit().getHealth().get()) {
-                return enemy;
-            }
+    private static UnitInPool oneShotTarget(List<UnitInPool> enemyWorkers, List<UnitInPool> attackScvs) {
+        UnitInPool enemy = enemyWorkers.stream()
+                .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit.unit(), LocationConstants.enemyMineralTriangle.getClusterPos())))
+                .orElse(null);
+        int numAttackers = (int)attackScvs.stream().filter(scv -> UnitUtils.getDistance(scv.unit(), enemy.unit()) < 3).count();
+        if (numAttackers * 5 >= enemy.unit().getHealth().get()) {
+            System.out.println("target found.  #scvs: " + numAttackers + ". enemy health: " + enemy.unit().getHealth().get());
+            return enemy;
         }
         return null;
     }
@@ -353,10 +352,10 @@ public class ScvRush {
         return scv.getWeaponCooldown().orElse(0f) == 0;
     }
 
-    private static UnitInPool getTargetWorker(List<UnitInPool> enemyWorkers) {
+    private static Unit getTargetWorker(List<UnitInPool> enemyWorkers) {
         for (UnitInPool enemyWorker : enemyWorkers) {
             if (scvList.stream().allMatch(scv -> UnitUtils.getDistance(scv.unit(), enemyWorker.unit()) < 0.8)) {
-                return enemyWorker;
+                return enemyWorker.unit();
             }
         }
         return null;

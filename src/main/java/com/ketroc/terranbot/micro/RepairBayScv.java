@@ -12,8 +12,8 @@ import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class RepairBayScv extends BasicUnitMicro {
-    public RepairBayScv(UnitInPool unit) {
-        super(unit, LocationConstants.REPAIR_BAY, true);
+    public RepairBayScv(UnitInPool scv) {
+        super(scv, LocationConstants.REPAIR_BAY, true);
     }
 
     @Override
@@ -24,6 +24,7 @@ public class RepairBayScv extends BasicUnitMicro {
         }
         else if (order != Abilities.ATTACK && order != Abilities.EFFECT_REPAIR) {
             removeMe = true;
+            Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
         }
     }
 }

@@ -40,6 +40,11 @@ public class BasicUnitMicro {
         this.targetPos = targetPos;
         this.prioritizeLiving = prioritizeLiving;
         this.isGround = !unit.unit().getFlying().orElse(false);
+        setWeaponInfo();
+        this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getMovementSpeed().orElse(0f);
+    }
+
+    private void setThreatMap() {
         if (isGround) {
             threatMap = InfluenceMaps.pointThreatToGround;
         }
@@ -49,8 +54,6 @@ public class BasicUnitMicro {
         else {
             threatMap = InfluenceMaps.pointThreatToAir;
         }
-        setWeaponInfo();
-        this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getMovementSpeed().orElse(0f);
     }
 
     public void onStep() {
@@ -59,6 +62,7 @@ public class BasicUnitMicro {
             return;
         }
         DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        setThreatMap();
 
         //attack if available
         if (isOffCooldown()) {

@@ -426,13 +426,9 @@ public class ArmyManager {
             int numScvsToSend = Strategy.NUM_SCVS_REPAIR_STATION - numRepairingScvs;
             if (numScvsToSend > 0) {
                 List<UnitInPool> repairScvs = getRepairBayScvs(numScvsToSend);
-                repairScvs.stream().forEach(scv -> UnitMicroList.add(new RepairBayScv(scv)));
-                Bot.ACTION.toggleAutocast(
-                        repairScvs.stream()
-                                .filter(scv -> !scv.unit().getBuffs().contains(Buffs.AUTOMATED_REPAIR))
-                                .map(UnitInPool::getTag)
-                                .collect(Collectors.toList()),
-                        Abilities.EFFECT_REPAIR_SCV);
+                repairScvs.stream().forEach(scv -> {
+                    UnitMicroList.add(new RepairBayScv(scv));
+                });
             }
         }
     }

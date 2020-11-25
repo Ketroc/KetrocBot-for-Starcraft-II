@@ -128,7 +128,7 @@ public class Tester {
             }
             expansionLocations.add(basePos);
         }
-        expansionLocations.forEach(point2d -> DebugHelper.drawBox(point2d, Color.GREEN, 2.5f));
+        expansionLocations.forEach(point2d -> DebugHelper.draw3dBox(point2d, Color.GREEN, 2.5f));
         Bot.DEBUG.sendDebug();
         return expansionLocations;
     }

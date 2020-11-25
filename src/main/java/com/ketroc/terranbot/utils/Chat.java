@@ -19,6 +19,11 @@ public class Chat {
 
         //Sproutch responses
         //botResponses.put("sprr", "New game. Andy does a shot every time you yell: Sproutch.");
+
+        //RStrelok responses
+        botResponses.put("What a clown", "Let the clown fiesta commence!");
+        botResponses.put("Not today", "Don't underestimate the drill");
+        botResponses.put("stupid idea", "It wasn't my choice.  I downloaded PUTIN.exe, and now decisions are made for me.");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(

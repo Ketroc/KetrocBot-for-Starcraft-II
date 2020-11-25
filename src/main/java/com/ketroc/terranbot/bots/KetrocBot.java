@@ -153,7 +153,7 @@ public class KetrocBot extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min TODO:fix for skipped frames
+//                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 

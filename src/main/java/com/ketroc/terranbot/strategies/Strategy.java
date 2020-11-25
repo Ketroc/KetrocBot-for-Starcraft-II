@@ -149,7 +149,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 2;
+            selectedStrategy = 1;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -260,11 +260,11 @@ public class Strategy {
     }
 
     private static int getStrategyByOpponentId() {
-//        if (KetrocBot.opponentId == null) {
-//            return -1;
-//        }
-//        switch (KetrocBot.opponentId) {
-        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+        if (KetrocBot.opponentId == null) {
+            return -1;
+        }
+        switch (KetrocBot.opponentId) {
+//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                DO_ANTIDROP_TURRETS = true;
@@ -335,6 +335,7 @@ public class Strategy {
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
         DO_BANSHEE_HARASS = false;
+        EXPAND_SLOWLY = true;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
         RETREAT_HEALTH = 50;
@@ -463,7 +464,7 @@ public class Strategy {
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
-                DO_INCLUDE_TANKS = false;
+                DO_INCLUDE_TANKS = true;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;

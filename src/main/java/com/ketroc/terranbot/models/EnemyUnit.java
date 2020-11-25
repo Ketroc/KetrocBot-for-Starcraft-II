@@ -138,10 +138,7 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        if (!UnitUtils.canMove(enemy.getType())) {
-            return enemy.getRadius() + 0.25f;
-        }
-        return Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy.getType())) ? 1f : Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {
@@ -205,7 +202,7 @@ public class EnemyUnit {
             case TERRAN_THOR_AP:
                 return 6;
             case TERRAN_WIDOWMINE_BURROWED:
-                return 0; //TODO: what to do with that?
+                return 5; //TODO: what to do with that?
             case TERRAN_BATTLECRUISER:
                 return 8;
             case PROTOSS_SENTRY:

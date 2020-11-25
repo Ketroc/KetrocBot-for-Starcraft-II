@@ -111,7 +111,7 @@ public class DroneDrill extends Bot {
                 DelayedChat.onStep();
 
                 //print report of current game state
-//                if (Time.nowFrames() % Time.toFrames("5:00") == 0) { //every 5min TODO:Fix for skipped frames
+//                if (Time.nowFrames() % Time.toFrames("5:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 
