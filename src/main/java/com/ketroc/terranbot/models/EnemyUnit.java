@@ -202,7 +202,7 @@ public class EnemyUnit {
             case TERRAN_THOR_AP:
                 return 6;
             case TERRAN_WIDOWMINE_BURROWED:
-                return 5; //TODO: what to do with that?
+                return 30; //TODO: what to do with that?
             case TERRAN_BATTLECRUISER:
                 return 8;
             case PROTOSS_SENTRY:

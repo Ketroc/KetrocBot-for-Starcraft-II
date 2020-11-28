@@ -33,6 +33,7 @@ public class Strategy {
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
+    public static boolean DO_LEAVE_UP_BUNKER;
 
     public static boolean DO_INCLUDE_TANKS = true;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
@@ -74,7 +75,7 @@ public class Strategy {
     public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
     public static boolean DO_ANTIDROP_TURRETS;
-    public static int AUTOTURRET_AT_ENERGY = 150;
+    public static int AUTOTURRET_AT_ENERGY = 50;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
 
 
@@ -134,8 +135,67 @@ public class Strategy {
                 chooseTvZStrategy();
                 break;
         }
+        applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
+    }
+
+    private static void applyOpponentSpecificTweaks() {
+//        switch (KetrocBot.opponentId) {
+        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+//            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
+//                DO_ANTIDROP_TURRETS = true;
+//                break;
+//            case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
+//                break;
+//            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+//            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //Blinkerbot
+//            case "9bd53605-334c-4f1c-95a8-4a735aae1f2d": //MadAI
+//            case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
+//                break;
+//            case "16ab8b85-cf8b-4872-bd8d-ebddacb944a5": //sharpy_PVP_EZ
+//                Switches.enemyCanProduceAir = true;
+//                break;
+//            case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
+//                DO_INCLUDE_TANKS = false;
+//                DO_INCLUDE_LIBS = false;
+//                break;
+//            case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
+//                Switches.enemyCanProduceAir = true;
+//                DO_INCLUDE_TANKS = false;
+//                DO_INCLUDE_LIBS = false;
+//                DO_BANSHEE_HARASS = false;
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                EXPAND_SLOWLY = true;
+//                break;
+            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+                DO_LEAVE_UP_BUNKER = true;
+                DO_INCLUDE_TANKS = true;
+                DO_BANSHEE_HARASS = false;
+                EXPAND_SLOWLY = true;
+                NO_RAMP_WALL = true;
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                break;
+//            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                EXPAND_SLOWLY = true;
+//                break;
+            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+                DO_LEAVE_UP_BUNKER = true;
+                BUILD_EXPANDS_IN_MAIN = true;
+                DO_INCLUDE_TANKS = true;
+                DO_INCLUDE_LIBS = false;
+                DO_BANSHEE_HARASS = true;
+                DO_DIVE_RAVENS = false;
+                //Switches.enemyCanProduceAir = true;
+                break;
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                break;
+        }
     }
 
     private static void setRampWall() {
@@ -292,25 +352,12 @@ public class Strategy {
 //                EXPAND_SLOWLY = true;
 //                return 0;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-                DO_INCLUDE_TANKS = true;
-                DO_BANSHEE_HARASS = false;
-                EXPAND_SLOWLY = true;
-                NO_RAMP_WALL = true;
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 return 2;
 //            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                EXPAND_SLOWLY = true;
 //                return 1;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                BUILD_EXPANDS_IN_MAIN = true;
-                DO_INCLUDE_TANKS = true;
-                DO_INCLUDE_LIBS = false;
-                DO_BANSHEE_HARASS = false;
-                DO_DIVE_RAVENS = false;
-                Switches.enemyCanProduceAir = true;
                 return 0;
 //            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
 //                BUILD_EXPANDS_IN_MAIN = true;
@@ -344,35 +391,46 @@ public class Strategy {
     }
 
     private static void setStrategyNumber() {
-//        try {
-            //hardcoded strategies by ID
-            selectedStrategy = getStrategyByOpponentId();
+        //hardcoded strategies by ID
+        selectedStrategy = getStrategyByOpponentId();
+        int[] strategyOrder = getTournamentStrategyOrder();
 
+        try {
             //For Best-of Series Below
-//            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
-//            String lastOpponentId = fileText[0];
-//            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
-//            String lastResult = fileText[2];
-//            //start at 0 for new opponent
-//            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
-//                selectedStrategy = 0;
-//            }
-//            //stay on same strategy if I win
-//            else if (lastResult.equals("W")) {
-//                selectedStrategy = lastOpponentStrategy;
-//            }
-//            //next strategy if I lose
-//            else if (lastResult.equals("L")) {
-//                selectedStrategy = lastOpponentStrategy + 1;
-//            }
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
+            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
+            String lastOpponentId = fileText[0];
+            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
+            String lastResult = fileText[2];
+            //start at 0 for new opponent
+            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
+                selectedStrategy = 0;
+            }
+            //stay on same strategy if I win
+            else if (lastResult.equals("W")) {
+                selectedStrategy = lastOpponentStrategy;
+            }
+            //next strategy if I lose
+            else if (lastResult.equals("L")) {
+                selectedStrategy = lastOpponentStrategy + 1;
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void onStep() {
-
+    private static int[] getTournamentStrategyOrder() {
+        switch (KetrocBot.opponentId) {
+            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+            case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
+            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
+            default:
+                return new int[]{0, 1, 2, 3};
+        }
     }
 
 //    public static int getMaxScvs() {

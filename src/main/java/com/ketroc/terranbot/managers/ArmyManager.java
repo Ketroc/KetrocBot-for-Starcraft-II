@@ -75,7 +75,7 @@ public class ArmyManager {
         positionLiberators();
 
         //empty bunker after PF at natural is done
-        emptyBunker();
+        salvageBunkerAtNatural();
 
         //position marines
         if (BunkerContain.proxyBunkerLevel == 0) {
@@ -755,8 +755,6 @@ public class ArmyManager {
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-//                            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, tankPos.getPos(), false)
-//                                    .unitCommand(idleTank, Abilities.MORPH_SIEGE_MODE, true);
                             UnitMicroList.add(new TankDefender(tankPos.getUnit(), tankPos.getPos()));
                             isTankPlaced = true;
                             break outer;
@@ -775,21 +773,24 @@ public class ArmyManager {
         }
     }
 
-    private static void emptyBunker() {
-        //if PF at natural
-        if (GameCache.baseList.get(1).getCc() != null &&
-                GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) {
-            //salvage bunker
-            List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
-            if (!bunkerList.isEmpty()) {
-                bunkerList.stream()
-                        .filter(bunker -> UnitUtils.getDistance(bunker, LocationConstants.BUNKER_NATURAL) < 1)
-                        .forEach(bunker -> {
-                            Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
-                            Bot.ACTION.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
-                        });
-            }
+    private static void salvageBunkerAtNatural() {
+        List<UnitInPool> bunkerList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BUNKER &&
+                UnitUtils.getDistance(u.unit(), LocationConstants.BUNKER_NATURAL) < 1);
+        if (bunkerList.isEmpty()) {
+            return;
         }
+        Unit bunker = bunkerList.get(0).unit();
+        if (UnitUtils.getHealthPercentage(bunker) < 40 || bunkerUnnecessary()) {
+            Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
+            Bot.ACTION.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
+        }
+    }
+
+    //return true when bunker is no longer needed
+    private static boolean bunkerUnnecessary() {
+        return GameCache.baseList.get(1).getCc() != null &&
+                GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS &&
+                (!Strategy.DO_LEAVE_UP_BUNKER || Time.nowFrames() > Time.toFrames("6:00"));
     }
 
     private static void raiseAndLowerDepots() {

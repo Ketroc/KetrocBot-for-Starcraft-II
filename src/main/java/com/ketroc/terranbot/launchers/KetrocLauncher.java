@@ -20,7 +20,7 @@ public class KetrocLauncher {
                 .setTimeoutMS(600 * 1000)
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, null,false)),
+                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "",false)),
                         S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()

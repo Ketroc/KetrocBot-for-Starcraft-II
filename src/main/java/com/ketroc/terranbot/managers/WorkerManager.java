@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point;
@@ -19,6 +20,7 @@ import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -137,7 +139,7 @@ public class WorkerManager {
                     }
                     else {
                         //only choose scvs inside the wall within 20 distance
-                        if (GameCache.wallStructures.contains(unit)) {
+                        if (GameCache.wallStructures.contains(unit) && !isRangedEnemyNearby()) {
                             availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
                                 return u.unit().getType() == Units.TERRAN_SCV &&
                                         Math.round(u.unit().getPosition().getZ()) == Math.round(unit.getPosition().getZ()) && //inside the wall (round cuz z-coordinate isn't ever exactly the same at same level)
@@ -162,6 +164,10 @@ public class WorkerManager {
                 }
             }
         }
+    }
+
+    private static boolean isRangedEnemyNearby() {
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, LocationConstants.insideMainWall) > 0;
     }
 
     public static void fix3ScvsOn1MineralPatch() {

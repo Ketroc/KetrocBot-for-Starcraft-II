@@ -284,7 +284,7 @@ public class UnitUtils {
         float attackRange = 0;
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
-                attackRange = 8;
+                attackRange = 6;
                 break;
             case TERRAN_BATTLECRUISER: case PROTOSS_HIGH_TEMPLAR: case PROTOSS_VOIDRAY:
                 attackRange = 6;
