@@ -933,7 +933,8 @@ public class ArmyManager {
         else if (isUnsafe) {
             if (isInDetectionRange) {
                 //retreat
-                retreatMyUnit(banshee);
+                //retreatMyUnit(banshee);
+                new BasicUnitMicro(banshee, LocationConstants.REPAIR_BAY, true).onStep();
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED &&
@@ -1103,7 +1104,8 @@ public class ArmyManager {
         }
         //in enemy attack range, then back up
         else if (isUnsafe) {
-            retreatMyUnit(viking);
+            //retreatMyUnit(viking);
+            new BasicUnitMicro(viking, LocationConstants.REPAIR_BAY, true).onStep();
             //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(viking);
         }
         //Under 100% health and at repair bay
@@ -1178,7 +1180,8 @@ public class ArmyManager {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
                         if (lastCommand != ArmyCommands.HOME) {
-                            retreatMyUnit(raven);
+                            //retreatMyUnit(raven);
+                            new BasicUnitMicro(raven, LocationConstants.REPAIR_BAY, true).onStep();
                         }
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {

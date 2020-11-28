@@ -93,7 +93,7 @@ public class BansheeHarasser {
         if (retreatForRepairs) {
             return LocationConstants.REPAIR_BAY;
         }
-        
+
         //flee cyclone if locked on
         if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());

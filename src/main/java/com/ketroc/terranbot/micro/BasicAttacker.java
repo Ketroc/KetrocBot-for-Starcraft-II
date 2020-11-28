@@ -59,9 +59,10 @@ public class BasicAttacker {
         List<UnitInPool> validTargets = getValidTargetsInRange();
 
         //pick best target
-        validTargets.stream().max(Comparator.comparing(enemy -> getTargetValue()));
-
-        return null;
+        return validTargets.stream()
+                .max(Comparator.comparing(enemy -> getTargetValue()))
+                .map(UnitInPool::unit)
+                .orElse(null);
     }
 
     private float getTargetValue() {

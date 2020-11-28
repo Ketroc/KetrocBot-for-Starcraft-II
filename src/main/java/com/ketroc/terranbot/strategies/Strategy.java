@@ -69,7 +69,7 @@ public class Strategy {
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
 
     public static boolean MASS_RAVENS;
-    public static boolean DO_BANSHEE_HARASS = true;
+    public static boolean DO_BANSHEE_HARASS = false;
     public static boolean PRIORITIZE_EXPANDING;
     public static boolean BUILD_EXPANDS_IN_MAIN;
     public static boolean EXPAND_SLOWLY;
@@ -209,7 +209,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 1;
+            selectedStrategy = 0;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -422,12 +422,19 @@ public class Strategy {
     private static int[] getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) {
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+                return new int[]{};
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+                return new int[]{};
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+                return new int[]{};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+                return new int[]{};
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+                return new int[]{};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
+                return new int[]{};
             case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
+                return new int[]{};
             default:
                 return new int[]{0, 1, 2, 3};
         }
