@@ -93,32 +93,6 @@ public class Strategy {
 //        if (ANTI_NYDUS_BUILD) {
 //            antiNydusBuild();
 //        }
-//        setSproutchStrategy();
-    }
-
-    private static void setMicroMachineStrategy() {
-        try {
-            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
-            String lastOpponentId = fileText[0];
-            String microMachine = "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5";
-            if (microMachine.equals(KetrocBot.opponentId) && !microMachine.equals(lastOpponentId)) {
-                System.out.println("microMachine = " + microMachine);
-                System.out.println("KetrocBot.opponentId = " + KetrocBot.opponentId);
-                System.out.println("lastOpponentId = " + lastOpponentId);
-                DelayedChat.add(100, "choosing:  !!! ULTIMATE STRATEGY !!!");
-                DelayedChat.add(500, "was defeated!");
-                DelayedChat.add(500, "has left the game!");
-                DelayedChat.add(750, "...??");
-                DelayedChat.add(850, "Ultimate Strategy failed. Trying: Bunker Contain Strategy");
-            }
-            else {
-                DelayedChat.add(100, "Bunker Contain Strategy");
-            }
-            selectedStrategy = 1;
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private static void getGameStrategyChoice() {
@@ -141,8 +115,8 @@ public class Strategy {
     }
 
     private static void applyOpponentSpecificTweaks() {
-//        switch (KetrocBot.opponentId) {
-        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+        switch (KetrocBot.opponentId) {
+//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                DO_ANTIDROP_TURRETS = true;
@@ -184,9 +158,10 @@ public class Strategy {
 //                EXPAND_SLOWLY = true;
 //                break;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+            case "aedf9a1bd8f862b": //RStrelok (LM)
                 DO_LEAVE_UP_BUNKER = true;
                 BUILD_EXPANDS_IN_MAIN = true;
-                DO_INCLUDE_TANKS = true;
+                DO_INCLUDE_TANKS = false;
                 DO_INCLUDE_LIBS = false;
                 DO_BANSHEE_HARASS = true;
                 DO_DIVE_RAVENS = false;
@@ -234,7 +209,7 @@ public class Strategy {
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 2;
+            selectedStrategy = 0;
         }
         selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
@@ -259,7 +234,7 @@ public class Strategy {
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
         if (selectedStrategy == -1) {
-            selectedStrategy = 1;
+            selectedStrategy = 0;
         }
         selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
@@ -392,26 +367,59 @@ public class Strategy {
 
     private static void setStrategyNumber() {
         //hardcoded strategies by ID
-        selectedStrategy = getStrategyByOpponentId();
-        int[] strategyOrder = getTournamentStrategyOrder();
-
+        //selectedStrategy = getStrategyByOpponentId();
         try {
-            //For Best-of Series Below
-            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
-            String lastOpponentId = fileText[0];
-            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
-            String lastResult = fileText[2];
-            //start at 0 for new opponent
-            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
-                selectedStrategy = 0;
+            // ====================================
+            // ===== For Best-of Series Below =====
+            // ====================================
+
+            //get list of previous results vs this opponent
+            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
+            List<String[]> prevResults = new ArrayList<>();
+            if (fileText.contains(KetrocBot.opponentId)) {
+                String[] rows = fileText.split("\r\n");
+                for (String row : rows) {
+                    System.out.println(row);
+                    prevResults.add(row.split("~"));
+                }
             }
-            //stay on same strategy if I win
-            else if (lastResult.equals("W")) {
-                selectedStrategy = lastOpponentStrategy;
+
+            //get strategy order by id
+            int[] strategies = getTournamentStrategyOrder();
+
+            //no opponent specific strategy, and no history
+            if (strategies == null) {
+                if (prevResults.isEmpty()) {
+                    System.out.println("using 0 cuz no list and no history");
+                    selectedStrategy = 0;
+                }
+                //no opponent specific strategy, and with history
+                else {
+                    String[] prevResult = prevResults.get(prevResults.size() - 1);
+                    if (prevResult[2].equals("L")) {
+                        selectedStrategy = Integer.valueOf(prevResult[1]) + 1;
+                        System.out.println("using " + selectedStrategy + " cuz no list and lost last game");
+                    }
+                    else {
+                        selectedStrategy = Integer.valueOf(prevResult[1]);
+                        System.out.println("using " + selectedStrategy + " cuz no list and won last game");
+                    }
+                }
             }
-            //next strategy if I lose
-            else if (lastResult.equals("L")) {
-                selectedStrategy = lastOpponentStrategy + 1;
+            //select next planned strategy
+            else if (strategies.length > prevResults.size()) {
+                selectedStrategy = strategies[prevResults.size()];
+                System.out.println("using " + selectedStrategy + " cuz its next on the list");
+                return;
+            }
+            //if no more planned strategies, pick whichever one won
+            else {
+                selectedStrategy = prevResults.stream()
+                        .filter(result -> result[2].equals("W"))
+                        .map(result -> Integer.valueOf(result[1]))
+                        .findFirst()
+                        .orElse(0);
+                System.out.println("using " + selectedStrategy + " cuz list finished and this is a strat that won");
             }
         }
         catch (IOException e) {
@@ -423,8 +431,9 @@ public class Strategy {
         switch (KetrocBot.opponentId) {
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
                 return new int[]{};
+            case "aedf9a1bd8f862b": //RStrelok (LM)
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                return new int[]{};
+                return new int[]{0, 3, 1};
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
                 return new int[]{};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
@@ -435,9 +444,8 @@ public class Strategy {
                 return new int[]{};
             case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
                 return new int[]{};
-            default:
-                return new int[]{0, 1, 2, 3};
         }
+        return null;
     }
 
 //    public static int getMaxScvs() {

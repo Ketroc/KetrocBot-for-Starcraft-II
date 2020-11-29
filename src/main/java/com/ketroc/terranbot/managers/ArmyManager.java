@@ -902,7 +902,9 @@ public class ArmyManager {
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
         boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
-        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) < 0.1f && InfluenceMaps.pointThreatToAir[x][y] < 200;
+        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) < 0.1f &&
+                InfluenceMaps.pointThreatToAir[x][y] < 200 &&
+                !banshee.getBuffs().contains(Buffs.DEFENSIVE_MATRIX);
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
@@ -1085,7 +1087,8 @@ public class ArmyManager {
         }
 
         boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
-        boolean canAttack = viking.getWeaponCooldown().orElse(1f) < 0.1f;
+        boolean canAttack = viking.getWeaponCooldown().orElse(1f) < 0.1f &&
+                !viking.getBuffs().contains(Buffs.DEFENSIVE_MATRIX);
         boolean isParasitic = viking.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
 
         //always flee if locked on by cyclone
@@ -1198,7 +1201,10 @@ public class ArmyManager {
 
     //drop auto-turrets near enemy before going home to repair
     private static boolean doAutoTurretOnRetreat(Unit raven) {
-        if (raven.getEnergy().orElse(0f) >= 50 && UnitUtils.getDistance(raven, attackGroundPos) < 12 && attackUnit != null) {
+        if (raven.getEnergy().orElse(0f) >= 50 &&
+                !raven.getBuffs().contains(Buffs.DEFENSIVE_MATRIX) &&
+                UnitUtils.getDistance(raven, attackGroundPos) < 12 &&
+                attackUnit != null) {
             return castAutoTurret(raven, 0);
         }
         return false;
@@ -1206,7 +1212,9 @@ public class ArmyManager {
 
     //drop auto-turrets near enemy
     private static boolean doAutoTurret(Unit raven) {
-        if (!isAttackUnitRetreating && raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY) {
+        if (!isAttackUnitRetreating &&
+                raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
+                !raven.getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
             return castAutoTurret(raven, 2);
         }
         return false;

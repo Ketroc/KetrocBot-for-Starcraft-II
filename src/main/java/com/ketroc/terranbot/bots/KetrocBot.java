@@ -8,7 +8,6 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.github.ocraft.s2client.protocol.observation.Result;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -26,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class KetrocBot extends Bot {
@@ -606,7 +606,7 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onGameEnd() {
-        setNextGameStrategy();
+        recordGameResult();
         System.out.println("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
         try {
@@ -616,7 +616,7 @@ public class KetrocBot extends Bot {
         }
     }
 
-    private void setNextGameStrategy() {
+    private void recordGameResult() {
         Result result = Bot.OBS.getResults().stream()
                 .filter(playerResult -> playerResult.getPlayerId() == Bot.OBS.getPlayerId())
                 .findFirst()
@@ -626,7 +626,13 @@ public class KetrocBot extends Bot {
         Path path = Paths.get("./data/prevResult.txt");
         char charResult = (result == Result.DEFEAT) ? 'L' : 'W';
         try {
-            Files.write(path, (Bot.opponentId + "~" + Strategy.selectedStrategy + "~" + charResult).getBytes());
+            String newFileText = Bot.opponentId + "~" + Strategy.selectedStrategy + "~" + charResult;
+            String prevFileText = Files.readString(Paths.get("./data/prevResult.txt"));
+            if (prevFileText.contains(Bot.opponentId)) {
+                newFileText = prevFileText + "\r\n" + newFileText;
+            }
+            Files.write(path, newFileText.getBytes());
+            System.out.println("New File Text = " + newFileText);
         }
         catch (IOException e) {
             e.printStackTrace();

@@ -253,7 +253,7 @@ public class GameCache {
                     //check if enemy can create air units
                     if (!Switches.enemyCanProduceAir &&
                             UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
-                        Bot.ACTION.sendChat("Wake up our viking pilots. I smell enemy air.", ActionChat.Channel.BROADCAST);
+                        Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
                         Strategy.DO_INCLUDE_LIBS = false;
                         if (LocationConstants.opponentRace != Race.TERRAN) {
