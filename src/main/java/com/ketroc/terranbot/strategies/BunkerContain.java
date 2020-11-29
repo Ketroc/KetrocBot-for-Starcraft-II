@@ -78,6 +78,9 @@ public class BunkerContain {
 
         //check if contain is broken
         abandonProxy();
+        if (proxyBunkerLevel == 0) {
+            return;
+        }
 
         // ========= SCVS ===========
         if (Time.nowFrames() == Time.toFrames(13)) {
@@ -161,7 +164,7 @@ public class BunkerContain {
     }
 
     public static void onMarineCreated(UnitInPool marine) {
-        if (LocationConstants.proxyBunkerPos2 != null && getMarineCount() == 1) {
+        if (proxyBunkerLevel == 2 && LocationConstants.proxyBunkerPos2 != null && getMarineCount() == 1) {
             UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos2));
             return;
         }
@@ -580,12 +583,12 @@ public class BunkerContain {
         }
 
         //float barracks home
-        if (barracks.isAlive() && barracks.unit().getBuildProgress() == 1) {
+        if (barracks != null && barracks.isAlive() && barracks.unit().getBuildProgress() == 1) {
             sendBarracksHome();
         }
 
         //salvage bunker and send marines home
-        if (bunker.isAlive()) {
+        if (bunker != null && bunker.isAlive()) {
             //empty bunker and salvage
             if (bunker.unit().getBuildProgress() == 1) {
                 Bot.ACTION.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
@@ -595,6 +598,7 @@ public class BunkerContain {
         }
         else {
             //send marines home on a-move
+            UnitMicroList.unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro instanceof BunkerMarine);
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
                     .forEach(marine -> UnitMicroList.add(new BasicUnitMicro(marine, LocationConstants.insideMainWall, true)));
         }
@@ -621,7 +625,7 @@ public class BunkerContain {
     private static boolean isContainBroken() {
         return bunker == null &&
                 (tank1 == null || tank1.unit().getType() != Units.TERRAN_SIEGE_TANK_SIEGED) &&
-                (tank2 == null || tank2.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+                (tank2 == null || tank2.unit().getType() != Units.TERRAN_SIEGE_TANK_SIEGED);
     }
 
     private static boolean updateBunker() {

@@ -11,10 +11,7 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.micro.Target;
-import com.ketroc.terranbot.models.Base;
-import com.ketroc.terranbot.models.Cost;
-import com.ketroc.terranbot.models.DefenseUnitPositions;
-import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.Strategy;
@@ -790,7 +787,10 @@ public class ArmyManager {
     private static boolean bunkerUnnecessary() {
         return GameCache.baseList.get(1).getCc() != null &&
                 GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS &&
-                (!Strategy.DO_LEAVE_UP_BUNKER || Time.nowFrames() > Time.toFrames("6:00"));
+                //take down bunker when 1st defense banshee is out, or when floating to 3rd base
+                (!Strategy.DO_LEAVE_UP_BUNKER || !GameCache.bansheeList.isEmpty() ||
+                        FlyingCC.flyingCCs.stream()
+                                .anyMatch(flyingCC -> flyingCC.destination.distance(GameCache.baseList.get(2).getCcPos()) < 1));
     }
 
     private static void raiseAndLowerDepots() {

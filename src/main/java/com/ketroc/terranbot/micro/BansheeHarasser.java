@@ -66,7 +66,8 @@ public class BansheeHarasser {
         }
 
         //if can attack, find target
-        if (banshee.unit().getWeaponCooldown().orElse(1f) == 0) {
+        if (banshee.unit().getWeaponCooldown().orElse(1f) == 0 &&
+                !banshee.unit().getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
             Target target = selectHarassTarget();
             //attack when safe, or when there's a good value target and not headed home
             if (target.unit != null) {

@@ -209,9 +209,9 @@ public class Strategy {
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+            selectedStrategy = 1;
         }
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 1; //TODO selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -242,10 +242,13 @@ public class Strategy {
                 DelayedChat.add("Standard Strategy");
                 break;
             case 1:
+                BunkerContain.proxyBunkerLevel = 1;
+                break;
+            case 2:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case 2:
+            case 3:
                 DelayedChat.add("SCV Rush Strategy");
                 Switches.scvRushComplete = false;
                 break;
@@ -389,7 +392,7 @@ public class Strategy {
 
             //no opponent specific strategy, and no history
             if (strategies == null) {
-                if (prevResults.isEmpty()) {
+                if (prevResults.isEmpty() || prevResults.get(0)[0].equals("")) {
                     System.out.println("using 0 cuz no list and no history");
                     selectedStrategy = 0;
                 }
@@ -405,26 +408,54 @@ public class Strategy {
                         System.out.println("using " + selectedStrategy + " cuz no list and won last game");
                     }
                 }
-            }
-            //select next planned strategy
-            else if (strategies.length > prevResults.size()) {
-                selectedStrategy = strategies[prevResults.size()];
-                System.out.println("using " + selectedStrategy + " cuz its next on the list");
                 return;
             }
-            //if no more planned strategies, pick whichever one won
-            else {
-                selectedStrategy = prevResults.stream()
-                        .filter(result -> result[2].equals("W"))
-                        .map(result -> Integer.valueOf(result[1]))
-                        .findFirst()
-                        .orElse(0);
-                System.out.println("using " + selectedStrategy + " cuz list finished and this is a strat that won");
+            //select next planned strategy
+            if (!wereAllStrategiesUsed(strategies, fileText)) {
+                for (int strategy : strategies) {
+                    System.out.println("checking strategy: " + strategy);
+                    if (!fileText.contains("~" + strategy + "~")) {
+                        switch (strategy) {
+                            case 1: //bunker contain
+                                if (LocationConstants.MAP.equals(MapNames.SUBMARINE) && LocationConstants.opponentRace == Race.TERRAN) {
+                                    System.out.println("skipping bunker contain cuz it's TvT on submarine");
+                                    continue;
+                                }
+                                break;
+                            case 3: //scv rush
+                                if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) {
+                                    System.out.println("skipping scv rush cuz it's Pillars of Gold");
+                                    continue;
+                                }
+                                break;
+                        }
+                        selectedStrategy = strategy;
+                        System.out.println("using " + selectedStrategy + " cuz it's in the strategy list");
+                        return;
+                    }
+                }
             }
+
+            //if no more planned strategies, pick whichever one won
+            selectedStrategy = prevResults.stream()
+                    .filter(result -> result[2].equals("W"))
+                    .map(result -> Integer.valueOf(result[1]))
+                    .findFirst()
+                    .orElse(0);
+            System.out.println("using " + selectedStrategy + " cuz list finished and this is a strat that won (default 0)");
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean wereAllStrategiesUsed(int[] strategies, String fileText) {
+        for (int strategy : strategies) {
+            if (!fileText.contains("~" + strategy + "~")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static int[] getTournamentStrategyOrder() {
