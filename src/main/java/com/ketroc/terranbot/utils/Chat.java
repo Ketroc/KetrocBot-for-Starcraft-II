@@ -1,7 +1,9 @@
 package com.ketroc.terranbot.utils;
 
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.DelayedChat;
 
 import java.util.*;
@@ -21,9 +23,10 @@ public class Chat {
         //botResponses.put("sprr", "New game. Andy does a shot every time you yell: Sproutch.");
 
         //RStrelok responses
-        botResponses.put("What a clown", "Let the clown fiesta commence!");
-        botResponses.put("Not today", "Don't underestimate the drill");
-        botResponses.put("stupid idea", "It wasn't my choice.  I downloaded PUTIN.exe, and now decisions are made for me.");
+        botResponses.put("VLADIMIR_PUTIN.EXE", "y");
+        botResponses.put("What a clown", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
+        botResponses.put("Not today", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
+        botResponses.put("stupid idea", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(
@@ -37,8 +40,14 @@ public class Chat {
 
     public static void respondToBots(ChatReceived chat) {
         botResponses.forEach((in, out) -> {
-            if (chat.getMessage().toUpperCase().contains(in.toUpperCase())) {
-                DelayedChat.delayedChats.add(new DelayedChat(out));
+            String incomingMessage = chat.getMessage().toUpperCase();
+            if (incomingMessage.contains(in.toUpperCase())) {
+                if (in.equals("VLADIMIR_PUTIN.EXE")) { //instant response here
+                    Bot.ACTION.sendChat(out, ActionChat.Channel.BROADCAST);
+                }
+                else {
+                    DelayedChat.delayedChats.add(new DelayedChat(out));
+                }
             }
         });
 

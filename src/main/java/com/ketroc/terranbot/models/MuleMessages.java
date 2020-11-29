@@ -32,7 +32,7 @@ public class MuleMessages {
     public static List<Point2d> remainingMulePositions = new ArrayList<>();
 
     public static void onStep() {
-        if (!doTrollMule) {
+        if (!doTrollMule || LocationConstants.muleLetterPosList.isEmpty()) {
             return;
         }
 
