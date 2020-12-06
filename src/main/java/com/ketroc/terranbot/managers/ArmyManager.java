@@ -132,7 +132,7 @@ public class ArmyManager {
             for (DefenseUnitPositions libPos : base.getLiberators()) {
                 if (libPos.getUnit() != null && libPos.getUnit().isAlive()) {
                     Unit lib = libPos.getUnit().unit();
-                    if (lib.getType() == Units.TERRAN_LIBERATOR_AG && lib.getWeaponCooldown().orElse(1f) == 0f) {
+                    if (lib.getType() == Units.TERRAN_LIBERATOR_AG && UnitUtils.isWeaponAvailable(lib)) {
                         Point2d libZone = Position.towards(lib.getPosition().toPoint2d(), base.getCcPos(), 5);
                         Unit targetUnit = getLibTarget(lib, libZone);
                         if (targetUnit != null) {
@@ -214,7 +214,7 @@ public class ArmyManager {
 
     private static void autoturretTargetting() {
         UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
-                .filter(turret -> turret.getWeaponCooldown().orElse(1f) == 0)
+                .filter(turret -> UnitUtils.isWeaponAvailable(turret))
                 .forEach(turret -> {
                     selectTarget(turret).ifPresent(target ->
                             Bot.ACTION.unitCommand(turret, Abilities.ATTACK, target, false));
@@ -226,6 +226,9 @@ public class ArmyManager {
 
         Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
+            if (UnitUtils.CREEP_TUMOR.contains(enemy.unit().getType())) { //shoot creep tumors first
+                return Optional.of(enemy.unit());
+            }
             float enemyHP = enemy.unit().getHealth().orElse(0f) +
                     (enemy.unit().getShield().orElse(0f) * 1.5f);
             float damageMultiple = getDamageMultiple(enemy.unit());
@@ -293,7 +296,7 @@ public class ArmyManager {
                 }
                 else {
                     for (Unit viking : GameCache.vikingDivers) {
-                        if (viking.getWeaponCooldown().get() == 0 && UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 8.5) {
+                        if (UnitUtils.isWeaponAvailable(viking) && UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 8.5) {
                             attackVikings.add(viking);
                         } else {
                             moveVikings.add(viking);
@@ -389,11 +392,11 @@ public class ArmyManager {
             return false;
         }
 
-        boolean canAttack = divers.get(0).getWeaponCooldown().orElse(1f) == 0f;
         float attackRange = Bot.OBS.getUnitTypeData(false).get(divers.get(0).getType()).getWeapons().iterator().next().getRange();
         List<Unit> attackers = new ArrayList<>();
         List<Unit> retreaters = new ArrayList<>();
         for (Unit diver : divers) {
+            boolean canAttack = UnitUtils.isWeaponAvailable(diver);
             boolean inRange = UnitUtils.getDistance(diveTarget.unit(), diver) < attackRange;
             if (canAttack || !inRange) {
                 attackers.add(diver);
@@ -605,7 +608,7 @@ public class ArmyManager {
         pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS));
         pfsAndTanks = pfsAndTanks.stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
-                        unit.getWeaponCooldown().orElse(1f) == 0 &&
+                        UnitUtils.isWeaponAvailable(unit) &&
                         InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, unit.getPosition().toPoint2d()))
                 .collect(Collectors.toList());
 

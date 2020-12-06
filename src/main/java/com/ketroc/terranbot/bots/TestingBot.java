@@ -64,7 +64,7 @@ public class TestingBot extends Bot {
 
         //set enemy race
         LocationConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
-                .filter(playerInfo -> playerInfo.getPlayerId() != Bot.OBS.getPlayerId())
+                .filter(playerInfo -> playerInfo.getPlayerId() == enemyId)
                 .findFirst()
                 .get()
                 .getRequestedRace();
@@ -73,8 +73,8 @@ public class TestingBot extends Bot {
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 100.5f), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
-        debug().debugCreateUnit(Units.PROTOSS_CARRIER, Point2d.of(90, 100), myId, 1);
-        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
+//        debug().debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED, , myId, 1);
+//        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_IMMORTAL, Point2d.of(30, 30), enemyId, 1);
         debug().sendDebug();
 

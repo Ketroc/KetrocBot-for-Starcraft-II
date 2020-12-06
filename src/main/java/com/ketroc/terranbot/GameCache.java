@@ -718,23 +718,23 @@ public class GameCache {
         }
 
         //debug threat text
-//        if (Bot.isDebugOn) {
-//            for (int x = xMin+1; x <= xMax-1; x++) {
-//                for (int y = yMin+1; y <= yMax-1; y++) {
-//                    if (InfluenceMaps.pointThreatToAir[x][y] > 0) {
-//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToAir[x][y]), x/2f, y/2f, Color.RED);
-////                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+        if (Bot.isDebugOn) {
+            for (int x = xMin+1; x <= xMax-1; x++) {
+                for (int y = yMin+1; y <= yMax-1; y++) {
+                    if (InfluenceMaps.pointThreatToAir[x][y] > 0) {
+                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToAir[x][y]), x/2f, y/2f, Color.RED);
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+                    }
+//                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {
+//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
+//                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.13f,y/2-0.13f, z), Point.of(x/2+0.13f,y/2+0.13f, z), Color.YELLOW);
 //                    }
-////                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {
-////                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
-////                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.13f,y/2-0.13f, z), Point.of(x/2+0.13f,y/2+0.13f, z), Color.YELLOW);
-////                    }
-////                    if (LocationConstants.pointInMainBase[x][y] || LocationConstants.pointInEnemyMainBase[x][y]) {
-////                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
-////                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.14f,y/2-0.14f, z), Point.of(x/2+0.14f,y/2+0.14f, z), Color.BLUE);
-////                    }
-//                }
-//            }
+//                    if (LocationConstants.pointInMainBase[x][y] || LocationConstants.pointInEnemyMainBase[x][y]) {
+//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
+//                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.14f,y/2-0.14f, z), Point.of(x/2+0.14f,y/2+0.14f, z), Color.BLUE);
+//                    }
+                }
+            }
 ////            float x = LocationConstants.mainBaseMidPos.getX();
 ////            float y = LocationConstants.mainBaseMidPos.getY();
 ////            float z = Position.getZ(x, y);
@@ -746,7 +746,7 @@ public class GameCache {
 ////            z = Position.getZ(x, y);
 ////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
 ////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-//        }
+        }
 
 
     }

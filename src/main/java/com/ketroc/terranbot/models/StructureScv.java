@@ -227,6 +227,7 @@ public class StructureScv {
     }
 
     private static void requeueCancelledStructure(StructureScv structureScv) {
+        System.out.println("structure requeued");
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:

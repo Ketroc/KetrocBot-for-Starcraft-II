@@ -49,7 +49,7 @@ public class DroneDrill extends Bot {
         try {
             super.onGameStart();
 
-            Strategy.SKIP_FRAMES = (Bot.isRealTime) ? 6 : 2;
+            Strategy.SKIP_FRAMES = (Bot.isRealTime) ? 4 : 2;
 
             //set map
             LocationConstants.MAP = OBS.getGameInfo().getMapName();

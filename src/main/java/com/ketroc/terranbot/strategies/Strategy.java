@@ -17,6 +17,7 @@ import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.DelayedChat;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.MapNames;
+import com.ketroc.terranbot.utils.Time;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,12 +35,13 @@ public class Strategy {
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
+    public static boolean NO_TURRETS;
 
-    public static boolean DO_INCLUDE_TANKS = true;
+    public static boolean DO_INCLUDE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_TANKS = 10;
 
-    public static boolean DO_INCLUDE_LIBS = true;
+    public static boolean DO_INCLUDE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_LIBS = 10;
 
@@ -69,9 +71,9 @@ public class Strategy {
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
 
     public static boolean MASS_RAVENS;
-    public static boolean DO_BANSHEE_HARASS = false;
+    public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
-    public static boolean BUILD_EXPANDS_IN_MAIN;
+    public static boolean BUILD_EXPANDS_IN_MAIN = true; //TODO make false
     public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
     public static boolean DO_ANTIDROP_TURRETS;
@@ -87,7 +89,7 @@ public class Strategy {
     private static boolean NO_RAMP_WALL;
 
     public static void onGameStart() {
-        SKIP_FRAMES = (KetrocBot.isRealTime) ? 6 : 2;
+        SKIP_FRAMES = (KetrocBot.isRealTime) ? 4 : 2;
         getGameStrategyChoice();
 //
 //        if (ANTI_NYDUS_BUILD) {
@@ -97,7 +99,9 @@ public class Strategy {
 
     private static void getGameStrategyChoice() {
         setRaceStrategies();
-        setStrategyNumber();
+        if (!Bot.isRealTime) {
+            setStrategyNumber();
+        }
         switch (LocationConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
@@ -145,13 +149,17 @@ public class Strategy {
 //                break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
                 DO_LEAVE_UP_BUNKER = true;
-                DO_INCLUDE_TANKS = true;
+                DO_INCLUDE_TANKS = false;
                 DO_BANSHEE_HARASS = false;
                 EXPAND_SLOWLY = true;
                 NO_RAMP_WALL = true;
+                NO_TURRETS = true;
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                break;
+            case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
+                DO_BANSHEE_HARASS = false;
                 break;
 //            case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
 //                BUILD_EXPANDS_IN_MAIN = true;
@@ -184,7 +192,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+            selectedStrategy = 2;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -209,9 +217,9 @@ public class Strategy {
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 1;
+            selectedStrategy = 2;
         }
-        selectedStrategy = 1; //TODO selectedStrategy % numStrategies;
+        selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -234,7 +242,7 @@ public class Strategy {
     private static void chooseTvZStrategy() {
         int numStrategies = 3;
         if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+            selectedStrategy = 2;
         }
         selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
@@ -250,51 +258,10 @@ public class Strategy {
                 break;
             case 3:
                 DelayedChat.add("SCV Rush Strategy");
+                DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
         }
-    }
-    //TODO: delete
-    private static void setSproutchStrategy() {
-        try {
-            String[] fileText = Files.readString(Paths.get("./data/prevResult.txt")).split("~");
-            String lastOpponentId = fileText[0];
-            int lastOpponentStrategy = Integer.valueOf(fileText[1]);
-            String lastOpponentResult = fileText[2];
-            //game 1
-            if (!lastOpponentId.equals(KetrocBot.opponentId) || LocationConstants.opponentRace == Race.RANDOM) {
-                System.out.println("Game 1 - banshees");
-                selectedStrategy = 0;
-            }
-            //game 2
-            else if (lastOpponentStrategy == 0) {
-                System.out.println("Game 2 - ravens");
-                selectedStrategy = 1;
-            }
-            //game 3
-            else {
-                System.out.println("Game 3");
-                selectedStrategy = (lastOpponentResult.equals("L")) ? 0 : 1;
-            }
-
-            if (selectedStrategy == 0) {
-                DelayedChat.add("Mass Banshee Strategy");
-            }
-            else {
-                DelayedChat.add("Mass Raven Strategy");
-                massRavenStrategy();
-            }
-        }
-        catch (Exception e) {
-            selectedStrategy = 1;
-            e.printStackTrace();
-        }
-        Switches.enemyCanProduceAir = true;
-        DO_INCLUDE_TANKS = false;
-        DO_INCLUDE_LIBS = false;
-        DO_BANSHEE_HARASS = false;
-        BUILD_EXPANDS_IN_MAIN = true;
-        EXPAND_SLOWLY = true;
     }
 
     private static int getStrategyByOpponentId() {
@@ -415,19 +382,9 @@ public class Strategy {
                 for (int strategy : strategies) {
                     System.out.println("checking strategy: " + strategy);
                     if (!fileText.contains("~" + strategy + "~")) {
-                        switch (strategy) {
-                            case 1: //bunker contain
-                                if (LocationConstants.MAP.equals(MapNames.SUBMARINE) && LocationConstants.opponentRace == Race.TERRAN) {
-                                    System.out.println("skipping bunker contain cuz it's TvT on submarine");
-                                    continue;
-                                }
-                                break;
-                            case 3: //scv rush
-                                if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) {
-                                    System.out.println("skipping scv rush cuz it's Pillars of Gold");
-                                    continue;
-                                }
-                                break;
+                        if (strategy == 3 && LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) {
+                            System.out.println("skipping scv rush cuz it's Pillars of Gold");
+                            continue;
                         }
                         selectedStrategy = strategy;
                         System.out.println("using " + selectedStrategy + " cuz it's in the strategy list");
@@ -461,20 +418,21 @@ public class Strategy {
     private static int[] getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) {
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
-                return new int[]{};
+                return new int[]{0, 2};
             case "aedf9a1bd8f862b": //RStrelok (LM)
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
                 return new int[]{0, 3, 1};
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
-                return new int[]{};
+                return new int[]{3, 1};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-                return new int[]{};
+                return new int[]{0};
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-                return new int[]{};
+            //case "b7b611bdaa2e2d1": //Spiny (LM)
+                return new int[]{0, 1};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-                return new int[]{};
+                return new int[]{0, 2};
             case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
-                return new int[]{};
+                return new int[]{0, 1, 2};
         }
         return null;
     }
@@ -564,11 +522,13 @@ public class Strategy {
             case ZERG:
                 DO_INCLUDE_LIBS = true;
                 DO_INCLUDE_TANKS = true;
+                EXPAND_SLOWLY = true; //TODO make false
                 break;
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
                 DO_INCLUDE_TANKS = true;
+                EXPAND_SLOWLY = true; //TODO make false
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;
@@ -608,5 +568,30 @@ public class Strategy {
                 }
             }
         }
+    }
+
+    public static void printStrategySettings() {
+        System.out.println("selectedStrategy = " + selectedStrategy);
+        System.out.println("ANTI_DROP_TURRET = " + ANTI_DROP_TURRET);
+        System.out.println("ANTI_NYDUS_BUILD = " + ANTI_NYDUS_BUILD);
+        System.out.println("DO_DIVE_RAVENS = " + DO_DIVE_RAVENS);
+        System.out.println("EARLY_BANSHEE_SPEED = " + EARLY_BANSHEE_SPEED);
+        System.out.println("DO_LEAVE_UP_BUNKER = " + DO_LEAVE_UP_BUNKER);
+        System.out.println("NO_TURRETS = " + NO_TURRETS);
+
+        System.out.println("DO_INCLUDE_TANKS = " + DO_INCLUDE_TANKS);
+        System.out.println("MAX_TANKS = " + MAX_TANKS);
+
+        System.out.println("DO_INCLUDE_LIBS = " + DO_INCLUDE_LIBS);
+        System.out.println("MAX_LIBS = " + MAX_LIBS);
+
+        System.out.println("DO_BANSHEE_HARASS = " + DO_BANSHEE_HARASS);
+        System.out.println("PRIORITIZE_EXPANDING = " + PRIORITIZE_EXPANDING);
+        System.out.println("BUILD_EXPANDS_IN_MAIN = " + BUILD_EXPANDS_IN_MAIN);
+        System.out.println("EXPAND_SLOWLY = " + EXPAND_SLOWLY);
+        System.out.println("DO_SEEKER_MISSILE = " + DO_SEEKER_MISSILE);
+        System.out.println("DO_ANTIDROP_TURRETS = " + DO_ANTIDROP_TURRETS);
+        System.out.println("DEFAULT_STARPORT_UNIT = " + DEFAULT_STARPORT_UNIT);
+        System.out.println("NO_RAMP_WALL = " + NO_RAMP_WALL);
     }
 }

@@ -32,7 +32,9 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
     // **************************************
 
     public void executeAction() {
-        Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        if (!Bot.isRealTime) {
+            Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        }
     }
 
     // **************************************

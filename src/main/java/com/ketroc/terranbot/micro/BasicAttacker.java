@@ -81,7 +81,7 @@ public class BasicAttacker {
     }
 
     private boolean isOffCooldown() {
-        return attacker.unit().getWeaponCooldown().orElse(1f) == 0;
+        return UnitUtils.isWeaponAvailable(attacker.unit());
     }
 
     private boolean doMoveInToEngage(float distanceBuffer) {

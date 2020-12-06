@@ -241,7 +241,7 @@ public class BuildManager {
             if (!UpgradeManager.shipArmor.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
-            if (LocationConstants.opponentRace == Race.ZERG) {
+            if (LocationConstants.opponentRace == Race.ZERG && !Strategy.NO_TURRETS) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
             }
@@ -267,6 +267,9 @@ public class BuildManager {
 
     //build 1 turret at each base except main base
     private static void buildTurretLogic() {
+        if (Strategy.NO_TURRETS && !Switches.enemyHasCloakThreat) {
+            return;
+        }
         //check if we need 0, 1, or 3 turrets at each base
         int turretsRequired = 0;
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty() ||

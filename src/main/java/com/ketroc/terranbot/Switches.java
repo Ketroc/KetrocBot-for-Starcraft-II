@@ -38,7 +38,9 @@ public class Switches {
         if (!isExpectingEnemyBCs && Time.nowFrames() < Time.toFrames("8:00") && LocationConstants.opponentRace == Race.TERRAN &&
                 (!UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BATTLECRUISER).isEmpty() || !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty())) {
             KetrocBot.purchaseQueue.addFirst(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
-            KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(2)));
+            if (!Strategy.NO_TURRETS) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(2)));
+            }
             isExpectingEnemyBCs = true;
         }
 

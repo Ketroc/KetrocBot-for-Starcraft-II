@@ -88,7 +88,7 @@ public class ScvRush {
         //Units commandStructureType = UnitUtils.enemyCommandStructures.get(0);
 
         //if command structure is dead, head home and advance to scvRushStep 4 to end
-        if (UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures).isEmpty()) {
+        if (UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyCommandStructures).isEmpty()) {
             //send scvs home on attack-move
             Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false)
                     .unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, true);
@@ -154,7 +154,7 @@ public class ScvRush {
 //                    List<Unit> attackScvs = new ArrayList<>();
 //                    List<Unit> clusterScvs = new ArrayList<>();
 //                    for (UnitInPool scv : scvList) {
-//                        if (scv.unit().getWeaponCooldown().orElse(0f) == 0f) {
+//                        if (UnitUtils.isWeaponAvailable(scv.unit())) {
 //                            attackScvs.add(scv.unit());
 //                        }
 //                        else {
@@ -349,7 +349,7 @@ public class ScvRush {
     }
 
     private static boolean isScvOffCooldown(Unit scv) {
-        return scv.getWeaponCooldown().orElse(0f) == 0;
+        return UnitUtils.isWeaponAvailable(scv);
     }
 
     private static Unit getTargetWorker(List<UnitInPool> enemyWorkers) {

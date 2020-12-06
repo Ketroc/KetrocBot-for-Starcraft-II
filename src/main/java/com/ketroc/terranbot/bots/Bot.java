@@ -6,6 +6,8 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.ketroc.terranbot.managers.ActionErrorManager;
+import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.Time;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,8 @@ public class Bot extends S2Agent {
     public static String opponentId;
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
     public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
+    public static long gameFrame = -1;
+    public static long stepStartTime;
 
     public Bot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         this.isDebugOn = isDebugOn;
@@ -68,7 +72,9 @@ public class Bot extends S2Agent {
 
     @Override
     public void onStep() {
+//        if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) {
+//            stepStartTime = System.currentTimeMillis();
+//        }
         Bot.OBS.getActionErrors().forEach(actionError -> ActionErrorManager.actionErrorList.add(actionError));
-
     }
 }

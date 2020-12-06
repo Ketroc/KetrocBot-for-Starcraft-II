@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.utils.*;
@@ -15,6 +16,7 @@ import java.util.List;
 
 public class BansheeHarasser {
     public static final float RETREAT_HEALTH = 50;
+    public static final float BANSHEE_MOVEMENT_SIZE = (Bot.isRealTime) ? 4f : 2.5f;
     public UnitInPool banshee;
     private List<Point2d> baseList;
     private boolean isDodgeClockwise;
@@ -66,8 +68,7 @@ public class BansheeHarasser {
         }
 
         //if can attack, find target
-        if (banshee.unit().getWeaponCooldown().orElse(1f) == 0 &&
-                !banshee.unit().getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
+        if (UnitUtils.isWeaponAvailable(banshee.unit())) {
             Target target = selectHarassTarget();
             //attack when safe, or when there's a good value target and not headed home
             if (target.unit != null) {
@@ -76,7 +77,7 @@ public class BansheeHarasser {
                     return;
                 }
             }
-            //if at basePos with workers in vision, then move on to next base
+            //if at basePos without workers in vision, then move on to next base
             else if (UnitUtils.getDistance(banshee.unit(), getThisBase()) < 2 &&
                     UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
                             .noneMatch(enemyWorker -> UnitUtils.getDistance(banshee.unit(), enemyWorker) < 10)) {
@@ -95,7 +96,7 @@ public class BansheeHarasser {
             return LocationConstants.REPAIR_BAY;
         }
 
-        //flee cyclone if locked on
+        //flee from closest cyclone, if locked on
         if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());
             if (nearestCyclone != null) {
@@ -124,7 +125,7 @@ public class BansheeHarasser {
     }
 
     private Point2d getSafePos(Point2d targetPos) {
-        return getSafePos(targetPos, 3.5f);
+        return getSafePos(targetPos, BANSHEE_MOVEMENT_SIZE);
     }
 
     private Point2d getSafePos(Point2d targetPos, float rangeCheck) {
@@ -232,6 +233,7 @@ public class BansheeHarasser {
         List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY,
                 enemy -> !enemy.unit().getFlying().orElse(true) &&
                         UnitUtils.getDistance(enemy.unit(), banshee.unit()) <= 5.9 &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()));
         Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {

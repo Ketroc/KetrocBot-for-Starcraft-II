@@ -115,7 +115,7 @@ public class ExpansionClearing {
     }
 
     private void turretMicro() {
-        if (turret != null && turret.isAlive() && turret.unit().getWeaponCooldown().orElse(1f) == 0) {
+        if (turret != null && turret.isAlive() && UnitUtils.isWeaponAvailable(turret.unit())) {
             attackBlockingEnemyUnit();
         }
     }
@@ -216,12 +216,12 @@ public class ExpansionClearing {
     public static void add(Point2d expansionPos) {
         if (!contains(expansionPos)) {
             expoClearList.add(new ExpansionClearing(expansionPos));
-            Bot.ACTION.sendChat("Blocked expansion at: " + expansionPos, ActionChat.Channel.BROADCAST);
+            //Bot.ACTION.sendChat("Blocked expansion at: " + expansionPos, ActionChat.Channel.BROADCAST);
         }
     }
 
     public static void remove(ExpansionClearing expo) {
-        Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
+        //Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
         expoClearList.remove(expo);
         expo.removeRaven();
         expo.removeTurret();

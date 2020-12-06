@@ -198,7 +198,7 @@ public class WorkerRushDefense {
                     Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 } else {
                     for (UnitInPool scv : scvList) {
-                        if (scv.unit().getWeaponCooldown().get() == 0f) {
+                        if (UnitUtils.isWeaponAvailable(scv.unit())) {
                             Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.myMineralPos, false);
                         } else {
                             Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);

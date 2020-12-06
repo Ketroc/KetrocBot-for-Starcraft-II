@@ -11,6 +11,7 @@ import com.ketroc.terranbot.managers.StructureSize;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.Purchase;
+import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -292,13 +293,15 @@ public class UnitUtils {
             case PROTOSS_SENTRY: case TERRAN_WIDOWMINE_BURROWED:
                 attackRange = 5;
                 break;
+            default:
+                attackRange = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
+                        .filter(weapon -> weapon.getTargetType() == targetType ||
+                                weapon.getTargetType() == Weapon.TargetType.ANY)
+                        .findFirst()
+                        .map(Weapon::getRange)
+                        .orElse(0f);
+                break;
         }
-        attackRange = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
-                .filter(weapon -> weapon.getTargetType() == targetType ||
-                        weapon.getTargetType() == Weapon.TargetType.ANY)
-                .findFirst()
-                .map(Weapon::getRange)
-                .orElse(0f);
         if (attackRange > 0) {
             attackRange += unit.getRadius();
         }
@@ -592,5 +595,24 @@ public class UnitUtils {
                 return LIBERATOR_TYPE;
         }
         return Set.of(unitType);
+    }
+
+    public static boolean isWeaponAvailable(Unit unit) {
+        //if matrixed
+        if (unit.getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
+            return false;
+        }
+
+        //if unit has no weapon
+        Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons();
+        if (weapons.isEmpty()) {
+            return false;
+        }
+
+        //if weapon will be ready to fire next step
+        float weaponSpeed = weapons.iterator().next().getSpeed() / 1.4f;
+        float curCooldown = unit.getWeaponCooldown().orElse(0f);
+        float stepTime = Strategy.SKIP_FRAMES / 22.4f;
+        return curCooldown * weaponSpeed < stepTime;
     }
 }

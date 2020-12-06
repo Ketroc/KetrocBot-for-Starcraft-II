@@ -382,11 +382,11 @@ public class DroneRush {
     }
 
     private static boolean isDroneOffCooldown(Unit drone) {
-        return drone.getWeaponCooldown().orElse(0f) == 0f;
+        return UnitUtils.isWeaponAvailable(drone);
     }
 
     private static boolean isDroneReadyAndInRange(Unit drone, Unit target) {
-        return drone.getWeaponCooldown().orElse(0f) == 0f &&
+        return UnitUtils.isWeaponAvailable(drone) &&
                 UnitUtils.getDistance(drone, target) <= 0.8f;
     }
 

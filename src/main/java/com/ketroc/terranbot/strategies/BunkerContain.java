@@ -383,7 +383,7 @@ public class BunkerContain {
             //enemies in range
             else {
                 //always shoot when available
-                if (marine.getWeaponCooldown().orElse(1f) == 0) {
+                if (UnitUtils.isWeaponAvailable(marine)) {
                     Bot.ACTION.unitCommand(marine, Abilities.ATTACK, behindBunkerPos, false);
                 }
                 //retreat from enemy when on weapon cooldown and bunker incomplete
@@ -418,7 +418,7 @@ public class BunkerContain {
             //enemies in range
             else {
                 //always shoot when available
-                if (tank.getWeaponCooldown().orElse(1f) == 0) {
+                if (UnitUtils.isWeaponAvailable(tank)) {
                     Bot.ACTION.unitCommand(tank, Abilities.ATTACK, siegeTankPos, false);
                 }
                 //always retreat from enemy when on weapon cooldown
@@ -571,12 +571,22 @@ public class BunkerContain {
             }
         }
 
+
+        /*
+            factory
+            depot
+            factory i=1
+
+         */
+
         //cancel all proxy construction in purchase queue
-        for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
+        for (int i = 0; i<KetrocBot.purchaseQueue.size(); i++) {
             if (KetrocBot.purchaseQueue.get(i) instanceof PurchaseStructure) {
                 PurchaseStructure structure = (PurchaseStructure) KetrocBot.purchaseQueue.get(i);
                 if (structure.getPosition() != null && structure.getPosition().distance(LocationConstants.REPAIR_BAY) > 50) {
-                    requeueStructure(structure.getStructureType());
+                    if (requeueStructure(structure.getStructureType())) {
+                        i++;
+                    }
                     KetrocBot.purchaseQueue.remove(i--);
                 }
             }
@@ -652,18 +662,19 @@ public class BunkerContain {
         return false;
     }
 
-    private static void requeueStructure(Units structureType) {
+    private static boolean requeueStructure(Units structureType) {
         switch (structureType) {
             case TERRAN_FACTORY:
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-                break;
+                return true;
             case TERRAN_BARRACKS:
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
-                break;
+                return true;
             case TERRAN_BUNKER: case TERRAN_MISSILE_TURRET:
                 //don't requeue at home
-                break;
+                return false;
         }
+        return false;
     }
 
     private static Point2d calcTurretPosition(boolean isClockwise) {
@@ -802,12 +813,14 @@ public class BunkerContain {
         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
         int factoryIndex = getDepotPurchaseIndex();
         Point2d turretPos = calcTurretPosition(true);
-        if (turretPos != null) {
-            KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-        }
-        turretPos = calcTurretPosition(false);
-        if (turretPos != null) {
-            KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+        if (!Strategy.NO_TURRETS) {
+            if (turretPos != null) {
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+            }
+            turretPos = calcTurretPosition(false);
+            if (turretPos != null) {
+                KetrocBot.purchaseQueue.add(++factoryIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+            }
         }
     }
 

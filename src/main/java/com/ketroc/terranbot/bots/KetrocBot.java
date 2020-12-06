@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class KetrocBot extends Bot {
@@ -82,19 +82,7 @@ public class KetrocBot extends Bot {
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
 
-//            int myId = Bot.OBS.getPlayerId();
-//            int enemyId = Bot.OBS.getGameInfo().getPlayersInfo().stream()
-//                    .filter(p -> p.getPlayerId() != myId)
-//                    .findFirst().get().getPlayerId();
-//
-//            DEBUG.debugShowMap();
-//            DEBUG.debugCreateUnit(Units.ZERG_EXTRACTOR,
-//                    GameCache.baseList.get(0).getGases().get(0).getLocation(), enemyId, 1);
-//            DEBUG.debugCreateUnit(Units.PROTOSS_ORACLE_STASIS_TRAP, LocationConstants.baseLocations.get(2), enemyId, 1);
-//
-//            DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED,
-//                    Position.towards(LocationConstants.baseLocations.get(3), LocationConstants.enemyMainBaseMidPos, 4), enemyId, 1);
-//            DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, LocationConstants.baseLocations.get(0), myId, 1);
+            Strategy.printStrategySettings();
             DEBUG.sendDebug();
 
             Bot.ACTION.sendActions();
@@ -108,8 +96,18 @@ public class KetrocBot extends Bot {
     public void onStep() {
         try {
             super.onStep();
+
+            //prevent multiple runs on the same frame
+            if (OBS.getGameLoop() == gameFrame) {
+                System.out.println("gameFrame repeated = " + gameFrame);
+                return;
+            }
+            gameFrame = OBS.getGameLoop();
+
             for (ChatReceived chat : Bot.OBS.getChatMessages()) {
-                Chat.respondToBots(chat);
+                if (chat.getPlayerId() != Bot.OBS.getPlayerId()) {
+                    Chat.respondToBots(chat);
+                }
             }
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
@@ -267,6 +265,12 @@ public class KetrocBot extends Bot {
                     Bot.DEBUG.sendDebug();
                 }
                 Bot.ACTION.sendActions();
+                
+                //time check
+//                long stepDuration = System.currentTimeMillis() - Bot.stepStartTime;
+//                if (stepDuration > 40) {
+//                    System.out.println("stepDuration = " + stepDuration);
+//                }
             }
         }
         catch (Exception e) {

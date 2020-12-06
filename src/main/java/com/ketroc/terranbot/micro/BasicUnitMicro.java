@@ -152,7 +152,7 @@ public class BasicUnitMicro {
     }
 
     private boolean isOffCooldown() {
-        return unit.unit().getWeaponCooldown().orElse(1f) == 0;
+        return UnitUtils.isWeaponAvailable(unit.unit());
     }
 
     private void setWeaponInfo() {
