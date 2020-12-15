@@ -138,7 +138,7 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        return (!UnitUtils.canMove(enemy.getType())) ? 1f : Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy.getType())) ? 1.2f : Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {

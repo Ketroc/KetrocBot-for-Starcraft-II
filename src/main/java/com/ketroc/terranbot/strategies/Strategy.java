@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Strategy {
-    public static int selectedStrategy;
+    public static int selectedStrategy = -1;
 
     public static int SKIP_FRAMES;
     public static final boolean ANTI_DROP_TURRET = false; //TODO: temporary for ANIbot
@@ -100,7 +100,7 @@ public class Strategy {
     private static void getGameStrategyChoice() {
         setRaceStrategies();
         if (!Bot.isRealTime) {
-            setStrategyNumber();
+            //setStrategyNumber();
         }
         switch (LocationConstants.opponentRace) {
             case TERRAN:
@@ -217,7 +217,7 @@ public class Strategy {
     private static void chooseTvPStrategy() {
         int numStrategies = 4;
         if (selectedStrategy == -1) {
-            selectedStrategy = 2;
+            selectedStrategy = 0;
         }
         selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
@@ -315,6 +315,7 @@ public class Strategy {
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
+        UpgradeManager.doStarportUpgrades = true;
 
         UpgradeManager.shipArmor.addAll(UpgradeManager.shipAttack);
         //get 2 banshees and +1attack for creep clearing and early defense
@@ -522,13 +523,13 @@ public class Strategy {
             case ZERG:
                 DO_INCLUDE_LIBS = true;
                 DO_INCLUDE_TANKS = true;
-                EXPAND_SLOWLY = true; //TODO make false
+                EXPAND_SLOWLY = false;
                 break;
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
                 DO_INCLUDE_TANKS = true;
-                EXPAND_SLOWLY = true; //TODO make false
+                EXPAND_SLOWLY = false;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;

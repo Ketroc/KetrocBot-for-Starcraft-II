@@ -13,7 +13,7 @@ public class TestingBotLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-//                .setRealtime(true)
+                .setRealtime(true)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)

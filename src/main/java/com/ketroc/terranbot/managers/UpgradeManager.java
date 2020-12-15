@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UpgradeManager {
+    public static boolean doStarportUpgrades;
+
     public static final List<Upgrades> shipAttack = new ArrayList<>(List.of(
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
@@ -86,6 +88,11 @@ public class UpgradeManager {
     }
 
     private static void checkStarportTechLabs() {
+        //don't start cloak/speed until 1 banshee in production
+        if (!doStarportUpgrades && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+            doStarportUpgrades = true;
+        }
+
         //if all upgrades done
         if (starportUpgradeList.isEmpty()) {
             return;
@@ -94,10 +101,12 @@ public class UpgradeManager {
                 .filter(unit -> UnitUtils.getOrder(unit) != null)
                 .map(unit -> Bot.abilityToUpgrade.get(unit.getOrders().get(0).getAbility()))
                 .collect(Collectors.toList());
-        starportUpgradeList.stream()
-                .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
-                .findFirst()
-                .ifPresent(upgrade -> {
+
+        if (doStarportUpgrades) { //if at least 1 banshee
+            starportUpgradeList.stream()
+                    .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
+                    .findFirst()
+                    .ifPresent(upgrade -> {
                         UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                                 .filter(unit -> unit.getOrders().isEmpty())
                                 .findFirst()
@@ -106,7 +115,8 @@ public class UpgradeManager {
                                         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
                                     }
                                 });
-                });
+                    });
+        }
     }
 
     private static void getStarportUpgrades() { //TODO: don't start if making vikings

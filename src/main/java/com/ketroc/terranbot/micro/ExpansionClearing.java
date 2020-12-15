@@ -68,7 +68,14 @@ public class ExpansionClearing {
         }
         //raven is travelling to expansion
         else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
-            raven.onStep();
+            //TODO: if raven can't reach position, turret now
+            if (false) { //destinationUnreachable()) {
+                Point2d turretPos = Position.towards(raven.unit.unit().getPosition().toPoint2d(), raven.targetPos, 1);
+                Bot.ACTION.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+            }
+            else {
+                raven.onStep();
+            }
         }
         else if (turret == null) {
 

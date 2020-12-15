@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.query.AvailableAbilities;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
@@ -14,12 +15,10 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.spatial.PointI;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.Tester;
 import com.ketroc.terranbot.models.MuleMessages;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,6 +39,10 @@ public class TestingBot extends Bot {
     public List<Point2d> possibleCcPosList;
 
     public Point2d depotPos;
+    private UnitInPool fastScv;
+    private UnitInPool fastScv2;
+    private Unit natCC;
+    private Unit minPatch;
 
     public TestingBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
@@ -70,8 +73,9 @@ public class TestingBot extends Bot {
                 .getRequestedRace();
         LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
+        DebugHelper.onGameStart();
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-//        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 100.5f), myId, 1);
+        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED, , myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
@@ -84,7 +88,17 @@ public class TestingBot extends Bot {
 
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
-
+        if (Bot.OBS.getGameLoop() < 10) {
+            return;
+        }
+        if (unitInPool.unit().getType() == Units.TERRAN_SCV && fastScv == null) {
+            fastScv = unitInPool;
+            Bot.ACTION.unitCommand(fastScv.unit(), Abilities.HARVEST_GATHER, minPatch, false);
+        }
+        else if (unitInPool.unit().getType() == Units.TERRAN_SCV) {
+            fastScv2 = unitInPool;
+            Bot.ACTION.unitCommand(fastScv2.unit(), Abilities.HARVEST_GATHER, minPatch, false);
+        }
     }
 
     @Override
@@ -108,33 +122,66 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
-        Unit carrier = Bot.OBS.getUnits(u -> u.unit().getType() == Units.PROTOSS_CARRIER &&
-                UnitUtils.getDistance(u.unit(), Point2d.of(90, 100)) < 10)
-                .stream()
-                .map(UnitInPool::unit)
-                .findFirst()
-                .orElse(null);
-        Unit baneling = Bot.OBS.getUnits(u -> u.unit().getType() == Units.ZERG_BANELING_BURROWED).stream()
-                .map(UnitInPool::unit)
-                .findFirst()
-                .orElse(null);
-        if (Time.nowFrames() == 150) {
-            AvailableAbilities abilitiesForUnit = Bot.QUERY.getAbilitiesForUnit(carrier, false);
-            int sldkfj = 0;
+        if (Time.nowFrames() == 10) {
+            natCC = UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1));
+            minPatch = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, LocationConstants.baseLocations.get(1));
+            Bot.ACTION.unitCommand(natCC, Abilities.TRAIN_SCV, false);
         }
-        if (Time.nowFrames() == 300) {
-            Bot.ACTION.toggleAutocast(carrier.getTag(), Abilities.BUILD_INTERCEPTORS);
-            //Bot.ACTION.toggleAutocast(baneling.getTag(), Abilities.);
+        if (Time.nowFrames() == 120) {
+            Bot.ACTION.unitCommand(natCC, Abilities.TRAIN_SCV, false);
         }
         if (Time.nowFrames() == 450) {
-            AvailableAbilities abilitiesForUnit = Bot.QUERY.getAbilitiesForUnit(carrier, false);
-            int sldkfj = 0;
+
+        }
+
+        if (fastScv != null) {
+            if (fastScv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS)) {
+                returnMicro(fastScv.unit());
+            }
+            else {
+                harvestMicro(fastScv.unit());
+            }
+        }
+
+        if (fastScv2 != null) {
+            if (fastScv2.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS)) {
+                returnMicro(fastScv2.unit());
+            }
+            else {
+                harvestMicro(fastScv2.unit());
+            }
         }
 
         ACTION.sendActions();
         DEBUG.sendDebug();
-        if (false) {
-            int q = 0;
+    }
+
+    private void harvestMicro(Unit scv) {
+        float distToPatch = UnitUtils.getDistance(scv, minPatch);
+        if (distToPatch < 2.55f && distToPatch > 1.45f && UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER) {
+            Point2d movePos = Position.towards(minPatch.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 1.2f);
+            DebugHelper.draw3dBox(movePos, Color.YELLOW, 0.2f);
+            DEBUG.sendDebug();
+            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false)
+                    .unitCommand(scv, Abilities.HARVEST_GATHER, minPatch, true);
+            return;
+        }
+        if (!scv.getOrders().isEmpty()) {
+            UnitOrder order = scv.getOrders().get(0);
+            if (order.getAbility() == Abilities.HARVEST_GATHER && !order.getTargetedUnitTag().equals(minPatch.getTag())) {
+                Bot.ACTION.unitCommand(scv, Abilities.HARVEST_GATHER, minPatch, false);
+            }
+        }
+    }
+
+    private void returnMicro(Unit scv) {
+        float distToCC = UnitUtils.getDistance(scv, natCC);
+        if (distToCC < 3.7f && distToCC > 3.1f && UnitUtils.getOrder(scv) == Abilities.HARVEST_RETURN) {
+            Point2d movePos = Position.towards(natCC.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 2.9f);
+            DebugHelper.draw3dBox(movePos, Color.YELLOW, 0.2f);
+            DEBUG.sendDebug();
+            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false)
+                    .unitCommand(scv, Abilities.HARVEST_RETURN, true);
         }
     }
 
