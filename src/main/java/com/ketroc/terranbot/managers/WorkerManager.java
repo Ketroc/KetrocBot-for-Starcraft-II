@@ -220,9 +220,12 @@ public class WorkerManager {
 
     private static void buildRefineryLogic() {
         //don't build new refineries yet
-        if ((LocationConstants.opponentRace == Race.ZERG && GameCache.ccList.size() < 3) ||
-                (LocationConstants.opponentRace == Race.PROTOSS && GameCache.ccList.size() < 3) ||
-                (LocationConstants.opponentRace == Race.TERRAN && GameCache.ccList.size() < 2)) {
+//        if ((LocationConstants.opponentRace == Race.ZERG && GameCache.ccList.size() < 3) ||
+//                (LocationConstants.opponentRace == Race.PROTOSS && GameCache.ccList.size() < 2) ||
+//                (LocationConstants.opponentRace == Race.TERRAN && GameCache.ccList.size() < 2)) {
+//            return;
+//        }
+        if (Time.nowFrames() < Time.toFrames("5:00") && UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, false) == 0) {
             return;
         }
 
@@ -502,10 +505,10 @@ public class WorkerManager {
         return scvs.stream().map(UnitInPool::unit).collect(Collectors.toList());
     }
 
-    //Up a new pf base to a minimum of 8 scvs
+    //Up a new pf base to a minimum of 10 scvs
     public static void sendScvsToNewPf(Unit pf) {
         Point2d pfPos = pf.getPosition().toPoint2d();
-        int scvsNeeded = 8 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
+        int scvsNeeded = 10 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
         if (scvsNeeded <= 0) {
             return;
         }

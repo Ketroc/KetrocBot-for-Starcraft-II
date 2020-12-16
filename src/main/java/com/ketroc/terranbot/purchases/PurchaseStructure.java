@@ -264,7 +264,12 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         if (UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
                     UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, true) == 0) {
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
+                if (techStructureNeeded == Units.TERRAN_FACTORY) {
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                }
+                else {
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
+                }
             }
             return true;
         }

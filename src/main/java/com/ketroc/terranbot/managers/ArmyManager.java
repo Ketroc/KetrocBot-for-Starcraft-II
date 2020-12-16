@@ -364,7 +364,7 @@ public class ArmyManager {
                                 .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
                         !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
                         u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
-                        !u.unit().getBurrowed().orElse(false) && //ignore burrowed units
+                        u.unit().getDisplayType() != DisplayType.HIDDEN && //ignore undetected cloaked/burrowed units
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                         u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                         !u.unit().getHallucination().orElse(false) && //ignore hallucs
@@ -851,14 +851,13 @@ public class ArmyManager {
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
-                    answer += 0.3;
+                    answer += 0.5;
                     hasDetector = true;
                     break;
                 case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
                 case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
                 case PROTOSS_ORACLE:
                     answer += 0.5;
-                    hasDetector = true;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
                     answer += 1.5;

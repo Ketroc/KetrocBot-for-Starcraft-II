@@ -164,6 +164,7 @@ public class Base {
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle), null));
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle*-1), null));
+                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(LocationConstants.pointOnMyRamp)));
             }
         }
         return tanks;

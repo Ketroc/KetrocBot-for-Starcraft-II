@@ -351,7 +351,7 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                 }
                                 break; //don't queue scv
                             }

@@ -364,11 +364,11 @@ public class KetrocBot extends Bot {
                             purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                         }
 
-                        //queue factory
-                        if (GameCache.factoryList.isEmpty() &&
-                                !Purchase.isStructureQueued(Units.TERRAN_FACTORY) &&
-                                !StructureScv.isAlreadyInProduction(Units.TERRAN_FACTORY)) {
-                            purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                        //put factory at top of queue
+                        if (GameCache.factoryList.isEmpty() && !StructureScv.isAlreadyInProduction(Units.TERRAN_FACTORY)) {
+                            purchaseQueue.removeIf(purchase -> purchase instanceof PurchaseStructure &&
+                                        ((PurchaseStructure) purchase).getStructureType() == Units.TERRAN_FACTORY);
+                            purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                         }
 
                         break;

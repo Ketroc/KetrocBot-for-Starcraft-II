@@ -158,13 +158,15 @@ public class TestingBot extends Bot {
 
     private void harvestMicro(Unit scv) {
         float distToPatch = UnitUtils.getDistance(scv, minPatch);
-        if (distToPatch < 2.55f && distToPatch > 1.45f && UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER) {
-            Point2d movePos = Position.towards(minPatch.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 1.2f);
+        if (distToPatch < 2.9f && distToPatch > 1.45f && UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER) {
+            Point2d movePos = Position.towards(minPatch.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 1f);
             DebugHelper.draw3dBox(movePos, Color.YELLOW, 0.2f);
             DEBUG.sendDebug();
-            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false)
-                    .unitCommand(scv, Abilities.HARVEST_GATHER, minPatch, true);
+            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false);
             return;
+        }
+        if (distToPatch <= 1.45f && UnitUtils.getOrder(scv) == Abilities.MOVE) {
+            Bot.ACTION.unitCommand(scv, Abilities.HARVEST_GATHER, minPatch, false);
         }
         if (!scv.getOrders().isEmpty()) {
             UnitOrder order = scv.getOrders().get(0);
@@ -176,12 +178,14 @@ public class TestingBot extends Bot {
 
     private void returnMicro(Unit scv) {
         float distToCC = UnitUtils.getDistance(scv, natCC);
-        if (distToCC < 3.7f && distToCC > 3.1f && UnitUtils.getOrder(scv) == Abilities.HARVEST_RETURN) {
-            Point2d movePos = Position.towards(natCC.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 2.9f);
+        if (distToCC < 4.1f && distToCC > 2.95f && UnitUtils.getOrder(scv) == Abilities.HARVEST_RETURN) {
+            Point2d movePos = Position.towards(natCC.getPosition().toPoint2d(), scv.getPosition().toPoint2d(), 2.6f);
             DebugHelper.draw3dBox(movePos, Color.YELLOW, 0.2f);
             DEBUG.sendDebug();
-            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false)
-                    .unitCommand(scv, Abilities.HARVEST_RETURN, true);
+            Bot.ACTION.unitCommand(scv, Abilities.MOVE, movePos, false);
+        }
+        if (distToCC <= 2.95f && UnitUtils.getOrder(scv) == Abilities.MOVE) {
+            Bot.ACTION.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }
 
