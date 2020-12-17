@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -74,9 +75,9 @@ public class Harassers {
         }
     }
 
-    private static Tag getNewBanshee() { //TODO: complete stub
+    private static Tag getNewBanshee() {
         Tag bansheeTag = null;
-        if (BunkerContain.proxyBunkerLevel != 2 || GameCache.bansheeList.size() >= 2) { //priority 1 banshee in main army in TvT bunker contain
+        if (!ArmyManager.enemyInMain() && !ArmyManager.enemyInNatural()) { //defend with banshees if required
             bansheeTag = GameCache.bansheeList.stream()
                     .filter(banshee -> UnitUtils.getHealthPercentage(banshee) >= 99)
                     .filter(banshee -> banshee.getCloakState().orElse(CloakState.CLOAKED_ALLIED) == CloakState.NOT_CLOAKED)

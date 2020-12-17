@@ -604,8 +604,12 @@ public class ArmyManager {
 
     public static void pfTargetting() {
         List<Unit> pfsAndTanks = new ArrayList<>();
-        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED));
-        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS));
+        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)); //defense tanks
+        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS)); //PFs
+        pfsAndTanks.addAll(UnitMicroList.unitMicroList.stream() //defense tanks that sieged up en route
+                .map(basicUnitMicro -> basicUnitMicro.unit.unit())
+                .filter(tank -> tank.getType() == Units.TERRAN_SIEGE_TANK_SIEGED)
+                .collect(Collectors.toList()));
         pfsAndTanks = pfsAndTanks.stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
                         UnitUtils.isWeaponAvailable(unit) &&
@@ -1397,5 +1401,12 @@ public class ArmyManager {
             return false;
         }
         return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackUnit.getPosition().toPoint2d());
+    }
+
+    public static boolean enemyInNatural() {
+        if (attackUnit == null) {
+            return false;
+        }
+        return InfluenceMaps.getValue(InfluenceMaps.pointInNat, attackUnit.getPosition().toPoint2d());
     }
 }

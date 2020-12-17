@@ -411,7 +411,6 @@ public class KetrocBot extends Bot {
                             else {
                                 purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                             }
-                            purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:

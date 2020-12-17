@@ -840,11 +840,11 @@ public class BuildManager {
 
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
-        return Math.min(Strategy.maxScvs - Bot.OBS.getFoodWorkers(), Base.numMyBases()) * 2 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
-                GameCache.starportList.size() * 2 +
-                (int) GameCache.factoryList.stream()
+        return (int)(Math.min(Strategy.maxScvs - Bot.OBS.getFoodWorkers(), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
+                GameCache.starportList.size() * 2.34 +
+                GameCache.factoryList.stream()
                         .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)
-                        .count() * 2;
+                        .count() * 3.34);
     }
 
     private static int supplyInProduction() {
