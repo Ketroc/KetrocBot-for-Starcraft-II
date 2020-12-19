@@ -4,7 +4,6 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point;
@@ -167,7 +166,7 @@ public class WorkerManager {
     }
 
     private static boolean isRangedEnemyNearby() {
-        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, LocationConstants.insideMainWall) > 0;
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) > 0;
     }
 
     public static void fix3ScvsOn1MineralPatch() {
@@ -492,7 +491,7 @@ public class WorkerManager {
         int scvsNeeded = numScvs;
         for (Base base : GameCache.baseList) {
             if (base.isMyBase()) {
-                List<UnitInPool> baseScvs = getAvailableMineralScvs(base.getCcPos(), 10, true);
+                List<UnitInPool> baseScvs = getAvailableScvs(base.getCcPos(), 10, true, true);
                 if (baseScvs.size() >= scvsNeeded) {
                     scvs.addAll(baseScvs.subList(0, scvsNeeded));
                     break;
@@ -508,7 +507,27 @@ public class WorkerManager {
     //Up a new pf base to a minimum of 10 scvs
     public static void sendScvsToNewPf(Unit pf) {
         Point2d pfPos = pf.getPosition().toPoint2d();
-        int scvsNeeded = 10 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
+
+        //transfer a lot to nat PF for early rushes
+        if (pfPos.distance(LocationConstants.baseLocations.get(1)) < 1 && Base.numMyBases() == 2) {
+            List<UnitInPool> mainBaseScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 10);
+            if (mainBaseScvs.size() > 15) {
+                mainBaseScvs = mainBaseScvs.subList(0, 15);
+            }
+            mainBaseScvs.forEach(scv -> {
+                    if (UnitUtils.isCarryingResources(scv.unit())) {
+                        Bot.ACTION.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false)
+                                .unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatches().get(0), true);
+                    }
+                    else {
+                        Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatches().get(0), false);
+                    }
+            });
+            return;
+        }
+
+        //normal transfer of 6 scvs for other bases
+        int scvsNeeded = 8 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
         if (scvsNeeded <= 0) {
             return;
         }

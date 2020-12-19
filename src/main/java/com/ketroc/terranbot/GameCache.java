@@ -12,7 +12,6 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
-import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
@@ -615,12 +614,16 @@ public class GameCache {
         InfluenceMaps.pointDetected = new boolean[800][800];
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
         InfluenceMaps.pointAutoTurretTargets = new boolean[800][800];
+        InfluenceMaps.pointInMarineRange = new boolean[800][800];
         InfluenceMaps.pointInVikingRange = new boolean[800][800];
-        InfluenceMaps.pointThreatToAirPlusBuffer = new int[800][800];
+        InfluenceMaps.pointThreatToAirPlusBufferValue = new int[800][800];
+        InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
         InfluenceMaps.pointSupplyInSeekerRange = new float[800][800];
-        InfluenceMaps.pointThreatToAir = new int[800][800];
+        InfluenceMaps.pointThreatToAirValue = new int[800][800];
+        InfluenceMaps.pointThreatToAir = new boolean[800][800];
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
-        InfluenceMaps.pointThreatToGround = new int[800][800];
+        InfluenceMaps.pointThreatToGroundValue = new int[800][800];
+        InfluenceMaps.pointThreatToGround = new boolean[800][800];
         InfluenceMaps.pointPFTargetValue = new int[800][800];
         InfluenceMaps.pointGroundUnitWithin13 = new boolean[800][800];
         InfluenceMaps.pointRaiseDepots = new boolean[800][800];
@@ -650,12 +653,14 @@ public class GameCache {
 
                     //threat level to ground
                     if (distance < enemy.groundAttackRange) {
-                        InfluenceMaps.pointThreatToGround[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToGroundValue[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToGround[x][y] = true;
                     }
 
                     //air threat range + extra buffer
                     if (enemy.airAttackRange != 0 && distance < enemy.airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER) {
-                        InfluenceMaps.pointThreatToAirPlusBuffer[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToAirPlusBufferValue[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToAirPlusBuffer[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.23f,y/2-0.23f, z), Point.of(x/2+0.23f,y/2+0.23f, z), Color.BLACK);
                     }
 
@@ -675,6 +680,11 @@ public class GameCache {
                         InfluenceMaps.pointAutoTurretTargets[x][y] = true;
                     }
 
+                    //marine range
+                    if (distance < Strategy.MARINE_RANGE && !enemy.isEffect) {
+                        InfluenceMaps.pointInMarineRange[x][y] = true;
+                    }
+
                     if (enemy.isAir) {
 
                         //viking range
@@ -684,7 +694,8 @@ public class GameCache {
 
                         //threat to air from air
                         if (distance < enemy.airAttackRange) {
-                            InfluenceMaps.pointThreatToAir[x][y] += enemy.threatLevel;
+                            InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
+                            InfluenceMaps.pointThreatToAir[x][y] = true;
                             //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.2f,y/2-0.2f, z), Point.of(x/2+0.2f,y/2+0.2f, z), Color.PURPLE);
                         }
                     }
@@ -697,7 +708,8 @@ public class GameCache {
 
                         //threat to air from ground
                         if (distance < enemy.airAttackRange) {
-                            InfluenceMaps.pointThreatToAir[x][y] += enemy.threatLevel;
+                            InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
+                            InfluenceMaps.pointThreatToAir[x][y] = true;
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
                             //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.1f,y/2-0.1f, z), Point.of(x/2+0.1f,y/2+0.1f, z), Color.RED);
                         }
@@ -721,8 +733,8 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointThreatToAir[x][y] > 0) {
-                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToAir[x][y]), x/2f, y/2f, Color.RED);
+                    if (InfluenceMaps.pointThreatToAirValue[x][y] > 0) {
+                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToAirValue[x][y]), x/2f, y/2f, Color.RED);
 //                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
                     }
 //                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {

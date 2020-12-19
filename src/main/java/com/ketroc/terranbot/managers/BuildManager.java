@@ -788,7 +788,7 @@ public class BuildManager {
         List<Base> expansionOptions = GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
                 .filter(base -> base.isUntakenBase() &&
                         !base.isDryedUp() &&
-                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, base.getCcPos()) == 0)
+                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, base.getCcPos()) == 0)
                 .collect(Collectors.toList());
 
         for (Base base : expansionOptions) {

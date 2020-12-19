@@ -124,7 +124,7 @@ public class BasicAttacker {
 
     private boolean isSafe() {
         Point2d curPos = attacker.unit().getPosition().toPoint2d();
-        int[][] threatMap = (isGround) ? InfluenceMaps.pointThreatToGround : InfluenceMaps.pointThreatToAir;
+        int[][] threatMap = (isGround) ? InfluenceMaps.pointThreatToGroundValue : InfluenceMaps.pointThreatToAirValue;
         int threat = InfluenceMaps.getValue(threatMap, curPos);
         return threat == 0;
     }

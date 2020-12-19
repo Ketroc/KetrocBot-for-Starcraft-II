@@ -138,7 +138,7 @@ public class BansheeHarasser {
             if (detourPos == null) {
                 continue;
             }
-            int threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, detourPos);
+            int threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, detourPos);
             if (rangeCheck > 7 && threatValue < safestThreatValue) { //save least dangerous position in case no safe position is found
                 safestThreatValue = threatValue;
                 safestPos = detourPos;
@@ -197,7 +197,7 @@ public class BansheeHarasser {
 
     private boolean isSafe(Point2d p) {
         //avoid high damage areas even if cloaked
-        float threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, p);
+        float threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, p);
         if (threatValue >= 50) {
             return false;
         }
@@ -218,7 +218,7 @@ public class BansheeHarasser {
         Point2d bansheePos = banshee.unit().getPosition().toPoint2d();
         if (!isCloaked() && canCloak() && !isDetected(bansheePos)) {
             //health:threat threshold or cyclone locked on
-            return  InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, bansheePos) > banshee.unit().getHealth().get()/30 ||
+            return  InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, bansheePos) > banshee.unit().getHealth().get()/30 ||
                     banshee.unit().getBuffs().contains(Buffs.LOCK_ON);
         }
         return false;

@@ -75,7 +75,8 @@ public class TestingBot extends Bot {
 
         DebugHelper.onGameStart();
         debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1), myId, 1);
+        debug().debugGiveAllTech();
+//        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED, , myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
@@ -122,13 +123,16 @@ public class TestingBot extends Bot {
     @Override
     public void onStep() {
         super.onStep();
+        Point2d nearPos = Position.towards(LocationConstants.baseLocations.get(0), LocationConstants.baseLocations.get(1), 5);
+        List<UnitInPool> units = Bot.OBS.getUnits(Alliance.ENEMY);
         if (Time.nowFrames() == 10) {
-            natCC = UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1));
-            minPatch = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, LocationConstants.baseLocations.get(1));
-            Bot.ACTION.unitCommand(natCC, Abilities.TRAIN_SCV, false);
+            debug().debugCreateUnit(Units.PROTOSS_OBSERVER, nearPos, myId, 1);
+//            debug().debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, nearPos, enemyId, 1);
+//            debug().debugCreateUnit(Units.PROTOSS_DARK_TEMPLAR, nearPos, enemyId, 1);
+            debug().debugCreateUnit(Units.ZERG_ZERGLING, nearPos, enemyId, 1);
         }
         if (Time.nowFrames() == 120) {
-            Bot.ACTION.unitCommand(natCC, Abilities.TRAIN_SCV, false);
+
         }
         if (Time.nowFrames() == 450) {
 

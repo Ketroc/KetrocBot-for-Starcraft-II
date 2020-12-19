@@ -1,14 +1,12 @@
 package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Buffs;
-import com.github.ocraft.s2client.protocol.data.UnitTypeData;
-import com.github.ocraft.s2client.protocol.data.Weapon;
+import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 
@@ -26,7 +24,7 @@ public class BasicUnitMicro {
     public float groundAttackRange;
     public float airAttackRange;
     public float movementSpeed;
-    public int[][] threatMap;
+    public boolean[][] threatMap;
     public boolean isDodgeClockwise;
     private long prevDirectionChangeFrame;
     public boolean removeMe;
@@ -45,11 +43,24 @@ public class BasicUnitMicro {
     }
 
     private void setThreatMap() {
-        if (isGround) {
-            threatMap = InfluenceMaps.pointThreatToGround;
-        }
-        else if (this instanceof StructureFloater) {
+        if (this instanceof StructureFloater) {
             threatMap = InfluenceMaps.pointThreatToAirPlusBuffer;
+        }
+        else if (!prioritizeLiving) {
+            switch ((Units) unit.unit().getType()) {
+                case TERRAN_BANSHEE:
+                    threatMap = InfluenceMaps.pointInBansheeRange;
+                    break;
+                case TERRAN_VIKING_FIGHTER:
+                    threatMap = InfluenceMaps.pointInVikingRange;
+                    break;
+                case TERRAN_MARINE:
+                    threatMap = InfluenceMaps.pointInMarineRange;
+                    break;
+            }
+        }
+        else if (isGround) {
+            threatMap = InfluenceMaps.pointThreatToGround;
         }
         else {
             threatMap = InfluenceMaps.pointThreatToAir;
@@ -182,7 +193,7 @@ public class BasicUnitMicro {
     }
 
     private boolean isSafe(Point2d pos) {
-        return InfluenceMaps.getValue(threatMap, pos) == 0;
+        return !InfluenceMaps.getValue(threatMap, pos);
     }
 
     private Point2d findDetourPos() {
@@ -191,36 +202,27 @@ public class BasicUnitMicro {
 
     private Point2d findDetourPos(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
-        Point2d safestPos = null;
-        int safestThreatValue = Integer.MAX_VALUE;
-        for (int i=0; i<360; i+=20) {
+        for (int i=0; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null || !isPathable(detourPos)) {
                 continue;
             }
-            int threatValue = InfluenceMaps.getValue(threatMap, detourPos);
-            if (rangeCheck > 7 && threatValue < safestThreatValue) { //save least dangerous position in case no safe position is found
-                safestThreatValue = threatValue;
-                safestPos = detourPos;
-            }
             if (isSafe(detourPos)) {
                 if (i > 200 && !changedDirectionRecently()) { //Position.atEdgeOfMap(detourPos) ||
                     toggleDodgeClockwise();
                 }
-                //add 20degrees more angle as buffer, to account for chasing units
-                i += 20;
+                //add 15degrees more angle as buffer, to account for chasing units
+                i += 15;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
                 return detourPos;
             }
         }
-        if (safestPos == null) {
-            return findDetourPos(rangeCheck+2);
+        if (rangeCheck > 20) {
+            return ArmyManager.retreatPos;
         }
-        else {
-            return safestPos;
-        }
+        return findDetourPos(rangeCheck+2);
     }
 
     private boolean isPathable(Point2d detourPos) {

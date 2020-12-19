@@ -24,11 +24,11 @@ public class TankDefender extends BasicUnitMicro {
             return;
         }
 
-        Predicate<UnitInPool> enemiesInSiegeRange = u -> u.unit().getFlying().orElse(true) == false &&
-                UnitUtils.getDistance(unit.unit(), u.unit()) < 13f;
 
         //unsiege
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
+            Predicate<UnitInPool> enemiesInSiegeRange = u -> u.unit().getFlying().orElse(true) == false &&
+                    UnitUtils.getDistance(unit.unit(), u.unit()) < 15f;
             if (Bot.OBS.getUnits(Alliance.ENEMY, enemiesInSiegeRange).isEmpty() && unit.unit().getWeaponCooldown().orElse(1f) == 0f) {
                 Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
             }
@@ -36,6 +36,8 @@ public class TankDefender extends BasicUnitMicro {
         }
 
         //siege up
+        Predicate<UnitInPool> enemiesInSiegeRange = u -> u.unit().getFlying().orElse(true) == false &&
+                UnitUtils.getDistance(unit.unit(), u.unit()) < 13f;
         if (!Bot.OBS.getUnits(Alliance.ENEMY, enemiesInSiegeRange).isEmpty()) {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
             return;

@@ -151,14 +151,12 @@ public class LocationConstants {
                         pointOnEnemyRamp = Point2d.of(x/2, y/2);
                     }
                 }
-                else if (thisPos.distance(natPos) < 15 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(natPos) < 12 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
                 }
-                else if (thisPos.distance(enemyNatPos) < 15 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(enemyNatPos) < 12 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;
                 }
-
-
             }
         }
     }

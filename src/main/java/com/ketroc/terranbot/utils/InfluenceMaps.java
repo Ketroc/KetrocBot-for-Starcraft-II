@@ -10,11 +10,15 @@ public class InfluenceMaps {
     public static boolean[][] pointInBansheeRange;
     public static boolean[][] pointAutoTurretTargets;
     public static boolean[][] pointInVikingRange;
-    public static int[][] pointThreatToAir;
+    public static boolean[][] pointInMarineRange;
+    public static int[][] pointThreatToAirValue;
+    public static boolean[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;
-    public static int[][] pointThreatToAirPlusBuffer;
+    public static int[][] pointThreatToAirPlusBufferValue;
+    public static boolean[][] pointThreatToAirPlusBuffer;
     public static float[][] pointSupplyInSeekerRange;
-    public static int[][] pointThreatToGround;
+    public static int[][] pointThreatToGroundValue;
+    public static boolean[][] pointThreatToGround;
     public static int[][] pointPFTargetValue;
     public static boolean[][] pointGroundUnitWithin13;
     public static boolean[][] pointRaiseDepots;
@@ -50,12 +54,12 @@ public class InfluenceMaps {
 
     //return highest threat of the 4 corners of the structure
     public static int getAirThreatToStructure(Unit structure) {
-        return getThreatToStructure(pointThreatToAir, structure);
+        return getThreatToStructure(pointThreatToAirValue, structure);
     }
 
     //return highest threat of the 4 corners of the structure
     public static int getGroundThreatToStructure(Unit structure) {
-        return getThreatToStructure(pointThreatToGround, structure);
+        return getThreatToStructure(pointThreatToGroundValue, structure);
     }
 
     //return highest threat of the 4 corners of the structure

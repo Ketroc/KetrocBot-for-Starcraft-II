@@ -174,7 +174,6 @@ public class KetrocBot extends Bot {
                 CannonRushDefense.onStep();
                 ProxyHatchDefense.onStep();
                 BunkerContain.onStep();
-                Harassers.onStep();
 
                 //clearing bases that have just dried up or died
                 GameCache.baseList.stream().forEach(Base::onStep);
@@ -210,6 +209,7 @@ public class KetrocBot extends Bot {
                 BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
                 WorkerManager.onStep(); //fix workers, make refineries
                 ArmyManager.onStep(); //decide army movements
+                Harassers.onStep();
                 MuleMessages.onStep(); //make minimap troll messages with mules
                 LocationConstants.onStep(); //manage which enemy base to target
 

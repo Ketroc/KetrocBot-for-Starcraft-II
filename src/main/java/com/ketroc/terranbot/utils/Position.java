@@ -45,6 +45,10 @@ public class Position {
         return y;
     }
 
+    private static boolean isOutOfBounds(Point2d p) {
+        return isOutOfBoundsX(p.getX()) || isOutOfBoundsY(p.getY());
+    }
+
     private static boolean isOutOfBoundsX(float x) {
         return x > LocationConstants.MAX_X || x < LocationConstants.MIN_X;
     }

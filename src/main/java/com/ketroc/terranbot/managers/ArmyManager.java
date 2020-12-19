@@ -249,6 +249,9 @@ public class ArmyManager {
     }
 
     private static float getDamageMultiple(Unit enemy) {
+        if (enemy.getType() instanceof Units.Other) { //TODO: remove when shield battery Units enum is added
+            return 1;
+        }
         switch ((Units)enemy.getType()) {
             case PROTOSS_IMMORTAL:
                 return 2;
@@ -525,8 +528,9 @@ public class ArmyManager {
         UnitInPool closestEnemyGroundUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> //(Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
                         !u.unit().getFlying().orElse(false) && //ground unit
-                                u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
-                                !u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
+                                u.unit().getDisplayType() != DisplayType.HIDDEN &&
+                                //u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
+                                //!u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
                                 !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
                                 u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                                 !u.unit().getHallucination().orElse(false)) //ignore hallucs
@@ -684,11 +688,9 @@ public class ArmyManager {
     }
 
     private static void positionMarines() {
-        if (enemyInMain()) {
-            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
-                    .forEach(marine ->
-                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, false).onStep()
-                    );
+        if (enemyInMain() || enemyInNatural()) {
+            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream().forEach(
+                    marine -> new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, false).onStep());
         }
         else {
             List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
@@ -904,12 +906,12 @@ public class ArmyManager {
         ArmyCommands lastCommand = getCurrentCommand(banshee);
         int x = InfluenceMaps.toMapCoord(banshee.getPosition().getX());
         int y = InfluenceMaps.toMapCoord(banshee.getPosition().getY());
-        boolean isUnsafe = (Switches.isDivingTempests) ? false : InfluenceMaps.pointThreatToAir[x][y] > 2;
+        boolean isUnsafe = (Switches.isDivingTempests) ? false : InfluenceMaps.pointThreatToAirValue[x][y] > 2;
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
         boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
         boolean canAttack = banshee.getWeaponCooldown().orElse(1f) < 0.1f &&
-                InfluenceMaps.pointThreatToAir[x][y] < 200 &&
+                InfluenceMaps.pointThreatToAirValue[x][y] < 200 &&
                 !banshee.getBuffs().contains(Buffs.DEFENSIVE_MATRIX);
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
@@ -949,7 +951,8 @@ public class ArmyManager {
                     banshee.getEnergy().get() > 3 + ((UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() > 2) ? 2 : 0)) { //additional energy for time to flee tempest range
                 if (isInBansheeRange) { //maintain max range
                     //retreat
-                    retreatMyUnit(banshee);
+                    new BasicUnitMicro(banshee, retreatPos, true).onStep();
+                    //retreatMyUnit(banshee);
                     //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
                 }
                 else {
@@ -963,7 +966,8 @@ public class ArmyManager {
             }
             else {
                 //retreat
-                retreatMyUnit(banshee);
+                new BasicUnitMicro(banshee, retreatPos, true).onStep();
+                //retreatMyUnit(banshee);
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
         }
@@ -1077,19 +1081,14 @@ public class ArmyManager {
         int y = InfluenceMaps.toMapCoord(viking.getPosition().getY());
         boolean isUnsafe = InfluenceMaps.pointThreatToAirFromGround[x][y] > 0; //don't fear enemy air units
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
+        boolean stayBack = false;
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
 
-        //keep vikings back if tempests are on the map, but no other toss air units are visible
-        if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty() && //TODO: change below to use Gamestate.allVisibleEnemiesMap
-                Bot.OBS.getUnits(Alliance.ENEMY,
-                        e -> (e.unit().getType() == Units.PROTOSS_PHOENIX || e.unit().getType() == Units.PROTOSS_VOIDRAY || e.unit().getType() == Units.PROTOSS_INTERCEPTOR)
-                        && !e.unit().getHallucination().orElse(false)).isEmpty()) {
+        //keep vikings back vs tempests or vikings until ready to engage
+        if (doStayBackFromTempests() || isOutnumberedInVikings()) {
             isUnsafe = InfluenceMaps.pointVikingsStayBack[x][y];
-        }
-        //fear enemy vikings if he has more
-        else if (GameCache.vikingList.size() < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size()) {
-            isUnsafe = InfluenceMaps.pointThreatToAirPlusBuffer[x][y] > 2;
+            stayBack = true;
         }
 
         boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
@@ -1113,9 +1112,13 @@ public class ArmyManager {
         }
         //in enemy attack range, then back up
         else if (isUnsafe) {
-            //retreatMyUnit(viking);
-            new BasicUnitMicro(viking, retreatPos, true).onStep();
-            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(viking);
+            if (stayBack) {
+                //retreatMyUnit(viking);
+                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
+            }
+            else {
+                new BasicUnitMicro(viking, retreatPos, true).onStep();
+            }
         }
         //Under 100% health and at repair bay
         else if (canRepair &&
@@ -1137,6 +1140,17 @@ public class ArmyManager {
         }
     }
 
+    private static boolean isOutnumberedInVikings() {
+        return GameCache.vikingList.size() < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size();
+    }
+
+    private static boolean doStayBackFromTempests() {
+        return !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty() && //TODO: change below to use Gamestate.allVisibleEnemiesMap
+                Bot.OBS.getUnits(Alliance.ENEMY,
+                        e -> (e.unit().getType() == Units.PROTOSS_PHOENIX || e.unit().getType() == Units.PROTOSS_VOIDRAY || e.unit().getType() == Units.PROTOSS_INTERCEPTOR)
+                        && !e.unit().getHallucination().orElse(false)).isEmpty();
+    }
+
     //return true if autoturret cast
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
 
@@ -1147,8 +1161,8 @@ public class ArmyManager {
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
         boolean isUnsafe = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
-                ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, raven.getPosition().toPoint2d()) > 0
-                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d()) > 0;
+                ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, raven.getPosition().toPoint2d()) > 0
+                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBufferValue, raven.getPosition().toPoint2d()) > 0;
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
@@ -1333,7 +1347,7 @@ public class ArmyManager {
 //        }
 
         //calculate if I have enough units to dive in and snipe the detector
-        return numAttackersNearby >= numNeededToDive(enemy, InfluenceMaps.pointThreatToAir[x][y]);
+        return numAttackersNearby >= numNeededToDive(enemy, InfluenceMaps.pointThreatToAirValue[x][y]);
     }
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {

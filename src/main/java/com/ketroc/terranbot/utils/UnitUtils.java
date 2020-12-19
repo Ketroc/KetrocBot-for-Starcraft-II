@@ -2,6 +2,8 @@ package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
@@ -283,6 +285,9 @@ public class UnitUtils {
 
     public static float getAttackRange(Unit unit, Weapon.TargetType targetType) {
         float attackRange = 0;
+        if (unit.getType() instanceof Units.Other) { //TODO: remove when shield battery Units enum is added
+            return 0;
+        }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
                 attackRange = 6;

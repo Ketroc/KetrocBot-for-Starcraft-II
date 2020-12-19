@@ -358,7 +358,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     private boolean isLocationSafeAndAvailable(Point2d p, Ability buildAbility) {
-        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, p) == 0 &&
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, p) == 0 &&
                 Bot.QUERY.placement(buildAbility, p);
     }
 
