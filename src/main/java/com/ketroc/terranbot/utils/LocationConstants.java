@@ -1148,10 +1148,10 @@ public class LocationConstants {
             TURRETS.add(Point2d.of(30.0f, 55.0f));
             TURRETS.add(Point2d.of(29.0f, 50.0f));
 
-            MACRO_OCS.add(Point2d.of(26.5f, 64.5f));
+            MACRO_OCS.add(Point2d.of(45.5f, 49.5f));
             MACRO_OCS.add(Point2d.of(46.5f, 55.5f));
             MACRO_OCS.add(Point2d.of(41.5f, 54.5f));
-            MACRO_OCS.add(Point2d.of(45.5f, 49.5f));
+            MACRO_OCS.add(Point2d.of(26.5f, 64.5f));
             MACRO_OCS.add(Point2d.of(52.5f, 64.5f));
             MACRO_OCS.add(Point2d.of(51.5f, 69.5f));
 
@@ -1215,9 +1215,9 @@ public class LocationConstants {
             TURRETS.add(Point2d.of(178.0f, 55.0f));
             TURRETS.add(Point2d.of(184.0f, 49.0f));
 
-            MACRO_OCS.add(Point2d.of(166.5f, 50.5f));
             MACRO_OCS.add(Point2d.of(161.5f, 50.5f));
             MACRO_OCS.add(Point2d.of(162.5f, 56.5f));
+            MACRO_OCS.add(Point2d.of(166.5f, 50.5f));
             MACRO_OCS.add(Point2d.of(170.5f, 45.5f));
             MACRO_OCS.add(Point2d.of(184.5f, 38.5f));
             MACRO_OCS.add(Point2d.of(155.5f, 64.5f));

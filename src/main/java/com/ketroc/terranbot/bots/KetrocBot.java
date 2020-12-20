@@ -444,6 +444,11 @@ public class KetrocBot extends Bot {
                             Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
                         }
 
+                        //start mining out mineral wall
+                        if (LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) && Base.numMyBases() >= 3) {
+                            IgnoredMineralWallScv.addScv();
+                        }
+
                         //send some scvs to this base so it can saturate gas when needed
                         WorkerManager.sendScvsToNewPf(unit);
                         break;

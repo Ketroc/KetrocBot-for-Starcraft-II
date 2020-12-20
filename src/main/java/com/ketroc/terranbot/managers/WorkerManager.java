@@ -373,7 +373,9 @@ public class WorkerManager {
                     if (gas.getRefinery() != null) {
                         Unit refinery = gas.getRefinery();
                         for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), scvsPerGas) && !availableScvs.isEmpty(); i++) {
-                            Bot.ACTION.unitCommand(availableScvs.remove(0).unit(), Abilities.SMART, refinery, false);
+                            UnitInPool closestUnit = UnitUtils.getClosestUnit(availableScvs, refinery);
+                            Bot.ACTION.unitCommand(closestUnit.unit(), Abilities.SMART, refinery, false);
+                            availableScvs.remove(closestUnit);
                             numScvsMovingToGas++;
                         }
                         if (refinery.getAssignedHarvesters().get() > scvsPerGas) {
@@ -392,7 +394,10 @@ public class WorkerManager {
                 }
 
                 //add extra scvs to list
-                base.setExtraScvs(cc.getAssignedHarvesters().get() - numScvsMovingToGas - cc.getIdealHarvesters().get());
+                int numRepairingScvs = (int)UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, base.getCcPos(), 10).stream()
+                        .filter(scv -> UnitUtils.getOrder(scv.unit()) == Abilities.EFFECT_REPAIR)
+                        .count();
+                base.setExtraScvs(cc.getAssignedHarvesters().get() + numRepairingScvs - numScvsMovingToGas - cc.getIdealHarvesters().get());
                 for (int i = 0; i < base.getExtraScvs() && i < availableScvs.size(); i++) {
                     scvsToMove.add(availableScvs.get(i).unit());
                 }
@@ -410,6 +415,8 @@ public class WorkerManager {
         }
 
         //send extra scvs to undersaturated bases
+        //create list of unsaturated bases
+
         for (Base base : GameCache.baseList) {
             if (base.isMyBase() && base.isComplete(0.9f)) {
                 if (scvsToMove.isEmpty()) {
@@ -420,9 +427,11 @@ public class WorkerManager {
                 }
                 int scvsNeeded = base.getExtraScvs() * -1;
                 if (scvsNeeded > 0) {
-                    List<Unit> scvsForThisBase = scvsToMove.subList(0, Math.min(scvsNeeded, scvsToMove.size()));
+                    List<Unit> scvsForThisBase = scvsToMove.stream()
+                            .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, base.getCcPos())))
+                            .limit(scvsNeeded)
+                            .collect(Collectors.toList());
                     Bot.ACTION.unitCommand(scvsForThisBase, Abilities.SMART, base.getRallyNode(), false);
-                    scvsForThisBase.clear();
                 }
             }
         }

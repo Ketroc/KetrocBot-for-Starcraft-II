@@ -620,4 +620,15 @@ public class UnitUtils {
         float stepTime = Strategy.SKIP_FRAMES / 22.4f;
         return curCooldown * weaponSpeed < stepTime;
     }
+
+    public static UnitInPool getClosestUnit(List<UnitInPool> unitList, Unit targetUnit) {
+        return getClosestUnit(unitList, targetUnit.getPosition().toPoint2d());
+    }
+
+    public static UnitInPool getClosestUnit(List<UnitInPool> unitList, Point2d targetPos) {
+        return unitList.stream()
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), targetPos)))
+                .orElse(null);
+    }
+
 }
