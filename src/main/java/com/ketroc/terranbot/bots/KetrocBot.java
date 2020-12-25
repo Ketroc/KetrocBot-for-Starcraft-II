@@ -365,9 +365,7 @@ public class KetrocBot extends Bot {
                         }
 
                         //put factory at top of queue
-                        if (GameCache.factoryList.isEmpty() && !StructureScv.isAlreadyInProduction(Units.TERRAN_FACTORY)) {
-                            purchaseQueue.removeIf(purchase -> purchase instanceof PurchaseStructure &&
-                                        ((PurchaseStructure) purchase).getStructureType() == Units.TERRAN_FACTORY);
+                        if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0) {
                             purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                         }
 

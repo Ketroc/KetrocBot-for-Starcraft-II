@@ -27,7 +27,7 @@ public class ActionErrorManager {
             ActionResult actionResult = warning.getActionResult();
             if (UnitUtils.BUILD_ABILITIES.contains(ability) || ability == Abilities.LAND_COMMAND_CENTER) {
                 Units structureType = Bot.abilityToUnitType.get(ability);
-                StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get()); //TODO: warning.getUnitTag = scv unit.  <-- use this!!
+                StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get());
                 if (structureScv == null) {
                     System.out.println("structure not found at: " + Time.nowClock() + " for ability: " + ability);
                     continue;
@@ -37,12 +37,14 @@ public class ActionErrorManager {
                 System.out.println("Action Error at " + Time.nowClock() + ".  Structure: " + structureType);
                 System.out.println("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
 
+                //blocked by creep
                 if (isBlockedByCreep(actionResult)) {
                     if (ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) {
                         ExpansionClearing.add(pos);
                     }
                 }
                 else if (isBlockedByUnit(actionResult)) {
+                    //blocked by burrowed zerg unit
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, Bot.abilityToUnitType.get(ability)) == 0) {
                         ExpansionClearing.add(pos);

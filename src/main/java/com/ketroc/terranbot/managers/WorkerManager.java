@@ -431,6 +431,7 @@ public class WorkerManager {
                             .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, base.getCcPos())))
                             .limit(scvsNeeded)
                             .collect(Collectors.toList());
+                    scvsToMove.removeAll(scvsForThisBase);
                     Bot.ACTION.unitCommand(scvsForThisBase, Abilities.SMART, base.getRallyNode(), false);
                 }
             }

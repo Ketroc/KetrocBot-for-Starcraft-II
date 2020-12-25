@@ -60,6 +60,7 @@ public class BuildOrder {
                     if (Strategy.EXPAND_SLOWLY) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     }
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                 }
                 break;
             case PROTOSS:

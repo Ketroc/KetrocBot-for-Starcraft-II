@@ -397,7 +397,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
     @Override
     public boolean canAfford() {
-        return GameCache.mineralBank >= cost.minerals && GameCache.gasBank >= cost.gas;
+        return GameCache.mineralBank >= cost.minerals && (cost.gas == 0 || GameCache.gasBank >= cost.gas);
     }
 
     @Override
