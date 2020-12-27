@@ -365,18 +365,17 @@ public class WorkerManager {
                 Unit cc = base.getCc().unit();
 
                 //get available scvs at this base
-                List<UnitInPool> availableScvs = getAvailableMineralScvs(base.getCcPos(), 10);
+                List<UnitInPool> baseMineralScvs = getAvailableMineralScvs(base.getCcPos(), 10);
 
                 //saturate refineries
-                int numScvsMovingToGas = 0;
                 for (Gas gas : base.getGases()) {
                     if (gas.getRefinery() != null) {
                         Unit refinery = gas.getRefinery();
-                        for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), scvsPerGas) && !availableScvs.isEmpty(); i++) {
-                            UnitInPool closestUnit = UnitUtils.getClosestUnit(availableScvs, refinery);
+                        for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), scvsPerGas) && !baseMineralScvs.isEmpty(); i++) {
+                            UnitInPool closestUnit = UnitUtils.getClosestUnit(baseMineralScvs, refinery);
                             Bot.ACTION.unitCommand(closestUnit.unit(), Abilities.SMART, refinery, false);
-                            availableScvs.remove(closestUnit);
-                            numScvsMovingToGas++;
+                            baseMineralScvs.remove(closestUnit);
+                            base.scvsAddedThisFrame--;
                         }
                         if (refinery.getAssignedHarvesters().get() > scvsPerGas) {
                              List<UnitInPool> availableGasScvs = Bot.OBS.getUnits(Alliance.SELF, u -> {
@@ -394,17 +393,15 @@ public class WorkerManager {
                 }
 
                 //add extra scvs to list
-                int numRepairingScvs = (int)UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, base.getCcPos(), 10).stream()
-                        .filter(scv -> UnitUtils.getOrder(scv.unit()) == Abilities.EFFECT_REPAIR)
-                        .count();
-                base.setExtraScvs(cc.getAssignedHarvesters().get() + numRepairingScvs - numScvsMovingToGas - cc.getIdealHarvesters().get());
-                for (int i = 0; i < base.getExtraScvs() && i < availableScvs.size(); i++) {
-                    scvsToMove.add(availableScvs.get(i).unit());
+                int numExtraScvs = base.numScvsNeeded() * -1;
+                if (numExtraScvs > 0) {
+                    List<UnitInPool> extraScvsList = baseMineralScvs.subList(0, Math.min(baseMineralScvs.size(), numExtraScvs));
+                    scvsToMove.addAll(UnitUtils.toUnitList(extraScvsList));
                 }
             }
-        } //end loop through bases
+        }
 
-        // add all idle workers to top of same list
+        //add all idle workers to top of same list
         if (Bot.OBS.getIdleWorkerCount() > 0) {
             List<Unit> idleScvs = UnitUtils.toUnitList(
                     Bot.OBS.getUnits(Alliance.SELF, scv ->
@@ -414,28 +411,19 @@ public class WorkerManager {
             scvsToMove.addAll(0, idleScvs);
         }
 
-        //send extra scvs to undersaturated bases
-        //create list of unsaturated bases
-
-        for (Base base : GameCache.baseList) {
-            if (base.isMyBase() && base.isComplete(0.9f)) {
-                if (scvsToMove.isEmpty()) {
-                    break;
-                }
-                if (base.getMineralPatches().isEmpty()) {
-                    continue;
-                }
-                int scvsNeeded = base.getExtraScvs() * -1;
-                if (scvsNeeded > 0) {
-                    List<Unit> scvsForThisBase = scvsToMove.stream()
-                            .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, base.getCcPos())))
-                            .limit(scvsNeeded)
-                            .collect(Collectors.toList());
-                    scvsToMove.removeAll(scvsForThisBase);
-                    Bot.ACTION.unitCommand(scvsForThisBase, Abilities.SMART, base.getRallyNode(), false);
-                }
+        //send extra scvs to closest undersaturated base
+        for (Unit scv : scvsToMove) {
+            Base closestBase = GameCache.baseList.stream()
+                    .filter(base -> base.isMyBase() && base.numScvsNeeded() > 0)
+                    .min(Comparator.comparing(base -> UnitUtils.getDistance(scv, base.getRallyNode())))
+                    .orElse(null);
+            if (closestBase == null) { //all minerals saturated at all bases
+                break;
             }
+            closestBase.addMineralScv(scv);
         }
+
+        //TODO: cap gas income since minerals are saturated?? (will this cause too much scv travelling in subsequent frames?)
 
         //put any leftover idle scvs to work
         scvsToMove.removeIf(scv -> !scv.getOrders().isEmpty());

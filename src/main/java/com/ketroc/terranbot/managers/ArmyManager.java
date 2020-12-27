@@ -418,11 +418,7 @@ public class ArmyManager {
     }
 
     private static void manageRepairBay() {
-        int numInjured = Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
-            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
-                    UnitUtils.getHealthPercentage(u.unit()) < 100 &&
-                    UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) < 5;
-        }).size();
+        int numInjured = getNumRepairBayUnits();
         if (numInjured > 0) {
             int numRepairingScvs = getNumRepairingScvs();
             DebugHelper.addInfoLine("numRepairingScvs: " + numRepairingScvs);
@@ -434,6 +430,14 @@ public class ArmyManager {
                 });
             }
         }
+    }
+
+    public static int getNumRepairBayUnits() {
+        return Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
+            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
+                    UnitUtils.getHealthPercentage(u.unit()) < 100 &&
+                    UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) < 2.5;
+        }).size();
     }
 
     private static int getNumRepairingScvs() {

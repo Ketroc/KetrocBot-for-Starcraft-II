@@ -28,7 +28,6 @@ public class Base {
     private List<Gas> gases = new ArrayList<>();
     private List<Unit> mineralPatches = new ArrayList<>();
     private Unit rallyNode; //mineral node this cc is rallied to
-    private int extraScvs;
     private Point2d resourceMidPoint = null;
     private List<DefenseUnitPositions> turrets = new ArrayList<>();
     private List<DefenseUnitPositions> liberators = new ArrayList<>();
@@ -37,6 +36,7 @@ public class Base {
     private boolean continueUnsieging;
     private boolean onMyBaseDeath;
     public long prevMuleSpamFrame;
+    public int scvsAddedThisFrame;
 
     // ============= CONSTRUCTORS ============
 
@@ -123,14 +123,6 @@ public class Base {
         return turrets;
     }
 
-    public int getExtraScvs() {
-        return extraScvs;
-    }
-
-    public void setExtraScvs(int extraScvs) {
-        this.extraScvs = extraScvs;
-    }
-
     public boolean isDryedUp() {
         return isDryedUp;
     }
@@ -172,6 +164,21 @@ public class Base {
 
     public void setTanks(List<DefenseUnitPositions> tanks) {
         this.tanks = tanks;
+    }
+
+    public int numScvsNeeded() {
+        if (cc == null) {
+            return 0;
+        }
+        int numRepairingScvs = (int)UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, ccPos, 10).stream()
+                .filter(scv -> UnitUtils.getOrder(scv.unit()) == Abilities.EFFECT_REPAIR)
+                .count();
+        return cc.unit().getIdealHarvesters().get() - (cc.unit().getAssignedHarvesters().get() + numRepairingScvs + scvsAddedThisFrame);
+    }
+
+    public void addMineralScv(Unit scv) {
+        scvsAddedThisFrame++;
+        Bot.ACTION.unitCommand(scv, Abilities.SMART, rallyNode, false);
     }
 
 

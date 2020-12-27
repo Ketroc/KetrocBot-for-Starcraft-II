@@ -347,6 +347,7 @@ public class GameCache {
                 continue;
             }
             base.lastScoutedFrame = Time.nowFrames();
+            base.scvsAddedThisFrame = 0;
 
             //update cc
             base.setCc(base.getUpdatedUnit(Units.TERRAN_PLANETARY_FORTRESS, base.getCc(), base.getCcPos()));
@@ -733,8 +734,8 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointThreatToAirValue[x][y] > 0) {
-                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToAirValue[x][y]), x/2f, y/2f, Color.RED);
+                    if (InfluenceMaps.pointThreatToGround[x][y]) {
+                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToGroundValue[x][y]), x/2f, y/2f, Color.RED);
 //                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
                     }
 //                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {

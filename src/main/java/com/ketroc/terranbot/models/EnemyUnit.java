@@ -52,8 +52,6 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(Unit enemy) {
-        float kitingBuffer = getKitingBuffer(enemy);
-
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
         supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
@@ -73,6 +71,8 @@ public class EnemyUnit {
             airAttackRange = UnitUtils.getAirAttackRange(enemy);
             groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
         }
+
+        float kitingBuffer = getKitingBuffer(enemy);
         if (groundAttackRange != 0) {
             groundAttackRange += kitingBuffer;
         }
@@ -138,7 +138,7 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        return (!UnitUtils.canMove(enemy.getType())) ? 1.2f : Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy.getType()) || (groundAttackRange > 0 && groundAttackRange < 2)) ? 1.2f : Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {
@@ -181,6 +181,24 @@ public class EnemyUnit {
 
     public static byte getThreatValue(Units unitType) {
         switch (unitType) {
+            case TERRAN_HELLION:
+                return 2;
+            case TERRAN_HELLION_TANK:
+                return 3;
+            case TERRAN_MARAUDER:
+                return 3;
+            case TERRAN_SIEGE_TANK:
+                return 4;
+            case TERRAN_SIEGE_TANK_SIEGED:
+                return 4;
+            case TERRAN_BANSHEE:
+                return 3;
+            case TERRAN_PLANETARY_FORTRESS:
+                return 6;
+            case TERRAN_VIKING_ASSAULT:
+                return 3;
+            case TERRAN_KD8CHARGE:
+                return 1;
             case TERRAN_MARINE:
                 return 2;
             case TERRAN_MISSILE_TURRET:
@@ -209,6 +227,20 @@ public class EnemyUnit {
                 return 2;
             case PROTOSS_HIGH_TEMPLAR:
                 return 2;
+            case PROTOSS_ZEALOT:
+                return 3;
+            case PROTOSS_ADEPT:
+                return 3;
+            case PROTOSS_DARK_TEMPLAR:
+                return 5;
+            case PROTOSS_IMMORTAL:
+                return 6;
+            case PROTOSS_COLOSSUS:
+                return 4;
+            case PROTOSS_DISRUPTOR_PHASED:
+                return 30;
+            case PROTOSS_ORACLE:
+                return 3;
             case PROTOSS_PHOENIX:
                 return 5;
             case PROTOSS_ARCHON:
@@ -225,6 +257,28 @@ public class EnemyUnit {
                 return 2; //should be 4, but this is a hack to ignore tempests when only 1 of them
             case PROTOSS_PHOTON_CANNON:
                 return 5;
+            case ZERG_ZERGLING:
+                return 1;
+            case ZERG_ROACH:
+                return 2;
+            case ZERG_INFESTOR_TERRAN:
+                return 2;
+            case ZERG_BANELING:
+                return 6;
+            case ZERG_ULTRALISK:
+                return 8;
+            case ZERG_LOCUS_TMP:
+                return 3;
+            case ZERG_RAVAGER:
+                return 3;
+            case ZERG_BROODLING:
+                return 1;
+            case ZERG_BROODLORD:
+                return 3;
+            case ZERG_SPINE_CRAWLER:
+                return 4;
+            case ZERG_LURKER_MP_BURROWED:
+                return 4;
             case ZERG_HYDRALISK:
                 return 3;
             case ZERG_QUEEN:

@@ -435,7 +435,7 @@ public class BuildManager {
             return;
         }
         //loop through bases looking for a dying cc
-        for (Base base : GameCache.baseList) { //TODO: switch to new base list
+        for (Base base : GameCache.baseList) {
             if (!base.isMyBase()) {
                 continue;
             }

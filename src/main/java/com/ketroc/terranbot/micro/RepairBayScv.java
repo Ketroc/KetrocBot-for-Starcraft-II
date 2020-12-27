@@ -7,9 +7,12 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
+
+import java.util.List;
 
 public class RepairBayScv extends BasicUnitMicro {
     public RepairBayScv(UnitInPool scv) {
@@ -17,10 +20,15 @@ public class RepairBayScv extends BasicUnitMicro {
     }
 
     @Override
-    public void onArrival() {
+    public void onArrival() { //TODO: handle scvs that run out of repair bay to repair a unit (get rid of auto-repair?)
         Abilities order = UnitUtils.getOrder(unit.unit());
         if (order == Abilities.MOVE || order == Abilities.HARVEST_GATHER || order == Abilities.HARVEST_RETURN) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
+            if (ArmyManager.getNumRepairBayUnits() == 0) {
+                removeMe = true;
+            }
+            else {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
+            }
         }
         else if (order != Abilities.ATTACK && order != Abilities.EFFECT_REPAIR) {
             removeMe = true;

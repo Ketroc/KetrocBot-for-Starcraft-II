@@ -39,7 +39,7 @@ public class Strategy {
 
     public static boolean DO_INCLUDE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
-    public static final int MAX_TANKS = 10;
+    public static int MAX_TANKS = 10;
 
     public static boolean DO_INCLUDE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
@@ -51,7 +51,7 @@ public class Strategy {
     public static final float DISTANCE_RAISE_DEPOT = 9;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
-    public static final float KITING_BUFFER = 2.5f;
+    public static final float KITING_BUFFER = 2.4f;
     public static int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
@@ -74,7 +74,7 @@ public class Strategy {
     public static boolean MASS_RAVENS;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
-    public static boolean BUILD_EXPANDS_IN_MAIN = true; //TODO make false
+    public static boolean BUILD_EXPANDS_IN_MAIN;
     public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
     public static boolean DO_ANTIDROP_TURRETS;
@@ -536,12 +536,13 @@ public class Strategy {
                 DO_DIVE_RAVENS = false;
                 DO_INCLUDE_LIBS = false;
                 DO_INCLUDE_TANKS = true;
+                MAX_TANKS = 1;
                 break;
         }
     }
 
     private static void setReaperBlockWall() {
-        if (LocationConstants.opponentRace == Race.TERRAN && !EXPAND_SLOWLY) {
+        if (LocationConstants.opponentRace == Race.TERRAN) {
             LocationConstants.extraDepots.addAll(0, LocationConstants.reaperBlockDepots);
             LocationConstants._3x3Structures.addAll(0, LocationConstants.reaperBlock3x3s);
 
