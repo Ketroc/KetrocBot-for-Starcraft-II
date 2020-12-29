@@ -118,51 +118,72 @@ public class WorkerManager {
 
     private static void repairLogic() {  //TODO: don't repair wall if ranged units on other side
         //loop through units.  look for unmaxed health.  decide numscvs to repair
-        List<Unit> unitsToRepair = new ArrayList<>(GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_PLANETARY_FORTRESS, new ArrayList<>()));
+        List<Unit> unitsToRepair = new ArrayList<>(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS));
         unitsToRepair.addAll(GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, Collections.emptyList()));
         unitsToRepair.addAll(GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_BUNKER, Collections.emptyList()));
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
             unitsToRepair.addAll(GameCache.liberatorList);
         }
-        unitsToRepair.addAll(GameCache.siegeTankList);
+        unitsToRepair.addAll(GameCache.siegeTankList); //TODO: include siege tanks in motion??
         unitsToRepair.addAll(GameCache.wallStructures);
         unitsToRepair.addAll(GameCache.burningStructures);
         for (Unit unit : unitsToRepair) {
-            int structureHealth = UnitUtils.getHealthPercentage(unit);
-            if (structureHealth < 100) {
-                int numScvsToAdd = UnitUtils.getIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
-                if (numScvsToAdd > 0) {
-                    List<Unit> availableScvs;
-                    if (numScvsToAdd > 9999) {
-                        availableScvs = getAllScvUnits(unit.getPosition().toPoint2d()); //TODO: FIX: this will include already repairing scvs, and constructing scvs
+            int numScvsToAdd = UnitUtils.getIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
+            if (numScvsToAdd <= 0) { //skip if no additional scvs required
+                break;
+            }
+            List<Unit> scvsForRepair = getScvsForRepairing(unit, numScvsToAdd);
+            if (!scvsForRepair.isEmpty()) {
+                System.out.println("sending " + scvsForRepair.size() + " scvs to repair.");
+                //line up scvs behind PF before giving repair command
+                if (UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).contains(unit)) {
+                    Base pfBase = Base.getBase(unit);
+                    if (pfBase != null && scvNotBehindPF(unit, pfBase)) {
+                        Bot.ACTION.unitCommand(scvsForRepair, Abilities.MOVE, pfBase.getResourceMidPoint(), false)
+                                .unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, true);
                     }
                     else {
-                        //only choose scvs inside the wall within 20 distance
-                        if (GameCache.wallStructures.contains(unit) && !isRangedEnemyNearby()) {
-                            availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
-                                return u.unit().getType() == Units.TERRAN_SCV &&
-                                        Math.round(u.unit().getPosition().getZ()) == Math.round(unit.getPosition().getZ()) && //inside the wall (round cuz z-coordinate isn't ever exactly the same at same level)
-                                        u.unit().getPosition().distance(unit.getPosition()) < 30 &&
-                                        (u.unit().getOrders().isEmpty() || (u.unit().getOrders().size() == 1 && u.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(u)));
-                            }));
-                        }
+                        Bot.ACTION.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                    }
+                }
+                else {
+                    Bot.ACTION.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                }
+            }
+        }
+    }
+
+    private static boolean scvNotBehindPF(Unit unit, Base pfBase) {
+        return UnitUtils.getDistance(unit, pfBase.getCcPos()) + 1 < UnitUtils.getDistance(unit, pfBase.getResourceMidPoint());
+    }
+
+    private static List<Unit> getScvsForRepairing(Unit unit, int numScvsToAdd) {
+        List<Unit> availableScvs;
+        if (numScvsToAdd > 9999) {
+            availableScvs = getAllScvUnits(unit.getPosition().toPoint2d()).stream()
+                    .filter(scv -> UnitUtils.isScvRepairing(scv))
+                    .collect(Collectors.toList());
+        }
+        else {
+            //only choose scvs inside the wall within 20 distance
+            if (GameCache.wallStructures.contains(unit) && !isRangedEnemyNearby()) {
+                availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
+                    return u.unit().getType() == Units.TERRAN_SCV &&
+                            Math.round(u.unit().getPosition().getZ()) == Math.round(unit.getPosition().getZ()) && //inside the wall (round cuz z-coordinate isn't ever exactly the same at same level)
+                            u.unit().getPosition().distance(unit.getPosition()) < 30 &&
+                            (u.unit().getOrders().isEmpty() || (u.unit().getOrders().size() == 1 && u.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(u)));
+                }));
+            }
 //                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
 //                            //only send if safe
 //                            //TODO: make threat to ground gridmap to check against (replace above if statement for wall structures)
 //                        }
-
-                        else {
-                            availableScvs = getAvailableScvUnits(unit.getPosition().toPoint2d());
-                        }
-                        availableScvs = availableScvs.subList(0, Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)));
-                    }
-                    if (!availableScvs.isEmpty()) {
-                        System.out.println("sending " + availableScvs.size() + " scvs to repair.");
-                        Bot.ACTION.unitCommand(availableScvs, Abilities.EFFECT_REPAIR_SCV, unit, false);
-                    }
-                }
+            else {
+                availableScvs = getAvailableScvUnits(unit.getPosition().toPoint2d());
             }
+            availableScvs = availableScvs.subList(0, Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)));
         }
+        return availableScvs;
     }
 
     private static boolean isRangedEnemyNearby() {

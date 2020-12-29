@@ -251,7 +251,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
             }
         }
-        return PurchaseResult.CANCEL;
+        return PurchaseResult.WAITING;
     }
 
 

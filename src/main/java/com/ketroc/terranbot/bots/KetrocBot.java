@@ -83,8 +83,8 @@ public class KetrocBot extends Bot {
             BunkerContain.onGameStart();
 
             Strategy.printStrategySettings();
-            DEBUG.sendDebug();
 
+            DEBUG.sendDebug();
             Bot.ACTION.sendActions();
         }
         catch (Exception e) {

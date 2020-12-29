@@ -233,8 +233,9 @@ public class UnitUtils {
 
     public static int numRepairingScvs(Unit repairTarget) {
         return (int)getFriendlyUnitsOfType(Units.TERRAN_SCV).stream()
-                .filter(scv -> UnitUtils.getOrder(scv) == Abilities.EFFECT_REPAIR &&
-                        scv.getOrders().get(0).getTargetedUnitTag().orElse(Tag.of(0L)).equals(repairTarget.getTag()))
+                .filter(scv -> scv.getOrders().stream()
+                        .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
+                                order.getTargetedUnitTag().orElse(Tag.of(0L)).equals(repairTarget.getTag())))
                 .count();
     }
 
@@ -243,11 +244,13 @@ public class UnitUtils {
     }
 
     public static int getIdealScvsToRepair(Unit unit) {
-        int pfHealthPercentage;
+        int structureHealth = getHealthPercentage(unit);
+        if (structureHealth == 100) {
+            return 0;
+        }
 
         if (GameCache.wallStructures.contains(unit)) {
-            pfHealthPercentage = getHealthPercentage(unit);
-            if (pfHealthPercentage > 75) {
+            if (structureHealth > 75) {
                 return 1;
             }
             else  {
@@ -256,11 +259,13 @@ public class UnitUtils {
         }
         switch ((Units)unit.getType()) {
             case TERRAN_PLANETARY_FORTRESS:
-                pfHealthPercentage = getHealthPercentage(unit);
-                if (pfHealthPercentage > 95) {
+                if (structureHealth > 95) {
+                    return 1;
+                }
+                else if (structureHealth > 90) {
                     return 5;
                 }
-                else if (pfHealthPercentage > 70) {
+                else if (structureHealth > 70) {
                     return 10;
                 }
                 else {
@@ -629,6 +634,11 @@ public class UnitUtils {
         return unitList.stream()
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), targetPos)))
                 .orElse(null);
+    }
+
+    public static boolean isScvRepairing(Unit scv) {
+        return scv.getOrders().stream()
+                .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.EFFECT_REPAIR);
     }
 
 }

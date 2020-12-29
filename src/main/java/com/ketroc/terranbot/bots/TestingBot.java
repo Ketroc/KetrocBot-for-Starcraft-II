@@ -74,8 +74,8 @@ public class TestingBot extends Bot {
         LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
         DebugHelper.onGameStart();
-        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-        debug().debugGiveAllTech();
+//        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
+//        debug().debugGiveAllTech();
 //        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(1), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED, , myId, 1);
@@ -125,14 +125,25 @@ public class TestingBot extends Bot {
         super.onStep();
         Point2d nearPos = Position.towards(LocationConstants.baseLocations.get(0), LocationConstants.baseLocations.get(1), 5);
         List<UnitInPool> units = Bot.OBS.getUnits(Alliance.ENEMY);
+        List<UnitInPool> interceptors = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.PROTOSS_INTERCEPTOR);
+        if (!interceptors.isEmpty()) {
+            Bot.ACTION.unitCommand(UnitUtils.toUnitList(interceptors), Abilities.ATTACK,
+                    LocationConstants.baseLocations.get(8), false);
+        }
+
         if (Time.nowFrames() == 10) {
-            debug().debugCreateUnit(Units.PROTOSS_OBSERVER, nearPos, myId, 1);
+            debug().debugCreateUnit(Units.PROTOSS_CARRIER, nearPos, myId, 1);
+            debug().debugCreateUnit(Units.TERRAN_BATTLECRUISER, nearPos, myId, 1);
 //            debug().debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, nearPos, enemyId, 1);
 //            debug().debugCreateUnit(Units.PROTOSS_DARK_TEMPLAR, nearPos, enemyId, 1);
             debug().debugCreateUnit(Units.ZERG_ZERGLING, nearPos, enemyId, 1);
         }
-        if (Time.nowFrames() == 120) {
-
+        if (Time.nowFrames() == 190) {
+            Unit carrier = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.PROTOSS_CARRIER)
+                    .get(0).unit();
+            Unit bc = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BATTLECRUISER)
+                    .get(0).unit();
+            Bot.ACTION.unitCommand(carrier, Abilities.ATTACK, bc, false);
         }
         if (Time.nowFrames() == 450) {
 

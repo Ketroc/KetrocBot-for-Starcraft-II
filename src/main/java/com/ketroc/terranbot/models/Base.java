@@ -411,6 +411,15 @@ public class Base {
         }
     }
 
+    public boolean isReadyForMining() {
+        return isMyBase() &&
+                cc != null &&
+                cc.unit().getBuildProgress() == 1 &&
+                cc.unit().getType() != Units.TERRAN_COMMAND_CENTER_FLYING &&
+                UnitUtils.getDistance(cc.unit(), ccPos) < 1;
+    }
+
+
     // ======= STATIC METHODS ========
 
     public static float getLibDistanceFromCC() {
@@ -442,11 +451,11 @@ public class Base {
         return (int) GameCache.baseList.stream().filter(base -> base.isMyBase()).count();
     }
 
-    public boolean isReadyForMining() {
-        return isMyBase() &&
-                cc != null &&
-                cc.unit().getBuildProgress() == 1 &&
-                cc.unit().getType() != Units.TERRAN_COMMAND_CENTER_FLYING &&
-                UnitUtils.getDistance(cc.unit(), ccPos) < 1;
+    public static Base getBase(Unit cc) {
+        return GameCache.baseList.stream()
+                .filter(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 1)
+                .findFirst()
+                .orElse(null);
     }
+
 }
