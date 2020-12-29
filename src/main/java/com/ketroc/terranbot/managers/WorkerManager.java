@@ -245,7 +245,9 @@ public class WorkerManager {
 //                (LocationConstants.opponentRace == Race.TERRAN && GameCache.ccList.size() < 2)) {
 //            return;
 //        }
-        if (Time.nowFrames() < Time.toFrames("5:00") && UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, false) == 0) {
+        //don't make 3rd+ refinery until factory and PF are started
+        if (Time.nowFrames() < Time.toFrames("5:00") &&
+                (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
             return;
         }
 
@@ -265,6 +267,13 @@ public class WorkerManager {
                 }
             }
         }
+    }
+
+    private static boolean pfAtNatural() {
+        Base natBase = GameCache.baseList.get(1);
+        return natBase.isMyBase() &&
+                (natBase.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
+                        UnitUtils.getOrder(natBase.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS);
     }
 
     public static List<Unit> getAvailableScvUnits(Point2d targetPosition) {

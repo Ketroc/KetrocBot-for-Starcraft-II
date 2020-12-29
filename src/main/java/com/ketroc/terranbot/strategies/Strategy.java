@@ -114,7 +114,7 @@ public class Strategy {
                 chooseTvZStrategy();
                 break;
         }
-        applyOpponentSpecificTweaks();
+        //applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
     }
@@ -170,7 +170,6 @@ public class Strategy {
             case "aedf9a1bd8f862b": //RStrelok (LM)
                 DO_LEAVE_UP_BUNKER = true;
                 BUILD_EXPANDS_IN_MAIN = true;
-                DO_INCLUDE_TANKS = false;
                 DO_INCLUDE_LIBS = false;
                 DO_BANSHEE_HARASS = true;
                 DO_DIVE_RAVENS = false;
@@ -329,7 +328,7 @@ public class Strategy {
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
         DO_BANSHEE_HARASS = false;
-        EXPAND_SLOWLY = true;
+        //EXPAND_SLOWLY = true;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
         RETREAT_HEALTH = 50;
