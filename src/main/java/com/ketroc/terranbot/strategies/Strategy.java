@@ -39,7 +39,7 @@ public class Strategy {
 
     public static boolean DO_INCLUDE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
-    public static int MAX_TANKS = 10;
+    public static final int MAX_TANKS = 10;
 
     public static boolean DO_INCLUDE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
@@ -534,8 +534,7 @@ public class Strategy {
             case TERRAN:
                 DO_DIVE_RAVENS = false;
                 DO_INCLUDE_LIBS = false;
-                DO_INCLUDE_TANKS = true;
-                MAX_TANKS = 1;
+                DO_INCLUDE_TANKS = false;
                 break;
         }
     }
