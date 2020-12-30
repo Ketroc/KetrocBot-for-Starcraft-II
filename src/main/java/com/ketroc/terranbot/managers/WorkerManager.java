@@ -19,10 +19,7 @@ import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.Strategy;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -138,12 +135,15 @@ public class WorkerManager {
                 //line up scvs behind PF before giving repair command
                 if (UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).contains(unit)) {
                     Base pfBase = Base.getBase(unit);
-                    if (pfBase != null && scvNotBehindPF(unit, pfBase)) {
-                        Bot.ACTION.unitCommand(scvsForRepair, Abilities.MOVE, pfBase.getResourceMidPoint(), false)
-                                .unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, true);
-                    }
-                    else {
-                        Bot.ACTION.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                    Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5);
+                    for (Unit scv : scvsForRepair) {
+                        if (pfBase != null && scvNotBehindPF(scv, pfBase)) {
+                            Bot.ACTION.unitCommand(scv, Abilities.MOVE, behindPFPos, false)
+                                    .unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, true);
+                        }
+                        else {
+                            Bot.ACTION.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                        }
                     }
                 }
                 else {
