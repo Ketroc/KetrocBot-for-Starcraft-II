@@ -1348,7 +1348,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(67.5f, 54.5f));
             STARPORTS.add(Point2d.of(72.5f, 54.5f));
             STARPORTS.add(Point2d.of(65.5f, 57.5f));
-            STARPORTS.add(Point2d.of(60.5f, 66.5f));
             STARPORTS.add(Point2d.of(62.5f, 69.5f));
             STARPORTS.add(Point2d.of(67.5f, 69.5f));
             STARPORTS.add(Point2d.of(74.5f, 67.5f));

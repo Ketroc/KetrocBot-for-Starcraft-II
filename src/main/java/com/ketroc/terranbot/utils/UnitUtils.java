@@ -530,7 +530,11 @@ public class UnitUtils {
         boolean b = Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() + 2.5f, expansionPos.getY() + 2.5f)) ||
                 Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY() - 2.5f)) ||
                 Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() + 2.5f, expansionPos.getY() - 2.5f)) ||
-                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY() + 2.5f));
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY() + 2.5f)) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() + 2.5f, expansionPos.getY())) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX() - 2.5f, expansionPos.getY())) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX(), expansionPos.getY() + 2.5f)) ||
+                Bot.OBS.hasCreep(Point2d.of(expansionPos.getX(), expansionPos.getY() - 2.5f));
         return b;
     }
 
@@ -544,8 +548,7 @@ public class UnitUtils {
                 !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getHallucination().orElse(false) &&
                 !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                enemy.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED);
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
     }
 
     public static Abilities getOrder(Unit unit) {
@@ -641,4 +644,7 @@ public class UnitUtils {
                 .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.EFFECT_REPAIR);
     }
 
+    public static float getUnitSpeed(Units unitType) {
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f);
+    }
 }

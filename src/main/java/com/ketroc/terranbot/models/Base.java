@@ -10,6 +10,8 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.BasicUnitMicro;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.LocationConstants;
@@ -396,16 +398,10 @@ public class Base {
         }
     }
 
-    //make this bases tanks unsiege and idle so they can be picked up for a new base TODO: time delay this
     private void freeUpTanks() {
         for (DefenseUnitPositions tankPos : getTanks()) {
             if (tankPos.getUnit() != null) {
-                Unit tank = tankPos.getUnit().unit();
-                if (tank.getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-                    Bot.ACTION.unitCommand(tank, Abilities.MORPH_UNSIEGE, false);
-                } else {
-                    Bot.ACTION.unitCommand(tank, Abilities.STOP, false);
-                }
+                UnitMicroList.remove(tankPos.getUnit().getTag());
                 tankPos.setUnit(null);
             }
         }

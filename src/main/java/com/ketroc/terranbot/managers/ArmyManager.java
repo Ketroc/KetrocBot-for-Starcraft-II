@@ -748,38 +748,31 @@ public class ArmyManager {
     }
 
     private static void positionTanks() { //positions only 1 tank per game loop
-        //TODO: unsiege tanks on base.onEnemyBaseLost
-
-        Unit idleTank = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK).stream()
-                .filter(unit -> unit.getOrders().isEmpty())
-                .findFirst().orElse(null);
-
-
-        if (idleTank != null) {
-            boolean isTankPlaced = false;
+        if (!GameCache.siegeTankList.isEmpty()) {
+            Unit idleTank = GameCache.siegeTankList.get(0);
 
             //send available tank to siege an expansion
-            List<Base> allButEnemyStarterBases = GameCache.baseList.subList(0, GameCache.baseList.size()-BuildManager.getNumEnemyBasesIgnored());
-            outer: for (Base base : allButEnemyStarterBases) {
+            for (Base base : GameCache.baseList) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-                            UnitMicroList.add(new TankDefender(tankPos.getUnit(), tankPos.getPos()));
-                            isTankPlaced = true;
-                            break outer;
+                            UnitMicroList.add(new TankAtPf(tankPos.getUnit(), tankPos.getPos()));
+                            return;
                         }
                     }
                 }
             }
 
-            //if nowhere to send tank and no expansions available, a-move tank to its death
-            if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
-                GameCache.baseList.stream()
-                        .filter(base -> base.isEnemyBase)
-                        .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
-                Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
-            }
+            UnitMicroList.add(new TankOffense(Bot.OBS.getUnit(idleTank.getTag()), ArmyManager.attackGroundPos));
+
+//            //if nowhere to send tank and no expansions available, a-move tank to its death
+//            if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
+//                GameCache.baseList.stream()
+//                        .filter(base -> base.isEnemyBase)
+//                        .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
+//                Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
+//            }
         }
     }
 

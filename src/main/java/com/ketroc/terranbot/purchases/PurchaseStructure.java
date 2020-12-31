@@ -191,7 +191,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             //if structure blocks location
             if ((!Bot.OBS.getUnits(u -> UnitUtils.getDistance(u.unit(), position) < UnitUtils.getStructureRadius(structureType) &&
                     !UnitUtils.canMove(u.unit().getType())).isEmpty()) ||
-                    Bot.OBS.hasCreep(position)) {
+                    UnitUtils.isExpansionCreepBlocked(position)) {
                 makePositionAvailableAgain(position);
                 return PurchaseResult.CANCEL;
             }

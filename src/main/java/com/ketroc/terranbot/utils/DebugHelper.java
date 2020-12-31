@@ -78,7 +78,6 @@ public class DebugHelper {
     public static void boxUnit(Unit unit) {
         if (Bot.isDebugOn) {
             draw3dBox(unit.getPosition().toPoint2d(), Color.GREEN, 0.5f);
-            Bot.DEBUG.sendDebug();
         }
     }
 }
