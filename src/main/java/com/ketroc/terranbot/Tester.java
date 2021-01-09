@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.Position;
+import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.*;
@@ -235,7 +236,7 @@ public class Tester {
                 if (Bot.QUERY.placement(Abilities.BUILD_NEXUS, attemptPos)) {
                     expansionLocations.add(attemptPos);
                     DebugHelper.drawBox(attemptPos, Color.GREEN, 2.5f);
-                    System.out.println("query count for this base is " + queryCount);
+                    Print.print("query count for this base is " + queryCount);
                     return queryCount;
                 }
             }

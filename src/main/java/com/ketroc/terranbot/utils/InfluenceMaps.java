@@ -19,7 +19,7 @@ public class InfluenceMaps {
     public static float[][] pointSupplyInSeekerRange;
     public static int[][] pointThreatToGroundValue;
     public static boolean[][] pointThreatToGround;
-    public static int[][] pointPFTargetValue;
+    public static int[][] pointPFTargetValue; //1.5 splash radius range (PF is 1.25, tank is 1.5 ... +enemy radius and rounding effects)
     public static boolean[][] pointGroundUnitWithin13;
     public static boolean[][] pointRaiseDepots;
     public static boolean[][] pointVikingsStayBack;

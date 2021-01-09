@@ -13,9 +13,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.micro.ExpansionClearing;
-import com.ketroc.terranbot.micro.StructureFloater;
-import com.ketroc.terranbot.micro.UnitMicroList;
+import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
@@ -443,7 +441,7 @@ public class BuildManager {
 
             //if complete CC or incomplete PF, low health, and ground attacking enemy nearby
             if (cc.getType() == Units.TERRAN_COMMAND_CENTER && cc.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(cc) < Strategy.floatBaseAt
-                    && !Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.getDistance(u.unit(), cc) <= 10 && UnitUtils.doesAttackGround(u.unit())).isEmpty()) {
+                    && !Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.getDistance(u.unit(), cc) <= 10 && UnitUtils.canAttackGround(u.unit())).isEmpty()) {
                 if (cc.getOrders().isEmpty() && !LocationConstants.MACRO_OCS.isEmpty()) {
                     FlyingCC.addFlyingCC(cc, LocationConstants.MACRO_OCS.remove(0), true);
 
@@ -549,10 +547,22 @@ public class BuildManager {
                     //2 tanks per expansion base
                     int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true) +
                             Ignored.numOfType(UnitUtils.SIEGE_TANK_TYPE);
-                    if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
-                            UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                        Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                    //if tank needed for PF
+                    if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+                        UnitInPool tankOnOffense = UnitMicroList.unitMicroList.stream()
+                                .filter(u -> u instanceof TankOffense)
+                                .findFirst()
+                                .map(u -> u.unit)
+                                .orElse(null);
+                        //take an offensive tank
+                        if (tankOnOffense != null) {
+                            UnitMicroList.remove(tankOnOffense.getTag());
+                        }
+                        //build a new tank
+                        else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                            Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                            Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                        }
                     }
                 } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
@@ -672,7 +682,9 @@ public class BuildManager {
         }
 
         //get defensive liberators for each expansion up to 6
-        if (Strategy.DO_INCLUDE_LIBS && numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+        if (Strategy.DO_INCLUDE_LIBS &&
+                numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
+                !freeUpOffensiveLib()) {
             return Abilities.TRAIN_LIBERATOR;
         }
         //get 1 raven for observers
@@ -694,8 +706,22 @@ public class BuildManager {
         return Strategy.DEFAULT_STARPORT_UNIT;
     }
 
+    private static boolean freeUpOffensiveLib() {
+        UnitInPool libOnOffense = UnitMicroList.unitMicroList.stream()
+                .filter(u -> u instanceof LibOffense)
+                .findFirst()
+                .map(u -> u.unit)
+                .orElse(null);
+        //free up an offensive lib
+        if (libOnOffense != null) {
+            UnitMicroList.remove(libOnOffense.getTag());
+            return true;
+        }
+        return false;
+    }
+
     private static void buildCCLogic() {
-        if (GameCache.mineralBank > 400 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
+        if (GameCache.mineralBank > 500 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
                 (Base.numMyBases() < LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND ||
                         !LocationConstants.MACRO_OCS.isEmpty() ||
                         !Placement.possibleCcPosList.isEmpty())) {

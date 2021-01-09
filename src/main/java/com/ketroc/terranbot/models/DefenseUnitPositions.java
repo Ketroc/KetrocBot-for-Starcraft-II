@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import java.util.Optional;
 
 public class DefenseUnitPositions {
-    private Point2d pos;
+    private Point2d pos; //TODO: this doesn't handle lib range upgrade
     private UnitInPool unit;
 
     public DefenseUnitPositions(Point2d pos, UnitInPool unit) {

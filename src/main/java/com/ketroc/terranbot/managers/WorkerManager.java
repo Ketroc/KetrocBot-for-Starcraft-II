@@ -121,7 +121,9 @@ public class WorkerManager {
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
             unitsToRepair.addAll(GameCache.liberatorList);
         }
-        unitsToRepair.addAll(GameCache.siegeTankList); //TODO: include siege tanks in motion??
+        unitsToRepair.addAll(UnitUtils.toUnitList(
+                Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType()))
+        ));
         unitsToRepair.addAll(GameCache.wallStructures);
         unitsToRepair.addAll(GameCache.burningStructures);
         for (Unit unit : unitsToRepair) {
@@ -131,11 +133,13 @@ public class WorkerManager {
             }
             List<Unit> scvsForRepair = getScvsForRepairing(unit, numScvsToAdd);
             if (!scvsForRepair.isEmpty()) {
-                System.out.println("sending " + scvsForRepair.size() + " scvs to repair.");
+                Print.print("sending " + scvsForRepair.size() + " scvs to repair.");
                 //line up scvs behind PF before giving repair command
                 if (UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).contains(unit)) {
                     Base pfBase = Base.getBase(unit);
-                    Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5);
+                    Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
+                    DebugHelper.draw3dBox(behindPFPos, Color.PURPLE, 0.2f); //TODO: remove
+                    Bot.DEBUG.sendDebug(); //TODO: remove
                     for (Unit scv : scvsForRepair) {
                         if (pfBase != null && scvNotBehindPF(scv, pfBase)) {
                             Bot.ACTION.unitCommand(scv, Abilities.MOVE, behindPFPos, false)
@@ -157,31 +161,35 @@ public class WorkerManager {
         return UnitUtils.getDistance(unit, pfBase.getCcPos()) + 1 < UnitUtils.getDistance(unit, pfBase.getResourceMidPoint());
     }
 
-    private static List<Unit> getScvsForRepairing(Unit unit, int numScvsToAdd) {
+    private static List<Unit> getScvsForRepairing(Unit unitToRepair, int numScvsToAdd) {
         List<Unit> availableScvs;
         if (numScvsToAdd > 9999) {
-            availableScvs = getAllScvUnits(unit.getPosition().toPoint2d()).stream()
-                    .filter(scv -> UnitUtils.isScvRepairing(scv))
+            availableScvs = getAllScvUnits(unitToRepair.getPosition().toPoint2d()).stream()
+                    .filter(scv -> !UnitUtils.isScvRepairing(scv))
                     .collect(Collectors.toList());
         }
         else {
             //only choose scvs inside the wall within 20 distance
-            if (GameCache.wallStructures.contains(unit) && !isRangedEnemyNearby()) {
-                availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u -> {
-                    return u.unit().getType() == Units.TERRAN_SCV &&
-                            Math.round(u.unit().getPosition().getZ()) == Math.round(unit.getPosition().getZ()) && //inside the wall (round cuz z-coordinate isn't ever exactly the same at same level)
-                            u.unit().getPosition().distance(unit.getPosition()) < 30 &&
-                            (u.unit().getOrders().isEmpty() || (u.unit().getOrders().size() == 1 && u.unit().getOrders().get(0).getAbility() == Abilities.HARVEST_GATHER && isMiningMinerals(u)));
-                }));
+            if (GameCache.wallStructures.contains(unitToRepair) && !isRangedEnemyNearby()) {
+                availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u ->
+                        u.unit().getType() == Units.TERRAN_SCV &&
+                                Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
+                                UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
+                                (u.unit().getOrders().isEmpty() || isMiningMinerals(u))));
             }
 //                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
 //                            //only send if safe
 //                            //TODO: make threat to ground gridmap to check against (replace above if statement for wall structures)
 //                        }
             else {
-                availableScvs = getAvailableScvUnits(unit.getPosition().toPoint2d());
+                availableScvs = getAvailableScvUnits(unitToRepair.getPosition().toPoint2d());
             }
-            availableScvs = availableScvs.subList(0, Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)));
+
+            //sort by closest scvs then sublist
+            availableScvs = availableScvs.stream()
+                    .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, unitToRepair)))
+                    .limit(Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)))
+                    .collect(Collectors.toList());
         }
         return availableScvs;
     }
@@ -259,7 +267,7 @@ public class WorkerManager {
                         if (StructureScv.scvBuildingList.stream()
                                 .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getPosition()) < 1)) {
                             if (!Purchase.isStructureQueued(Units.TERRAN_REFINERY)) {
-                                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
+                                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                                 return;
                             }
                         }
@@ -273,7 +281,8 @@ public class WorkerManager {
         Base natBase = GameCache.baseList.get(1);
         return natBase.isMyBase() &&
                 (natBase.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
-                        UnitUtils.getOrder(natBase.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS);
+                        UnitUtils.getOrder(natBase.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS ||
+                        Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS));
     }
 
     public static List<Unit> getAvailableScvUnits(Point2d targetPosition) {

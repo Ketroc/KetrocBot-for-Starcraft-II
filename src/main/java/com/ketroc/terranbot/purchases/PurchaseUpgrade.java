@@ -6,6 +6,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -56,7 +57,7 @@ public class PurchaseUpgrade implements Purchase {
         }
         //if structure not producing unit/upgrade
         if (structure.unit().getOrders().isEmpty()) {
-            System.out.println("sending action " + this.upgrade + " at: " + Time.nowClock());
+            Print.print("sending action " + this.upgrade);
             Abilities upgradeAbility = (Abilities) Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
             switch (upgradeAbility) {
                 case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:

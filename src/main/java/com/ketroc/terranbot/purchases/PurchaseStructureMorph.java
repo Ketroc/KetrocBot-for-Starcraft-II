@@ -8,6 +8,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -29,7 +30,7 @@ public class PurchaseStructureMorph implements Purchase {
         this.morphOrAddOn = morphOrAddOn;
         this.structure = structure;
         setCost();
-        System.out.println("Added to queue: " + this.morphOrAddOn);
+        Print.print("Added to queue: " + this.morphOrAddOn);
     }
 
 
@@ -71,7 +72,7 @@ public class PurchaseStructureMorph implements Purchase {
 
         //if production under 40% and can afford if unit production is cancelled TODO: doesn't account for which cc
         if (shouldCancelPreviousOrder()) {
-            System.out.println("cancelled unit");
+            Print.print("cancelled unit");
             Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
             GameCache.mineralBank += 50;
             Cost.updateBank(cost);
@@ -86,8 +87,8 @@ public class PurchaseStructureMorph implements Purchase {
 
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
         if (structure.unit().getOrders().isEmpty()) {
-            System.out.println("start building " + this.morphOrAddOn.toString());
-            System.out.println("sending action " + this.morphOrAddOn + " at: " + Time.nowClock());
+            Print.print("start building " + this.morphOrAddOn.toString());
+            Print.print("sending action " + this.morphOrAddOn);
             Bot.ACTION.unitCommand(structure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
             return PurchaseResult.SUCCESS;

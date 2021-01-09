@@ -117,7 +117,7 @@ public class EnemyUnit {
         switch ((Effects)effect.getEffect()) {
             case SCANNER_SWEEP:
                 isDetector = true;
-                detectRange = 13f;
+                detectRange = 13f + kitingBuffer;
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
@@ -138,7 +138,7 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        return (!UnitUtils.canMove(enemy.getType()) || (groundAttackRange > 0 && groundAttackRange < 2)) ? 1.2f : Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ? 1.2f : Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {

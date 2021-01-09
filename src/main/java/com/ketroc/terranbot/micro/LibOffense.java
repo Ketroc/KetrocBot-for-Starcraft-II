@@ -1,21 +1,16 @@
 package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.utils.DebugHelper;
-import com.ketroc.terranbot.utils.UnitUtils;
 
-import java.util.function.Predicate;
+//TODO: complete (this is currently just a copy of TankOffense
+public class LibOffense extends Liberator {
 
-public class TankOffense extends Tank {
-
-    public TankOffense(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos);
+    public LibOffense(UnitInPool unit, Point2d targetPos) {
+        super(unit, targetPos, null);
     }
 
     @Override
@@ -23,21 +18,26 @@ public class TankOffense extends Tank {
         DebugHelper.boxUnit(unit.unit());
         targetPos = ArmyManager.attackGroundPos;
 
-        //no tank
+        //no liberator
         if (unit == null || !unit.isAlive()) {
             super.onStep();
             return;
         }
 
+        //if currently changing modes
+        if (isMorphing()) {
+            return;
+        }
+
         //unsiege
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
+        if (unit.unit().getType() == Units.TERRAN_LIBERATOR_AG) {
             if (unsiegeMicro()) {
                 return;
             }
         }
 
         //siege up
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe()) {
+        if (unit.unit().getType() == Units.TERRAN_LIBERATOR && isSafe()) {
             if (siegeUpMicro()) {
                 return;
             }

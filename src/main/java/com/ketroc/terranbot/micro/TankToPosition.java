@@ -11,9 +11,9 @@ import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.function.Predicate;
 
-public class TankAtPf extends Tank {
+public class TankToPosition extends Tank {
 
-    public TankAtPf(UnitInPool unit, Point2d targetPos) {
+    public TankToPosition(UnitInPool unit, Point2d targetPos) {
         super(unit, targetPos);
     }
 
@@ -29,12 +29,13 @@ public class TankAtPf extends Tank {
 
         //unsiege
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-            unsiegeMicro();
-            return;
+            if (unsiegeMicro()) {
+                return;
+            }
         }
 
         //siege up
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK) {
+        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe()) {
             if (siegeUpMicro()) {
                 return;
             }

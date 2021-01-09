@@ -2,8 +2,6 @@ package com.ketroc.terranbot.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
@@ -97,17 +95,18 @@ public class UnitUtils {
     public static final Set<Units> THOR_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
 
-    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>(Set.of(
-            Units.TERRAN_FUSION_CORE, Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED,
-            Units.TERRAN_ENGINEERING_BAY, Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND,
-            Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING,
-            Units.TERRAN_ARMORY, Units.TERRAN_MISSILE_TURRET, Units.TERRAN_BUNKER,
-            Units.TERRAN_GHOST_ACADEMY, Units.TERRAN_SENSOR_TOWER, Units.TERRAN_BARRACKS,
-            Units.TERRAN_BARRACKS_FLYING, Units.TERRAN_FACTORY, Units.TERRAN_FACTORY_FLYING,
-            Units.TERRAN_STARPORT, Units.TERRAN_STARPORT_FLYING, Units.TERRAN_REFINERY,
-            Units.TERRAN_REFINERY_RICH, Units.TERRAN_BARRACKS_TECHLAB, Units.TERRAN_FACTORY_TECHLAB,
-            Units.TERRAN_STARPORT_TECHLAB, Units.TERRAN_TECHLAB, Units.TERRAN_BARRACKS_REACTOR,
-            Units.TERRAN_FACTORY_REACTOR, Units.TERRAN_STARPORT_REACTOR, Units.TERRAN_REACTOR));
+//    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
+//    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>(Set.of(
+//            Units.TERRAN_FUSION_CORE, Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED,
+//            Units.TERRAN_ENGINEERING_BAY, Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND,
+//            Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING,
+//            Units.TERRAN_ARMORY, Units.TERRAN_MISSILE_TURRET, Units.TERRAN_BUNKER,
+//            Units.TERRAN_GHOST_ACADEMY, Units.TERRAN_SENSOR_TOWER, Units.TERRAN_BARRACKS,
+//            Units.TERRAN_BARRACKS_FLYING, Units.TERRAN_FACTORY, Units.TERRAN_FACTORY_FLYING,
+//            Units.TERRAN_STARPORT, Units.TERRAN_STARPORT_FLYING, Units.TERRAN_REFINERY,
+//            Units.TERRAN_REFINERY_RICH, Units.TERRAN_BARRACKS_TECHLAB, Units.TERRAN_FACTORY_TECHLAB,
+//            Units.TERRAN_STARPORT_TECHLAB, Units.TERRAN_TECHLAB, Units.TERRAN_BARRACKS_REACTOR,
+//            Units.TERRAN_FACTORY_REACTOR, Units.TERRAN_STARPORT_REACTOR, Units.TERRAN_REACTOR));
 
     public static Set<Units> EVIDENCE_OF_AIR = new HashSet<>(Set.of(
             Units.TERRAN_FUSION_CORE, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
@@ -158,7 +157,7 @@ public class UnitUtils {
     public static int getNumFriendlyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
         if (includeProducing) {
-            if (UnitUtils.STRUCTURE_TYPE.contains(unitType)) {
+            if (isStructure(unitType)) {
                 numUnits += numStructuresProducingOrQueued(unitType);
             }
             else {
@@ -173,7 +172,7 @@ public class UnitUtils {
         for (Units unitType : unitTypes) {
             numUnits += getFriendlyUnitsOfType(unitType).size();
             if (includeProducing) {
-                if (UnitUtils.STRUCTURE_TYPE.contains(unitType)) {
+                if (isStructure(unitType)) {
                     numUnits += numStructuresProducingOrQueued(unitType);
                 }
                 else {
@@ -253,7 +252,7 @@ public class UnitUtils {
             if (structureHealth > 75) {
                 return 1;
             }
-            else  {
+            else {
                 return 2;
             }
         }
@@ -339,8 +338,9 @@ public class UnitUtils {
         return unitInPool.getLastSeenGameLoop() == Time.nowFrames();
     }
 
-    public static boolean canMove(UnitType unitType) {
-        return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f) > 0f;
+    public static boolean canMove(Unit unit) {
+        return !unit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) &&
+                Bot.OBS.getUnitTypeData(false).get(unit.getType()).getMovementSpeed().orElse(0f) > 0f;
     }
 
     public static Unit getClosestEnemyOfType(Units unitType, Point2d pos) {
@@ -392,7 +392,7 @@ public class UnitUtils {
     }
 
     public static boolean isStructure(Units unitType) {
-        return STRUCTURE_TYPE.contains(unitType);
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE);
     }
 
     public static boolean canScan() {
@@ -446,9 +446,14 @@ public class UnitUtils {
         }
     }
 
-    public static boolean doesAttackGround(Unit unit) {
+    public static boolean canAttackGround(Unit unit) {
         return Bot.OBS.getUnitTypeData(false).get(unit.getType())
-                .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.GROUND || weapon.getTargetType() == Weapon.TargetType.GROUND);
+                .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.GROUND || weapon.getTargetType() == Weapon.TargetType.ANY);
+    }
+
+    public static boolean canAttackAir(Unit unit) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType())
+                .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY);
     }
 
     public static boolean isCarryingResources(Unit worker) {
@@ -538,6 +543,19 @@ public class UnitUtils {
         return b;
     }
 
+    public static List<UnitInPool> getEnemyTargetsInRange(Unit unit) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                ((enemy.unit().getFlying().orElse(true) &&
+                        getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
+                (!enemy.unit().getFlying().orElse(true) &&
+                        getDistance(enemy.unit(), unit) <= getGroundAttackRange(unit) + enemy.unit().getRadius())) &&
+                !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                !enemy.unit().getHallucination().orElse(false) &&
+                !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
+    }
+
+
     public static List<UnitInPool> getEnemyTargetsNear(Unit unit, float range) {
         return getEnemyTargetsNear(unit.getPosition().toPoint2d(), range);
     }
@@ -545,10 +563,24 @@ public class UnitUtils {
     public static List<UnitInPool> getEnemyTargetsNear(Point2d pos, float range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 getDistance(enemy.unit(), pos) <= range &&
+                        !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        !enemy.unit().getHallucination().orElse(false) &&
+                        !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE);
+    }
+
+    public static List<UnitInPool> getEnemyGroundTargetsNear(Unit unit, float range) {
+        return getEnemyGroundTargetsNear(unit.getPosition().toPoint2d(), range);
+    }
+
+    public static List<UnitInPool> getEnemyGroundTargetsNear(Point2d pos, float range) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                !enemy.unit().getFlying().orElse(true) &&
                 !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getHallucination().orElse(false) &&
                 !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                getDistance(enemy.unit(), pos) <= range);
     }
 
     public static Abilities getOrder(Unit unit) {
@@ -644,7 +676,7 @@ public class UnitUtils {
                 .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.EFFECT_REPAIR);
     }
 
-    public static float getUnitSpeed(Units unitType) {
+    public static float getUnitSpeed(UnitType unitType) {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f);
     }
 }

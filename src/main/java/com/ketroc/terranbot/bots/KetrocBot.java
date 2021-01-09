@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
+import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -16,6 +17,7 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.managers.*;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.micro.Harassers;
+import com.ketroc.terranbot.micro.Liberator;
 import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
@@ -45,7 +47,7 @@ public class KetrocBot extends Bot {
     public void onGameStart() {
         try {
             super.onGameStart();
-            System.out.println("opponentId = " + opponentId);
+            Print.print("opponentId = " + opponentId);
 
             //set map
             LocationConstants.MAP = Bot.OBS.getGameInfo().getMapName();
@@ -99,7 +101,7 @@ public class KetrocBot extends Bot {
 
             //prevent multiple runs on the same frame
             if (OBS.getGameLoop() == gameFrame) {
-                System.out.println("gameFrame repeated = " + gameFrame);
+                Print.print("gameFrame repeated = " + gameFrame);
                 return;
             }
             gameFrame = OBS.getGameLoop();
@@ -112,7 +114,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Nov 23, 2020", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Jan 1, 2021", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
@@ -120,7 +122,7 @@ public class KetrocBot extends Bot {
                         .filter(structureScv -> structureScv.scvAddedFrame + Time.toFrames("4:30") < Time.nowFrames())
                         .findFirst();
                 if (first.isPresent()) {
-                    System.out.println("Stalled StructureScv = \n" + first);
+                    Print.print("Stalled StructureScv = \n" + first);
                 }
 
                 DebugHelper.onStep();
@@ -173,6 +175,7 @@ public class KetrocBot extends Bot {
 
                 CannonRushDefense.onStep();
                 ProxyHatchDefense.onStep();
+                ProxyBunkerDefense.onStep();
                 BunkerContain.onStep();
 
                 //clearing bases that have just dried up or died
@@ -195,7 +198,7 @@ public class KetrocBot extends Bot {
                                 break;
                             case CANCEL:
                                 if (toRemove instanceof PurchaseStructure) {
-                                    System.out.println(((PurchaseStructure)toRemove).getStructureType() + " failed to build at: " + ((PurchaseStructure)toRemove).getPosition());
+                                    Print.print(((PurchaseStructure)toRemove).getStructureType() + " failed to build at: " + ((PurchaseStructure)toRemove).getPosition());
                                 }
                                 purchaseQueue.remove(i--);
                                 break;
@@ -269,65 +272,65 @@ public class KetrocBot extends Bot {
                 //time check
 //                long stepDuration = System.currentTimeMillis() - Bot.stepStartTime;
 //                if (stepDuration > 40) {
-//                    System.out.println("stepDuration = " + stepDuration);
+//                    Print.print("stepDuration = " + stepDuration);
 //                }
             }
         }
         catch (Exception e) {
-            System.out.println("Bot.onStep() error at: " + Time.nowClock());
+            Print.print("Bot.onStep() error");
             e.printStackTrace();
         }
     } // end onStep()
 
     private void printCurrentGameInfo() {
-        System.out.println("\n\nGame info at " + Time.nowClock());
-        System.out.println("===================\n");
-        System.out.println("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
-        System.out.println("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
-        System.out.println("GameState.vikingList.size() = " + GameCache.vikingList.size());
-        System.out.println("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
-        System.out.println("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_INCLUDE_LIBS);
-        System.out.println("Strategy.DO_INCLUDE_TANKS = " + Strategy.DO_INCLUDE_TANKS);
-        System.out.println("Strategy.maxScvs = " + Strategy.maxScvs);
-        System.out.println("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
-        System.out.println("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
-        System.out.println("Switches.isDivingTempests = " + Switches.isDivingTempests);
-        System.out.println("Switches.includeTanks = " + Switches.includeTanks);
-        System.out.println("Switches.vikingDiveTarget == null? = " + Boolean.valueOf(Switches.vikingDiveTarget == null).toString());
-        System.out.println("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
-        System.out.println("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
-        System.out.println("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
-        System.out.println("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
-        System.out.println("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
-        System.out.println("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
-        System.out.println("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
-        System.out.println("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
-        System.out.println("\n\n");
+        Print.print("\n\nGame info");
+        Print.print("===================\n");
+        Print.print("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
+        Print.print("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
+        Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
+        Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
+        Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_INCLUDE_LIBS);
+        Print.print("Strategy.DO_INCLUDE_TANKS = " + Strategy.DO_INCLUDE_TANKS);
+        Print.print("Strategy.maxScvs = " + Strategy.maxScvs);
+        Print.print("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
+        Print.print("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
+        Print.print("Switches.isDivingTempests = " + Switches.isDivingTempests);
+        Print.print("Switches.includeTanks = " + Switches.includeTanks);
+        Print.print("Switches.vikingDiveTarget == null? = " + Boolean.valueOf(Switches.vikingDiveTarget == null).toString());
+        Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
+        Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
+        Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
+        Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
+        Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
+        Print.print("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
+        Print.print("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
+        Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
+        Print.print("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);
-            System.out.println("\nBase " + i);
+            Print.print("\nBase " + i);
             if (base.isMyBase()) {
-                System.out.println("isMyBase");
+                Print.print("isMyBase");
             }
             if (base.isEnemyBase) {
-                System.out.println("isEnemyBase");
+                Print.print("isEnemyBase");
             }
             if (base.isUntakenBase()) {
-                System.out.println("isUntakenBase()");
+                Print.print("isUntakenBase()");
             }
-            System.out.println("base.isDryedUp() = " + base.isDryedUp());
-            System.out.println("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
-            System.out.println("base.lastScoutedFrame = " + base.lastScoutedFrame);
-            System.out.println("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + Bot.OBS.getVisibility(base.getCcPos()).toString());
+            Print.print("base.isDryedUp() = " + base.isDryedUp());
+            Print.print("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
+            Print.print("base.lastScoutedFrame = " + base.lastScoutedFrame);
+            Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + Bot.OBS.getVisibility(base.getCcPos()).toString());
         }
-        System.out.println("\n\n");
+        Print.print("\n\n");
     }
 
 
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {
             Unit unit = unitInPool.unit();
-            System.out.println(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + Time.nowClock());
+            Print.print(unit.getType().toString() + " = (" + unit.getPosition().getX() + ", " + unit.getPosition().getY() + ") at: " + Time.nowClock());
 
 
             if (unit.getType() instanceof Units) {
@@ -454,7 +457,7 @@ public class KetrocBot extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
+            Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
             e.printStackTrace();
         }
     }
@@ -543,14 +546,14 @@ public class KetrocBot extends Bot {
             }
         }
         catch (Exception e) {
-            System.out.println(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
+            Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
             e.printStackTrace();
         }
     }
 
     @Override
     public void onUpgradeCompleted(Upgrade upgrade) {
-        System.out.println(upgrade + " finished at: " + Time.nowClock());
+        Print.print(upgrade + " finished at: " + Time.nowClock());
 
         //add to list of completed upgrades
         GameCache.upgradesCompleted.add((Upgrades)upgrade);
@@ -562,12 +565,9 @@ public class KetrocBot extends Bot {
                     purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
                 }
                 break;
-//            case BANSHEE_CLOAK:
-//                purchaseQueue.add(new PurchaseUpgrade(Upgrades.BANSHEE_SPEED, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
-//                break;
-//            case BANSHEE_SPEED:
-//                purchaseQueue.add(new PurchaseUpgrade(Upgrades.RAVEN_CORVID_REACTOR, Bot.OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_STARPORT_TECHLAB).get(0).getTag())));
-//                break;
+            case LIBERATOR_AG_RANGE_UPGRADE:
+                Liberator.castRange = 8;
+                break;
             case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
             case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
             case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
@@ -595,7 +595,7 @@ public class KetrocBot extends Bot {
 //            }
 //        }
 //        catch (Exception e) {
-//            System.out.println(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
+//            Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
 //            e.printStackTrace();
 //        }
     }
@@ -613,8 +613,8 @@ public class KetrocBot extends Bot {
     @Override
     public void onGameEnd() {
         recordGameResult();
-        System.out.println("opponentId = " + opponentId);
-        GameCache.allEnemiesMap.forEach((unitType, unitList) -> System.out.println(unitType + ": " + unitList.size()));
+        Print.print("opponentId = " + opponentId);
+        GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
         try {
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
@@ -625,9 +625,9 @@ public class KetrocBot extends Bot {
     private void recordGameResult() {
         Result result = Bot.OBS.getResults().stream()
                 .filter(playerResult -> playerResult.getPlayerId() == Bot.OBS.getPlayerId())
+                .map(PlayerResult::getResult)
                 .findFirst()
-                .get()
-                .getResult();
+                .orElse(Result.VICTORY);
 
         Path path = Paths.get("./data/prevResult.txt");
         char charResult = (result == Result.DEFEAT) ? 'L' : 'W';
@@ -638,13 +638,13 @@ public class KetrocBot extends Bot {
                 newFileText = prevFileText + "\r\n" + newFileText;
             }
             Files.write(path, newFileText.getBytes());
-            System.out.println("New File Text = " + newFileText);
+            Print.print("New File Text = " + newFileText);
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("==========================");
-        System.out.println("  Result: " + result.toString());
-        System.out.println("==========================");
+        Print.print("==========================");
+        Print.print("  Result: " + result.toString());
+        Print.print("==========================");
     }
 }

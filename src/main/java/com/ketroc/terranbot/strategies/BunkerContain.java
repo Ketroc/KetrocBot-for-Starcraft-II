@@ -19,7 +19,7 @@ import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.BasicUnitMicro;
 import com.ketroc.terranbot.micro.BunkerMarine;
-import com.ketroc.terranbot.micro.TankAtPf;
+import com.ketroc.terranbot.micro.TankToPosition;
 import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
@@ -154,12 +154,12 @@ public class BunkerContain {
     public static void onTankCreated(UnitInPool tank) {
         if (tank1 == null || !tank1.isAlive()) {
             tank1 = tank;
-            UnitMicroList.add(new TankAtPf(tank1, siegeTankPos));
+            UnitMicroList.add(new TankToPosition(tank1, siegeTankPos));
         }
         else if (tank2 == null || !tank2.isAlive()) {
             tank2 = tank;
             Point2d tankPos = Position.towards(tank1.unit().getPosition().toPoint2d(), tank.unit().getPosition().toPoint2d(), 1f);
-            UnitMicroList.add(new TankAtPf(tank2, tankPos));
+            UnitMicroList.add(new TankToPosition(tank2, tankPos));
         }
     }
 

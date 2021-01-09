@@ -302,7 +302,7 @@ public class ScvRush {
                 .orElse(null);
         int numAttackers = (int)attackScvs.stream().filter(scv -> UnitUtils.getDistance(scv.unit(), enemy.unit()) < 3).count();
         if (numAttackers * 5 >= enemy.unit().getHealth().get()) {
-            System.out.println("target found.  #scvs: " + numAttackers + ". enemy health: " + enemy.unit().getHealth().get());
+            Print.print("target found.  #scvs: " + numAttackers + ". enemy health: " + enemy.unit().getHealth().get());
             return enemy;
         }
         return null;

@@ -105,17 +105,17 @@ public class TestingBot extends Bot {
     @Override
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
-        System.out.println(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
+        Print.print(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
 //
 //        switch ((Units)unit.getType()) {
 //            case TERRAN_SUPPLY_DEPOT:
 //                depotPos = unit.getPosition().toPoint2d().add(Point2d.of(0.5f, 0.5f));
-//                System.out.println("start");
+//                Print.print("start");
 //                break;
 //            case TERRAN_SENSOR_TOWER:
-//                //System.out.println("pos: " + unit.getPosition().toPoint2d());
+//                //Print.print("pos: " + unit.getPosition().toPoint2d());
 //                Point2d p = unit.getPosition().toPoint2d().sub(depotPos);
-//                System.out.println("G.add(" + p.getX() + "f, " + p.getY() + "f);");
+//                Print.print("G.add(" + p.getX() + "f, " + p.getY() + "f);");
 //        }
 
     }
@@ -132,18 +132,10 @@ public class TestingBot extends Bot {
         }
 
         if (Time.nowFrames() == 10) {
-            debug().debugCreateUnit(Units.PROTOSS_CARRIER, nearPos, myId, 1);
-            debug().debugCreateUnit(Units.TERRAN_BATTLECRUISER, nearPos, myId, 1);
-//            debug().debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, nearPos, enemyId, 1);
-//            debug().debugCreateUnit(Units.PROTOSS_DARK_TEMPLAR, nearPos, enemyId, 1);
-            debug().debugCreateUnit(Units.ZERG_ZERGLING, nearPos, enemyId, 1);
+            debug().debugCreateUnit(Units.TERRAN_LIBERATOR, nearPos, myId, 1);
         }
         if (Time.nowFrames() == 190) {
-            Unit carrier = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.PROTOSS_CARRIER)
-                    .get(0).unit();
-            Unit bc = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BATTLECRUISER)
-                    .get(0).unit();
-            Bot.ACTION.unitCommand(carrier, Abilities.ATTACK, bc, false);
+            int blah = 23984389;
         }
         if (Time.nowFrames() == 450) {
 
@@ -245,7 +237,7 @@ public class TestingBot extends Bot {
                         .on(p).build())
                 .collect(Collectors.toList());
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
-        System.out.println("giant query = " + (System.currentTimeMillis() - start));
+        Print.print("giant query = " + (System.currentTimeMillis() - start));
         for (int i=0; i<placementList.size(); i++) {
             if (!placementList.get(i).booleanValue()) {
                 placementList.remove(i);

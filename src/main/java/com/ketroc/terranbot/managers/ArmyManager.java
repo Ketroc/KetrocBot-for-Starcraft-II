@@ -119,7 +119,7 @@ public class ArmyManager {
 
     private static void setIsAttackUnitRetreating() {
         isAttackUnitRetreating = false;
-        if (attackUnit != null && UnitUtils.canMove(attackUnit.getType())) {
+        if (attackUnit != null && UnitUtils.canMove(attackUnit)) {
             float facing = (float)Math.toDegrees(attackUnit.getFacing());
             float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
             float angleDiff = Position.getAngleDifference(facing, attackAngle);
@@ -174,10 +174,10 @@ public class ArmyManager {
         if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
             return 90;
         }
-        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
+        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2)) {
             return 85;
         }
-        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3)) {
+        else if (Bot.OBS.getUpgrades().contains(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1)) {
             return 80;
         }
         else {
@@ -473,10 +473,9 @@ public class ArmyManager {
             if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
-                System.out.println("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
-                System.out.println("Time.nowClock() = " + Time.nowClock());
-                System.out.println("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
-                System.out.println("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
+                Print.print("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
+                Print.print("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
+                Print.print("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
                 GameCache.allEnemiesList.remove(closestEnemyGround);
             }
         }
@@ -611,44 +610,33 @@ public class ArmyManager {
     }
 
     public static void pfTargetting() {
-        List<Unit> pfsAndTanks = new ArrayList<>();
-        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)); //defense tanks
-        pfsAndTanks.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS)); //PFs
-        pfsAndTanks.addAll(UnitMicroList.unitMicroList.stream() //defense tanks that sieged up en route
-                .map(basicUnitMicro -> basicUnitMicro.unit.unit())
-                .filter(tank -> tank.getType() == Units.TERRAN_SIEGE_TANK_SIEGED)
-                .collect(Collectors.toList()));
-        pfsAndTanks = pfsAndTanks.stream()
+        List<Unit> pfList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
                         UnitUtils.isWeaponAvailable(unit) &&
                         InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, unit.getPosition().toPoint2d()))
                 .collect(Collectors.toList());
 
-        for (Unit pfTank : pfsAndTanks) {
-            int range;
-            float x_pfTank = pfTank.getPosition().getX();
-            float y_pfTank = pfTank.getPosition().getY();
+        for (Unit pf : pfList) {
+            float range;
+            float x_pf = pf.getPosition().getX();
+            float y_pf = pf.getPosition().getY();
 
-            //siege tank range - 1 for rounding
-            if (pfTank.getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-                range = 12;
-            }
-            //pf range + 2.5 for PF radius +1 for hisec - 0.5 for rounding
-            else if (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
-                range = 9;
+            //pf range + 2.5 for PF radius +1 for hisec
+            if (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
+                range = 9.5f;
             }
             else {
-                range = 8;
+                range = 8.5f;
             }
 
             int xMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getX();
             int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
             int yMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
             int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
-            int xStart = Math.max(Math.round(2*(x_pfTank - range)), xMin);
-            int yStart = Math.max(Math.round(2*(y_pfTank - range)), yMin);
-            int xEnd = Math.min(Math.round(2*(x_pfTank + range)), xMax);
-            int yEnd = Math.min(Math.round(2*(y_pfTank + range)), yMax);
+            int xStart = Math.max(Math.round(2*(x_pf - range)), xMin);
+            int yStart = Math.max(Math.round(2*(y_pf - range)), yMin);
+            int xEnd = Math.min(Math.round(2*(x_pf + range)), xMax);
+            int yEnd = Math.min(Math.round(2*(y_pf + range)), yMax);
 
 
             //get x,y of max value
@@ -658,7 +646,7 @@ public class ArmyManager {
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
                     if (InfluenceMaps.pointPFTargetValue[x][y] > bestValue &&
-                            Position.distance(x/2f, y/2f, x_pfTank, y_pfTank) < range) {
+                            Position.distance(x/2f, y/2f, x_pf, y_pf) < range) {
                         bestValueX = x;
                         bestValueY = y;
                         bestValue = InfluenceMaps.pointPFTargetValue[x][y];
@@ -670,7 +658,7 @@ public class ArmyManager {
             Unit bestTargetUnit = null;
             if (bestValue == 0) {
                 if (LocationConstants.opponentRace == Race.ZERG) {
-                    bestTargetUnit = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.ZERG_CHANGELING_MARINE, pfTank.getPosition().toPoint2d());
+                    bestTargetUnit = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.ZERG_CHANGELING_MARINE, pf.getPosition().toPoint2d());
                 }
             }
             else {
@@ -686,7 +674,7 @@ public class ArmyManager {
 
             //attack
             if (bestTargetUnit != null) {
-                Bot.ACTION.unitCommand(pfTank, Abilities.ATTACK, bestTargetUnit, false);
+                Bot.ACTION.unitCommand(pf, Abilities.ATTACK, bestTargetUnit, false);
             }
         }
     }
@@ -713,67 +701,68 @@ public class ArmyManager {
                 .filter(unit -> unit.getOrders().isEmpty())
                 .findFirst().orElse(null);
 
+        if (idleLib == null) {
+            return;
+        }
 
-        if (idleLib != null) {
-            boolean isLibPlaced = false;
-
-            //send available liberator to siege an expansion
-            List<Base> allButEnemyStarterBases = GameCache.baseList.subList(0, GameCache.baseList.size()-BuildManager.getNumEnemyBasesIgnored());
-            outer: for (Base base : allButEnemyStarterBases) {
-                if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
-                    for (DefenseUnitPositions libPos : base.getLiberators()) {
-                        if (libPos.getUnit() == null) {
-                            libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
-//                            Bot.ACTION.unitCommand(idleLib, Abilities.MOVE, Position.towards(libPos.getPos(), base.getCcPos(), -2), false)
-//                                    .unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE, Position.towards(libPos.getPos(), base.getCcPos(), 5), true);
-                            UnitMicroList.add(new LibDefender(libPos.getUnit(), libPos.getPos(), base.getCcPos()));
-                            isLibPlaced = true;
-                            break outer;
-                        }
+        //send available liberator to siege an expansion
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
+                for (DefenseUnitPositions libPos : base.getLiberators()) {
+                    if (libPos.getUnit() == null) {
+                        libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
+                        Point2d libZonePos = Position.towards(libPos.getPos(), base.getCcPos(), Liberator.castRange);
+                        UnitMicroList.add(new LibToPosition(libPos.getUnit(), libPos.getPos(), libZonePos));
+                        return;
                     }
                 }
             }
-
-            //if nowhere to send lib and no expansions left, siege newest enemy base (or siege enemy 3rd base if no enemy bases are known)
-            if (!isLibPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
-                GameCache.baseList.stream()
-                        .filter(base -> base.isEnemyBase)
-                        .findFirst()
-                        .ifPresentOrElse(base -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
-                                        Position.towards(base.getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true),
-                                () -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
-                                        Position.towards(GameCache.baseList.get(GameCache.baseList.size()-3).getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true));
-            }
         }
+
+        //if no bases need a liberator, put it on offense
+        UnitMicroList.add(new LibOffense(Bot.OBS.getUnit(idleLib.getTag()), ArmyManager.attackGroundPos));
+
+        //if nowhere to send lib and no expansions left, siege newest enemy base (or siege enemy 3rd base if no enemy bases are known)
+//        if (!isLibPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
+//            GameCache.baseList.stream()
+//                    .filter(base -> base.isEnemyBase)
+//                    .findFirst()
+//                    .ifPresentOrElse(base -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
+//                                    Position.towards(base.getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true),
+//                            () -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
+//                                    Position.towards(GameCache.baseList.get(GameCache.baseList.size()-3).getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true));
+//        }
     }
 
     private static void positionTanks() { //positions only 1 tank per game loop
-        if (!GameCache.siegeTankList.isEmpty()) {
-            Unit idleTank = GameCache.siegeTankList.get(0);
+        if (GameCache.siegeTankList.isEmpty()) {
+            return;
+        }
 
-            //send available tank to siege an expansion
-            for (Base base : GameCache.baseList) {
-                if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
-                    for (DefenseUnitPositions tankPos : base.getTanks()) {
-                        if (tankPos.getUnit() == null) {
-                            tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-                            UnitMicroList.add(new TankAtPf(tankPos.getUnit(), tankPos.getPos()));
-                            return;
-                        }
+        //send available tank to siege an expansion
+        Unit idleTank = GameCache.siegeTankList.get(0);
+        for (Base base : GameCache.baseList) {
+            if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
+                for (DefenseUnitPositions tankPos : base.getTanks()) {
+                    if (tankPos.getUnit() == null) {
+                        tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
+                        UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos()));
+                        return;
                     }
                 }
             }
-
-            UnitMicroList.add(new TankOffense(Bot.OBS.getUnit(idleTank.getTag()), ArmyManager.attackGroundPos));
-
-//            //if nowhere to send tank and no expansions available, a-move tank to its death
-//            if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
-//                GameCache.baseList.stream()
-//                        .filter(base -> base.isEnemyBase)
-//                        .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
-//                Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
-//            }
         }
+
+        //if no bases need a tank, put it on offense
+        UnitMicroList.add(new TankOffense(Bot.OBS.getUnit(idleTank.getTag()), ArmyManager.attackGroundPos));
+
+//        //if nowhere to send tank and no expansions available, a-move tank to its death
+//        if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
+//            GameCache.baseList.stream()
+//                    .filter(base -> base.isEnemyBase)
+//                    .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
+//            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
+//        }
     }
 
     private static void salvageBunkerAtNatural() {
@@ -1275,7 +1264,7 @@ public class ArmyManager {
             turretsCast++;
             return true;
         }
-        else if (attackUnit != null && !UnitUtils.canMove(attackUnit.getType()) && towardsEnemyDistance < 4) {
+        else if (attackUnit != null && !UnitUtils.canMove(attackUnit) && towardsEnemyDistance < 4) {
             castAutoTurret(raven, 4);
         }
         return false;

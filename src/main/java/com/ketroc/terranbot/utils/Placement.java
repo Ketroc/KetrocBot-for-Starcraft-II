@@ -67,8 +67,8 @@ public class Placement {
                         .on(p).build())
                 .collect(Collectors.toList());
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
-        System.out.println("giant query size = " + placementList.size());
-        System.out.println("giant query = " + (System.currentTimeMillis() - start));
+        Print.print("giant query size = " + placementList.size());
+        Print.print("giant query = " + (System.currentTimeMillis() - start));
         for (int i=0; i<placementList.size(); i++) {
             if (!placementList.get(i).booleanValue()) {
                 placementList.remove(i);

@@ -381,22 +381,22 @@ public class GameCache {
             //set default rally node for any base
             //TODO: remove - for debugging
             if (base.getCc() == null) {
-                System.out.println("error on GameCache::387");
+                Print.print("error on GameCache::387");
             }
             Unit cc = base.getCc().unit();
             if (cc.getAssignedHarvesters().isEmpty()) {
-                System.out.println("error on GameCache::391");
-                System.out.println("base index: " + baseList.indexOf(base));
-                System.out.println("base.getCcPos() = " + base.getCcPos());
-                System.out.println("cc.getType() = " + cc.getType());
-                System.out.println("cc.getBuildProgress() = " + cc.getBuildProgress());
-                System.out.println("FlyingCC.flyingCCs.size() = " + FlyingCC.flyingCCs.size());
-                System.out.println("base.isEnemyBase = " + base.isEnemyBase);
-                System.out.println("base.getCc() == null?: " + base.getCc() == null);
+                Print.print("error on GameCache::391");
+                Print.print("base index: " + baseList.indexOf(base));
+                Print.print("base.getCcPos() = " + base.getCcPos());
+                Print.print("cc.getType() = " + cc.getType());
+                Print.print("cc.getBuildProgress() = " + cc.getBuildProgress());
+                Print.print("FlyingCC.flyingCCs.size() = " + FlyingCC.flyingCCs.size());
+                Print.print("base.isEnemyBase = " + base.isEnemyBase);
+                Print.print("base.getCc() == null?: " + (base.getCc() == null));
 
             }
             if (cc.getIdealHarvesters().isEmpty()) {
-                System.out.println("error on GameCache::414");
+                Print.print("error on GameCache::414");
             }
             if (!base.getMineralPatches().isEmpty()) {
                 if (defaultRallyNode == null) {

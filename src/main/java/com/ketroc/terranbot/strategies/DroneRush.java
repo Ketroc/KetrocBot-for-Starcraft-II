@@ -51,8 +51,8 @@ public class DroneRush {
                 }
             }
             if (Time.nowFrames() == Time.toFrames("4:30")) {
-                System.out.println("Drone list contents:");
-                droneList.forEach(unitInPool -> System.out.println(unitInPool));
+                Print.print("Drone list contents:");
+                droneList.forEach(unitInPool -> Print.print(unitInPool));
             }
 
             switch (droneRushStep) {
@@ -276,7 +276,7 @@ public class DroneRush {
                 }
             }
             if (!attackDrones.isEmpty()) {
-                System.out.println("attackDrones.size() = " + attackDrones.size());
+                Print.print("attackDrones.size() = " + attackDrones.size());
                 Bot.ACTION.unitCommand(attackDrones, Abilities.ATTACK, target.unit(), false);
             }
             if (!clusterDrones.isEmpty()) {
@@ -300,7 +300,7 @@ public class DroneRush {
     private static void updateTarget() {
         if (target != null) {
             if (!target.isAlive() || UnitUtils.getDistance(target.unit(), LocationConstants.enemyMineralTriangle.getClusterPos()) > 1.5f) {
-                System.out.println((!target.isAlive())?"target killed":"target cleared cuz out of range");
+                Print.print((!target.isAlive())?"target killed":"target cleared cuz out of range");
                 target = null;
             }
         }
@@ -330,7 +330,7 @@ public class DroneRush {
                 .orElse(null);
         int numAttackers = (int)attackDrones.stream().filter(drone -> UnitUtils.getDistance(drone.unit(), enemy.unit()) < 3).count();
         if (numAttackers * 5 >= enemy.unit().getHealth().get()) {
-            System.out.println("target found.  #drones: " + numAttackers + ". enemy health: " + enemy.unit().getHealth().get());
+            Print.print("target found.  #drones: " + numAttackers + ". enemy health: " + enemy.unit().getHealth().get());
             return enemy;
         }
         return null;

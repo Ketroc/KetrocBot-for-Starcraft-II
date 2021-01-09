@@ -15,10 +15,7 @@ import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.strategies.BunkerContain;
-import com.ketroc.terranbot.utils.DebugHelper;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -227,7 +224,7 @@ public class StructureScv {
     }
 
     private static void requeueCancelledStructure(StructureScv structureScv) {
-        System.out.println("structure requeued");
+        Print.print("structure requeued");
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:

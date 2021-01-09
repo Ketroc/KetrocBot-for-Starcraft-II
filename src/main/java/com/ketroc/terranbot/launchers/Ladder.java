@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.TestingBot;
+import com.ketroc.terranbot.utils.Print;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -49,8 +50,8 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        System.out.println("realTime = " + realTime);
-        Bot bot = new KetrocBot(false, opponentId, true);
+        Print.print("realTime = " + realTime);
+        Bot bot = new KetrocBot(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

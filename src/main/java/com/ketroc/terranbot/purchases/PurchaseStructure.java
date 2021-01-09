@@ -83,7 +83,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         this.isPositionImportant = isPositionImportant;
         structureData = Bot.OBS.getUnitTypeData(false).get(this.structureType);
         setCost();
-        System.out.println("Added to queue: " + this.structureType);
+        Print.print("Added to queue: " + this.structureType);
     }
 
     //===== Getters/Setters =====
@@ -167,7 +167,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         //no position was given.  Find one.
         if (this.position == null) {
             if (!selectStructurePosition()) { //if no position can be set, just remove this structure from the queue
-                System.out.println("cancelled " + structureType + " because no position set");
+                Print.print("cancelled " + structureType + " because no position set");
                 return PurchaseResult.CANCEL;
             }
         }
@@ -190,7 +190,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         //if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
             //if structure blocks location
             if ((!Bot.OBS.getUnits(u -> UnitUtils.getDistance(u.unit(), position) < UnitUtils.getStructureRadius(structureType) &&
-                    !UnitUtils.canMove(u.unit().getType())).isEmpty()) ||
+                    !UnitUtils.canMove(u.unit())).isEmpty()) ||
                     UnitUtils.isExpansionCreepBlocked(position)) {
                 makePositionAvailableAgain(position);
                 return PurchaseResult.CANCEL;
@@ -207,14 +207,14 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             if (scv == null) {
                 List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
                 if (availableScvs.isEmpty()) {
-                    System.out.println("cancelled " + structureType + " because no scv available");
+                    Print.print("cancelled " + structureType + " because no scv available");
                     makePositionAvailableAgain(position);
                     return PurchaseResult.CANCEL;
                 }
                 scv = availableScvs.get(0).unit();
             }
         }
-        System.out.println("sending action " + buildAction + " at: " + Time.nowClock() + " at pos: " + position.toString());
+        Print.print("sending action " + buildAction + " at pos: " + position.toString());
         Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
@@ -241,7 +241,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             this.scv = availableScvs.get(0).unit();
                             gas.setGeyser(getGeyserUnitAtPosition(gas.getPosition()));
-                            System.out.println("sending action " + Abilities.BUILD_REFINERY + " at: " + Time.nowClock());
+                            Print.print("sending action " + Abilities.BUILD_REFINERY);
                             Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);

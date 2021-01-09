@@ -11,12 +11,10 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.BasicUnitMicro;
+import com.ketroc.terranbot.micro.Liberator;
 import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -279,8 +277,8 @@ public class Base {
         ));
         minMaxNodes.removeIf(node -> !UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(node.getType()));
         if (minMaxNodes.size() != 2) {
-            System.out.println("found more than 2 outer patches");
-            minMaxNodes.stream().forEach(unit -> System.out.println(unit.getPosition().toPoint2d()));
+            Print.print("found more than 2 outer patches");
+            minMaxNodes.stream().forEach(unit -> Print.print(unit.getPosition().toPoint2d()));
         }
         return minMaxNodes;
     }
@@ -421,6 +419,9 @@ public class Base {
     public static float getLibDistanceFromCC() {
         if (libDistanceFromCC == -1 || LocationConstants.opponentRace == Race.RANDOM) {
             libDistanceFromCC = (LocationConstants.opponentRace == Race.PROTOSS) ? 1f : 2.5f;
+        }
+        if (Liberator.castRange == 8) { //apply range upgrade TODO: handle range change onUpgradeComplete
+            libDistanceFromCC += 3;
         }
         return libDistanceFromCC;
     }

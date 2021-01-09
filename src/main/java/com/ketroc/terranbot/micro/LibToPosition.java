@@ -4,40 +4,45 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.utils.DebugHelper;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.Position;
 
-import java.util.function.Predicate;
+public class LibToPosition extends Liberator {
 
-public class TankOffense extends Tank {
+    public LibToPosition(UnitInPool unit, Point2d targetPos, Point2d plannedLibZonePos) {
+        super(unit, targetPos, plannedLibZonePos);
+    }
 
-    public TankOffense(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos);
+    //TODO: handle other planned lib zone positions that don't care about where the liberator is positioned
+    public LibToPosition(UnitInPool unit, Point2d plannedLibZonePos) {
+        super(unit, plannedLibZonePos, plannedLibZonePos);
     }
 
     @Override
     public void onStep() {
         DebugHelper.boxUnit(unit.unit());
-        targetPos = ArmyManager.attackGroundPos;
 
-        //no tank
+        //no lib
         if (unit == null || !unit.isAlive()) {
             super.onStep();
             return;
         }
 
+        //if currently changing modes
+        if (isMorphing()) {
+            return;
+        }
+
         //unsiege
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
+        if (unit.unit().getType() == Units.TERRAN_LIBERATOR_AG) {
             if (unsiegeMicro()) {
                 return;
             }
         }
 
         //siege up
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe()) {
+        if (unit.unit().getType() == Units.TERRAN_LIBERATOR && isSafe()) {
             if (siegeUpMicro()) {
                 return;
             }
@@ -51,4 +56,5 @@ public class TankOffense extends Tank {
     public void onArrival() {
 
     }
+
 }

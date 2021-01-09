@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -104,7 +105,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         delayedActions.stream()
                 .filter(action -> Time.nowFrames() >= action.gameFrame)
                 .forEach(delayedAction -> {
-                    if (!delayedAction.executeAction()) System.out.println("Action not performed: " + delayedAction.toString());
+                    if (!delayedAction.executeAction()) Print.print("Action not performed: " + delayedAction.toString());
                 });
         delayedActions.removeIf(action -> Time.nowFrames() >= action.gameFrame);
     }

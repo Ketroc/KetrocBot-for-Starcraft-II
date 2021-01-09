@@ -12,6 +12,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
 import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -29,13 +30,13 @@ public class ActionErrorManager {
                 Units structureType = Bot.abilityToUnitType.get(ability);
                 StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get());
                 if (structureScv == null) {
-                    System.out.println("structure not found at: " + Time.nowClock() + " for ability: " + ability);
+                    Print.print("structure not found for ability: " + ability);
                     continue;
                 }
                 Point2d pos = structureScv.structurePos;
                 Unit scv = structureScv.getScv().unit();
-                System.out.println("Action Error at " + Time.nowClock() + ".  Structure: " + structureType);
-                System.out.println("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
+                Print.print("Action Error.  Structure: " + structureType);
+                Print.print("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
 
                 //blocked by creep
                 if (isBlockedByCreep(actionResult)) {

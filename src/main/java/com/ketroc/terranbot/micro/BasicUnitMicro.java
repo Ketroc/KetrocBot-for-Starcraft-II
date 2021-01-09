@@ -24,7 +24,6 @@ public class BasicUnitMicro {
     public float groundAttackRange;
     public float airAttackRange;
     public float movementSpeed;
-    public boolean[][] threatMap;
     public boolean isDodgeClockwise;
     private long prevDirectionChangeFrame;
     public boolean removeMe;
@@ -39,32 +38,27 @@ public class BasicUnitMicro {
         this.prioritizeLiving = prioritizeLiving;
         this.isGround = !unit.unit().getFlying().orElse(false);
         setWeaponInfo();
-        this.movementSpeed = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getMovementSpeed().orElse(0f);
+        this.movementSpeed = UnitUtils.getUnitSpeed(unit.unit().getType());
     }
 
-    private void setThreatMap() {
+    private boolean[][] getThreatMap() {
         if (this instanceof StructureFloater) {
-            threatMap = InfluenceMaps.pointThreatToAirPlusBuffer;
+            return InfluenceMaps.pointThreatToAirPlusBuffer;
         }
-        else if (!prioritizeLiving) {
+        if (!prioritizeLiving) {
             switch ((Units) unit.unit().getType()) {
                 case TERRAN_BANSHEE:
-                    threatMap = InfluenceMaps.pointInBansheeRange;
-                    break;
+                    return InfluenceMaps.pointInBansheeRange;
                 case TERRAN_VIKING_FIGHTER:
-                    threatMap = InfluenceMaps.pointInVikingRange;
-                    break;
+                    return InfluenceMaps.pointInVikingRange;
                 case TERRAN_MARINE:
-                    threatMap = InfluenceMaps.pointInMarineRange;
-                    break;
+                    return InfluenceMaps.pointInMarineRange;
             }
         }
-        else if (isGround) {
-            threatMap = InfluenceMaps.pointThreatToGround;
+        if (isGround) {
+            return InfluenceMaps.pointThreatToGround;
         }
-        else {
-            threatMap = InfluenceMaps.pointThreatToAir;
-        }
+        return InfluenceMaps.pointThreatToAir;
     }
 
     public void onStep() {
@@ -73,10 +67,9 @@ public class BasicUnitMicro {
             return;
         }
         DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
-        setThreatMap();
 
         //attack if available
-        if (isOffCooldown()) {
+        if (UnitUtils.isWeaponAvailable(unit.unit())) {
             UnitInPool attackTarget = selectTarget();
             //attack if there's a target
             if (attackTarget != null) {
@@ -85,6 +78,11 @@ public class BasicUnitMicro {
                 }
                 return;
             }
+        }
+
+        //done if unit is immobile
+        if (!UnitUtils.canMove(unit.unit())) {
+            return;
         }
 
         //detour if needed
@@ -162,10 +160,6 @@ public class BasicUnitMicro {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemyTargetPredicate);
     }
 
-    private boolean isOffCooldown() {
-        return UnitUtils.isWeaponAvailable(unit.unit());
-    }
-
     private void setWeaponInfo() {
         Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getWeapons();
         for (Weapon weapon : weapons) {
@@ -188,12 +182,12 @@ public class BasicUnitMicro {
         }
     }
 
-    private boolean isSafe() {
+    protected boolean isSafe() {
         return isSafe(unit.unit().getPosition().toPoint2d());
     }
 
     private boolean isSafe(Point2d pos) {
-        return !InfluenceMaps.getValue(threatMap, pos);
+        return !InfluenceMaps.getValue(getThreatMap(), pos);
     }
 
     private Point2d findDetourPos() {
