@@ -286,7 +286,7 @@ public class Strategy {
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
             case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //Blinkerbot
             case "9bd53605-334c-4f1c-95a8-4a735aae1f2d": //MadAI
-            case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
+            //case "ba7782ea-4dde-4a25-9953-6d5587a6bdcd": //AdditionalPylons
                 return 1;
             case "16ab8b85-cf8b-4872-bd8d-ebddacb944a5": //sharpy_PVP_EZ
 //                Switches.enemyCanProduceAir = true;
