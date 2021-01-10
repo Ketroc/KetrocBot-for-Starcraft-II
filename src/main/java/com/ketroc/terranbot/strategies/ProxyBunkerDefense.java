@@ -27,7 +27,7 @@ public class ProxyBunkerDefense {
                 List<UnitInPool> allScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 30);
                 allScvList = allScvs.stream()
                         .sorted(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(1))))
-                        .limit(6)
+                        .limit(5)
                         .map(UnitInPool::unit)
                         .collect(Collectors.toList());
             }

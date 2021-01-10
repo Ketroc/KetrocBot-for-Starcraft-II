@@ -161,6 +161,7 @@ public class Strategy {
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
+                DO_LEAVE_UP_BUNKER = true;
                 Switches.enemyCanProduceAir = true;
                 DO_BANSHEE_HARASS = false;
                 DO_ANTIDROP_TURRETS = true;
