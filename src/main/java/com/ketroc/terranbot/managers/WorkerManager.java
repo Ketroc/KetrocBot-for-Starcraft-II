@@ -135,7 +135,7 @@ public class WorkerManager {
             if (!scvsForRepair.isEmpty()) {
                 Print.print("sending " + scvsForRepair.size() + " scvs to repair.");
                 //line up scvs behind PF before giving repair command
-                if (UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).contains(unit)) {
+                if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);
                     Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
                     DebugHelper.draw3dBox(behindPFPos, Color.PURPLE, 0.2f); //TODO: remove
