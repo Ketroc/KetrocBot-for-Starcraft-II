@@ -64,6 +64,10 @@ public class PurchaseStructureMorph implements Purchase {
             return PurchaseResult.CANCEL;
         }
 
+        if (structureAlreadyMorphing()) {
+            return PurchaseResult.CANCEL;
+        }
+
         //if tech structure required
         if (isTechRequired(morphOrAddOn)) {
             Cost.updateBank(cost);
@@ -97,6 +101,11 @@ public class PurchaseStructureMorph implements Purchase {
         //if canafford but structure is busy
         Cost.updateBank(cost);
         return PurchaseResult.WAITING;
+    }
+
+    private boolean structureAlreadyMorphing() {
+        return structure.unit().getOrders().stream()
+                .anyMatch(unitOrder -> unitOrder.getAbility() == morphOrAddOn);
     }
 
     private boolean shouldCancelPreviousOrder() {

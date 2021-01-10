@@ -227,7 +227,7 @@ public class BuildManager {
     }
 
     private static void build2ndLayerOfTech() {
-        //build after 4th base started TODO UNCOMMENT - for testing
+        //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
             List<Unit> engBayList = GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
@@ -239,12 +239,13 @@ public class BuildManager {
             if (!UpgradeManager.shipArmor.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
-            if (LocationConstants.opponentRace == Race.ZERG && !Strategy.NO_TURRETS) {
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
-            }
             Strategy.techBuilt = true;
         }
+    }
+
+    private static void buildMainBaseTurrets() {
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
     }
 
     private static void cancelStructureLogic() {
@@ -291,15 +292,18 @@ public class BuildManager {
                 }
             }
             //build main base missile turrets now
-            if (Switches.doBuildMainBaseTurrets && (LocationConstants.opponentRace == Race.PROTOSS || LocationConstants.opponentRace == Race.TERRAN)) {
-                if (Strategy.DO_ANTIDROP_TURRETS && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
-                }
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
+            if (Switches.doBuildMainBaseTurrets) {
+                buildAntiDropTurrets();
+                buildMainBaseTurrets();
                 Switches.doBuildMainBaseTurrets = false;
             }
+        }
+    }
+
+    private static void buildAntiDropTurrets() {
+        if (Strategy.DO_ANTIDROP_TURRETS && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
         }
     }
 

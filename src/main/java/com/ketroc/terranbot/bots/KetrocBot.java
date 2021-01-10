@@ -368,7 +368,7 @@ public class KetrocBot extends Bot {
                         }
 
                         //put factory at top of queue
-                        if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0) {
+                        if (GameCache.gasBank > 0 && UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0) {
                             purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                         }
 

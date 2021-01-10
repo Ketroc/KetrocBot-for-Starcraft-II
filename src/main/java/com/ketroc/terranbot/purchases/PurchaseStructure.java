@@ -151,7 +151,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return PurchaseResult.WAITING;
         }
 
-        if (structureData.getAbility().get() == Abilities.BUILD_REFINERY) { //TODO: restructure this as refineries never have a tech requirement??
+        if (structureData.getAbility().get() == Abilities.BUILD_REFINERY) {
             return buildRefinery();
         }
         else if (!isTechRequired(structureType)) {
