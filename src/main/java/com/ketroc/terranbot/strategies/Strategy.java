@@ -150,6 +150,7 @@ public class Strategy {
                 EXPAND_SLOWLY = true;
                 break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 DO_LEAVE_UP_BUNKER = true;
                 DO_INCLUDE_TANKS = false;
                 DO_BANSHEE_HARASS = false;
@@ -304,6 +305,7 @@ public class Strategy {
 //                EXPAND_SLOWLY = true;
                 return 0;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return 0;
             case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
 //                BUILD_EXPANDS_IN_MAIN = true;
