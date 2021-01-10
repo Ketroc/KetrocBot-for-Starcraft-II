@@ -42,19 +42,21 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
 
                     //finish reaper wall first
-                    if (LocationConstants.reaperBlock3x3s.size() >= 2) {
-                        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-                        if (LocationConstants.reaperBlock3x3s.size() == 3) {
-                            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.reaperBlock3x3s.get(2)));
+                    if (!Strategy.NO_RAMP_WALL) {
+                        if (LocationConstants.reaperBlock3x3s.size() >= 2) {
+                            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+                            if (LocationConstants.reaperBlock3x3s.size() == 3) {
+                                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.reaperBlock3x3s.get(2)));
+                            }
                         }
-                    }
-                    for (int i=0; i<LocationConstants.reaperBlockDepots.size()-2; i++) {
-                        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                        for (int i = 0; i < LocationConstants.reaperBlockDepots.size() - 2; i++) {
+                            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                        }
                     }
 
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    if (LocationConstants.reaperBlock3x3s.size() < 2) { //build eng bay now if not in the wall
+                    if (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2) { //build eng bay now if not in the wall
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));

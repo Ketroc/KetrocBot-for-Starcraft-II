@@ -2,6 +2,7 @@ package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -27,6 +28,9 @@ public class RepairBayScv extends BasicUnitMicro {
                 removeMe = true;
             }
             else {
+                if (!unit.unit().getBuffs().contains(Buffs.AUTOMATED_REPAIR)) {
+                    Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
+                }
                 Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
             }
         }
