@@ -17,7 +17,7 @@ import java.util.List;
 public class StructureFloater extends BasicUnitMicro {
 
     public StructureFloater(Unit structure) {
-        super(Bot.OBS.getUnit(structure.getTag()), Position.toNearestHalfPoint(structure.getPosition().toPoint2d()), true);
+        super(Bot.OBS.getUnit(structure.getTag()), Position.toNearestHalfPoint(structure.getPosition().toPoint2d()), MicroPriority.SURVIVAL);
     }
 
     @Override

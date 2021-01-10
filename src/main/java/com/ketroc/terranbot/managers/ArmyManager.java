@@ -624,8 +624,7 @@ public class ArmyManager {
             //pf range + 2.5 for PF radius +1 for hisec
             if (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
                 range = 9.5f;
-            }
-            else {
+            } else {
                 range = 8.5f;
             }
 
@@ -633,10 +632,10 @@ public class ArmyManager {
             int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
             int yMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
             int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
-            int xStart = Math.max(Math.round(2*(x_pf - range)), xMin);
-            int yStart = Math.max(Math.round(2*(y_pf - range)), yMin);
-            int xEnd = Math.min(Math.round(2*(x_pf + range)), xMax);
-            int yEnd = Math.min(Math.round(2*(y_pf + range)), yMax);
+            int xStart = Math.max(Math.round(2 * (x_pf - range)), xMin);
+            int yStart = Math.max(Math.round(2 * (y_pf - range)), yMin);
+            int xEnd = Math.min(Math.round(2 * (x_pf + range)), xMax);
+            int yEnd = Math.min(Math.round(2 * (y_pf + range)), yMax);
 
 
             //get x,y of max value
@@ -646,7 +645,7 @@ public class ArmyManager {
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
                     if (InfluenceMaps.pointPFTargetValue[x][y] > bestValue &&
-                            Position.distance(x/2f, y/2f, x_pf, y_pf) < range) {
+                            Position.distance(x / 2f, y / 2f, x_pf, y_pf) < range) {
                         bestValueX = x;
                         bestValueY = y;
                         bestValue = InfluenceMaps.pointPFTargetValue[x][y];
@@ -660,8 +659,7 @@ public class ArmyManager {
                 if (LocationConstants.opponentRace == Race.ZERG) {
                     bestTargetUnit = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.ZERG_CHANGELING_MARINE, pf.getPosition().toPoint2d());
                 }
-            }
-            else {
+            } else {
                 Point2d bestTargetPos = Point2d.of(bestValueX / 2f, bestValueY / 2f);
 
                 //get enemy Unit near bestTargetPos
@@ -679,19 +677,33 @@ public class ArmyManager {
         }
     }
 
+    //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
+    //TODO: store all marines in UnitMicroList
     private static void positionMarines() {
+        List<Unit> availableMarines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
+        if (availableMarines.isEmpty()) {
+            return;
+        }
+
         if (enemyInMain() || enemyInNatural()) {
-            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream().forEach(
-                    marine -> new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, false).onStep());
+            availableMarines.stream()
+                    .forEach(marine ->
+                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, MicroPriority.DPS).onStep());
         }
         else {
-            List<Unit> bunkerList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER);
-            if (!bunkerList.isEmpty()) {
-                for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
-                    if (marine.getOrders().isEmpty()) { //for each idle marine
-                        Bot.ACTION.unitCommand(marine, Abilities.SMART, bunkerList.get(0), false);
-                    }
-                }
+            Unit bunker = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER)
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            if (bunker != null) {
+                availableMarines.stream()
+                        .forEach(marine ->
+                                new BunkerMarine(marine, bunker.getPosition().toPoint2d()).onStep());
+//                for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
+//                    if (marine.getOrders().isEmpty()) { //for each idle marine
+//                        Bot.ACTION.unitCommand(marine, Abilities.SMART, bunkerList.get(0), false);
+//                    }
+//                }
             }
         }
     }
@@ -746,7 +758,7 @@ public class ArmyManager {
                 for (DefenseUnitPositions tankPos : base.getTanks()) {
                     if (tankPos.getUnit() == null) {
                         tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-                        UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos()));
+                        UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));
                         return;
                     }
                 }
@@ -930,14 +942,14 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                new BasicUnitMicro(banshee, retreatPos, true).onStep();
+                new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED &&
                     banshee.getEnergy().get() > 3 + ((UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() > 2) ? 2 : 0)) { //additional energy for time to flee tempest range
                 if (isInBansheeRange) { //maintain max range
                     //retreat
-                    new BasicUnitMicro(banshee, retreatPos, true).onStep();
+                    new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
                     //retreatMyUnit(banshee);
                     //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
                 }
@@ -952,7 +964,7 @@ public class ArmyManager {
             }
             else {
                 //retreat
-                new BasicUnitMicro(banshee, retreatPos, true).onStep();
+                new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
                 //retreatMyUnit(banshee);
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
@@ -1103,7 +1115,7 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                new BasicUnitMicro(viking, retreatPos, true).onStep();
+                new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
             }
         }
         //Under 100% health and at repair bay
@@ -1190,7 +1202,7 @@ public class ArmyManager {
                     if (isUnsafe) {
                         if (lastCommand != ArmyCommands.HOME) {
                             //retreatMyUnit(raven);
-                            new BasicUnitMicro(raven, retreatPos, true).onStep();
+                            new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                         }
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {

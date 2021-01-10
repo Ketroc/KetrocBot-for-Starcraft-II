@@ -17,10 +17,7 @@ import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.BuildManager;
 import com.ketroc.terranbot.managers.WorkerManager;
-import com.ketroc.terranbot.micro.BasicUnitMicro;
-import com.ketroc.terranbot.micro.BunkerMarine;
-import com.ketroc.terranbot.micro.TankToPosition;
-import com.ketroc.terranbot.micro.UnitMicroList;
+import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.utils.*;
@@ -154,12 +151,12 @@ public class BunkerContain {
     public static void onTankCreated(UnitInPool tank) {
         if (tank1 == null || !tank1.isAlive()) {
             tank1 = tank;
-            UnitMicroList.add(new TankToPosition(tank1, siegeTankPos));
+            UnitMicroList.add(new TankToPosition(tank1, siegeTankPos, MicroPriority.GET_TO_DESTINATION));
         }
         else if (tank2 == null || !tank2.isAlive()) {
             tank2 = tank;
             Point2d tankPos = Position.towards(tank1.unit().getPosition().toPoint2d(), tank.unit().getPosition().toPoint2d(), 1f);
-            UnitMicroList.add(new TankToPosition(tank2, tankPos));
+            UnitMicroList.add(new TankToPosition(tank2, tankPos, MicroPriority.GET_TO_DESTINATION));
         }
     }
 
@@ -607,10 +604,10 @@ public class BunkerContain {
             }
         }
         else {
-            //send marines home on a-move
+            //send marines home
             UnitMicroList.unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro instanceof BunkerMarine);
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
-                    .forEach(marine -> UnitMicroList.add(new BasicUnitMicro(marine, LocationConstants.insideMainWall, true)));
+                    .forEach(marine -> UnitMicroList.add(new BasicUnitMicro(marine, LocationConstants.insideMainWall, MicroPriority.SURVIVAL)));
         }
 
         //send tanks home

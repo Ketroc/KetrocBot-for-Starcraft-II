@@ -13,8 +13,8 @@ import java.util.function.Predicate;
 
 public class TankToPosition extends Tank {
 
-    public TankToPosition(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos);
+    public TankToPosition(UnitInPool unit, Point2d targetPos, MicroPriority priority) {
+        super(unit, targetPos, priority);
     }
 
     @Override

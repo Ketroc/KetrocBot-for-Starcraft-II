@@ -16,7 +16,7 @@ import java.util.List;
 
 public class RepairBayScv extends BasicUnitMicro {
     public RepairBayScv(UnitInPool scv) {
-        super(scv, LocationConstants.REPAIR_BAY, true);
+        super(scv, LocationConstants.REPAIR_BAY, MicroPriority.SURVIVAL);
     }
 
     @Override

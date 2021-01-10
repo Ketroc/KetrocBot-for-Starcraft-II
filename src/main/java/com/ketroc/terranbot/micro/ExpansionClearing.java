@@ -48,7 +48,7 @@ public class ExpansionClearing {
                 .map(Unit::getTag)
                 .orElse(null);
         if (nearestRaven != null) {
-            this.raven = new BasicUnitMicro(Bot.OBS.getUnit(nearestRaven), expansionPos, true);
+            this.raven = new BasicUnitMicro(Bot.OBS.getUnit(nearestRaven), expansionPos, MicroPriority.SURVIVAL);
             Ignored.add(new IgnoredUnit(raven.unit.getTag()));
         }
     }

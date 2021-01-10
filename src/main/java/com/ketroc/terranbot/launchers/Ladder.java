@@ -50,7 +50,6 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        Print.print("realTime = " + realTime);
         Bot bot = new KetrocBot(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min

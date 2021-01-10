@@ -18,7 +18,11 @@ import java.util.List;
 public class Tank extends BasicUnitMicro {
 
     public Tank(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos, true);
+        super(unit, targetPos, MicroPriority.SURVIVAL);
+    }
+
+    public Tank(UnitInPool unit, Point2d targetPos, MicroPriority priority) {
+        super(unit, targetPos, priority);
     }
 
     @Override

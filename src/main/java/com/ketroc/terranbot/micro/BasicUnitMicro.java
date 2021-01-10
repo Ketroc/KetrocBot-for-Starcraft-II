@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 public class BasicUnitMicro {
     public UnitInPool unit;
     public Point2d targetPos;
-    public boolean prioritizeLiving;
+    public MicroPriority priority;
     public boolean isGround;
     public boolean canAttackAir;
     public boolean canAttackGround;
@@ -28,14 +28,14 @@ public class BasicUnitMicro {
     private long prevDirectionChangeFrame;
     public boolean removeMe;
 
-    public BasicUnitMicro(Unit unit, Point2d targetPos, boolean prioritizeLiving) {
-        this(Bot.OBS.getUnit(unit.getTag()), targetPos, prioritizeLiving);
+    public BasicUnitMicro(Unit unit, Point2d targetPos, MicroPriority priority) {
+        this(Bot.OBS.getUnit(unit.getTag()), targetPos, priority);
     }
 
-    public BasicUnitMicro(UnitInPool unit, Point2d targetPos, boolean prioritizeLiving) {
+    public BasicUnitMicro(UnitInPool unit, Point2d targetPos, MicroPriority priority) {
         this.unit = unit;
         this.targetPos = targetPos;
-        this.prioritizeLiving = prioritizeLiving;
+        this.priority = priority;
         this.isGround = !unit.unit().getFlying().orElse(false);
         setWeaponInfo();
         this.movementSpeed = UnitUtils.getUnitSpeed(unit.unit().getType());
@@ -45,7 +45,7 @@ public class BasicUnitMicro {
         if (this instanceof StructureFloater) {
             return InfluenceMaps.pointThreatToAirPlusBuffer;
         }
-        if (!prioritizeLiving) {
+        if (priority != MicroPriority.SURVIVAL) {
             switch ((Units) unit.unit().getType()) {
                 case TERRAN_BANSHEE:
                     return InfluenceMaps.pointInBansheeRange;

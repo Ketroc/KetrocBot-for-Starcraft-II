@@ -27,7 +27,7 @@ public class Liberator extends BasicUnitMicro {
     protected Point2d curLibZonePos;
 
     public Liberator(UnitInPool unit, Point2d targetPos, Point2d plannedLibZonePos) {
-        super(unit, targetPos, true);
+        super(unit, targetPos, MicroPriority.SURVIVAL);
         this.plannedLibZonePos = plannedLibZonePos;
     }
 
