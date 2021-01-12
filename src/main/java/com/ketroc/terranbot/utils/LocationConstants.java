@@ -153,6 +153,9 @@ public class LocationConstants {
                 }
                 else if (thisPos.distance(natPos) < 9 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
+                    if (thisPos.distance(LocationConstants.BUNKER_NATURAL) > 8) {
+                        InfluenceMaps.pointInNatExcludingBunkerRange[x][y] = true;
+                    }
                 }
                 else if (thisPos.distance(enemyNatPos) < 9 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;

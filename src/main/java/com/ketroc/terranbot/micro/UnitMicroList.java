@@ -34,4 +34,11 @@ public class UnitMicroList {
             }
         }
     }
+
+    public static <T extends BasicUnitMicro> List<T> getUnitSubList(Class<T> cls) {
+        return unitMicroList.stream()
+                .filter(basicUnit -> cls.isInstance(basicUnit))
+                .map(basicUnit -> cls.cast(basicUnit))
+                .collect(Collectors.toList());
+    }
 }

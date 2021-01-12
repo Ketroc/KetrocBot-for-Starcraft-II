@@ -455,4 +455,11 @@ public class Base {
                 .orElse(null);
     }
 
+    public static Base getBase(Point2d ccPos) {
+        return GameCache.baseList.stream()
+                .filter(base -> ccPos.distance(base.getCcPos()) < 1)
+                .findFirst()
+                .orElse(null);
+    }
+
 }

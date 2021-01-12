@@ -142,19 +142,13 @@ public class Strategy {
                 DO_INCLUDE_LIBS = false;
                 break;
             case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
-                Switches.enemyCanProduceAir = true;
-                DO_INCLUDE_TANKS = false;
-                DO_INCLUDE_LIBS = false;
-                DO_BANSHEE_HARASS = false;
-                BUILD_EXPANDS_IN_MAIN = true;
-                EXPAND_SLOWLY = true;
                 break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                DO_LEAVE_UP_BUNKER = true;
                 DO_INCLUDE_TANKS = false;
                 DO_BANSHEE_HARASS = false;
-                EXPAND_SLOWLY = true;
+                //EXPAND_SLOWLY = true;
+                BUILD_EXPANDS_IN_MAIN = true;
                 NO_RAMP_WALL = true;
                 NO_TURRETS = true;
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
@@ -303,7 +297,7 @@ public class Strategy {
 //                DO_BANSHEE_HARASS = false;
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                EXPAND_SLOWLY = true;
-                return 1;
+                return 3;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return 0;

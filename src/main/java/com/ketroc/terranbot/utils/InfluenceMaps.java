@@ -26,6 +26,7 @@ public class InfluenceMaps {
     public static final boolean[][] pointInMainBase = new boolean[800][800];
     public static final boolean[][] pointInEnemyMainBase = new boolean[800][800];
     public static final boolean[][] pointInNat = new boolean[800][800];
+    public static final boolean[][] pointInNatExcludingBunkerRange = new boolean[800][800];
     public static final boolean[][] pointInEnemyNat = new boolean[800][800];
 
     public static boolean getValue(boolean[][] map, Point2d point) {

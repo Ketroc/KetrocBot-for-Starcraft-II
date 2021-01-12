@@ -679,4 +679,12 @@ public class UnitUtils {
     public static float getUnitSpeed(UnitType unitType) {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f);
     }
+
+    public static Unit getNatBunker() {
+        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 3f)
+                .stream()
+                .findFirst()
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
 }

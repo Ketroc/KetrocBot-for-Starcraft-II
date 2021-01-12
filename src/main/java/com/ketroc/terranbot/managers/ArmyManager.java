@@ -677,36 +677,64 @@ public class ArmyManager {
         }
     }
 
-    //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
-    //TODO: store all marines in UnitMicroList
     private static void positionMarines() {
-        List<Unit> availableMarines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-        if (availableMarines.isEmpty()) {
+        //new marines get a marine object
+        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
+            UnitMicroList.add(new Marine(unit, LocationConstants.insideMainWall));
+        });
+
+        //if main/nat under attack, empty natural bunker and target enemy
+        Unit bunker = UnitUtils.getNatBunker();
+        if (enemyInMain() || enemyInNaturalPastBunker() ||
+                (enemyInNatural() && bunker == null)) {
+            if (bunker != null) {
+                Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
+            }
+            Marine.setTargetPos(attackGroundPos);
             return;
         }
 
-        if (enemyInMain() || enemyInNatural()) {
-            availableMarines.stream()
-                    .forEach(marine ->
-                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, MicroPriority.DPS).onStep());
+        //TODO: stay during PF upgrade?
+        //if scv is building a CC on a base location, target behindCC
+        Point2d newMarinePos = StructureScv.scvBuildingList.stream()
+                .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
+                        structureScv.getStructureUnit() != null &&
+                        Base.getBase(structureScv.structurePos) != null)
+                .findFirst()
+                .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
+                .orElse(null);
+        if (newMarinePos != null) {
+            Marine.setTargetPos(newMarinePos);
+            return;
         }
-        else {
-            Unit bunker = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER)
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
-            if (bunker != null) {
-                availableMarines.stream()
-                        .forEach(marine ->
-                                new BunkerMarine(marine, bunker.getPosition().toPoint2d()).onStep());
-//                for (Unit marine : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE)) {
-//                    if (marine.getOrders().isEmpty()) { //for each idle marine
-//                        Bot.ACTION.unitCommand(marine, Abilities.SMART, bunkerList.get(0), false);
-//                    }
-//                }
-            }
-        }
+
+        //if nothing going on, target top of main ramp
+        Marine.setTargetPos(LocationConstants.insideMainWall);
     }
+
+
+        //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
+    //TODO: store all marines in UnitMicroList
+//    private static void positionMarines() {
+//        List<Unit> availableMarines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
+//        if (availableMarines.isEmpty()) {
+//            return;
+//        }
+//
+//        Unit bunker = UnitUtils.getNatBunker();
+//        if (enemyInMain() || enemyInNaturalPastBunker() ||
+//                (enemyInNatural() && bunker == null)) {
+//            availableMarines.stream()
+//                    .forEach(marine ->
+//                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, MicroPriority.DPS).onStep());
+//        }
+//        else {
+//            if (bunker != null) {
+//                availableMarines.stream()
+//                        .forEach(marine -> new BunkerMarine(marine, bunker.getPosition().toPoint2d()).onStep());
+//            }
+//        }
+//    }
 
     private static void positionLiberators() { //positions only 1 liberator per game loop
         Unit idleLib = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
@@ -1420,5 +1448,12 @@ public class ArmyManager {
             return false;
         }
         return InfluenceMaps.getValue(InfluenceMaps.pointInNat, attackUnit.getPosition().toPoint2d());
+    }
+
+    public static boolean enemyInNaturalPastBunker() {
+        if (attackUnit == null) {
+            return false;
+        }
+        return InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, attackUnit.getPosition().toPoint2d());
     }
 }

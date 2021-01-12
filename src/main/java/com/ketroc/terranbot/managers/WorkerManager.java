@@ -548,8 +548,8 @@ public class WorkerManager {
         //transfer a lot to nat PF for early rushes
         if (pfPos.distance(LocationConstants.baseLocations.get(1)) < 1 && Base.numMyBases() == 2) {
             List<UnitInPool> mainBaseScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 10);
-            if (mainBaseScvs.size() > 15) {
-                mainBaseScvs = mainBaseScvs.subList(0, 15);
+            if (mainBaseScvs.size() > 12) {
+                mainBaseScvs = mainBaseScvs.subList(0, 12);
             }
             mainBaseScvs.forEach(scv -> {
                     if (UnitUtils.isCarryingResources(scv.unit())) {
