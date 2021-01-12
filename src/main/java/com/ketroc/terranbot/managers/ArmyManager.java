@@ -694,7 +694,6 @@ public class ArmyManager {
             return;
         }
 
-        //TODO: stay during PF upgrade?
         //if scv is building a CC on a base location, target behindCC
         Point2d newMarinePos = StructureScv.scvBuildingList.stream()
                 .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
@@ -708,7 +707,24 @@ public class ArmyManager {
             return;
         }
 
-        //if nothing going on, target top of main ramp
+        //if CC is floating to a base location, target behindCC
+        newMarinePos = FlyingCC.flyingCCs.stream()
+                .filter(flyingCC -> !flyingCC.makeMacroOC)
+                .findFirst()
+                .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
+                .orElse(null);
+        if (newMarinePos != null) {
+            Marine.setTargetPos(newMarinePos);
+            return;
+        }
+
+        //if bunker exists and isn't full, head to bunker and enter
+        if (bunker != null && bunker.getCargoSpaceTaken().orElse(4) < 4) {
+            Marine.setTargetPos(LocationConstants.BUNKER_NATURAL);
+            return;
+        }
+
+        //otherwise, go to top of ramp
         Marine.setTargetPos(LocationConstants.insideMainWall);
     }
 
