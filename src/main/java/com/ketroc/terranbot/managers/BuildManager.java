@@ -511,7 +511,7 @@ public class BuildManager {
                 }
             }
 
-            //make marines if wall under attack
+            //make marines if wall under attack TODO: don't build if starports/factories aren't aall active and gas >= 75
             else if (UnitUtils.isWallUnderAttack() || ArmyManager.enemyInMain()) {
                 if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                     Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
@@ -528,7 +528,7 @@ public class BuildManager {
                 }
 
                 //maintain early game marine count (3)
-                int marineCount = UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARINE, true);
+                int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
                 marineCount += UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
                         .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
                         .sum();
