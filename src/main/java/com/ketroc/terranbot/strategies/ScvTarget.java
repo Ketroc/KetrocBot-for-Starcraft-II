@@ -15,10 +15,11 @@ import java.util.List;
 
 public class ScvTarget {
     public static List<ScvTarget> targets = new ArrayList<>();
+
     public int numScvs;
     public List<UnitInPool> scvs = new ArrayList<>();
     public UnitInPool targetUnit;
-    public boolean giveUp = false;
+    public boolean giveUp = false; //TODO: unused
 
     public ScvTarget(UnitInPool targetUnit) {
         this.targetUnit = targetUnit;
@@ -54,6 +55,13 @@ public class ScvTarget {
                     numScvs = 0;
                 }
                 break;
+        }
+    }
+
+    public void cancelTarget() {
+        if (!scvs.isEmpty()) {
+            scvs.forEach(unit -> Ignored.remove(unit.getTag()));
+            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
         }
     }
 

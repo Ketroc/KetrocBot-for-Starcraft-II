@@ -436,7 +436,7 @@ public class ArmyManager {
         return Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
             return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
                     UnitUtils.getHealthPercentage(u.unit()) < 100 &&
-                    UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) < 2.5;
+                    UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 2.5;
         }).size();
     }
 

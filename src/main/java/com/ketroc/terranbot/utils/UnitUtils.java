@@ -257,19 +257,12 @@ public class UnitUtils {
             }
         }
         switch ((Units)unit.getType()) {
-            case TERRAN_PLANETARY_FORTRESS:
-                if (structureHealth > 95) {
+            case TERRAN_COMMAND_CENTER:
+                if (UnitUtils.getOrder(unit) != Abilities.MORPH_PLANETARY_FORTRESS) {
                     return 1;
-                }
-                else if (structureHealth > 90) {
-                    return 5;
-                }
-                else if (structureHealth > 70) {
-                    return 10;
-                }
-                else {
-                    return Integer.MAX_VALUE;
-                }
+                } //else continue into PF case
+            case TERRAN_PLANETARY_FORTRESS:
+                return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90 = 3scvs, 70-80 = 5scvs, etc
             case TERRAN_MISSILE_TURRET:
                 return 6;
             case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:

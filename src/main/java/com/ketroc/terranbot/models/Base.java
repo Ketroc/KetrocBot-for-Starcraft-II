@@ -37,6 +37,7 @@ public class Base {
     private boolean onMyBaseDeath;
     public long prevMuleSpamFrame;
     public int scvsAddedThisFrame;
+    public long lastMorphFrame;
 
     // ============= CONSTRUCTORS ============
 
@@ -460,6 +461,13 @@ public class Base {
                 .filter(base -> ccPos.distance(base.getCcPos()) < 1)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static void setBaseMorphTime(Unit cc) {
+        GameCache.baseList.stream()
+                .filter(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 1)
+                .findFirst()
+                .ifPresent(base -> base.lastMorphFrame = Time.nowFrames());
     }
 
 }

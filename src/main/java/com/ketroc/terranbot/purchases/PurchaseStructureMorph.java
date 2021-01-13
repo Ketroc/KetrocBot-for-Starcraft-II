@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
+import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.utils.Print;
@@ -95,6 +96,9 @@ public class PurchaseStructureMorph implements Purchase {
             Print.print("sending action " + this.morphOrAddOn);
             Bot.ACTION.unitCommand(structure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
+            if (morphOrAddOn == Abilities.MORPH_PLANETARY_FORTRESS) {
+                Base.setBaseMorphTime(structure.unit());
+            }
             return PurchaseResult.SUCCESS;
         }
 

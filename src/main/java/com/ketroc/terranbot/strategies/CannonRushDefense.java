@@ -1,6 +1,7 @@
 package com.ketroc.terranbot.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
@@ -25,7 +26,9 @@ public class CannonRushDefense {
             case 0: //was a pylon built in my vision in the first 2min of the game
                 if (Time.nowFrames() < Time.toFrames("1:50") &&
                         !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.PROTOSS_PYLON,
-                                LocationConstants.myMineralPos, 40).isEmpty()) {
+                                LocationConstants.myMineralPos, 40).isEmpty() &&
+                        !isAnyCannonComplete()) {
+                    Bot.ACTION.sendChat("Cannon Rush Detected", ActionChat.Channel.BROADCAST);
                     cannonRushStep++;
                 }
                 break;
@@ -33,13 +36,10 @@ public class CannonRushDefense {
             case 1: //1 scv per probe, calc #scvs per cannon TODO: go to case 2 if a cannon completes (use ScvTarget.giveUp)
 
                 //next stage if cannon completed
-                boolean isAnyCannonComplete = UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PHOTON_CANNON).stream()
-                        .anyMatch(cannon -> cannon.unit().getBuildProgress() == 1 &&
-                                (cannon.unit().getShield().orElse(0f) > 1 ||
-                                        cannon.unit().getHealth().orElse(0f) > 20));
-                if (isAnyCannonComplete) {
+                if (isAnyCannonComplete()) {
                     cancelScvDefense();
                     cannonRushStep = 0; //TODO: add case 2 for next steps instead of just giving up here.
+                    Bot.ACTION.sendChat("Cannon Rush Defense failed and abandoned", ActionChat.Channel.BROADCAST);
                 }
 
                 //remove dead targets (and probes that left)
@@ -102,6 +102,8 @@ public class CannonRushDefense {
                 //check if cannon rush is done
                 if (ScvTarget.targets.isEmpty()) {
                     cannonRushStep = 0;
+                    Bot.ACTION.sendChat("Cannon Rush Defense completed", ActionChat.Channel.BROADCAST);
+
                 }
                 break;
 
@@ -111,10 +113,15 @@ public class CannonRushDefense {
         }
     }
 
+    private static boolean isAnyCannonComplete() {
+        return UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PHOTON_CANNON).stream()
+                            .anyMatch(cannon -> cannon.unit().getBuildProgress() == 1 &&
+                                    (cannon.unit().getShield().orElse(0f) > 1 ||
+                                            cannon.unit().getHealth().orElse(0f) > 20));
+    }
+
     public static void cancelScvDefense() {
-        ScvTarget.targets.forEach(scvTarget -> {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvTarget.scvs), Abilities.STOP, false);
-        });
+        ScvTarget.targets.forEach(scvTarget -> scvTarget.cancelTarget());
         ScvTarget.targets.clear();
     }
 

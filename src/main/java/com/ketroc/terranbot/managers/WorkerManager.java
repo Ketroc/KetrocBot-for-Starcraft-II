@@ -115,9 +115,13 @@ public class WorkerManager {
 
     private static void repairLogic() {  //TODO: don't repair wall if ranged units on other side
         //loop through units.  look for unmaxed health.  decide numscvs to repair
-        List<Unit> unitsToRepair = new ArrayList<>(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS));
-        unitsToRepair.addAll(GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, Collections.emptyList()));
-        unitsToRepair.addAll(GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_BUNKER, Collections.emptyList()));
+        List<Unit> unitsToRepair = new ArrayList<>();
+        GameCache.baseList.stream()
+                .filter(base -> base.isMyBase() && (base.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
+                        (UnitUtils.getOrder(base.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS &&
+                                Time.nowFrames() - base.lastMorphFrame > 600))) //complete PFs or 10sec from morphed
+                .forEach(base -> unitsToRepair.add(base.getCc().unit()));
+        unitsToRepair.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
             unitsToRepair.addAll(GameCache.liberatorList);
         }
@@ -139,7 +143,7 @@ public class WorkerManager {
             if (!scvsForRepair.isEmpty()) {
                 Print.print("sending " + scvsForRepair.size() + " scvs to repair: " + unit.getType() + " at: " + unit.getPosition().toPoint2d());
                 //line up scvs behind PF before giving repair command
-                if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS) {
+                if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS || UnitUtils.getOrder(unit) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);
                     Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
                     DebugHelper.draw3dBox(behindPFPos, Color.PURPLE, 0.2f); //TODO: remove

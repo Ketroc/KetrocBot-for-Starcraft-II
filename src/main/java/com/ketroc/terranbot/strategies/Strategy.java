@@ -126,6 +126,7 @@ public class Strategy {
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
                 DO_ANTIDROP_TURRETS = true;
+                DO_BANSHEE_HARASS = false;
                 break;
             case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
                 break;
@@ -274,8 +275,7 @@ public class Strategy {
 //        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
-//                DO_ANTIDROP_TURRETS = true;
-                return 0;
+                return 1;
             case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot
                 return 1;
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
