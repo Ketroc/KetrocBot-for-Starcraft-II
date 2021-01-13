@@ -21,7 +21,7 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "",false)),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_HARD))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));

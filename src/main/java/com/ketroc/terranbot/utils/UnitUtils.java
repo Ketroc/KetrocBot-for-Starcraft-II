@@ -11,6 +11,7 @@ import com.ketroc.terranbot.managers.StructureSize;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.Purchase;
+import com.ketroc.terranbot.strategies.ScvTarget;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
@@ -242,7 +243,7 @@ public class UnitUtils {
         return unit.getHealth().get().intValue() * 100 / unit.getHealthMax().get().intValue();
     }
 
-    public static int getIdealScvsToRepair(Unit unit) {
+    public static int numIdealScvsToRepair(Unit unit) {
         int structureHealth = getHealthPercentage(unit);
         if (structureHealth == 100) {
             return 0;

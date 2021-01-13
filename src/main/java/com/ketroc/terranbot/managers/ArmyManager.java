@@ -680,7 +680,7 @@ public class ArmyManager {
     private static void positionMarines() {
         //new marines get a marine object
         UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
-            UnitMicroList.add(new Marine(unit, LocationConstants.insideMainWall));
+            UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
         //if main/nat under attack, empty natural bunker and target enemy
@@ -690,7 +690,7 @@ public class ArmyManager {
             if (bunker != null) {
                 Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
             }
-            Marine.setTargetPos(attackGroundPos);
+            MarineBasic.setTargetPos(attackGroundPos);
             return;
         }
 
@@ -704,7 +704,7 @@ public class ArmyManager {
                 .orElse(null);
         if (newMarinePos != null &&
                 (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-            Marine.setTargetPos(newMarinePos);
+            MarineBasic.setTargetPos(newMarinePos);
             return;
         }
 
@@ -716,18 +716,18 @@ public class ArmyManager {
                 .orElse(null);
         if (newMarinePos != null &&
                 (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-            Marine.setTargetPos(newMarinePos);
+            MarineBasic.setTargetPos(newMarinePos);
             return;
         }
 
         //if bunker exists and isn't full, head to bunker and enter
         if (bunker != null && bunker.getCargoSpaceTaken().orElse(4) < 4) {
-            Marine.setTargetPos(LocationConstants.BUNKER_NATURAL);
+            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
 
         //otherwise, go to top of ramp
-        Marine.setTargetPos(LocationConstants.insideMainWall);
+        MarineBasic.setTargetPos(LocationConstants.insideMainWall);
     }
 
     private static boolean isBehindMainOrNat(Point2d pos) {

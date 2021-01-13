@@ -162,10 +162,10 @@ public class BunkerContain {
 
     public static void onMarineCreated(UnitInPool marine) {
         if (proxyBunkerLevel == 2 && LocationConstants.proxyBunkerPos2 != null && getMarineCount() == 1) {
-            UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos2));
+            UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos2));
             return;
         }
-        UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos));
+        UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos));
     }
 
     public static void addRepairScv(UnitInPool scv) {
@@ -547,7 +547,7 @@ public class BunkerContain {
             if (bunkerDied) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
                 UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
-                        .forEach(marine -> UnitMicroList.add(new BunkerMarine(marine, LocationConstants.proxyBunkerPos)));
+                        .forEach(marine -> UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos)));
             }
             return false;
         }
@@ -605,7 +605,7 @@ public class BunkerContain {
         }
         else {
             //send marines home
-            UnitMicroList.unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro instanceof BunkerMarine);
+            UnitMicroList.unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro instanceof MarineProxyBunker);
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
                     .forEach(marine -> UnitMicroList.add(new BasicUnitMicro(marine, LocationConstants.insideMainWall, MicroPriority.SURVIVAL)));
         }

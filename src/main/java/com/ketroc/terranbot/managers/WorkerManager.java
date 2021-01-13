@@ -135,7 +135,7 @@ public class WorkerManager {
             unitsToRepair.add(natBunker);
         }
         for (Unit unit : unitsToRepair) {
-            int numScvsToAdd = UnitUtils.getIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
+            int numScvsToAdd = UnitUtils.numIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
             if (numScvsToAdd <= 0) { //skip if no additional scvs required
                 break;
             }
@@ -208,7 +208,7 @@ public class WorkerManager {
 
     public static void fix3ScvsOn1MineralPatch() {
         for (Base base : GameCache.baseList) {
-            List<Unit> harvestingScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, base.getCcPos(), 10).stream()
+            List<Unit> harvestingScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, base.getCcPos(), 9).stream()
                     .map(UnitInPool::unit)
                     .filter(scv -> UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER &&
                             scv.getOrders().get(0).getTargetedUnitTag().isPresent())
@@ -294,11 +294,11 @@ public class WorkerManager {
     }
 
     public static List<Unit> getAvailableScvUnits(Point2d targetPosition) {
-        return UnitUtils.toUnitList(getAvailableScvs(targetPosition, 10));
+        return UnitUtils.toUnitList(getAvailableScvs(targetPosition, 9));
     }
 
     public static List<Unit> getAllScvUnits(Point2d targetPosition) {
-        return UnitUtils.toUnitList(getAllScvs(targetPosition, 10));
+        return UnitUtils.toUnitList(getAllScvs(targetPosition, 9));
     }
 
     public static UnitInPool getOneScv(Point2d targetPosition) {
@@ -412,7 +412,7 @@ public class WorkerManager {
                 Unit cc = base.getCc().unit();
 
                 //get available scvs at this base
-                List<UnitInPool> baseMineralScvs = getAvailableMineralScvs(base.getCcPos(), 10);
+                List<UnitInPool> baseMineralScvs = getAvailableMineralScvs(base.getCcPos(), 9);
 
                 //saturate refineries
                 for (Gas gas : base.getGases()) {
@@ -536,7 +536,7 @@ public class WorkerManager {
         int scvsNeeded = numScvs;
         for (Base base : GameCache.baseList) {
             if (base.isMyBase()) {
-                List<UnitInPool> baseScvs = getAvailableScvs(base.getCcPos(), 10, true, true);
+                List<UnitInPool> baseScvs = getAvailableScvs(base.getCcPos(), 9, true, true);
                 if (baseScvs.size() >= scvsNeeded) {
                     scvs.addAll(baseScvs.subList(0, scvsNeeded));
                     break;
@@ -549,13 +549,13 @@ public class WorkerManager {
         return scvs.stream().map(UnitInPool::unit).collect(Collectors.toList());
     }
 
-    //Up a new pf base to a minimum of 10 scvs
+    //Up a new pf base to a minimum of 10 scvs (12 for nat)
     public static void sendScvsToNewPf(Unit pf) {
         Point2d pfPos = pf.getPosition().toPoint2d();
 
         //transfer a lot to nat PF for early rushes
         if (pfPos.distance(LocationConstants.baseLocations.get(1)) < 1 && Base.numMyBases() == 2) {
-            List<UnitInPool> mainBaseScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 10);
+            List<UnitInPool> mainBaseScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 9);
             if (mainBaseScvs.size() > 12) {
                 mainBaseScvs = mainBaseScvs.subList(0, 12);
             }
@@ -572,7 +572,7 @@ public class WorkerManager {
         }
 
         //normal transfer of 6 scvs for other bases
-        int scvsNeeded = 8 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 10).size();
+        int scvsNeeded = 8 - UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, pfPos, 9).size();
         if (scvsNeeded <= 0) {
             return;
         }
@@ -588,12 +588,12 @@ public class WorkerManager {
     }
 
     private static Unit getMiningNodeAtBase(Point2d basePos) {
-        List<UnitInPool> mineralPatches = UnitUtils.getUnitsNearbyOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, basePos, 10);
+        List<UnitInPool> mineralPatches = UnitUtils.getUnitsNearbyOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_NODE_TYPE, basePos, 9);
         if (!mineralPatches.isEmpty()) {
             return mineralPatches.get(0).unit();
         }
         else {
-            List<UnitInPool> refineries = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.REFINERY_TYPE, basePos, 10);
+            List<UnitInPool> refineries = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.REFINERY_TYPE, basePos, 9);
             if (!refineries.isEmpty()) {
                 return refineries.get(0).unit();
             }

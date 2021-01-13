@@ -7,19 +7,17 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.List;
 
 public class Marine extends BasicUnitMicro {
-    public Marine(Unit unit, Point2d targetPos) {
-        super(unit, targetPos, MicroPriority.DPS);
+    public Marine(Unit unit, Point2d targetPos, MicroPriority priority) {
+        super(unit, targetPos, priority);
     }
 
-    public Marine(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos, MicroPriority.DPS);
+    public Marine(UnitInPool unit, Point2d targetPos, MicroPriority priority) {
+        super(unit, targetPos, priority);
     }
 
     @Override
@@ -33,6 +31,16 @@ public class Marine extends BasicUnitMicro {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
         }
+    }
+
+    @Override
+    protected boolean isSafe() {
+        Unit bunker = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 3f)
+                .stream()
+                .findFirst()
+                .map(UnitInPool::unit)
+                .orElse(null);
+        return bunker != null || super.isSafe();
     }
 
     public static void setTargetPos(Point2d newTargetPos) {
