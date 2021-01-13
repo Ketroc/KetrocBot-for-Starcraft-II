@@ -270,9 +270,9 @@ public class UnitUtils {
                 else {
                     return Integer.MAX_VALUE;
                 }
-            case TERRAN_MISSILE_TURRET: case TERRAN_BUNKER:
+            case TERRAN_MISSILE_TURRET:
                 return 6;
-            case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED:
+            case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:
                 return 2;
             default: //other burning structures
                 return 1;

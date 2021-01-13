@@ -173,7 +173,7 @@ public class BuildManager {
     }
 
     private static void noGasProduction() {
-        if (Cost.isGasBroke()) {
+        if (Cost.isGasBroke() && Bot.OBS.getGameLoop() > Time.toFrames("10:00")) {
             //land factory
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
                     .filter(factory -> factory.getOrders().isEmpty()) //if idle

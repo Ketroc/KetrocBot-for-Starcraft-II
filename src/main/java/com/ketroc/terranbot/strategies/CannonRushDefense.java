@@ -8,9 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
@@ -34,6 +32,16 @@ public class CannonRushDefense {
 
             case 1: //1 scv per probe, calc #scvs per cannon TODO: go to case 2 if a cannon completes (use ScvTarget.giveUp)
 
+                //next stage if cannon completed
+                boolean isAnyCannonComplete = UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PHOTON_CANNON).stream()
+                        .anyMatch(cannon -> cannon.unit().getBuildProgress() == 1 &&
+                                (cannon.unit().getShield().orElse(0f) > 1 ||
+                                        cannon.unit().getHealth().orElse(0f) > 20));
+                if (isAnyCannonComplete) {
+                    cancelScvDefense();
+                    cannonRushStep = 0; //TODO: add case 2 for next steps instead of just giving up here.
+                }
+
                 //remove dead targets (and probes that left)
                 ScvTarget.removeDeadTargets();
 
@@ -46,36 +54,46 @@ public class CannonRushDefense {
                 addNewTarget(Units.PROTOSS_PYLON);
 
                 //fill targets list with required scvs, send those scvs to attack their target, send marines
-                List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
+//                List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
                 List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 50);
 
                 for (ScvTarget scvTarget : ScvTarget.targets) {
                     //attack with scvs
-                    for (int i = 0; i < scvTarget.numScvs - scvTarget.scvs.size() && !availableScvs.isEmpty(); i++) {
+                    int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.scvs.size(), availableScvs.size());
+                    for (int i = 0; i < numScvsToSend; i++) {
                         UnitInPool newScv = availableScvs.remove(0);
-                        Bot.ACTION.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+                        //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
+                        if (numScvsToSend >= 4 && i < numScvsToSend/2) {
+                            Point2d behindCannon = Position.towards(
+                                    scvTarget.targetUnit.unit().getPosition().toPoint2d(),
+                                    newScv.unit().getPosition().toPoint2d(), 3);
+                            Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false)
+                                    .unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);
+                        }
+                        else {
+                            Bot.ACTION.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+                        }
                         scvTarget.addScv(newScv);
                     }
-                    //attack with marines if cannon
-                    if (!marines.isEmpty() && scvTarget.targetUnit.unit().getType() == Units.PROTOSS_PHOTON_CANNON) {
-                        Bot.ACTION.unitCommand(marines, Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
-                    }
+//                    //attack with marines if cannon
+//                    if (!marines.isEmpty() && scvTarget.targetUnit.unit().getType() == Units.PROTOSS_PHOTON_CANNON) {
+//                        Bot.ACTION.unitCommand(marines, Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+//                    }
                 }
-                //if marines don't have a target, attack starting with closest to natural base
-                if (!marines.isEmpty() && !ScvTarget.targets.isEmpty()) {
+//                //if marines don't have a target, attack starting with closest to natural base
+//                if (!marines.isEmpty() && !ScvTarget.targets.isEmpty()) {
+//
+//                    Unit cleanUp = ScvTarget.targets.stream()
+//                            .map(scvTarget -> scvTarget.targetUnit.unit())
+//                            .sorted(Comparator.comparing(targetUnit -> UnitUtils.getDistance(targetUnit, GameCache.baseList.get(1).getCcPos())))
+//                            .findFirst()
+//                            .get();
+//                    Bot.ACTION.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
+//                }
 
-                    Unit cleanUp = ScvTarget.targets.stream()
-                            .map(scvTarget -> scvTarget.targetUnit.unit())
-                            .sorted(Comparator.comparing(targetUnit -> UnitUtils.getDistance(targetUnit, GameCache.baseList.get(1).getCcPos())))
-                            .findFirst()
-                            .get();
-                    Bot.ACTION.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
-                }
-
-                if (KetrocBot.isDebugOn) Bot.DEBUG.debugTextOut("targets list size: " + ScvTarget.targets.size(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6)) / 1080.0)), Color.WHITE.WHITE, 12);
-                int i = 1;
+                DebugHelper.addInfoLine("targets list size: " + ScvTarget.targets.size());
                 for (ScvTarget target : ScvTarget.targets) {
-                    if (KetrocBot.isDebugOn) Bot.DEBUG.debugTextOut("scvs: " + target.scvs.size() + " on: " + (Units)target.targetUnit.unit().getType(), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * (6 + i++)) / 1080.0)), Color.WHITE, 12);
+                    DebugHelper.addInfoLine("scvs: " + target.scvs.size() + " on: " + target.targetUnit.unit().getType());
                 }
 
                 //check if safe to build/expand (only pylons remaining)
@@ -91,6 +109,13 @@ public class CannonRushDefense {
                 break;
 
         }
+    }
+
+    public static void cancelScvDefense() {
+        ScvTarget.targets.forEach(scvTarget -> {
+            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvTarget.scvs), Abilities.STOP, false);
+        });
+        ScvTarget.targets.clear();
     }
 
     private static void addNewTarget(Units unitType) {

@@ -126,6 +126,10 @@ public class WorkerManager {
         ));
         unitsToRepair.addAll(GameCache.wallStructures);
         unitsToRepair.addAll(GameCache.burningStructures);
+        Unit natBunker = UnitUtils.getNatBunker();
+        if (natBunker != null) {
+            unitsToRepair.add(natBunker);
+        }
         for (Unit unit : unitsToRepair) {
             int numScvsToAdd = UnitUtils.getIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
             if (numScvsToAdd <= 0) { //skip if no additional scvs required
@@ -133,7 +137,7 @@ public class WorkerManager {
             }
             List<Unit> scvsForRepair = getScvsForRepairing(unit, numScvsToAdd);
             if (!scvsForRepair.isEmpty()) {
-                Print.print("sending " + scvsForRepair.size() + " scvs to repair.");
+                Print.print("sending " + scvsForRepair.size() + " scvs to repair: " + unit.getType() + " at: " + unit.getPosition().toPoint2d());
                 //line up scvs behind PF before giving repair command
                 if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);

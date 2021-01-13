@@ -702,7 +702,8 @@ public class ArmyManager {
                 .findFirst()
                 .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
                 .orElse(null);
-        if (newMarinePos != null) {
+        if (newMarinePos != null &&
+                (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
             Marine.setTargetPos(newMarinePos);
             return;
         }
@@ -713,7 +714,8 @@ public class ArmyManager {
                 .findFirst()
                 .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
                 .orElse(null);
-        if (newMarinePos != null) {
+        if (newMarinePos != null &&
+                (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
             Marine.setTargetPos(newMarinePos);
             return;
         }
@@ -728,8 +730,13 @@ public class ArmyManager {
         Marine.setTargetPos(LocationConstants.insideMainWall);
     }
 
+    private static boolean isBehindMainOrNat(Point2d pos) {
+        return GameCache.baseList.get(0).getResourceMidPoint().distance(pos) < 1 ||
+                GameCache.baseList.get(1).getResourceMidPoint().distance(pos) < 1;
+    }
 
-        //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
+
+    //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
     //TODO: store all marines in UnitMicroList
 //    private static void positionMarines() {
 //        List<Unit> availableMarines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
