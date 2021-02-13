@@ -94,7 +94,7 @@ public class Liberator extends BasicUnitMicro {
     }
 
     private boolean isLibAtPlannedPosition() {
-        return UnitUtils.getDistance(unit.unit(), targetPos) < 1 && plannedLibZonePos != null;
+        return UnitUtils.getDistance(unit.unit(), targetPos) <= 2.5f && plannedLibZonePos != null;
     }
 
     protected boolean unsiegeMicro() {

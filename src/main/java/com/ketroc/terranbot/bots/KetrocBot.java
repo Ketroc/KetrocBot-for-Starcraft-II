@@ -4,7 +4,6 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
@@ -15,10 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.managers.*;
-import com.ketroc.terranbot.micro.ExpansionClearing;
-import com.ketroc.terranbot.micro.Harassers;
-import com.ketroc.terranbot.micro.Liberator;
-import com.ketroc.terranbot.micro.UnitMicroList;
+import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.strategies.*;
@@ -51,6 +47,7 @@ public class KetrocBot extends Bot {
 
             //set map
             LocationConstants.MAP = Bot.OBS.getGameInfo().getMapName();
+            System.out.println("LocationConstants.MAP = " + LocationConstants.MAP);
 
             //set enemy race
             LocationConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
@@ -83,6 +80,7 @@ public class KetrocBot extends Bot {
 
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
+            MarineAllIn.onGameStart();
 
             Strategy.printStrategySettings();
 
@@ -114,7 +112,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Jan 1, 2021", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Jan 15, 2021", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing
@@ -177,6 +175,7 @@ public class KetrocBot extends Bot {
                 ProxyHatchDefense.onStep();
                 ProxyBunkerDefense.onStep();
                 BunkerContain.onStep();
+                MarineAllIn.onStep();
 
                 //clearing bases that have just dried up or died
                 GameCache.baseList.stream().forEach(Base::onStep);
@@ -368,16 +367,21 @@ public class KetrocBot extends Bot {
                         }
 
                         //put factory at top of queue
-                        if (GameCache.gasBank > 0 && UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0) {
-                            purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                        if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
+                            if (GameCache.gasBank > 0) {
+                                purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                            }
+                            else {
+                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                            }
                         }
 
                         break;
                     case TERRAN_BARRACKS_TECHLAB: //queue up marauders after the 2nd depot
-                        Unit barracks = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BARRACKS).get(0);
-                        int insertIndex = (Purchase.isStructureQueued(Units.TERRAN_SUPPLY_DEPOT)) ? 1 : 0;
-                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
-                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
+//                        Unit barracks = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BARRACKS).get(0);
+//                        int insertIndex = (Purchase.isStructureQueued(Units.TERRAN_SUPPLY_DEPOT)) ? 1 : 0;
+//                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
+//                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
                         break;
                     case TERRAN_BUNKER:
                         if (BunkerContain.proxyBunkerLevel != 0 && UnitUtils.getDistance(unit, LocationConstants.proxyBunkerPos) < 1) {
@@ -416,7 +420,7 @@ public class KetrocBot extends Bot {
                         break;
                     case TERRAN_FACTORY_TECHLAB:
                         if (BunkerContain.proxyBunkerLevel == 2) {
-                            BunkerContain.onTechLabComplete();
+                            BunkerContain.onFactoryTechLabComplete();
                         }
                         else if (Time.nowFrames() < Time.toFrames("5:00")) {
                             KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, GameCache.factoryList.get(0)));
@@ -446,7 +450,10 @@ public class KetrocBot extends Bot {
                         }
 
                         //start mining out mineral wall
-                        if (LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) && Base.numMyBases() >= 3) {
+                        if ((LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) ||
+                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) ||
+                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506))
+                                && Base.numMyBases() >= 3) {
                             IgnoredMineralWallScv.addScv();
                         }
 

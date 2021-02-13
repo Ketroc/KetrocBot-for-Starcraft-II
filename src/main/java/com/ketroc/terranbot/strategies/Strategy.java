@@ -31,7 +31,6 @@ public class Strategy {
     public static int selectedStrategy = -1;
 
     public static int SKIP_FRAMES;
-    public static final boolean ANTI_DROP_TURRET = false; //TODO: temporary for ANIbot
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
@@ -46,10 +45,11 @@ public class Strategy {
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_LIBS = 10;
 
+    public static int NUM_MARINES = 3;
     public static final int FUNGAL_FRAMES = 16; //# of frames for fungal to land after being cast
     public static float VIKING_BANSHEE_RATIO = 0.2f;
     public static final int MAX_VIKINGS_TO_DIVE_TEMPESTS = 20; //always dive tempests if we reach this number
-    public static final float DISTANCE_RAISE_DEPOT = 9;
+    public static final float DISTANCE_RAISE_DEPOT = 10;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.4f;
@@ -73,6 +73,7 @@ public class Strategy {
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
 
     public static boolean MASS_RAVENS;
+    public static boolean MARINE_ALLIN;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
     public static boolean BUILD_EXPANDS_IN_MAIN;
@@ -123,6 +124,9 @@ public class Strategy {
     private static void applyOpponentSpecificTweaks() {
         switch (KetrocBot.opponentId) {
 //        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+                DO_BANSHEE_HARASS = false;
+                break;
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
                 DO_ANTIDROP_TURRETS = true;
@@ -152,12 +156,14 @@ public class Strategy {
                 BUILD_EXPANDS_IN_MAIN = true;
                 NO_RAMP_WALL = true;
                 NO_TURRETS = true;
+                NUM_MARINES = 0;
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
                 DO_LEAVE_UP_BUNKER = true;
+                NUM_MARINES = 8;
                 Switches.enemyCanProduceAir = true;
                 DO_BANSHEE_HARASS = false;
                 DO_ANTIDROP_TURRETS = true;
@@ -191,7 +197,7 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
-        int numStrategies = 4;
+        int numStrategies = 5;
         if (selectedStrategy == -1) {
             selectedStrategy = 0;
         }
@@ -202,7 +208,7 @@ public class Strategy {
                 DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                BunkerContain.proxyBunkerLevel = 2;
+                BunkerContain.proxyBunkerLevel = 1;
                 break;
             case 2:
                 DelayedChat.add("SCV Rush Strategy");
@@ -210,14 +216,24 @@ public class Strategy {
                 Switches.scvRushComplete = false;
                 break;
             case 3:
-                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
+                break;
+            case 4:
+                marineAllinStrategy();
                 break;
         }
     }
 
+    private static void marineAllinStrategy() {
+        DelayedChat.add("7Rax Marine All in");
+        DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
+        MARINE_ALLIN = true;
+        maxScvs = 18;
+        NUM_MARINES = Integer.MAX_VALUE;
+    }
+
     private static void chooseTvPStrategy() {
-        int numStrategies = 4;
+        int numStrategies = 5;
         if (selectedStrategy == -1) {
             selectedStrategy = 0;
         }
@@ -236,18 +252,20 @@ public class Strategy {
                 Switches.scvRushComplete = false;
                 break;
             case 3:
-                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
+                break;
+            case 4:
+                marineAllinStrategy();
                 break;
         }
     }
 
     private static void chooseTvZStrategy() {
-        int numStrategies = 3;
+        int numStrategies = 5;
         if (selectedStrategy == -1) {
             selectedStrategy = 0;
         }
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 3; //TODO:selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -261,8 +279,10 @@ public class Strategy {
                 Switches.scvRushComplete = false;
                 break;
             case 3:
-                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
+                break;
+            case 4:
+                marineAllinStrategy();
                 break;
         }
     }
@@ -272,7 +292,8 @@ public class Strategy {
             return -1;
         }
         switch (KetrocBot.opponentId) {
-//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+                return 4;
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
                 return 1;
@@ -304,9 +325,9 @@ public class Strategy {
             case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                EXPAND_SLOWLY = true;
-                return 1;
+                return 0;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                return 1;
+                return 0;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
 //                BUILD_EXPANDS_IN_MAIN = true;
                 return 1;
@@ -316,6 +337,7 @@ public class Strategy {
     }
 
     private static void massRavenStrategy() {
+        DelayedChat.add("Mass Raven Strategy");
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
         UpgradeManager.doStarportUpgrades = true;
@@ -415,7 +437,8 @@ public class Strategy {
             for (int strategy : strategies) {
                 Print.print("checking strategy: " + strategy);
                 if (!fileText.contains("~" + strategy + "~")) {
-                    if (strategy == 3 && LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) {
+                    if (strategy == 3 &&
+                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505))) {
                         Print.print("skipping scv rush cuz it's Pillars of Gold");
                         continue;
                     }
@@ -515,6 +538,10 @@ public class Strategy {
     }
 
     public static void setMaxScvs() {
+        if (MARINE_ALLIN && GameCache.baseList.get(1).isMyBase()) {
+            maxScvs = 80;
+        }
+
         //if no minerals left on the map
         if (GameCache.defaultRallyNode == null) {
             maxScvs = 6;
@@ -558,11 +585,13 @@ public class Strategy {
                 DO_INCLUDE_LIBS = false;
                 DO_INCLUDE_TANKS = true;
                 EXPAND_SLOWLY = false;
+                NUM_MARINES = 5;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;
                 DO_INCLUDE_LIBS = false;
                 DO_INCLUDE_TANKS = false;
+                NUM_MARINES = 3;
                 break;
         }
     }
@@ -587,7 +616,7 @@ public class Strategy {
         }
 
         //remove 2nd entry of wall/midwall (duplicate) as they are both in extraDepots and in reaperBlockDepots lists
-        if (LocationConstants.MAP.equals(MapNames.SUBMARINE)) {
+        if (LocationConstants.MAP.equals(MapNames.SUBMARINE) || LocationConstants.MAP.equals(MapNames.SUBMARINE505)) {
             for (int i = LocationConstants.extraDepots.size()-1; i>=2; i--) {
                 if (LocationConstants.extraDepots.get(i).equals(LocationConstants.MID_WALL_2x2)) {
                     LocationConstants.extraDepots.remove(i);
@@ -601,7 +630,6 @@ public class Strategy {
 
     public static void printStrategySettings() {
         Print.print("selectedStrategy = " + selectedStrategy);
-        Print.print("ANTI_DROP_TURRET = " + ANTI_DROP_TURRET);
         Print.print("ANTI_NYDUS_BUILD = " + ANTI_NYDUS_BUILD);
         Print.print("DO_DIVE_RAVENS = " + DO_DIVE_RAVENS);
         Print.print("EARLY_BANSHEE_SPEED = " + EARLY_BANSHEE_SPEED);

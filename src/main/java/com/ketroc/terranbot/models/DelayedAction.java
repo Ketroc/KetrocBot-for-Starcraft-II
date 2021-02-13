@@ -83,7 +83,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
 
     public boolean executeAction() {
         //if unit is dead, or targetUnit is dead or in fog, cancel action
-        if (!unit.isAlive() || (targetUnit != null && (!targetUnit.isAlive() || !UnitUtils.isVisible(targetUnit)))) {
+        if (!unit.isAlive() || (targetUnit != null && (!targetUnit.isAlive() || UnitUtils.isInFogOfWar(targetUnit)))) {
             return false;
         }
         if (targetUnit == null && targetPos == null) {

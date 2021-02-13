@@ -48,4 +48,17 @@ public class Marine extends BasicUnitMicro {
         marineList.forEach(marine -> marine.targetPos = newTargetPos);
     }
 
+    public static void assignRandomTargets() {
+        List<Marine> marineList = UnitMicroList.getUnitSubList(Marine.class);
+        for (Marine marine : marineList) {
+            if (UnitUtils.getDistance(marine.unit.unit(), marine.targetPos) < 1) {
+                Point2d randomPathablePosition = null;
+                while (randomPathablePosition == null || !Bot.OBS.isPathable(randomPathablePosition)) {
+                    randomPathablePosition = Bot.OBS.getGameInfo().findRandomLocation();
+                }
+                marine.targetPos = randomPathablePosition;
+            }
+        }
+    }
+
 }

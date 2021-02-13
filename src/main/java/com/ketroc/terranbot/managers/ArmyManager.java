@@ -14,6 +14,7 @@ import com.ketroc.terranbot.micro.Target;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
+import com.ketroc.terranbot.strategies.MarineAllIn;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
@@ -294,7 +295,7 @@ public class ArmyManager {
             if (Switches.isDivingTempests) {
                 List<Unit> moveVikings = new ArrayList<>();
                 List<Unit> attackVikings = new ArrayList<>();
-                if (!UnitUtils.isVisible(Switches.vikingDiveTarget)) { //TODO: handle it when vikings arrive at last known tempest location and still can't find the tempest
+                if (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget)) { //TODO: handle it when vikings arrive at last known tempest location and still can't find the tempest
                     moveVikings.addAll(GameCache.vikingDivers);
                 }
                 else {
@@ -344,8 +345,9 @@ public class ArmyManager {
             }
         }
         else {
-            doOffense = (Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                    GameCache.bansheeList.size() > 1);
+            doOffense = Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
+                    GameCache.bansheeList.size() > 3 &&
+                    GameCache.vikingList.size() * 1.34 > UnitUtils.getEnemyUnitsOfTypes(UnitUtils.VIKING_TYPE).size();
         }
     }
 
@@ -371,7 +373,7 @@ public class ArmyManager {
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                         u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                         !u.unit().getHallucination().orElse(false) && //ignore hallucs
-                        UnitUtils.isVisible(u)) //ignore units in the fog
+                        !UnitUtils.isInFogOfWar(u)) //ignore units in the fog
                 .map(UnitInPool::unit)
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u, groundAttackersMidPoint)))
@@ -567,7 +569,7 @@ public class ArmyManager {
                         u.unit().getFlying().orElse(false) && //air unit
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
-                        !u.unit().getHallucination().orElse(false) && UnitUtils.isVisible(u)) //ignore hallucs and units in the fog
+                        !u.unit().getHallucination().orElse(false) && !UnitUtils.isInFogOfWar(u)) //ignore hallucs and units in the fog
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), vikingMidPoint)))
                 .orElse(null);
@@ -683,8 +685,12 @@ public class ArmyManager {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
+        if (Strategy.MARINE_ALLIN && MarineAllIn.attackMode) {
+            return;
+        }
+
         //if main/nat under attack, empty natural bunker and target enemy
-        Unit bunker = UnitUtils.getNatBunker();
+        Unit bunker = UnitUtils.getCompletedNatBunker();
         if (enemyInMain() || enemyInNaturalPastBunker() ||
                 (enemyInNatural() && bunker == null)) {
             if (bunker != null) {
@@ -735,30 +741,6 @@ public class ArmyManager {
                 GameCache.baseList.get(1).getResourceMidPoint().distance(pos) < 1;
     }
 
-
-    //TODO: smarter decision of when to attack units in natural and when to hop in the bunker
-    //TODO: store all marines in UnitMicroList
-//    private static void positionMarines() {
-//        List<Unit> availableMarines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-//        if (availableMarines.isEmpty()) {
-//            return;
-//        }
-//
-//        Unit bunker = UnitUtils.getNatBunker();
-//        if (enemyInMain() || enemyInNaturalPastBunker() ||
-//                (enemyInNatural() && bunker == null)) {
-//            availableMarines.stream()
-//                    .forEach(marine ->
-//                            new BasicUnitMicro(Bot.OBS.getUnit(marine.getTag()), attackGroundPos, MicroPriority.DPS).onStep());
-//        }
-//        else {
-//            if (bunker != null) {
-//                availableMarines.stream()
-//                        .forEach(marine -> new BunkerMarine(marine, bunker.getPosition().toPoint2d()).onStep());
-//            }
-//        }
-//    }
-
     private static void positionLiberators() { //positions only 1 liberator per game loop
         Unit idleLib = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
                 .filter(unit -> unit.getOrders().isEmpty())
@@ -785,16 +767,6 @@ public class ArmyManager {
         //if no bases need a liberator, put it on offense
         UnitMicroList.add(new LibOffense(Bot.OBS.getUnit(idleLib.getTag()), ArmyManager.attackGroundPos));
 
-        //if nowhere to send lib and no expansions left, siege newest enemy base (or siege enemy 3rd base if no enemy bases are known)
-//        if (!isLibPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
-//            GameCache.baseList.stream()
-//                    .filter(base -> base.isEnemyBase)
-//                    .findFirst()
-//                    .ifPresentOrElse(base -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
-//                                    Position.towards(base.getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true),
-//                            () -> Bot.ACTION.unitCommand(idleLib, Abilities.MORPH_LIBERATOR_AG_MODE,
-//                                    Position.towards(GameCache.baseList.get(GameCache.baseList.size()-3).getCcPos(), idleLib.getPosition().toPoint2d(), 1.7f), true));
-//        }
     }
 
     private static void positionTanks() { //positions only 1 tank per game loop
@@ -860,7 +832,8 @@ public class ArmyManager {
         }
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT_LOWERED)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) && CannonRushDefense.cannonRushStep == 0) {
+            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) &&
+                    (CannonRushDefense.cannonRushStep == 0 || !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ZEALOT).isEmpty())) {
                 Bot.ACTION.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
             }
         }

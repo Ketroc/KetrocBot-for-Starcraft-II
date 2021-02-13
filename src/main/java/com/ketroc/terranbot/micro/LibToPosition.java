@@ -24,7 +24,7 @@ public class LibToPosition extends Liberator {
         DebugHelper.boxUnit(unit.unit());
 
         //no lib
-        if (unit == null || !unit.isAlive()) {
+        if (unit == null || !isAlive()) {
             super.onStep();
             return;
         }

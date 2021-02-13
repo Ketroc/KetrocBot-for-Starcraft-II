@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.List;
@@ -18,5 +19,12 @@ public class MarineBasic extends Marine {
 
     public MarineBasic(UnitInPool unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.DPS);
+    }
+
+    @Override
+    public void onStep() {
+        priority = (CannonRushDefense.cannonRushStep == 2) ? MicroPriority.SURVIVAL : MicroPriority.DPS;
+        //TODO: move target selection here??
+        super.onStep();
     }
 }

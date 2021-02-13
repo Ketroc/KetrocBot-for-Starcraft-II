@@ -71,9 +71,8 @@ public class WorkerRushDefense {
             }
             switch (defenseStep) {
                 case 0: //probe rush check
-                    if (Time.nowFrames() < Time.toFrames("2:23") &&
-                            UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).size() > 5 &&
-                            UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.baseLocations.get(0), 50).size() > 5) {
+                    if (UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.pointOnMyRamp, 7).size() >= 5 &&
+                            GameCache.starportList.isEmpty()) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
                     }

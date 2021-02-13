@@ -60,7 +60,7 @@ public class DroneRush {
                     if (droneList == null) {
                         droneList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.ZERG_DRONE, LocationConstants.baseLocations.get(0), 20);
                     }
-                    if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) { //no cluster available
+                    if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505)) { //no cluster available
                         noTriangleRush();
                     }
                     else if (clusterTriangleNode(LocationConstants.myMineralTriangle, true)) {

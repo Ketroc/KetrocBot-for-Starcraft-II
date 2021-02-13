@@ -1,5 +1,6 @@
 package com.ketroc.terranbot.micro;
 
+import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.terranbot.models.Ignored;
 import com.ketroc.terranbot.models.IgnoredUnit;

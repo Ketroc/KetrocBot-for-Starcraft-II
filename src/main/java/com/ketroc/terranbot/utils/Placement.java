@@ -19,7 +19,9 @@ public class Placement {
     public static float MIN_DISTANCE_FROM_ENEMY_NAT;
 
     public static void onGameStart() {
-        MIN_DISTANCE_FROM_ENEMY_NAT = (LocationConstants.MAP == MapNames.GOLDEN_WALL) ? 155 : 100;
+        MIN_DISTANCE_FROM_ENEMY_NAT = (LocationConstants.MAP == MapNames.GOLDEN_WALL ||
+                LocationConstants.MAP == MapNames.GOLDEN_WALL505 ||
+                LocationConstants.MAP == MapNames.GOLDEN_WALL506) ? 155 : 100;
         setPossibleCcPos();
         queryPossibleCcList();
     }

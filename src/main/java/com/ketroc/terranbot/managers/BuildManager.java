@@ -61,7 +61,21 @@ public class BuildManager {
         saveDyingCCs();
 
         //build marines
-        if (BunkerContain.proxyBunkerLevel == 0) {
+        //TODO: below is hacky test code for marine rush
+        if (Strategy.MARINE_ALLIN) {
+            GameCache.barracksList.stream()
+                    .filter(rax -> !rax.unit().getActive().orElse(true))
+                    .forEach(rax -> {
+                        int marineCount = UnitUtils.getMarineCount();
+                        if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
+                            if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                                Bot.ACTION.unitCommand(rax.unit(), Abilities.TRAIN_MARINE, false);
+                                Cost.updateBank(Units.TERRAN_MARINE);
+                            }
+                        }
+                    });
+        }
+        else if (BunkerContain.proxyBunkerLevel == 0) {
             buildBarracksUnitsLogic();
         }
 
@@ -229,7 +243,7 @@ public class BuildManager {
     private static void build2ndLayerOfTech() {
         //build after 4th base started
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
-            List<Unit> engBayList = GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY);
+            List<Unit> engBayList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
             }
@@ -301,7 +315,10 @@ public class BuildManager {
     }
 
     private static void buildAntiDropTurrets() {
-        if (Strategy.DO_ANTIDROP_TURRETS && !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL)) {
+        if (Strategy.DO_ANTIDROP_TURRETS &&
+                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
+                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
+                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
         }
@@ -314,7 +331,6 @@ public class BuildManager {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
                             if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
-                                Bot.ACTION.unitCommand(cc, Abilities.LIFT, false);
                                 UnitMicroList.add(new StructureFloater(cc));
                             }
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
@@ -353,11 +369,7 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_PLANETARY_FORTRESS)) {
                                 if (!isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    if (CannonRushDefense.cannonRushStep != 0) {
-                                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
-                                    } else {
-                                        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
-                                    }
+                                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                     break; //don't queue scv
                                 }
                             }
@@ -371,7 +383,6 @@ public class BuildManager {
                         break;
                     case TERRAN_ORBITAL_COMMAND:
                         if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
-                            Bot.ACTION.unitCommand(cc, Abilities.LIFT, false);
                             UnitMicroList.add(new StructureFloater(cc));
                         }
                         else if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
@@ -515,7 +526,7 @@ public class BuildManager {
                 }
             }
 
-            //make marines if wall under attack TODO: don't build if starports/factories aren't aall active and gas >= 75
+            //make marines if wall under attack TODO: don't build if starports/factories aren't all active and gas >= 75
             else if (UnitUtils.isWallUnderAttack() || ArmyManager.enemyInMain()) {
                 if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                     Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
@@ -531,13 +542,9 @@ public class BuildManager {
                     return;
                 }
 
-                //maintain early game marine count (3)
-                int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
-                marineCount += UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
-                        .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
-                        .sum();
-
-                if (marineCount < 3 && Bot.OBS.getMinerals() >= 50) {
+                //maintain early game marine count
+                int marineCount = UnitUtils.getMarineCount();
+                if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
                     if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                         Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                         Cost.updateBank(Units.TERRAN_MARINE);
@@ -667,14 +674,14 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //get required vikings
-        if (numVikings < vikingsRequired) {
-            return Abilities.TRAIN_VIKING_FIGHTER;
-        }
-
         //maintain a banshee count of 1 (2 vs zerg with mass ravens)
         if (numBanshees < MIN_BANSHEES) {
             return Abilities.TRAIN_BANSHEE;
+        }
+
+        //get required vikings
+        if (numVikings < vikingsRequired) {
+            return Abilities.TRAIN_VIKING_FIGHTER;
         }
 
         if (LocationConstants.opponentRace == Race.ZERG) {

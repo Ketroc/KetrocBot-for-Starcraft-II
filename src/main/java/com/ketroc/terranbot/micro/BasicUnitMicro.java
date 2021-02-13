@@ -1,12 +1,17 @@
 package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.managers.ArmyManager;
+import com.ketroc.terranbot.models.Ignored;
+import com.ketroc.terranbot.models.IgnoredUnit;
 import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 
@@ -62,22 +67,15 @@ public class BasicUnitMicro {
     }
 
     public void onStep() {
-        if (unit == null || !unit.isAlive()) {
+        if (!isAlive()) {
             onDeath();
             return;
         }
         DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //attack if available
-        if (UnitUtils.isWeaponAvailable(unit.unit())) {
-            UnitInPool attackTarget = selectTarget();
-            //attack if there's a target
-            if (attackTarget != null) {
-                if (!isTargettingUnit(attackTarget.unit())) {
-                    Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
-                }
-                return;
-            }
+        if (attackIfAvailable()) {
+            return;
         }
 
         //done if unit is immobile
@@ -87,8 +85,7 @@ public class BasicUnitMicro {
 
         //detour if needed
         if (!isSafe()) {
-            Point2d detourPos = findDetourPos();
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
+            detour();
         }
         //finishing step on arrival
         else if (UnitUtils.getDistance(unit.unit(), targetPos) < 2.5f) {
@@ -100,6 +97,25 @@ public class BasicUnitMicro {
         }
     }
 
+    protected void detour() {
+        Point2d detourPos = findDetourPos();
+        Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
+    }
+
+    protected boolean attackIfAvailable() {
+        if (UnitUtils.isWeaponAvailable(unit.unit())) {
+            UnitInPool attackTarget = selectTarget();
+            //attack if there's a target
+            if (attackTarget != null) {
+                if (!isTargettingUnit(attackTarget.unit())) {
+                    Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void onArrival() {
         removeMe = true;
     }
@@ -109,10 +125,18 @@ public class BasicUnitMicro {
         return;
     }
 
-    private boolean isMovingToTargetPos() {
+    protected boolean isMovingToTargetPos() {
         return !unit.unit().getOrders().isEmpty() &&
                 unit.unit().getOrders().get(0).getTargetedWorldSpacePosition().isPresent() &&
                 unit.unit().getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d().distance(targetPos) < 1;
+
+    }
+
+    protected boolean isAttackingTarget(Tag targetUnit) {
+        return !unit.unit().getOrders().isEmpty() &&
+                unit.unit().getOrders().get(0).getAbility() == Abilities.ATTACK &&
+                unit.unit().getOrders().get(0).getTargetedUnitTag().isPresent() &&
+                unit.unit().getOrders().get(0).getTargetedUnitTag().get().equals(targetUnit);
 
     }
 
@@ -125,14 +149,19 @@ public class BasicUnitMicro {
     public UnitInPool selectTarget() {
         List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) &&
-                UnitUtils.getDistance(enemy.unit(), unit.unit()) <= (isAir(enemy) ? airAttackRange : groundAttackRange) &&
-                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()));
+                UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
+                        (isAir(enemy) ? airAttackRange : groundAttackRange) + enemy.unit().getRadius() &&
+                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
         Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
             UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
             float enemyCost;
-            if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
+            if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType())) { //focus on winning siege tank war first
+                return enemy;
+            }
+            else if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
                 enemyCost = 75;
             }
             else {
@@ -153,7 +182,7 @@ public class BasicUnitMicro {
     private List<UnitInPool> getValidTargetsInRange() {
         Predicate<UnitInPool> enemyTargetPredicate = enemy -> {
             boolean isEnemyGround = !enemy.unit().getFlying().orElse(false);
-            float range = ((isEnemyGround) ? groundAttackRange : airAttackRange) + 1.5f;
+            float range = ((isEnemyGround) ? groundAttackRange : airAttackRange);
             return ((isEnemyGround && canAttackGround) || (!isEnemyGround && canAttackAir)) &&
                     UnitUtils.getDistance(unit.unit(), targetPos) < range;
         };
@@ -166,17 +195,17 @@ public class BasicUnitMicro {
             switch (weapon.getTargetType()) {
                 case AIR:
                     canAttackAir = true;
-                    airAttackRange = weapon.getRange() + unit.unit().getRadius();
+                    airAttackRange = weapon.getRange() + unit.unit().getRadius() + 0.25f;
                     break;
                 case GROUND:
                     canAttackGround = true;
-                    groundAttackRange = weapon.getRange() + unit.unit().getRadius();
+                    groundAttackRange = weapon.getRange() + unit.unit().getRadius() + 0.25f;
                     break;
                 case ANY:
                     canAttackAir = true;
                     canAttackGround = true;
-                    airAttackRange = weapon.getRange() + unit.unit().getRadius();
-                    groundAttackRange = weapon.getRange() + unit.unit().getRadius();
+                    airAttackRange = weapon.getRange() + unit.unit().getRadius() + 0.25f;
+                    groundAttackRange = weapon.getRange() + unit.unit().getRadius() + 0.25f;
                     break;
             }
         }
@@ -194,7 +223,7 @@ public class BasicUnitMicro {
         return findDetourPos(2f);
     }
 
-    private Point2d findDetourPos(float rangeCheck) {
+    private Point2d findDetourPos2(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         for (int i=0; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
@@ -219,6 +248,37 @@ public class BasicUnitMicro {
         return findDetourPos(rangeCheck+2);
     }
 
+    private Point2d findDetourPos(float rangeCheck) {
+        Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
+        for (int i=180; i<360; i+=15) {
+            int angle = (isDodgeClockwise) ? i : (i * -1);
+            Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
+            if (detourPos == null || !isPathable(detourPos)) {
+                continue;
+            }
+            if (isSafe(detourPos)) {
+                return detourPos;
+            }
+        }
+        for (int i=180; i<360; i+=15) {
+            int angle = (isDodgeClockwise) ? (i * -1) : i;
+            Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
+            if (detourPos == null || !isPathable(detourPos)) {
+                continue;
+            }
+            if (isSafe(detourPos)) {
+                if (!changedDirectionRecently()) {
+                    toggleDodgeClockwise();
+                }
+                return detourPos;
+            }
+        }
+        if (rangeCheck > 20) {
+            return ArmyManager.retreatPos;
+        }
+        return findDetourPos(rangeCheck+2);
+    }
+
     private boolean isPathable(Point2d detourPos) {
         return !isGround || Bot.OBS.isPathable(detourPos);
     }
@@ -231,5 +291,22 @@ public class BasicUnitMicro {
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)
     public boolean changedDirectionRecently() {
         return prevDirectionChangeFrame + 75 > Time.nowFrames();
+    }
+
+    public void replaceUnit(UnitInPool newUnit) {
+        Ignored.remove(unit.getTag());
+        unit = newUnit;
+        Ignored.add(new IgnoredUnit(newUnit.getTag()));
+    }
+
+    private boolean isEnemyFacingMe(Unit enemy) {
+        float facing = (float)Math.toDegrees(enemy.getFacing());
+        float attackAngle = Position.getAngle(enemy.getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d());
+        float angleDiff = Position.getAngleDifference(facing, attackAngle);
+        return angleDiff <= 90;
+    }
+
+    public boolean isAlive() {
+        return unit != null && unit.isAlive();
     }
 }

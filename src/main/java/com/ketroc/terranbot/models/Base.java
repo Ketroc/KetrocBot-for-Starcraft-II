@@ -2,6 +2,7 @@ package com.ketroc.terranbot.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -470,4 +471,13 @@ public class Base {
                 .ifPresent(base -> base.lastMorphFrame = Time.nowFrames());
     }
 
+    public boolean isGasUnderLiberationZone(Unit refinery) {
+        Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
+        return Bot.OBS.getEffects().stream()
+                .filter(effect -> effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
+                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT)
+                .map(effect -> effect.getPositions().iterator().next())
+                .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
+
+    }
 }

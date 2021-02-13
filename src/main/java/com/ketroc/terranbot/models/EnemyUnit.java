@@ -23,15 +23,18 @@ public class EnemyUnit {
     public boolean isTumor;
     public boolean isInProgress;
     public float detectRange;
+    public float visionRange;
     public float groundAttackRange;
     public float airAttackRange;
     public short threatLevel;
     public byte pfTargetLevel;
+    public boolean isPersistentDamage;
     public float maxRange; //used to determine what portion of the grid to loop through
 
     public EnemyUnit(Unit friendly, boolean isParasitic) {
         x = friendly.getPosition().getX();
         y = friendly.getPosition().getY();
+        isPersistentDamage = true;
         isDetector = true;
         detectRange = 3f + Strategy.KITING_BUFFER;
         airAttackRange = 3f + Strategy.KITING_BUFFER;
@@ -68,6 +71,7 @@ public class EnemyUnit {
         else {
             threatLevel = getThreatValue((Units) enemy.getType());
             detectRange = getDetectionRange(enemy);
+            visionRange = UnitUtils.getVisionRange(enemy);
             airAttackRange = UnitUtils.getAirAttackRange(enemy);
             groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
         }
@@ -79,9 +83,11 @@ public class EnemyUnit {
         if (airAttackRange != 0) {
             airAttackRange += kitingBuffer;
         }
+        if (detectRange != 0) {
+            detectRange += kitingBuffer;
+        }
         pfTargetLevel = getPFTargetValue(enemy);
         isDetector = detectRange > 0f;
-        detectRange += kitingBuffer;
         isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch ((Units)enemy.getType()) {
@@ -111,10 +117,16 @@ public class EnemyUnit {
     public EnemyUnit(EffectLocations effect) {
         float kitingBuffer = 2;
         isEffect = true;
+        isPersistentDamage = true;
         Point2d position = effect.getPositions().iterator().next();
         x = position.getX();
         y = position.getY();
         switch ((Effects)effect.getEffect()) {
+            case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
+            case LIBERATOR_TARGET_MORPH_PERSISTENT:
+                threatLevel = 200;
+                groundAttackRange = effect.getRadius().get() + kitingBuffer;
+                break;
             case SCANNER_SWEEP:
                 isDetector = true;
                 detectRange = 13f + kitingBuffer;
@@ -126,6 +138,13 @@ public class EnemyUnit {
                 airAttackRange = 5f + kitingBuffer; //actual range is 0.5f but effect disappears prior to it landing
                 groundAttackRange = airAttackRange;
                 break;
+//            case NUKE_PERSISTENT:
+//                isDetector = true;
+//                detectRange = effect.getRadius().get() + kitingBuffer;
+//                threatLevel = 200;
+//                airAttackRange = effect.getRadius().get() + kitingBuffer;
+//                groundAttackRange = airAttackRange;
+//                break;
             case PSI_STORM_PERSISTENT:
                 isDetector = true;
                 detectRange = effect.getRadius().get() + kitingBuffer;
@@ -143,7 +162,7 @@ public class EnemyUnit {
 
     private float getDetectionRange(Unit enemy) {
         float range = enemy.getDetectRange().orElse(0f);
-        if (range == 0f) {
+        if (range == 0f) { //handle snapshots of detectors
             switch ((Units)enemy.getType()) {
                 case PROTOSS_PHOTON_CANNON: case TERRAN_MISSILE_TURRET: case ZERG_SPORE_CRAWLER:
                     range = 11;
@@ -153,7 +172,10 @@ public class EnemyUnit {
                     break;
             }
         }
-        return range + enemy.getRadius();
+        if (range != 0) {
+            range += enemy.getRadius();
+        }
+        return range;
     }
 
     private void calcMaxRange() {

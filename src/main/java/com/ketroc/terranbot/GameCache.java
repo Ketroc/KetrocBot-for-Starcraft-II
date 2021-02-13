@@ -97,7 +97,7 @@ public class GameCache {
         wallStructures.clear();
         burningStructures.clear();
 
-        allEnemiesList.removeIf(enemy -> UnitUtils.isVisible(enemy) ||
+        allEnemiesList.removeIf(enemy -> !UnitUtils.isInFogOfWar(enemy) ||
                 enemy.unit().getDisplayType() == DisplayType.SNAPSHOT ||
                 !enemy.isAlive() ||
                 enemy.getLastSeenGameLoop() + Time.toFrames("5:00") < Time.nowFrames()); //5min memory to deal with uncleared units
@@ -138,7 +138,7 @@ public class GameCache {
                     }
 
                     //see what repair is required for wall or burning structures
-                    if (UnitUtils.isStructure(unitType)) {
+                    if (UnitUtils.isStructure(unitType) && unitType != Units.TERRAN_AUTO_TURRET) {
                         if (LocationConstants.isWallStructure(unit)) {
                             wallStructures.add(unit);
                         }
@@ -260,13 +260,16 @@ public class GameCache {
                         }
                     }
 
-                    //set enemy cloaked variable TODO: zerg burrow upgrade not accounted for
+                    //set enemy cloaked variable
                     switch (unitType) {
                         case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
                         case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG: case ZERG_LURKER_MP_BURROWED:
                         case TERRAN_BANSHEE: case TERRAN_WIDOWMINE: case TERRAN_WIDOWMINE_BURROWED: case TERRAN_GHOST: case TERRAN_GHOST_ACADEMY:
+                        case ZERG_INFESTOR_BURROWED: case ZERG_BANELING_BURROWED: case ZERG_DRONE_BURROWED: case ZERG_HYDRALISK_BURROWED:
+                        case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP: case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED:
+                        case ZERG_RAVAGER_BURROWED: case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
                             if (!Switches.enemyHasCloakThreat) {
-                                Bot.ACTION.sendChat("I can't see those. Time to up my detection.", ActionChat.Channel.BROADCAST);
+                                Bot.ACTION.sendChat("Sneaky boy. Looks like detection is needed.", ActionChat.Channel.BROADCAST);
                             }
                             Switches.enemyHasCloakThreat = true;
                             break;
@@ -325,13 +328,11 @@ public class GameCache {
 
         //build enemies Units map
         for (UnitInPool unitInPool : allEnemiesList) {
-            //if (unitInPool.unit().getType() instanceof Units) { //TODO: try removing this when rich gas IDs are fixed in ocraft api
-                Units unitType = (Units) unitInPool.unit().getType();
-                if (!allEnemiesMap.containsKey(unitType)) {
-                    allEnemiesMap.put(unitType, new ArrayList<>());
-                }
-                allEnemiesMap.get(unitType).add(unitInPool);
-            //}
+            Units unitType = (Units) unitInPool.unit().getType();
+            if (!allEnemiesMap.containsKey(unitType)) {
+                allEnemiesMap.put(unitType, new ArrayList<>());
+            }
+            allEnemiesMap.get(unitType).add(unitInPool);
         }
 
         //************************
@@ -452,6 +453,9 @@ public class GameCache {
                         break;
                     case RAVAGER_CORROSIVE_BILE_CP:
                     case PSI_STORM_PERSISTENT:
+                    case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
+                    case LIBERATOR_TARGET_MORPH_PERSISTENT:
+//                    case NUKE_PERSISTENT:
                         enemyMappingList.add(new EnemyUnit(effect));
                         break;
                 }
@@ -494,7 +498,7 @@ public class GameCache {
         }
         if (Switches.bansheeDiveTarget != null) {
             //cancel if target is gone
-            if (!Switches.bansheeDiveTarget.isAlive() || !UnitUtils.isVisible(Switches.bansheeDiveTarget)) {
+            if (!Switches.bansheeDiveTarget.isAlive() || UnitUtils.isInFogOfWar(Switches.bansheeDiveTarget)) {
                 Switches.bansheeDiveTarget = null;
             }
             else {
@@ -562,7 +566,7 @@ public class GameCache {
         if (Switches.vikingDiveTarget != null) {
             //if target is gone while diving detector
             if (!Switches.isDivingTempests &&
-                    (!Switches.vikingDiveTarget.isAlive() || !UnitUtils.isVisible(Switches.vikingDiveTarget))) {
+                    (!Switches.vikingDiveTarget.isAlive() || UnitUtils.isInFogOfWar(Switches.vikingDiveTarget))) {
                 //end dive logic
                 Switches.vikingDiveTarget = null;
             }
@@ -570,7 +574,7 @@ public class GameCache {
                 //if tempest target is dead or if vikings lost the target in the fog, get another
                 if (Switches.isDivingTempests) {
                     if (!Switches.vikingDiveTarget.isAlive() ||
-                            (!UnitUtils.isVisible(Switches.vikingDiveTarget) &&
+                            (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget) &&
                                     vikingList.stream().anyMatch(viking -> UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 1))) {
                         Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
                     }
@@ -616,6 +620,7 @@ public class GameCache {
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
         InfluenceMaps.pointAutoTurretTargets = new boolean[800][800];
         InfluenceMaps.pointInMarineRange = new boolean[800][800];
+        InfluenceMaps.pointInEnemyVision = new boolean[800][800];
         InfluenceMaps.pointInVikingRange = new boolean[800][800];
         InfluenceMaps.pointThreatToAirPlusBufferValue = new int[800][800];
         InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
@@ -625,6 +630,7 @@ public class GameCache {
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
         InfluenceMaps.pointThreatToGroundValue = new int[800][800];
         InfluenceMaps.pointThreatToGround = new boolean[800][800];
+        InfluenceMaps.pointPersistentDamageToGround = new boolean[800][800];
         InfluenceMaps.pointPFTargetValue = new int[800][800];
         InfluenceMaps.pointGroundUnitWithin13 = new boolean[800][800];
         InfluenceMaps.pointRaiseDepots = new boolean[800][800];
@@ -656,6 +662,9 @@ public class GameCache {
                     if (distance < enemy.groundAttackRange) {
                         InfluenceMaps.pointThreatToGroundValue[x][y] += enemy.threatLevel;
                         InfluenceMaps.pointThreatToGround[x][y] = true;
+                        if (enemy.isPersistentDamage) {
+                            InfluenceMaps.pointPersistentDamageToGround[x][y] = true;
+                        }
                     }
 
                     //air threat range + extra buffer
@@ -675,7 +684,12 @@ public class GameCache {
                         InfluenceMaps.pointDetected[x][y] = true;
                         //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
                     }
-
+                    //sight range
+                    if (distance <= enemy.visionRange &&
+                            (enemy.isAir || Bot.OBS.terrainHeight(Point2d.of(enemy.x, enemy.y)) + 1 > Bot.OBS.terrainHeight(Point2d.of(x/2f, y/2f)))) {
+                        InfluenceMaps.pointInEnemyVision[x][y] = true;
+                        //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+                    }
                     //autoturret cast range
                     if (distance < Strategy.AUTOTURRET_RANGE && !enemy.isEffect && !enemy.isTumor) {
                         InfluenceMaps.pointAutoTurretTargets[x][y] = true;
@@ -734,31 +748,37 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointThreatToGround[x][y]) {
-//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointThreatToGroundValue[x][y]), x/2f, y/2f, Color.RED);
-//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+                    if (InfluenceMaps.pointInEnemyVision[x][y]) {
+                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
                     }
-//                    if (LocationConstants.pointInNat[x][y] || LocationConstants.pointInEnemyNat[x][y]) {
-//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
-//                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.13f,y/2-0.13f, z), Point.of(x/2+0.13f,y/2+0.13f, z), Color.YELLOW);
+//                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }
-//                    if (LocationConstants.pointInMainBase[x][y] || LocationConstants.pointInEnemyMainBase[x][y]) {
-//                        //Bot.DEBUG.debugTextOut(String.valueOf(pointPFTargetValue[x][y]), Point.of(x, y, z), Color.RED, 12);
-//                        Bot.DEBUG.debugBoxOut(Point.of(x/2-0.14f,y/2-0.14f, z), Point.of(x/2+0.14f,y/2+0.14f, z), Color.BLUE);
+//                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
+//                    }
+//                    else if (InfluenceMaps.pointDetected[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
+//                    }
+//                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
+//                    }
+//                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
 //                    }
                 }
             }
-////            float x = LocationConstants.mainBaseMidPos.getX();
-////            float y = LocationConstants.mainBaseMidPos.getY();
-////            float z = Position.getZ(x, y);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-////
-////            x = LocationConstants.enemyMainBaseMidPos.getX();
-////            y = LocationConstants.enemyMainBaseMidPos.getY();
-////            z = Position.getZ(x, y);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+//            float x = LocationConstants.mainBaseMidPos.getX();
+//            float y = LocationConstants.mainBaseMidPos.getY();
+//            float z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+//
+//            x = LocationConstants.enemyMainBaseMidPos.getX();
+//            y = LocationConstants.enemyMainBaseMidPos.getY();
+//            z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
         }
 
 

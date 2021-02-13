@@ -41,16 +41,16 @@ public class Bot extends S2Agent {
         CONTROL = control();
 
         //load abilityToUnitType map
-        Bot.OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {
+        OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {
             unitTypeData.getAbility().ifPresent(ability -> {
                 if (ability instanceof Abilities && unitType instanceof Units) {
-                    Bot.abilityToUnitType.put((Abilities) ability, (Units) unitType);
+                    abilityToUnitType.put((Abilities) ability, (Units) unitType);
                 }
             });
         });
 
         //load abilityToUpgrade map
-        Bot.OBS.getUpgradeData(false).forEach((upgrade, upgradeData) -> {
+        OBS.getUpgradeData(false).forEach((upgrade, upgradeData) -> {
             upgradeData.getAbility().ifPresent(ability -> {
                 if (ability instanceof Abilities && upgrade instanceof Upgrades) {
                     switch ((Abilities) ability) { //fix for api bug
@@ -64,7 +64,7 @@ public class Bot extends S2Agent {
                             ability = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3;
                             break;
                     }
-                    Bot.abilityToUpgrade.put((Abilities) ability, (Upgrades) upgrade);
+                    abilityToUpgrade.put((Abilities) ability, (Upgrades) upgrade);
                 }
             });
         });

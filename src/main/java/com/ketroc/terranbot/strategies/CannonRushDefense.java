@@ -4,17 +4,17 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.KetrocBot;
+import com.ketroc.terranbot.models.StructureScv;
+import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 
-import java.util.Comparator;
 import java.util.List;
 
 public class CannonRushDefense {
@@ -28,7 +28,8 @@ public class CannonRushDefense {
                         !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.PROTOSS_PYLON,
                                 LocationConstants.myMineralPos, 40).isEmpty() &&
                         !isAnyCannonComplete()) {
-                    Bot.ACTION.sendChat("Cannon Rush Detected", ActionChat.Channel.BROADCAST);
+                    cancelCCFirst();
+                    Chat.chat("Cannon Rush Detected");
                     cannonRushStep++;
                 }
                 break;
@@ -38,15 +39,12 @@ public class CannonRushDefense {
                 //next stage if cannon completed
                 if (isAnyCannonComplete()) {
                     cancelScvDefense();
-                    cannonRushStep = 0; //TODO: add case 2 for next steps instead of just giving up here.
-                    Bot.ACTION.sendChat("Cannon Rush Defense failed and abandoned", ActionChat.Channel.BROADCAST);
+                    cannonRushStep++; //TODO: add case 2 for next steps instead of just giving up here.
+                    Bot.ACTION.sendChat("Cannon Rush Defense failed and abandoned.  Hope it doesn't look too bad.", ActionChat.Channel.BROADCAST);
                 }
 
                 //remove dead targets (and probes that left)
                 ScvTarget.removeDeadTargets();
-
-                //remove scvs that have died
-                ScvTarget.targets.stream().forEach(scvTarget -> scvTarget.scvs.removeIf(u -> !u.isAlive()));
 
                 //add new probes, cannons, and pylons as targets
                 addNewTarget(Units.PROTOSS_PHOTON_CANNON);
@@ -59,7 +57,7 @@ public class CannonRushDefense {
 
                 for (ScvTarget scvTarget : ScvTarget.targets) {
                     //attack with scvs
-                    int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.scvs.size(), availableScvs.size());
+                    int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.getScvList().size(), availableScvs.size());
                     for (int i = 0; i < numScvsToSend; i++) {
                         UnitInPool newScv = availableScvs.remove(0);
                         //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
@@ -93,7 +91,7 @@ public class CannonRushDefense {
 
                 DebugHelper.addInfoLine("targets list size: " + ScvTarget.targets.size());
                 for (ScvTarget target : ScvTarget.targets) {
-                    DebugHelper.addInfoLine("scvs: " + target.scvs.size() + " on: " + target.targetUnit.unit().getType());
+                    DebugHelper.addInfoLine("scvs: " + target.getScvList().size() + " on: " + target.targetUnit.unit().getType());
                 }
 
                 //check if safe to build/expand (only pylons remaining)
@@ -102,15 +100,31 @@ public class CannonRushDefense {
                 //check if cannon rush is done
                 if (ScvTarget.targets.isEmpty()) {
                     cannonRushStep = 0;
-                    Bot.ACTION.sendChat("Cannon Rush Defense completed", ActionChat.Channel.BROADCAST);
+                    Chat.chat("Cannon Rush Defense completed");
 
                 }
                 break;
 
             case 2: //TODO: create a stage2 for vs completed cannon (cyclone etc)
+                //go back a step when all completed cannons are dead
+                if (Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                        u.unit().getType() == Units.PROTOSS_PHOTON_CANNON &&
+                        u.unit().getBuildProgress() == 1 &&
+                        UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getCcPos()) < 60).isEmpty()) {
+                    cannonRushStep--;
+                    Chat.chat("No complete cannons remain.");
+                }
                 break;
 
         }
+    }
+
+    private static void cancelCCFirst() {
+        Chat.chat("cancelling CC First");
+        Strategy.BUILD_EXPANDS_IN_MAIN = true;
+        StructureScv.cancelProduction(Units.TERRAN_COMMAND_CENTER, GameCache.baseList.get(1).getCcPos());
+        KetrocBot.purchaseQueue.removeIf(purchase -> purchase instanceof PurchaseStructure &&
+            ((PurchaseStructure) purchase).getStructureType() == Units.TERRAN_COMMAND_CENTER);
     }
 
     private static boolean isAnyCannonComplete() {
@@ -127,9 +141,9 @@ public class CannonRushDefense {
 
     private static void addNewTarget(Units unitType) {
         for (UnitInPool newTarget : UnitUtils.getEnemyUnitsOfType(unitType)) {
-            if (UnitUtils.isVisible(newTarget) &&  //is visible
+            if (newTarget.unit().getDisplayType() != DisplayType.SNAPSHOT && !UnitUtils.isInFogOfWar(newTarget) &&  //is visible
                     UnitUtils.getDistance(newTarget.unit(), LocationConstants.baseLocations.get(0)) < 50 && //within 50 distance
-                    !ScvTarget.targets.stream().anyMatch(t -> t.targetUnit.getTag().equals(newTarget.getTag()))) { //not already in the targets list
+                    ScvTarget.targets.stream().noneMatch(t -> t.targetUnit.getTag().equals(newTarget.getTag()))) { //not already in the targets list
                 ScvTarget.targets.add(new ScvTarget(newTarget));
             }
         }

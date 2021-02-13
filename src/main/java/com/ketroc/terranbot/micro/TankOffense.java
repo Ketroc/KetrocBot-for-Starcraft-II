@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.utils.DebugHelper;
@@ -27,6 +28,17 @@ public class TankOffense extends Tank {
         if (unit == null || !unit.isAlive()) {
             super.onStep();
             return;
+        }
+
+        //tank vs tank special case
+        Unit enemyTankToSiege = getEnemyTankToSiege();
+        if (enemyTankToSiege != null) {
+            if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) > 12.9f + enemyTankToSiege.getRadius()*2) {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege, false);
+            }
+            else {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
+            }
         }
 
         //unsiege

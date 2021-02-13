@@ -15,9 +15,12 @@ import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.ScvAttackTarget;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.strategies.BunkerContain;
+import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
@@ -45,8 +48,8 @@ public class WorkerManager {
                 .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
                         mule.getBuffDurationRemain().orElse(0) < 144 &&
                         UnitUtils.getDistance(mule,
-                                UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, mule.getPosition().toPoint2d())
-                        ) < 3)
+                                UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN,
+                                        mule.getPosition().toPoint2d())) < 3)
                 .forEach(mule -> {
                     Bot.ACTION.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
                     if (!mule.getBuffs().contains(Buffs.AUTOMATED_REPAIR)) {
@@ -57,63 +60,23 @@ public class WorkerManager {
 
     private static void defendWorkerHarass() {
         //only for first 3min
-        if (Time.nowFrames() > Time.toFrames("3:00")) {
+        if (Time.nowFrames() > Time.toFrames("4:00") || CannonRushDefense.cannonRushStep != 0) {
             return;
         }
 
         //target scout workers
-        List<Unit> enemyScoutWorkers = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType);
-        List<UnitInPool> myScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, LocationConstants.baseLocations.get(0), 50f);
-        for (Unit enemyWorker : enemyScoutWorkers) {
-            if (UnitUtils.getDistance(enemyWorker, LocationConstants.baseLocations.get(0)) < 40) {
-                Optional<Unit> attackingScv = myScvs.stream()
-                        .map(UnitInPool::unit)
-                        .filter(scv -> UnitUtils.isAttacking(scv, enemyWorker))
-                        .findFirst();
-                if (attackingScv.isPresent()) {
-                    if (attackingScv.get().getHealth().orElse(0f) <= 10f) {
-                        Bot.ACTION.unitCommand(attackingScv.get(), Abilities.STOP, false);
-                        Ignored.remove(attackingScv.get().getTag());
-                        sendScvToAttack(enemyWorker);
-                    }
-                }
-                else {
-                    sendScvToAttack(enemyWorker);
-                }
+        UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).forEach(enemyWorker -> {
+            if (UnitUtils.isInMyMainOrNat(enemyWorker)) {
+                ScvAttackTarget.add(enemyWorker);
             }
-        }
-
-//        //abandon attacking scout workers
-//        for (UnitInPool scv : myScvs) {
-//            if (!scv.unit().getOrders().isEmpty()) {
-//                Tag targetTag = scv.unit().getOrders().get(0).getTargetedUnitTag().orElse(null);
-//                if (targetTag != null) {
-//                    UnitInPool targetUnit = Bot.OBS.getUnit(targetTag);
-//                    if (targetUnit.unit().getType() == UnitUtils.enemyWorkerType) {
-//                        Point2d targetPos = targetUnit.unit().getPosition().toPoint2d();
-//                        if (!LocationConstants.pointInMainBase[Position.getMapCoord(targetPos.getX())][Position.getMapCoord(targetPos.getY())] &&
-//                                !LocationConstants.pointInNat[Position.getMapCoord(targetPos.getX())][Position.getMapCoord(targetPos.getY())]) {
-//                            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
-//                            IgnoredUnit.remove(scv.getTag());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-    }
-
-    private static void sendScvToAttack(Unit enemy) {
-        List<UnitInPool> availableScvs = getAvailableScvs(enemy.getPosition().toPoint2d()).stream()
-                .filter(scv -> scv.unit().getHealth().orElse(1f) > 39f)
-                .collect(Collectors.toList());
-        if (!availableScvs.isEmpty()) {
-            Ignored.add(new IgnoredScvDefender(availableScvs.get(0).getTag(), Bot.OBS.getUnit(enemy.getTag())));
-            Bot.ACTION.unitCommand(availableScvs.get(0).unit(), Abilities.ATTACK, enemy, false);
-        }
-
+        });
     }
 
     private static void repairLogic() {  //TODO: don't repair wall if ranged units on other side
+        if (GameCache.mineralBank < 15) {
+            return;
+        }
+
         //loop through units.  look for unmaxed health.  decide numscvs to repair
         List<Unit> unitsToRepair = new ArrayList<>();
         GameCache.baseList.stream()
@@ -130,14 +93,14 @@ public class WorkerManager {
         ));
         unitsToRepair.addAll(GameCache.wallStructures);
         unitsToRepair.addAll(GameCache.burningStructures);
-        Unit natBunker = UnitUtils.getNatBunker();
+        Unit natBunker = UnitUtils.getCompletedNatBunker();
         if (natBunker != null) {
             unitsToRepair.add(natBunker);
         }
         for (Unit unit : unitsToRepair) {
             int numScvsToAdd = UnitUtils.numIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
             if (numScvsToAdd <= 0) { //skip if no additional scvs required
-                break;
+                continue;
             }
             List<Unit> scvsForRepair = getScvsForRepairing(unit, numScvsToAdd);
             if (!scvsForRepair.isEmpty()) {
@@ -146,8 +109,6 @@ public class WorkerManager {
                 if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS || UnitUtils.getOrder(unit) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);
                     Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
-                    DebugHelper.draw3dBox(behindPFPos, Color.PURPLE, 0.2f); //TODO: remove
-                    Bot.DEBUG.sendDebug(); //TODO: remove
                     for (Unit scv : scvsForRepair) {
                         if (pfBase != null && scvNotBehindPF(scv, pfBase)) {
                             Bot.ACTION.unitCommand(scv, Abilities.MOVE, behindPFPos, false)
@@ -190,7 +151,7 @@ public class WorkerManager {
 //                            //TODO: make threat to ground gridmap to check against (replace above if statement for wall structures)
 //                        }
             else {
-                availableScvs = getAvailableScvUnits(unitToRepair.getPosition().toPoint2d());
+                availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d()));
             }
 
             //sort by closest scvs then sublist
@@ -405,6 +366,7 @@ public class WorkerManager {
 
     private static void fixOverSaturation() {
         List<Unit> scvsToMove = new ArrayList<>();
+        boolean mainBaseUnderAttack = mainBaseUnderAttack();
 
         //loop through bases
         for (Base base : GameCache.baseList) {
@@ -418,13 +380,14 @@ public class WorkerManager {
                 for (Gas gas : base.getGases()) {
                     if (gas.getRefinery() != null) {
                         Unit refinery = gas.getRefinery();
-                        for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), scvsPerGas) && !baseMineralScvs.isEmpty(); i++) {
+                        int scvsInThisGas = (base.isGasUnderLiberationZone(refinery)) ? 0 : scvsPerGas; //Don't populate this gas if covered by a liberation zone
+                        for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), scvsInThisGas) && !baseMineralScvs.isEmpty(); i++) {
                             UnitInPool closestUnit = UnitUtils.getClosestUnit(baseMineralScvs, refinery);
                             Bot.ACTION.unitCommand(closestUnit.unit(), Abilities.SMART, refinery, false);
                             baseMineralScvs.remove(closestUnit);
                             base.scvsAddedThisFrame--;
                         }
-                        if (refinery.getAssignedHarvesters().get() > scvsPerGas) {
+                        if (refinery.getAssignedHarvesters().get() > scvsInThisGas) {
                              List<UnitInPool> availableGasScvs = Bot.OBS.getUnits(Alliance.SELF, u -> {
                                 if (u.unit().getType() == Units.TERRAN_SCV && !u.unit().getOrders().isEmpty()) {
                                     UnitOrder order = u.unit().getOrders().get(0);
@@ -488,6 +451,20 @@ public class WorkerManager {
                 Bot.ACTION.unitCommand(scvsToMove, Abilities.SMART, GameCache.defaultRallyNode, false);
             }
         }
+    }
+
+    private static boolean mainBaseUnderAttack() {
+//        int totalEnemyCostInMain = GameCache.allEnemiesList.stream()
+//                .filter(enemy -> UnitUtils.canAttackGround(enemy.unit()) &&
+//                        !UnitUtils.WORKER_TYPE.contains(enemy.unit().getType()) &&
+//                        InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()))
+//                .mapToInt(enemy -> {
+//                    Cost enemyCost = UnitUtils.getCost(enemy.unit());
+//                    return enemyCost.minerals + enemyCost.gas;
+//                })
+//                .sum();
+
+        return true;
     }
 
     public static void toggleWorkersInGas() {

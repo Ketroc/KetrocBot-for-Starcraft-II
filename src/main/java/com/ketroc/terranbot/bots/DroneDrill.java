@@ -132,7 +132,7 @@ public class DroneDrill extends Bot {
                 curMinerals = Bot.OBS.getMinerals();
                 curGas = Bot.OBS.getVespene();
                 larvaList = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_LARVA);
-                if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD)) { //no cluster available
+                if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505)) { //no cluster available
                     droneRushBuildStep = -1;
                     mutaRushBuild();
                 }

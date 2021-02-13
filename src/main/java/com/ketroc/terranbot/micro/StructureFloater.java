@@ -15,13 +15,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StructureFloater extends BasicUnitMicro {
-
+    public boolean doLand;
     public StructureFloater(Unit structure) {
         super(Bot.OBS.getUnit(structure.getTag()), Position.toNearestHalfPoint(structure.getPosition().toPoint2d()), MicroPriority.SURVIVAL);
+        if (!structure.getFlying().orElse(false)) {
+            Bot.ACTION.unitCommand(structure, Abilities.LIFT, false);
+        }
+        doLand = true;
+    }
+
+    public StructureFloater(UnitInPool structure, Point2d targetPos, boolean doLand) {
+        super(structure, targetPos, MicroPriority.SURVIVAL);
+        if (!structure.unit().getFlying().orElse(false)) {
+            Bot.ACTION.unitCommand(structure.unit(), Abilities.LIFT, false);
+        }
+        this.doLand = doLand;
     }
 
     @Override
     public void onArrival() {
+        if (!doLand) {
+            return;
+        }
         if (unit.unit().getFlying().orElse(true)) {
             if (UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
                 Bot.ACTION.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);

@@ -9,9 +9,9 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.Purchase;
-import com.ketroc.terranbot.strategies.ScvTarget;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
@@ -211,7 +211,7 @@ public class UnitUtils {
 
     public static List<UnitInPool> getUnitsNearbyOfType(Alliance alliance, Units unitType, Point2d position, float distance) {
         try {
-            return Bot.OBS.getUnits(alliance, unit -> unit.unit().getType() == unitType && unit.unit().getPosition().toPoint2d().distance(position) < distance);
+            return Bot.OBS.getUnits(alliance, unit -> unit.unit().getType() == unitType && UnitUtils.getDistance(unit.unit(), position) < distance);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -328,8 +328,8 @@ public class UnitUtils {
         return buffs.contains(Buffs.EMP_DECLOAK) || buffs.contains(Buffs.ORACLE_REVELATION) || buffs.contains(Buffs.FUNGAL_GROWTH);
     }
 
-    public static boolean isVisible(UnitInPool unitInPool) {
-        return unitInPool.getLastSeenGameLoop() == Time.nowFrames();
+    public static boolean isInFogOfWar(UnitInPool unitInPool) {
+        return unitInPool.isAlive() && unitInPool.getLastSeenGameLoop() != Time.nowFrames();
     }
 
     public static boolean canMove(Unit unit) {
@@ -374,7 +374,7 @@ public class UnitUtils {
 
     public static UnitInPool getClosestUnitFromUnitList(List<UnitInPool> unitList, Point2d pos) {
         return unitList.stream()
-                .filter(u -> UnitUtils.isVisible(u))
+                .filter(u -> !UnitUtils.isInFogOfWar(u))
                 .min(Comparator.comparing(u -> getDistance(u.unit(), pos)))
                 .orElse(null);
     }
@@ -611,7 +611,7 @@ public class UnitUtils {
             case TERRAN_SUPPLY_DEPOT_LOWERED: case TERRAN_SUPPLY_DEPOT:
                 return SUPPLY_DEPOT_TYPE;
             case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_COMMAND_CENTER:
-                return COMMAND_CENTER_TYPE;
+                return COMMAND_STRUCTURE_TYPE_TERRAN;
             case TERRAN_ORBITAL_COMMAND_FLYING: case TERRAN_ORBITAL_COMMAND:
                 return ORBITAL_COMMAND_TYPE;
             case TERRAN_BARRACKS_FLYING: case TERRAN_BARRACKS:
@@ -674,11 +674,66 @@ public class UnitUtils {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f);
     }
 
-    public static Unit getNatBunker() {
-        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 3f)
-                .stream()
-                .findFirst()
+    public static Unit getCompletedNatBunker() {
+        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 3f).stream()
                 .map(UnitInPool::unit)
+                .filter(unit -> unit.getBuildProgress() == 1)
+                .findFirst()
                 .orElse(null);
+    }
+
+    public static boolean isInMyMainOrNat(Unit unit) {
+        return isInMyMainOrNat(unit.getPosition().toPoint2d());
+    }
+
+    public static boolean isInMyMainOrNat(Point2d unitPos) {
+        Point2d mainPos = GameCache.baseList.get(0).getCcPos();
+        Point2d natPos = GameCache.baseList.get(1).getCcPos();
+
+        float unitHeight = Bot.OBS.terrainHeight(unitPos);
+        float mainHeight = Bot.OBS.terrainHeight(mainPos);
+        float natHeight = Bot.OBS.terrainHeight(natPos);
+
+        boolean isInMain = unitPos.distance(mainPos) < 30 && Math.abs(unitHeight - mainHeight) < 1.2;
+        boolean isInNat = unitPos.distance(natPos) < 16 && Math.abs(unitHeight - natHeight) < 1.2;
+
+        return isInMain || isInNat;
+    }
+
+    public static int getMineralCost(Unit unit) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getMineralCost().orElse(0);
+    }
+
+    public static int getGasCost(Unit unit) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getVespeneCost().orElse(0);
+    }
+
+    public static Cost getCost(Unit unit) {
+        return Cost.getUnitCost(unit.getType());
+    }
+
+    public static int getMarineCount() {
+        int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
+        marineCount += getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
+                .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
+                .sum();
+        return marineCount;
+    }
+
+    public static float getVisionRange(Unit unit) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getSightRange().orElse(0f);
+    }
+
+    public static Tag getTargetUnitTag(Unit unit) {
+        if (unit.getOrders().isEmpty() || unit.getOrders().get(0).getTargetedUnitTag().isEmpty()) {
+            return null;
+        }
+        else {
+            return unit.getOrders().get(0).getTargetedUnitTag().get();
+        }
+    }
+
+    public static float rangeToSee(Unit unit, Unit targetUnit) {
+        return unit.getRadius() + targetUnit.getRadius() + Bot.OBS.getUnitTypeData(false).get(unit.getType()).getSightRange().orElse(0f);
     }
 }

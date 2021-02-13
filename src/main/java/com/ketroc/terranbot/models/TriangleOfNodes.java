@@ -76,7 +76,7 @@ public class TriangleOfNodes {
 
     public boolean requiresUpdate() {
         return (middle == null || inner == null || outer == null ||
-                !UnitUtils.isVisible(getMiddle()) || !UnitUtils.isVisible(getInner()) || !UnitUtils.isVisible(getOuter()));
+                UnitUtils.isInFogOfWar(getMiddle()) || UnitUtils.isInFogOfWar(getInner()) || UnitUtils.isInFogOfWar(getOuter()));
     }
 
     public void updateNodes() {

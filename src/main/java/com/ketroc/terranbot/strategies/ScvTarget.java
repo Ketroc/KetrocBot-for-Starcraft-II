@@ -1,9 +1,14 @@
 package com.ketroc.terranbot.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.micro.BasicUnitMicro;
+import com.ketroc.terranbot.micro.ScvAttackTarget;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -12,12 +17,12 @@ import com.ketroc.terranbot.models.IgnoredUnit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ScvTarget {
     public static List<ScvTarget> targets = new ArrayList<>();
 
     public int numScvs;
-    public List<UnitInPool> scvs = new ArrayList<>();
     public UnitInPool targetUnit;
     public boolean giveUp = false; //TODO: unused
 
@@ -43,7 +48,7 @@ public class ScvTarget {
                 }
                 break;
             case PROTOSS_PROBE:
-                numScvs = 0; //worker defense already puts 1 scv on each probe
+                numScvs = 1;
                 break;
             case PROTOSS_PYLON:
                 //send an scv to pylon blocking natural
@@ -59,35 +64,40 @@ public class ScvTarget {
     }
 
     public void cancelTarget() {
-        if (!scvs.isEmpty()) {
-            scvs.forEach(unit -> Ignored.remove(unit.getTag()));
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
-        }
+        List<ScvAttackTarget> scvs = getScvList();
+        Bot.ACTION.sendChat("cancelling " + scvs.size() + "scvs for " + targetUnit.unit().getType(), ActionChat.Channel.BROADCAST);
+        scvs.forEach(scvAttackTarget -> scvAttackTarget.remove());
+    }
+
+    public List<ScvAttackTarget> getScvList() {
+        return UnitMicroList.getUnitSubList(ScvAttackTarget.class).stream()
+                .filter(scvAttackTarget -> scvAttackTarget.targetUnit.getTag().equals(targetUnit.getTag()))
+                .collect(Collectors.toList());
     }
 
     public void addScv(UnitInPool scvToAdd) {
-        scvs.add(scvToAdd);
-        Ignored.add(new IgnoredUnit(scvToAdd.getTag()));
+        UnitMicroList.add(new ScvAttackTarget(scvToAdd, targetUnit));
     }
 
-    public void removeScv(UnitInPool scvToRemove) {
-        scvs.remove(scvToRemove);
-        Ignored.remove(scvToRemove.getTag());
+    public void removeScv(Tag scvToRemove) {
+        List<ScvAttackTarget> scvs = getScvList();
+        scvs.stream()
+            .filter(scvAttackTarget -> scvAttackTarget.unit.getTag().equals(scvToRemove))
+            .findFirst()
+            .ifPresent(scvAttackTarget -> scvAttackTarget.remove());
     }
 
     // ************** STATIC METHODS ******************
     public static void removeDeadTargets() {
         for (int i = 0; i<targets.size(); i++) {
             ScvTarget scvTarget = targets.get(i);
-            if (!scvTarget.targetUnit.isAlive() || !UnitUtils.isVisible(scvTarget.targetUnit) ||
-                    scvTarget.targetUnit.unit().getPosition().toPoint2d().distance(LocationConstants.baseLocations.get(0)) > 50) {
-                if (!scvTarget.scvs.isEmpty()) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvTarget.scvs), Abilities.HARVEST_GATHER, GameCache.defaultRallyNode, false);
-                    scvTarget.scvs.stream().forEach(scv -> Ignored.remove(scv.getTag()));
-                }
+            List<ScvAttackTarget> scvs = scvTarget.getScvList();
+            if (!scvTarget.targetUnit.isAlive() || !UnitUtils.isInMyMainOrNat(scvTarget.targetUnit.unit())) {
+                scvs.forEach(scvAttackTarget -> {
+                    scvAttackTarget.remove();
+                });
                 targets.remove(i--);
             }
         }
     }
-
 }

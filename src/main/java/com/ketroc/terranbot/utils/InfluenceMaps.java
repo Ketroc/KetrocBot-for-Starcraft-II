@@ -11,6 +11,7 @@ public class InfluenceMaps {
     public static boolean[][] pointAutoTurretTargets;
     public static boolean[][] pointInVikingRange;
     public static boolean[][] pointInMarineRange;
+    public static boolean[][] pointInEnemyVision;
     public static int[][] pointThreatToAirValue;
     public static boolean[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;
@@ -19,6 +20,7 @@ public class InfluenceMaps {
     public static float[][] pointSupplyInSeekerRange;
     public static int[][] pointThreatToGroundValue;
     public static boolean[][] pointThreatToGround;
+    public static boolean[][] pointPersistentDamageToGround;
     public static int[][] pointPFTargetValue; //1.5 splash radius range (PF is 1.25, tank is 1.5 ... +enemy radius and rounding effects)
     public static boolean[][] pointGroundUnitWithin13;
     public static boolean[][] pointRaiseDepots;

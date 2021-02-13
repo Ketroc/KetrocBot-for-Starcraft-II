@@ -118,4 +118,24 @@ public class Tank extends BasicUnitMicro {
                 !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
     }
+
+    //if enemy sieged tank nearby and it can't see
+    protected Unit getEnemyTankToSiege() {
+        Unit enemyTank = UnitUtils.getClosestEnemyOfType(Units.TERRAN_SIEGE_TANK_SIEGED, unit.unit().getPosition().toPoint2d());
+        if (enemyTank == null || enemyTank.getDisplayType() == DisplayType.HIDDEN || UnitUtils.getDistance(enemyTank, unit.unit()) > 17) {
+            return null;
+        }
+        //edge of where my tank will siege (test vision here)
+        Point2d enemyVisionPos = Position.towards(enemyTank.getPosition().toPoint2d(),
+                unit.unit().getPosition().toPoint2d(),
+                12.9f + enemyTank.getRadius());
+
+        //check if enemy can see my siege position
+        if (InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, enemyVisionPos)) {
+            return null;
+        }
+
+        return enemyTank;
+
+    }
 }

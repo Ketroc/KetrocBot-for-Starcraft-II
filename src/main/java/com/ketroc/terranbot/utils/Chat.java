@@ -52,4 +52,8 @@ public class Chat {
         });
 
     }
+
+    public static void chat(String message) {
+        Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+    }
 }

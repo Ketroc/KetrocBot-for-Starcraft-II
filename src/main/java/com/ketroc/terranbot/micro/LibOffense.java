@@ -19,7 +19,7 @@ public class LibOffense extends Liberator {
         targetPos = ArmyManager.attackGroundPos;
 
         //no liberator
-        if (unit == null || !unit.isAlive()) {
+        if (isAlive()) {
             super.onStep();
             return;
         }

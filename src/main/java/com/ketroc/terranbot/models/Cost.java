@@ -7,13 +7,13 @@ import com.ketroc.terranbot.bots.Bot;
 public class Cost {
     public int minerals;
     public int gas;
-    public int supply;
+    public float supply;
 
     public Cost(int minerals, int gas) {
         this(minerals, gas, 0);
     }
 
-    public Cost(int minerals, int gas, int supply) {
+    public Cost(int minerals, int gas, float supply) {
         this.minerals = minerals;
         this.gas = gas;
         this.supply = supply;
@@ -21,15 +21,14 @@ public class Cost {
 
     // =========== METHODS ===========
 
-    public static Cost getUnitCost(Units unitType) {
+    public static Cost getUnitCost(UnitType unitType) {
         if (unitType == Units.INVALID) {
             return null;
         }
         UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unitType);
         Cost unitCost = new Cost(unitData.getMineralCost().orElse(0), unitData.getVespeneCost().orElse(0), unitData.getFoodRequired().orElse(0f).intValue());
-        switch (unitType) {
-            case TERRAN_ORBITAL_COMMAND: case TERRAN_PLANETARY_FORTRESS:
-                unitCost.minerals -= 400;
+        if (unitType == Units.TERRAN_ORBITAL_COMMAND || unitType == Units.TERRAN_PLANETARY_FORTRESS) {
+            unitCost.minerals -= 400;
         }
         return unitCost;
     }
