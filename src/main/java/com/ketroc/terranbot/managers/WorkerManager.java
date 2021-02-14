@@ -80,9 +80,14 @@ public class WorkerManager {
         //loop through units.  look for unmaxed health.  decide numscvs to repair
         List<Unit> unitsToRepair = new ArrayList<>();
         GameCache.baseList.stream()
-                .filter(base -> base.isMyBase() && (base.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
-                        (UnitUtils.getOrder(base.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS &&
-                                Time.nowFrames() - base.lastMorphFrame > 600))) //complete PFs or 10sec from morphed
+                .filter(
+                        base -> base.isMyBase() && (
+                                base.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS || (
+                                        UnitUtils.getOrder(base.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS &&
+                                        Time.nowFrames() - base.lastMorphFrame > 600
+                                )
+                        )
+                ) //complete PFs or 10sec from morphed
                 .forEach(base -> unitsToRepair.add(base.getCc().unit()));
         unitsToRepair.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair

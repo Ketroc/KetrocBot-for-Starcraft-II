@@ -162,12 +162,9 @@ public class Strategy {
                 BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-                DO_LEAVE_UP_BUNKER = true;
                 NUM_MARINES = 8;
                 Switches.enemyCanProduceAir = true;
                 DO_BANSHEE_HARASS = false;
-                DO_ANTIDROP_TURRETS = true;
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
                 break;
             case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
                 BUILD_EXPANDS_IN_MAIN = true;
@@ -353,7 +350,9 @@ public class Strategy {
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         maxScvs = 80;
         DO_BANSHEE_HARASS = false;
-        //EXPAND_SLOWLY = true;
+        DO_INCLUDE_LIBS = false;
+        DO_INCLUDE_TANKS = false;
+        EXPAND_SLOWLY = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
         RETREAT_HEALTH = 50;

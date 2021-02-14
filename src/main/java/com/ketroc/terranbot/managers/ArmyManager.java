@@ -966,7 +966,13 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
+                Point2d retreatPos = getRetreatPos(banshee);
+                if (retreatPos != null && InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, retreatPos) <= 2) {
+                    Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                }
+                else {
+                    new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
+                }
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState == CloakState.CLOAKED_ALLIED &&
@@ -1025,32 +1031,17 @@ public class ArmyManager {
         }
     }
 
-    private static void retreatMyUnit(Unit myUnit) {
-        //get closest enemy effect
-        Point2d enemyPos = Bot.OBS.getEffects().stream()
-                .filter(e ->
-                        (e.getEffect() == Effects.PSI_STORM_PERSISTENT || e.getEffect() == Effects.RAVAGER_CORROSIVE_BILE_CP) &&
-                        e.getRadius().orElse(0f) + myUnit.getRadius() > UnitUtils.getDistance(myUnit, e.getPositions().iterator().next()))
-                .findFirst()
-                .map(e -> e.getPositions().iterator().next())
-                .orElse(null);
-
-        //get an enemy that is within its attack range
-        if (enemyPos == null) {
-            Unit closestEnemy = UnitUtils.getEnemyInRange(myUnit);
-            if (closestEnemy != null) {
-                enemyPos = closestEnemy.getPosition().toPoint2d();
-            }
+    private static Point2d getRetreatPos(Unit myUnit) {
+        Unit closestEnemy = UnitUtils.getClosestEnemyThreat(myUnit);
+        if (closestEnemy == null) {
+            return null;
         }
-
-        //if no enemy in range
-        if (enemyPos == null) {
-            armyGoingHome.add(myUnit);
+        Point2d enemyPos = closestEnemy.getPosition().toPoint2d();
+        Point2d retreatPos = Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4);
+        if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(retreatPos)) { //ignore unpathable positions
+            return null;
         }
-        else {
-            //retreat command away from enemy position
-            Bot.ACTION.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4f), false);
-        }
+        return retreatPos;
     }
 
     private static void retreatUnitFromCyclone(Unit myUnit) {
@@ -1135,11 +1126,16 @@ public class ArmyManager {
         //in enemy attack range, then back up
         else if (isUnsafe) {
             if (stayBack) {
-                //retreatMyUnit(viking);
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
+                Point2d retreatPos = getRetreatPos(viking);
+                if (retreatPos != null && InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirFromGround, retreatPos) == 0) {
+                    Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+                }
+                else {
+                    new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
+                }
             }
         }
         //Under 100% health and at repair bay
@@ -1183,8 +1179,8 @@ public class ArmyManager {
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
         boolean isUnsafe = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
-                ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, raven.getPosition().toPoint2d()) > 0
-                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBufferValue, raven.getPosition().toPoint2d()) > 0;
+                ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, raven.getPosition().toPoint2d())
+                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
@@ -1224,10 +1220,17 @@ public class ArmyManager {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
-                        if (lastCommand != ArmyCommands.HOME) {
-                            //retreatMyUnit(raven);
+                        Point2d retreatPos = getRetreatPos(raven);
+                        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
+                                ? InfluenceMaps.pointThreatToAir
+                                : InfluenceMaps.pointThreatToAirPlusBuffer;
+                        if (retreatPos != null && !InfluenceMaps.getValue(threatMap, retreatPos)) {
+                            Bot.ACTION.unitCommand(raven, Abilities.MOVE, retreatPos, false);
+                        }
+                        else {
                             new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                         }
+                        new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {
                         armyGroundAttacking.add(raven);
@@ -1374,7 +1377,7 @@ public class ArmyManager {
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {
         //if not enough vikings to deal with the tempests
-        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, ArmyManager.calcNumVikingsNeeded() * 0.8)) {
+        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, ArmyManager.calcNumVikingsNeeded() * 0.7)) {
             return false;
         }
 

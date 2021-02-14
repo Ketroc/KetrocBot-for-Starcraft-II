@@ -263,7 +263,7 @@ public class UnitUtils {
                     return 1;
                 } //else continue into PF case
             case TERRAN_PLANETARY_FORTRESS:
-                return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90 = 3scvs, 70-80 = 5scvs, etc
+                return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90% = 3scvs, 70-80% = 5scvs, etc
             case TERRAN_MISSILE_TURRET:
                 return 6;
             case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:
@@ -595,10 +595,20 @@ public class UnitUtils {
     public static Unit getEnemyInRange(Unit myUnit) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 !enemy.unit().getHallucination().orElse(false) &&
-                (myUnit.getFlying().orElse(false) ? getAirAttackRange(enemy.unit()) : getGroundAttackRange(enemy.unit()))
-                        > UnitUtils.getDistance(myUnit, enemy.unit()))
+                        (myUnit.getFlying().orElse(false) ? getAirAttackRange(enemy.unit()) : getGroundAttackRange(enemy.unit()))
+                                > UnitUtils.getDistance(myUnit, enemy.unit()))
                 .stream()
                 .findFirst()
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
+
+    public static Unit getClosestEnemyThreat(Unit myUnit) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                !enemy.unit().getHallucination().orElse(false) &&
+                        myUnit.getFlying().orElse(false) ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
+                .stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), myUnit)))
                 .map(UnitInPool::unit)
                 .orElse(null);
     }
