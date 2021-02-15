@@ -112,7 +112,7 @@ public class KetrocBot extends Bot {
 
             if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
                 if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Jan 15, 2021", ActionChat.Channel.BROADCAST);
+                    Bot.ACTION.sendChat("Last updated: Feb 13, 2021", ActionChat.Channel.BROADCAST);
                 }
 
                 //TODO: delete - for testing

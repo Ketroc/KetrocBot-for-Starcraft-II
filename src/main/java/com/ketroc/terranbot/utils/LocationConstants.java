@@ -227,6 +227,7 @@ public class LocationConstants {
                 break;
             case MapNames.EVER_DREAM:
             case MapNames.EVER_DREAM505:
+            case MapNames.EVER_DREAM506:
                 setLocationsForEverDream(isTopSpawn);
                 break;
             case MapNames.GOLDEN_WALL:

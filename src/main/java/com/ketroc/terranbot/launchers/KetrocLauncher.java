@@ -31,8 +31,8 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpire505.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("EverDream505.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("GoldenWall505.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("EverDream506.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("GoldenWall505.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
