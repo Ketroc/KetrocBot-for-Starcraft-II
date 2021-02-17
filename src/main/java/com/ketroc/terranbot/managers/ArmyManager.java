@@ -455,7 +455,7 @@ public class ArmyManager {
             if (base.isMyBase()) {
                 List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(base.getCcPos(), 9, true, true);
                 if (!availableScvs.isEmpty()) {
-                    repairScvs.addAll(availableScvs.subList(0, numScvsToSend));
+                    repairScvs.addAll(availableScvs);
                     if (repairScvs.size() >= numScvsToSend) {
                         return repairScvs.subList(0, numScvsToSend);
                     }
