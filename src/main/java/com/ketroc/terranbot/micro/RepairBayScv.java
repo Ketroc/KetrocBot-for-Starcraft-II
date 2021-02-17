@@ -18,6 +18,7 @@ import java.util.List;
 public class RepairBayScv extends BasicUnitMicro {
     public RepairBayScv(UnitInPool scv) {
         super(scv, LocationConstants.REPAIR_BAY, MicroPriority.SURVIVAL);
+        Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
     }
 
     @Override
@@ -25,12 +26,10 @@ public class RepairBayScv extends BasicUnitMicro {
         Abilities order = UnitUtils.getOrder(unit.unit());
         if (order == Abilities.MOVE || order == Abilities.HARVEST_GATHER || order == Abilities.HARVEST_RETURN) {
             if (ArmyManager.getNumRepairBayUnits() == 0) {
+                Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
                 removeMe = true;
             }
             else {
-                if (!unit.unit().getBuffs().contains(Buffs.AUTOMATED_REPAIR)) {
-                    Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
-                }
                 Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
             }
         }

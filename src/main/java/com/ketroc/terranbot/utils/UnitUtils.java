@@ -10,6 +10,7 @@ import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
+import com.ketroc.terranbot.models.Ignored;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.strategies.Strategy;
@@ -745,5 +746,13 @@ public class UnitUtils {
 
     public static float rangeToSee(Unit unit, Unit targetUnit) {
         return unit.getRadius() + targetUnit.getRadius() + Bot.OBS.getUnitTypeData(false).get(unit.getType()).getSightRange().orElse(0f);
+    }
+
+    public static List<Unit> getIdleScvs() {
+        return toUnitList(Bot.OBS.getUnits(Alliance.SELF, scv ->
+                scv.unit().getType() == Units.TERRAN_SCV &&
+                scv.unit().getOrders().isEmpty() &&
+                !Ignored.contains(scv.getTag()))
+        );
     }
 }

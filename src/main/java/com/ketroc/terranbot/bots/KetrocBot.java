@@ -432,6 +432,16 @@ public class KetrocBot extends Bot {
                     case TERRAN_SUPPLY_DEPOT:
                         Bot.ACTION.unitCommand(unit, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false); //lower depot
                         break;
+                    case TERRAN_COMMAND_CENTER:
+                        //start mining out mineral wall
+                        if ((LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) ||
+                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) ||
+                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506))
+                                && UnitUtils.getNumFriendlyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
+                                        >= (Strategy.MASS_RAVENS ? 2 : 4)) {
+                            IgnoredMineralWallScv.addScv();
+                        }
+                        break;
                     case TERRAN_ORBITAL_COMMAND:
                         //set rally point main base mineral patch (next base if main is dry)
                         for (Base base : GameCache.baseList) {
@@ -447,14 +457,6 @@ public class KetrocBot extends Bot {
                                 u -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(u.unit().getType()) && UnitUtils.getDistance(unit, u.unit()) < 10);
                         if (!bigMinerals.isEmpty()) {
                             Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
-                        }
-
-                        //start mining out mineral wall
-                        if ((LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) ||
-                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) ||
-                                LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506))
-                                && Base.numMyBases() >= 3) {
-                            IgnoredMineralWallScv.addScv();
                         }
 
                         //send some scvs to this base so it can saturate gas when needed
@@ -477,6 +479,12 @@ public class KetrocBot extends Bot {
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
+        if (unit.getType() instanceof Units.Other) {
+            System.out.println("****************************************************************");
+            System.out.println("Units.Other type for in Ketrocbot.onUnitCreated:" + Bot.OBS.getUnitTypeData(false).get(unit.getType()).getName());
+            System.out.println("****************************************************************");
+            return;
+        }
         switch ((Units)unit.getType()) {
             case TERRAN_SIEGE_TANK:
                 if (BunkerContain.proxyBunkerLevel == 2) {

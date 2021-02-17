@@ -453,13 +453,12 @@ public class ArmyManager {
         List<UnitInPool> repairScvs = new ArrayList<>();
         for (Base base : GameCache.baseList) {
             if (base.isMyBase()) {
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(base.getCcPos(), 10, true, true);
-                if (availableScvs.size() >= numScvsToSend) {
+                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(base.getCcPos(), 9, true, true);
+                if (!availableScvs.isEmpty()) {
                     repairScvs.addAll(availableScvs.subList(0, numScvsToSend));
-                    break;
-                }
-                else if (!availableScvs.isEmpty()) {
-                    repairScvs.addAll(availableScvs);
+                    if (repairScvs.size() >= numScvsToSend) {
+                        return repairScvs.subList(0, numScvsToSend);
+                    }
                 }
             }
         }
@@ -966,12 +965,15 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                Point2d retreatPos = getRetreatPos(banshee);
-                if (retreatPos != null && InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, retreatPos) <= 2) {
-                    Bot.ACTION.unitCommand(banshee, Abilities.MOVE, retreatPos, false);
+                Point2d kiteBackPos = getRetreatPos(banshee);
+                if (kiteBackPos == null) {
+                    kiteBackPos = retreatPos;
+                }
+                if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
+                    Bot.ACTION.unitCommand(banshee, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
-                    new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
+                    new BasicUnitMicro(banshee, kiteBackPos, MicroPriority.SURVIVAL).onStep();
                 }
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
@@ -1129,12 +1131,15 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                Point2d retreatPos = getRetreatPos(viking);
-                if (retreatPos != null && InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirFromGround, retreatPos) == 0) {
-                    Bot.ACTION.unitCommand(viking, Abilities.MOVE, retreatPos, false);
+                Point2d kiteBackPos = getRetreatPos(viking);
+                if (kiteBackPos == null) {
+                    kiteBackPos = retreatPos;
+                }
+                if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirFromGround, kiteBackPos) == 0) {
+                    Bot.ACTION.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
-                    new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
+                    new BasicUnitMicro(viking, kiteBackPos, MicroPriority.SURVIVAL).onStep();
                 }
             }
         }
@@ -1178,9 +1183,10 @@ public class ArmyManager {
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
-        boolean isUnsafe = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
-                ? InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, raven.getPosition().toPoint2d())
-                : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirPlusBuffer, raven.getPosition().toPoint2d());
+        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
+                ? InfluenceMaps.pointThreatToAir
+                : (Strategy.MASS_RAVENS) ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer;
+        boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
         boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
@@ -1220,17 +1226,16 @@ public class ArmyManager {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
-                        Point2d retreatPos = getRetreatPos(raven);
-                        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
-                                ? InfluenceMaps.pointThreatToAir
-                                : InfluenceMaps.pointThreatToAirPlusBuffer;
-                        if (retreatPos != null && !InfluenceMaps.getValue(threatMap, retreatPos)) {
-                            Bot.ACTION.unitCommand(raven, Abilities.MOVE, retreatPos, false);
+                        Point2d kiteBackPos = getRetreatPos(raven);
+                        if (kiteBackPos == null) {
+                            kiteBackPos = retreatPos;
+                        }
+                        if (!InfluenceMaps.getValue(threatMap, kiteBackPos)) {
+                            Bot.ACTION.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
                         }
                         else {
-                            new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
+                            new BasicUnitMicro(raven, kiteBackPos, MicroPriority.SURVIVAL).onStep();
                         }
-                        new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {
                         armyGroundAttacking.add(raven);

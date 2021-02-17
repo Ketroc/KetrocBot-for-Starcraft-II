@@ -40,6 +40,12 @@ public class Bot extends S2Agent {
         DEBUG = debug();
         CONTROL = control();
 
+        System.out.println("Units.TERRAN_REFINERY_RICH (before) = " + Units.TERRAN_REFINERY_RICH.getUnitTypeId());
+        if (Bot.OBS.getGameInfo().getMapName().contains("5.0.")) {
+            Units.remapForBuild(81009);
+            System.out.println("Units.TERRAN_REFINERY_RICH (after) = " + Units.TERRAN_REFINERY_RICH.getUnitTypeId());
+        }
+
         //load abilityToUnitType map
         OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {
             unitTypeData.getAbility().ifPresent(ability -> {

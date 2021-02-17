@@ -64,7 +64,7 @@ public class Strategy {
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static int DIVE_RANGE = 12;
     public static final int TEMPEST_DIVE_RANGE = 23;
-    public static final float RAVEN_DISTANCING_BUFFER = 2f;
+    public static final float RAVEN_DISTANCING_BUFFER = 3f;
     public static final int CAST_SEEKER_RANGE = 15;
     public static int energyToMuleAt = 50;
     public static final float SEEKER_RADIUS = 3;
@@ -103,7 +103,7 @@ public class Strategy {
     private static void getGameStrategyChoice() {
         setRaceStrategies();
         if (!Bot.isRealTime) {
-            setStrategyNumber();
+            //setStrategyNumber();
         }
         switch (LocationConstants.opponentRace) {
             case TERRAN:
@@ -234,7 +234,7 @@ public class Strategy {
         if (selectedStrategy == -1) {
             selectedStrategy = 0;
         }
-        selectedStrategy = selectedStrategy % numStrategies;
+        selectedStrategy = 3;//selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");

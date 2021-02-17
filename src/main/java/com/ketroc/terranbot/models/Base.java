@@ -180,7 +180,9 @@ public class Base {
 
     public void addMineralScv(Unit scv) {
         scvsAddedThisFrame++;
-        Bot.ACTION.unitCommand(scv, Abilities.SMART, rallyNode, false);
+        mineralPatches.stream()
+                .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
+                .ifPresent(mineral -> Bot.ACTION.unitCommand(scv, Abilities.SMART, mineral, false));
     }
 
 

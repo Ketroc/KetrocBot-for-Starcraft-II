@@ -9,6 +9,7 @@ import com.ketroc.terranbot.models.DelayedChat;
 import java.util.*;
 
 public class Chat {
+    public static Map<String, Integer> onceMessages = new HashMap<>();
     public static Map<String, String> botResponses = new HashMap<>();
     static {
         //ANIBot responses
@@ -55,5 +56,21 @@ public class Chat {
 
     public static void chat(String message) {
         Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatOnceOnly(String message) {
+        if (!onceMessages.keySet().contains(message)) {
+            onceMessages.put(message, Time.nowSeconds());
+            Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        }
+    }
+
+    public static void chatWithoutSpam(String message, int secondsBetweenMessages) {
+        int lastChatted = onceMessages.getOrDefault(message, Integer.MIN_VALUE);
+        int now = Time.nowSeconds();
+        if (lastChatted + secondsBetweenMessages <= now) {
+            onceMessages.put(message, Time.nowSeconds());
+            Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        }
     }
 }

@@ -86,7 +86,6 @@ public class ScvAttackTarget extends Scv {
         if (!alreadyExists) {
             UnitInPool newScv = getNewScv();
             if (newScv != null) {
-                Bot.ACTION.sendChat("SCV chaser added", ActionChat.Channel.BROADCAST);
                 UnitMicroList.add(new ScvAttackTarget(newScv, Bot.OBS.getUnit(enemyWorker.getTag())));
             }
         }
