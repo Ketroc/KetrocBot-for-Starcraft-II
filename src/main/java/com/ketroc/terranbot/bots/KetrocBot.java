@@ -176,6 +176,7 @@ public class KetrocBot extends Bot {
                 ProxyBunkerDefense.onStep();
                 BunkerContain.onStep();
                 MarineAllIn.onStep();
+                EnemyManager.onStep();
 
                 //clearing bases that have just dried up or died
                 GameCache.baseList.stream().forEach(Base::onStep);

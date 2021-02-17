@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
@@ -754,5 +755,12 @@ public class UnitUtils {
                 scv.unit().getOrders().isEmpty() &&
                 !Ignored.contains(scv.getTag()))
         );
+    }
+
+    public static boolean isEnemyEnteringDetection(Unit enemy) {
+        return !Bot.OBS.getUnits(Alliance.SELF, u ->
+                (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
+                        u.unit().getBuildProgress() == 1 &&
+                        UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
     }
 }
