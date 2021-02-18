@@ -534,7 +534,7 @@ public class BuildManager {
                 }
                 return;
             }
-            // if <2 planetaries
+            // if < 2 planetaries
             else if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false) < 2) {
 
                 //no marines needed if early marauders were built

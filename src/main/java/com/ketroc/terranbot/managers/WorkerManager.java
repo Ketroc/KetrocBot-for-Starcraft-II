@@ -71,10 +71,14 @@ public class WorkerManager {
         //if my bases have no minerals
         if (!idleScvs.isEmpty()) {
             Chat.chatOnceOnly("No minerals left in my bases");
+            Unit nearestPatch = Bot.OBS.getUnits(Alliance.NEUTRAL, patch -> UnitUtils.MINERAL_NODE_TYPE.contains(patch.unit().getType())).stream()
+                    .min(Comparator.comparing(patch -> UnitUtils.getDistance(patch.unit(), GameCache.baseList.get(1).getCcPos())))
+                    .map(UnitInPool::unit)
+                    .orElse(null);
             //distance-mine
-            if (GameCache.defaultRallyNode != null) {
+            if (nearestPatch != null) {
                 Chat.chatOnceOnly("distance mining");
-                Bot.ACTION.unitCommand(idleScvs, Abilities.SMART, GameCache.defaultRallyNode, false);
+                Bot.ACTION.unitCommand(idleScvs, Abilities.SMART, nearestPatch, false);
             }
             //if no minerals to distance mine, join the attack as auto-repairers
             else {
