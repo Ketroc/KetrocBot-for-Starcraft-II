@@ -57,6 +57,18 @@ public class Position {
         return y > LocationConstants.MAX_Y || y < LocationConstants.MIN_Y;
     }
 
+    public static boolean isOnBoundary(Point2d p) {
+        return isOnBoundaryX(p.getX()) || isOnBoundaryY(p.getY());
+    }
+
+    private static boolean isOnBoundaryX(float x) {
+        return x == LocationConstants.MAX_X || x == LocationConstants.MIN_X;
+    }
+
+    private static boolean isOnBoundaryY(float y) {
+        return y == LocationConstants.MAX_Y || y == LocationConstants.MIN_Y;
+    }
+
     public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {
         if (target.getX() < origin.getX()) {
             xDistance *= -1;

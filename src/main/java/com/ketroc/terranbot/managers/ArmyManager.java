@@ -965,7 +965,7 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                Point2d kiteBackPos = getRetreatPos(banshee);
+                Point2d kiteBackPos = getKiteBackPos(banshee);
                 if (kiteBackPos == null) {
                     kiteBackPos = retreatPos;
                 }
@@ -973,7 +973,7 @@ public class ArmyManager {
                     Bot.ACTION.unitCommand(banshee, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
-                    new BasicUnitMicro(banshee, kiteBackPos, MicroPriority.SURVIVAL).onStep();
+                    new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
                 }
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
@@ -1033,13 +1033,16 @@ public class ArmyManager {
         }
     }
 
-    private static Point2d getRetreatPos(Unit myUnit) {
+    private static Point2d getKiteBackPos(Unit myUnit) {
         Unit closestEnemy = UnitUtils.getClosestEnemyThreat(myUnit);
         if (closestEnemy == null) {
             return null;
         }
         Point2d enemyPos = closestEnemy.getPosition().toPoint2d();
         Point2d retreatPos = Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4);
+        if (Position.isOnBoundary(retreatPos)) { //ignore when kited to the edge of the map
+            return null;
+        }
         if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(retreatPos)) { //ignore unpathable positions
             return null;
         }
@@ -1131,7 +1134,7 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                Point2d kiteBackPos = getRetreatPos(viking);
+                Point2d kiteBackPos = getKiteBackPos(viking);
                 if (kiteBackPos == null) {
                     kiteBackPos = retreatPos;
                 }
@@ -1139,7 +1142,7 @@ public class ArmyManager {
                     Bot.ACTION.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
-                    new BasicUnitMicro(viking, kiteBackPos, MicroPriority.SURVIVAL).onStep();
+                    new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
                 }
             }
         }
@@ -1226,7 +1229,7 @@ public class ArmyManager {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!doCastTurrets || !doAutoTurret(raven)) {
                     if (isUnsafe) {
-                        Point2d kiteBackPos = getRetreatPos(raven);
+                        Point2d kiteBackPos = getKiteBackPos(raven);
                         if (kiteBackPos == null) {
                             kiteBackPos = retreatPos;
                         }
@@ -1234,7 +1237,7 @@ public class ArmyManager {
                             Bot.ACTION.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
                         }
                         else {
-                            new BasicUnitMicro(raven, kiteBackPos, MicroPriority.SURVIVAL).onStep();
+                            new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                         }
                     }
                     else if (lastCommand != ArmyCommands.ATTACK) {
