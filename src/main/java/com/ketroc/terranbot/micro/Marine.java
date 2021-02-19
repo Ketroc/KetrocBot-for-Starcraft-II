@@ -32,7 +32,7 @@ public class Marine extends BasicUnitMicro {
             removeMe = true;
         }
         if (!unit.unit().getActive().orElse(true)) {
-            Bot.ACTION.unitCommand(unit.unit(), Math.random() < 0.5 ? Abilities.STOP_DANCE : Abilities.STOP_CHEER, false);
+            Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
         }
     }
 

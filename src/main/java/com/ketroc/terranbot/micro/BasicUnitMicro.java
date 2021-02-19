@@ -147,28 +147,36 @@ public class BasicUnitMicro {
 
     //selects target based on cost:health ratio
     public UnitInPool selectTarget() {
+        UnitInPool selectedTarget = selectTarget(false);
+        if (selectedTarget == null) {
+            selectedTarget = selectTarget(true);
+        }
+        return selectedTarget;
+    }
+    public UnitInPool selectTarget(boolean includeIgnoredTargets) {
         List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) &&
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
                         (isAir(enemy) ? airAttackRange : groundAttackRange) + enemy.unit().getRadius() &&
-                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                (includeIgnoredTargets || !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType())) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
-        Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
+        Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
             UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
             float enemyCost;
-            if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType())) { //focus on winning siege tank war first
+            if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType())) { //focus on winning siege tank war first TODO: move to my siege tanks only
                 return enemy;
             }
             else if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
                 enemyCost = 75;
             }
             else {
-                enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
+                enemyCost = Math.max(1,
+                        enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f)); //value gas more than minerals
             }
-            float enemyValue = enemyHP/enemyCost;
-            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
+            float enemyValue = enemyCost/enemyHP;
+            if (enemyValue > bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }

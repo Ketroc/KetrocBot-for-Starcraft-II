@@ -2,16 +2,16 @@ package com.ketroc.terranbot.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.micro.Marine;
 import com.ketroc.terranbot.micro.MarineBasic;
 import com.ketroc.terranbot.micro.UnitMicroList;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,8 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MarineAllIn {
-    public static boolean attackMode;
+    public static boolean doAttack;
     public static List<Point2d> attackPoints;
+    public static boolean inInitialBuildUp = true;
 
     public static void onGameStart() {
         //attack enemy natural then enemy main
@@ -37,10 +38,39 @@ public class MarineAllIn {
 
         List<MarineBasic> marineList = UnitMicroList.getUnitSubList(MarineBasic.class);
         List<Unit> marineUnitList = marineList.stream().map(marineBasic -> marineBasic.unit.unit()).collect(Collectors.toList());
+        setInInitialBuildUp(marineList);
+        patrolForOverlords(marineList);
         toggleAttackMode(marineUnitList);
-        if (attackMode) {
+        if (doAttack) {
             assignTargetPos(marineUnitList);
         }
+    }
+
+    private static void setInInitialBuildUp(List<MarineBasic> marineList) {
+        if (inInitialBuildUp && marineList.size() >= 20) {
+            inInitialBuildUp = false;
+            Marine.setTargetPos(LocationConstants.insideMainWall);
+        }
+    }
+
+    private static void patrolForOverlords(List<MarineBasic> marineList) {
+        if (LocationConstants.opponentRace != Race.ZERG || !inInitialBuildUp) {
+            return;
+        }
+        marineList.stream().forEach(marine -> {
+            Chat.chatOnceOnly("Keep those ugly balloons from seeing our barracks count.");
+            Point2d patrolPoint1 = LocationConstants.baseLocations.get(3);
+            Point2d patrolPoint2 = LocationConstants.baseLocations.get(4);
+            if (marine.targetPos.distance(patrolPoint1) < 1 && UnitUtils.getDistance(marine.unit.unit(), patrolPoint1) < 2.5) {
+                marine.targetPos = patrolPoint2;
+            }
+            else if (marine.targetPos.distance(patrolPoint2) < 1 && UnitUtils.getDistance(marine.unit.unit(), patrolPoint2) < 2.5) {
+                marine.targetPos = patrolPoint1;
+            }
+            else if (UnitUtils.getDistance(marine.unit.unit(), LocationConstants.insideMainWall) < 3) {
+                marine.targetPos = patrolPoint1;
+            }
+        });
     }
 
     private static void assignTargetPos(List<Unit> marineUnitList) {
@@ -75,12 +105,14 @@ public class MarineAllIn {
     }
 
     private static void toggleAttackMode(List<Unit> marineList) {
-        if (marineList.size() < 20) {
-            attackMode = false;
+        if (doAttack && marineList.size() < 20) {
+            Chat.chatWithoutSpam("Run away! Run away!", 60);
+            doAttack = false;
         }
-        else if (marineList.stream()
+        else if (!doAttack && marineList.stream()
                 .allMatch(marine -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, marine.getPosition().toPoint2d()))) {
-            attackMode = true;
+            doAttack = true;
+            Chat.chatWithoutSpam("Hell. It's about time.", 60);
         }
     }
 }

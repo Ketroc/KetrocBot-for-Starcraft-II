@@ -343,7 +343,19 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     }
                 }
                 return false;
-            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
+            case TERRAN_BARRACKS:
+                if (Strategy.MARINE_ALLIN) {
+                    position = LocationConstants.STARPORTS.stream()
+                            .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.enemyMainBaseMidPos)))
+                            .orElse(null);
+                    if (position != null) {
+                        LocationConstants.STARPORTS.remove(position);
+                        return true;
+                    }
+                    return false;
+                }
+            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
                 position = LocationConstants._3x3Structures.stream()
                         .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
                         .findFirst().orElse(null);

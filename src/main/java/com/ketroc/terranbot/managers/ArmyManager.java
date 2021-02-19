@@ -225,7 +225,7 @@ public class ArmyManager {
     private static Optional<Unit> selectTarget(Unit turret) {
         List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsNear(turret, 8);
 
-        Target bestTarget = new Target(null, Float.MAX_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
+        Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             if (UnitUtils.CREEP_TUMOR.contains(enemy.unit().getType())) { //shoot creep tumors first
                 return Optional.of(enemy.unit());
@@ -241,8 +241,8 @@ public class ArmyManager {
             else {
                 enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
             }
-            float enemyValue = enemyHP/(enemyCost*damageMultiple);
-            if (enemyValue < bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
+            float enemyValue = (enemyCost*damageMultiple)/enemyHP;
+            if (enemyValue > bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }
@@ -501,7 +501,7 @@ public class ArmyManager {
     }
 
     private static void setAirTarget() {
-        //send single vikings at the closest non-threatening air, and set the main air attack target
+        //send vikings at the closest non-threatening air, and set the main air attack target
         UnitInPool closestEnemyAir;
         do {
             closestEnemyAir = getClosestEnemyAirUnit();
@@ -684,7 +684,7 @@ public class ArmyManager {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
-        if (Strategy.MARINE_ALLIN && MarineAllIn.attackMode) {
+        if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.inInitialBuildUp)) {
             return;
         }
 
@@ -728,6 +728,12 @@ public class ArmyManager {
         //if bunker exists and isn't full, head to bunker and enter
         if (bunker != null && bunker.getCargoSpaceTaken().orElse(4) < 4) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
+            return;
+        }
+
+        //try to kill off the marines as maxed supply is approaching
+        if (Bot.OBS.getFoodUsed() >= 160) {
+            MarineBasic.setTargetPos(ArmyManager.attackAirPos);
             return;
         }
 
@@ -1220,7 +1226,7 @@ public class ArmyManager {
 
         //go home to repair if mass raven strategy and no energy for autoturrets
         else if (Strategy.MASS_RAVENS && UnitUtils.getHealthPercentage(raven) < 100 &&
-                raven.getEnergy().orElse(0f) < 45) {
+                raven.getEnergy().orElse(0f) < 35) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
         }
 
@@ -1231,7 +1237,7 @@ public class ArmyManager {
                     if (isUnsafe) {
                         Point2d kiteBackPos = getKiteBackPos(raven);
                         if (kiteBackPos == null) {
-                            kiteBackPos = retreatPos;
+                            kiteBackPos = Position.towards(raven.getPosition().toPoint2d(), retreatPos, -4);
                         }
                         if (!InfluenceMaps.getValue(threatMap, kiteBackPos)) {
                             Bot.ACTION.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
@@ -1240,8 +1246,8 @@ public class ArmyManager {
                             new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
                         }
                     }
-                    else if (lastCommand != ArmyCommands.ATTACK) {
-                        armyGroundAttacking.add(raven);
+                    else if (lastCommand != ArmyCommands.HOME) {
+                        armyGoingHome.add(raven);
                     }
                 }
             }

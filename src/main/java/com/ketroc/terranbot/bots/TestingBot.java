@@ -83,7 +83,8 @@ public class TestingBot extends Bot {
 //        DebugHelper.onGameStart();
 //        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
 //        debug().debugGiveAllTech();
-        debug().debugCreateUnit(Units.TERRAN_CYCLONE, LocationConstants.baseLocations.get(13), myId, 1);
+        debug().debugCreateUnit(Units.ZERG_ROACH, LocationConstants.baseLocations.get(13), myId, 1);
+        debug().debugCreateUnit(Units.TERRAN_MARINE, LocationConstants.baseLocations.get(13), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_CREEP_TUMOR_BURROWED, , myId, 1);
 //        debug().debugCreateUnit(Units.ZERG_BANELING_BURROWED, Point2d.of(80, 100), myId, 1);
@@ -118,6 +119,8 @@ public class TestingBot extends Bot {
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
         Print.print(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
+
+
 //
 //        switch ((Units)unit.getType()) {
 //            case TERRAN_SUPPLY_DEPOT:
@@ -134,6 +137,11 @@ public class TestingBot extends Bot {
 
     @Override
     public void onStep() {
+
+        List<UnitInPool> vikings = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.ZERG_ROACH);
+        Bot.ACTION.unitCommand(vikings.get(0).unit(), Abilities.STOP_DANCE, false);
+        List<UnitInPool> marines = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE);
+        Bot.ACTION.unitCommand(marines.get(0).unit(), Abilities.STOP_DANCE, false);
 //        super.onStep();
 //        Point2d nearPos = Position.towards(LocationConstants.baseLocations.get(0), LocationConstants.baseLocations.get(1), 5);
 //        List<UnitInPool> units = Bot.OBS.getUnits(Alliance.ENEMY);
@@ -172,28 +180,28 @@ public class TestingBot extends Bot {
 //        }
 
 
-        List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV);
-        scvs.removeIf(scv -> containsScv(scv));
-
-        if (!scvs.isEmpty()) {
-            mineralPatches.sort(Comparator.comparing(mineralPatch -> 1500 - mineralPatch.mineralPatch.unit().getMineralContents().get()));
-            outer: for (MineralPatch mineralPatch : mineralPatches) {
-                while (mineralPatch.scvs.size() < 2) {
-                    UnitInPool closestScv = scvs.stream()
-                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.mineralPatch.unit())))
-                            .get();
-                    mineralPatch.scvs.add(new ScvMiner(closestScv, mineralPatch.mineralPatch));
-                    scvs.remove(closestScv);
-                    if (scvs.isEmpty()) {
-                        break outer;
-                    }
-                }
-            }
-        }
-
-        mineralPatches.forEach(mineralPatch ->
-                mineralPatch.scvs.forEach(scvMiner -> scvMiner.onStep()));
-
+//        List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV);
+//        scvs.removeIf(scv -> containsScv(scv));
+//
+//        if (!scvs.isEmpty()) {
+//            mineralPatches.sort(Comparator.comparing(mineralPatch -> 1500 - mineralPatch.mineralPatch.unit().getMineralContents().get()));
+//            outer: for (MineralPatch mineralPatch : mineralPatches) {
+//                while (mineralPatch.scvs.size() < 2) {
+//                    UnitInPool closestScv = scvs.stream()
+//                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.mineralPatch.unit())))
+//                            .get();
+//                    mineralPatch.scvs.add(new ScvMiner(closestScv, mineralPatch.mineralPatch));
+//                    scvs.remove(closestScv);
+//                    if (scvs.isEmpty()) {
+//                        break outer;
+//                    }
+//                }
+//            }
+//        }
+//
+//        mineralPatches.forEach(mineralPatch ->
+//                mineralPatch.scvs.forEach(scvMiner -> scvMiner.onStep()));
+//
 
         ACTION.sendActions();
         DEBUG.sendDebug();
