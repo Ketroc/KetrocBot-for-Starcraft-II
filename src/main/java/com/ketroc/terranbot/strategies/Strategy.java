@@ -20,9 +20,6 @@ import com.ketroc.terranbot.utils.MapNames;
 import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +34,7 @@ public class Strategy {
     public static boolean DO_LEAVE_UP_BUNKER;
     public static boolean NO_TURRETS;
 
-    public static boolean DO_INCLUDE_TANKS;
+    public static boolean DO_DEFENSIVE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_TANKS = 10;
 
@@ -82,6 +79,7 @@ public class Strategy {
     public static boolean DO_ANTIDROP_TURRETS;
     public static int AUTOTURRET_AT_ENERGY = 50;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
+    public static boolean ANTI_CYCLONE = false;
 
 
 
@@ -122,8 +120,8 @@ public class Strategy {
     }
 
     private static void applyOpponentSpecificTweaks() {
-        switch (KetrocBot.opponentId) {
-//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+//        switch (KetrocBot.opponentId) {
+        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_BANSHEE_HARASS = false;
                 break;
@@ -143,14 +141,14 @@ public class Strategy {
                 Switches.enemyCanProduceAir = true;
                 break;
             case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
-                DO_INCLUDE_TANKS = false;
+                DO_DEFENSIVE_TANKS = false;
                 DO_INCLUDE_LIBS = false;
                 break;
             case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
                 break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                DO_INCLUDE_TANKS = false;
+                DO_DEFENSIVE_TANKS = false;
                 DO_BANSHEE_HARASS = false;
                 //EXPAND_SLOWLY = true;
                 BUILD_EXPANDS_IN_MAIN = true;
@@ -172,11 +170,12 @@ public class Strategy {
                 break;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "aedf9a1bd8f862b": //RStrelok (LM)
-//                DO_LEAVE_UP_BUNKER = true;
                 BUILD_EXPANDS_IN_MAIN = true;
                 DO_INCLUDE_LIBS = false;
-                DO_BANSHEE_HARASS = true;
+                DO_DEFENSIVE_TANKS = false;
+                DO_BANSHEE_HARASS = false;
                 DO_DIVE_RAVENS = false;
+                ANTI_CYCLONE = true;
                 //Switches.enemyCanProduceAir = true;
                 break;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
@@ -234,7 +233,7 @@ public class Strategy {
         if (selectedStrategy == -1) {
             selectedStrategy = 0;
         }
-        selectedStrategy = 3;//selectedStrategy % numStrategies;
+        selectedStrategy = selectedStrategy % numStrategies;
         switch (selectedStrategy) {
             case 0:
                 DelayedChat.add("Standard Strategy");
@@ -288,9 +287,10 @@ public class Strategy {
         if (KetrocBot.opponentId == null) {
             return -1;
         }
-        switch (KetrocBot.opponentId) {
-            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-                return 4;
+//        switch (KetrocBot.opponentId) {
+        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") {
+//            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+//                return 4;
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                return 1;
@@ -324,12 +324,8 @@ public class Strategy {
 ////                EXPAND_SLOWLY = true;
 //                return 0;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                BUILD_EXPANDS_IN_MAIN = true;
-                DO_BANSHEE_HARASS = true;
                 return 0;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                BUILD_EXPANDS_IN_MAIN = true;
-                DO_BANSHEE_HARASS = true;
                 return 0;
             default:
                 return -1;
@@ -354,7 +350,7 @@ public class Strategy {
         maxScvs = 80;
         DO_BANSHEE_HARASS = false;
         DO_INCLUDE_LIBS = false;
-        DO_INCLUDE_TANKS = false;
+        DO_DEFENSIVE_TANKS = false;
         EXPAND_SLOWLY = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
@@ -579,20 +575,20 @@ public class Strategy {
         switch (LocationConstants.opponentRace) {
             case ZERG:
                 DO_INCLUDE_LIBS = true;
-                DO_INCLUDE_TANKS = true;
+                DO_DEFENSIVE_TANKS = true;
                 EXPAND_SLOWLY = false;
                 break;
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
-                DO_INCLUDE_TANKS = true;
+                DO_DEFENSIVE_TANKS = true;
                 EXPAND_SLOWLY = false;
                 NUM_MARINES = 5;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;
                 DO_INCLUDE_LIBS = false;
-                DO_INCLUDE_TANKS = false;
+                DO_DEFENSIVE_TANKS = false;
                 NUM_MARINES = 3;
                 break;
         }
@@ -638,7 +634,7 @@ public class Strategy {
         Print.print("DO_LEAVE_UP_BUNKER = " + DO_LEAVE_UP_BUNKER);
         Print.print("NO_TURRETS = " + NO_TURRETS);
 
-        Print.print("DO_INCLUDE_TANKS = " + DO_INCLUDE_TANKS);
+        Print.print("DO_INCLUDE_TANKS = " + DO_DEFENSIVE_TANKS);
         Print.print("MAX_TANKS = " + MAX_TANKS);
 
         Print.print("DO_INCLUDE_LIBS = " + DO_INCLUDE_LIBS);

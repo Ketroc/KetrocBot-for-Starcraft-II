@@ -8,14 +8,12 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.List;
 
 public class Tank extends BasicUnitMicro {
+    private long lastActiveFrame;
 
     public Tank(UnitInPool unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
@@ -101,9 +99,13 @@ public class Tank extends BasicUnitMicro {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
-            return true;
+            if (lastActiveFrame + 100 > Time.nowFrames()) {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
+                return true;
+            }
+            return false;
         }
+        lastActiveFrame = Time.nowFrames();
         return false;
     }
 

@@ -3866,7 +3866,7 @@ public class LocationConstants {
         }
         //any starport spot if starport already in the factory position
         else {
-            Strategy.DO_INCLUDE_TANKS = false; //unreliable position for tank pathing so don't make tanks
+            Strategy.DO_DEFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
             return STARPORTS.remove(0);
         }
     }

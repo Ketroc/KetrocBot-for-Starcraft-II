@@ -165,7 +165,8 @@ public class BasicUnitMicro {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
             UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
             float enemyCost;
-            if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType())) { //focus on winning siege tank war first TODO: move to my siege tanks only
+            if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType()) &&
+                    UnitUtils.SIEGE_TANK_TYPE.contains(unit.unit().getType())) { //focus on winning siege tank war first TODO: move to my siege tanks only
                 return enemy;
             }
             else if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income

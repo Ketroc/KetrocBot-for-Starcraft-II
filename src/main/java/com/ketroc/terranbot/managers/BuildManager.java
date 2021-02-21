@@ -68,7 +68,7 @@ public class BuildManager {
                     .forEach(rax -> {
                         int marineCount = UnitUtils.getMarineCount();
                         if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
-                            if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                            if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                                 Bot.ACTION.unitCommand(rax.unit(), Abilities.TRAIN_MARINE, false);
                                 Cost.updateBank(Units.TERRAN_MARINE);
                             }
@@ -81,7 +81,7 @@ public class BuildManager {
 
         //build siege tanks
         if (BunkerContain.proxyBunkerLevel != 2) {
-            if (Strategy.DO_INCLUDE_TANKS) {
+            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.ANTI_CYCLONE) {
                 buildFactoryUnitsLogic();
             } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
                 liftFactory();
@@ -187,7 +187,7 @@ public class BuildManager {
     }
 
     private static void noGasProduction() {
-        if (Cost.isGasBroke() && Bot.OBS.getGameLoop() > Time.toFrames("10:00")) {
+        if (Cost.isGasBroke() && !Strategy.MARINE_ALLIN && Bot.OBS.getGameLoop() > Time.toFrames("10:00")) {
             //land factory
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
                     .filter(factory -> factory.getOrders().isEmpty()) //if idle
@@ -286,7 +286,7 @@ public class BuildManager {
         //check if we need 0, 1, or 3 turrets at each base
         int turretsRequired = 0;
         if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty() ||
-                (Switches.enemyCanProduceAir && LocationConstants.opponentRace == Race.TERRAN)) {
+                (Switches.enemyCanProduceAir && LocationConstants.opponentRace == Race.TERRAN && !Strategy.ANTI_CYCLONE)) {
             turretsRequired = 3;
         }
         else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) { // || Time.nowFrames() > Time.toFrames("3:30")) {
@@ -545,7 +545,7 @@ public class BuildManager {
                 //maintain early game marine count
                 int marineCount = UnitUtils.getMarineCount();
                 if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
-                    if (Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                    if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getFoodUsed() < Bot.OBS.getFoodCap()) { //replaced cuz marines priority over structures: UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                         Bot.ACTION.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                         Cost.updateBank(Units.TERRAN_MARINE);
                     }
@@ -559,6 +559,14 @@ public class BuildManager {
             Unit factory = GameCache.factoryList.get(0).unit();
             if (!factory.getActive().get()) {
                 if (factory.getAddOnTag().isPresent()) {
+                    if (Strategy.ANTI_CYCLONE) { //always build tanks vs cyclone players
+                        if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                            Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                            Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                            return;
+                        }
+                    }
+
                     //2 tanks per expansion base
                     int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true) +
                             Ignored.numOfType(UnitUtils.SIEGE_TANK_TYPE);

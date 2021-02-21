@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class MarineAllIn {
     public static boolean doAttack;
     public static List<Point2d> attackPoints;
-    public static boolean inInitialBuildUp = true;
+    public static boolean doHuntOverlords = false;
 
     public static void onGameStart() {
         //attack enemy natural then enemy main
@@ -38,25 +38,28 @@ public class MarineAllIn {
 
         List<MarineBasic> marineList = UnitMicroList.getUnitSubList(MarineBasic.class);
         List<Unit> marineUnitList = marineList.stream().map(marineBasic -> marineBasic.unit.unit()).collect(Collectors.toList());
-        setInInitialBuildUp(marineList);
-        patrolForOverlords(marineList);
+        setDoHuntOverlords(marineList);
+        if (doHuntOverlords) {
+            patrolForOverlords(marineList);
+        }
         toggleAttackMode(marineUnitList);
         if (doAttack) {
             assignTargetPos(marineUnitList);
         }
     }
 
-    private static void setInInitialBuildUp(List<MarineBasic> marineList) {
-        if (inInitialBuildUp && marineList.size() >= 20) {
-            inInitialBuildUp = false;
+    private static void setDoHuntOverlords(List<MarineBasic> marineList) {
+        if (doHuntOverlords &&
+                (LocationConstants.opponentRace != Race.ZERG ||
+                    marineList.size() >= 20 ||
+                    GameCache.allEnemiesList.stream().anyMatch(enemy -> UnitUtils.canAttackGround(enemy.unit()))
+                )) {
+            doHuntOverlords = false;
             Marine.setTargetPos(LocationConstants.insideMainWall);
         }
     }
 
     private static void patrolForOverlords(List<MarineBasic> marineList) {
-        if (LocationConstants.opponentRace != Race.ZERG || !inInitialBuildUp) {
-            return;
-        }
         marineList.stream().forEach(marine -> {
             Chat.chatOnceOnly("Keep those ugly balloons from seeing our barracks count.");
             Point2d patrolPoint1 = LocationConstants.baseLocations.get(3);
@@ -86,7 +89,9 @@ public class MarineAllIn {
 
     private static Point2d getTargetPos(Point2d avgMarinePos) {
         if (!attackPoints.isEmpty()) {
-            if (avgMarinePos.distance(attackPoints.get(0)) < 3) {
+            Point2d attackPos = attackPoints.get(0);
+            int distance = Bot.OBS.isPathable(attackPos, false) ? 4 : 8;
+            if (avgMarinePos.distance(attackPos) < 3) {
                 attackPoints.remove(0);
             }
         }
@@ -109,7 +114,9 @@ public class MarineAllIn {
             Chat.chatWithoutSpam("Run away! Run away!", 60);
             doAttack = false;
         }
-        else if (!doAttack && marineList.stream()
+        else if (!doAttack &&
+                marineList.size() >= 20 &&
+                marineList.stream()
                 .allMatch(marine -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, marine.getPosition().toPoint2d()))) {
             doAttack = true;
             Chat.chatWithoutSpam("Hell. It's about time.", 60);

@@ -290,7 +290,7 @@ public class KetrocBot extends Bot {
         Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
         Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
         Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_INCLUDE_LIBS);
-        Print.print("Strategy.DO_INCLUDE_TANKS = " + Strategy.DO_INCLUDE_TANKS);
+        Print.print("Strategy.DO_INCLUDE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
         Print.print("Strategy.maxScvs = " + Strategy.maxScvs);
         Print.print("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
         Print.print("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
@@ -411,7 +411,7 @@ public class KetrocBot extends Bot {
                         else {
                             //start with (1 factory + 1 starport), or start with (2 starports)
                             Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
-                            if (Strategy.DO_INCLUDE_TANKS) {
+                            if (Strategy.DO_DEFENSIVE_TANKS) {
                                 purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
                             }
                             else {

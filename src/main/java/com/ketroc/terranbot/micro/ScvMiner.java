@@ -42,9 +42,6 @@ public class ScvMiner extends Scv {
         else if (UnitUtils.getOrder(unit.unit()) != Abilities.HARVEST_RETURN) {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.HARVEST_RETURN, false);
         }
-
-
-
     }
 
     @Override

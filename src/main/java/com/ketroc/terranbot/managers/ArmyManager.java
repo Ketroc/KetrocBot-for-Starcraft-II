@@ -684,7 +684,7 @@ public class ArmyManager {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
-        if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.inInitialBuildUp)) {
+        if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.doHuntOverlords)) {
             return;
         }
 
@@ -781,13 +781,15 @@ public class ArmyManager {
 
         //send available tank to siege an expansion
         Unit idleTank = GameCache.siegeTankList.get(0);
-        for (Base base : GameCache.baseList) {
-            if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
-                for (DefenseUnitPositions tankPos : base.getTanks()) {
-                    if (tankPos.getUnit() == null) {
-                        tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
-                        UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));
-                        return;
+        if (Strategy.DO_DEFENSIVE_TANKS) {
+            for (Base base : GameCache.baseList) {
+                if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
+                    for (DefenseUnitPositions tankPos : base.getTanks()) {
+                        if (tankPos.getUnit() == null) {
+                            tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
+                            UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));
+                            return;
+                        }
                     }
                 }
             }

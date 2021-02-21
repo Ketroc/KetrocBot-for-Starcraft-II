@@ -482,7 +482,7 @@ public class UnitUtils {
                 unit.getOrders().get(0).getTargetedUnitTag().isPresent();
     }
 
-    public static boolean isWallUnderAttack() {
+    public static boolean isWallUnderAttack() { //TODO: make more accurate
         return GameCache.wallStructures.stream().anyMatch(unit -> unit.getType() == Units.TERRAN_SUPPLY_DEPOT); //if depot is raised then unsafe to expand
     }
 

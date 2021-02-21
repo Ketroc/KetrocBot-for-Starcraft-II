@@ -256,7 +256,7 @@ public class GameCache {
                         Switches.enemyCanProduceAir = true;
                         Strategy.DO_INCLUDE_LIBS = false;
                         if (LocationConstants.opponentRace != Race.TERRAN) {
-                            Strategy.DO_INCLUDE_TANKS = false;
+                            Strategy.DO_DEFENSIVE_TANKS = false;
                         }
                     }
 

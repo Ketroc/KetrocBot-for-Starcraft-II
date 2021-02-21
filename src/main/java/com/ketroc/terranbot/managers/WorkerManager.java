@@ -16,6 +16,8 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ScvAttackTarget;
+import com.ketroc.terranbot.micro.TankToPosition;
+import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
@@ -63,7 +65,7 @@ public class WorkerManager {
                 Unit scv = idleScvs.remove(0);
                 GameCache.baseList.stream()
                         .filter(base -> base.isMyBase() && !base.getMineralPatches().isEmpty())
-                        .min(Comparator.comparing(base -> UnitUtils.getDistance(scv, base.getRallyNode())))
+                        .min(Comparator.comparing(base -> UnitUtils.getDistance(scv, base.getMineralPatches().get(0))))
                         .ifPresent(closestBase -> closestBase.addMineralScv(scv));
             }
         }
@@ -140,11 +142,15 @@ public class WorkerManager {
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
             unitsToRepair.addAll(GameCache.liberatorList);
         }
-        unitsToRepair.addAll(UnitUtils.toUnitList(
-                Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType()))
-        ));
-        unitsToRepair.addAll(GameCache.wallStructures);
-        unitsToRepair.addAll(GameCache.burningStructures);
+        UnitMicroList.getUnitSubList(TankToPosition.class).forEach(tankToPosition -> unitsToRepair.add(tankToPosition.unit.unit()));
+        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) > 2) {
+            unitsToRepair.addAll(GameCache.wallStructures);
+        }
+        GameCache.burningStructures.forEach(structure -> {
+            if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structure.getPosition().toPoint2d())) {
+                unitsToRepair.add(structure);
+            }
+        });
         Unit natBunker = UnitUtils.getCompletedNatBunker();
         if (natBunker != null) {
             unitsToRepair.add(natBunker);
