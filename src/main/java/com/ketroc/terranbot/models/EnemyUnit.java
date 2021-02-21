@@ -26,8 +26,8 @@ public class EnemyUnit {
     public float visionRange;
     public float groundAttackRange;
     public float airAttackRange;
-    public short threatLevel;
-    public byte pfTargetLevel;
+    public int threatLevel;
+    public int pfTargetLevel;
     public boolean isPersistentDamage;
     public float maxRange; //used to determine what portion of the grid to loop through
 
@@ -103,10 +103,10 @@ public class EnemyUnit {
             case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
                 airAttackRange -= 0.5f;
                 break;
-//            case TERRAN_CYCLONE: //assume cyclones won't attack other than their lock_on
-//                airAttackRange = 0;
-//                groundAttackRange = 0;
-//                break;
+            case TERRAN_CYCLONE: //lessen attack range of cyclones assuming they will only lock on
+                airAttackRange = 3.5f;
+                groundAttackRange = 3.5f;
+                break;
             case PROTOSS_TEMPEST:
                 isTempest = true;
                 break;
@@ -201,7 +201,7 @@ public class EnemyUnit {
         }
     }
 
-    public static byte getThreatValue(Units unitType) {
+    public static int getThreatValue(Units unitType) {
         switch (unitType) {
             case TERRAN_HELLION:
                 return 2;
@@ -228,7 +228,7 @@ public class EnemyUnit {
             case TERRAN_BUNKER: //assume 4 marines
                 return 12;
             case TERRAN_VIKING_FIGHTER:
-                return 3;
+                return Strategy.ANTI_CYCLONE ? 1 : 3;
             case TERRAN_LIBERATOR:
                 return 6;
             case TERRAN_GHOST:
@@ -315,7 +315,7 @@ public class EnemyUnit {
         return 0;
     }
 
-    public static byte getPFTargetValue(Unit enemy) {
+    public static int getPFTargetValue(Unit enemy) {
         switch ((Units)enemy.getType()) {
             case TERRAN_MARINE:
                 return 5;

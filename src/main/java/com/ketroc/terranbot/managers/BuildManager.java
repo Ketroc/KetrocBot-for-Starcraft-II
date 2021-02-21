@@ -682,6 +682,11 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
+        //maintain 2 vikings vs cyclones strategy
+        if (Strategy.ANTI_CYCLONE && numVikings < 2) {
+            return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
         //maintain a banshee count of 1 (2 vs zerg with mass ravens)
         if (numBanshees < MIN_BANSHEES) {
             return Abilities.TRAIN_BANSHEE;
