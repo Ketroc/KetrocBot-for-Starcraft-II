@@ -3,6 +3,7 @@ package com.ketroc.terranbot.utils;
 public final class MapNames {
     public static final String ACROPOLIS = "Acropolis LE";
     public static final String ASCENSION_TO_AIUR = "Ascension to Aiur LE";
+    public static final String CATALYST = "Catalyst LE";
     public static final String DEATH_AURA = "Deathaura LE";
     public static final String DEATH_AURA505 = "Deathaura 5.0.5";
     public static final String DEATH_AURA506 = "Deathaura 5.0.6";

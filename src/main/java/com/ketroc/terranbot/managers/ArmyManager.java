@@ -684,7 +684,7 @@ public class ArmyManager {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
-        if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.doHuntOverlords)) {
+        if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.isInitialBuildUp)) {
             return;
         }
 

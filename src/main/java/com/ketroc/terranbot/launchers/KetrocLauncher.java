@@ -26,7 +26,8 @@ public class KetrocLauncher {
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("DeathAura505.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
+//                        .startGame(LocalMap.of(Paths.get("DeathAura505.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));

@@ -81,7 +81,7 @@ public class BuildManager {
 
         //build siege tanks
         if (BunkerContain.proxyBunkerLevel != 2) {
-            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.ANTI_CYCLONE) {
+            if (Strategy.DO_DEFENSIVE_TANKS) { // || Strategy.ANTI_CYCLONE
                 buildFactoryUnitsLogic();
             } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
                 liftFactory();

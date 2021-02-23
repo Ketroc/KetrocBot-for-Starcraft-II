@@ -99,7 +99,7 @@ public class Tank extends BasicUnitMicro {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
-            if (lastActiveFrame + 100 > Time.nowFrames()) {
+            if (lastActiveFrame + 150 > Time.nowFrames()) {
                 Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
                 return true;
             }
@@ -111,13 +111,12 @@ public class Tank extends BasicUnitMicro {
 
     protected List<UnitInPool> getEnemiesInRange(float range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                (UnitUtils.getUnitSpeed(enemy.unit().getType()) == 0
+                (!UnitUtils.canMove(enemy.unit())
                         ? UnitUtils.getDistance(enemy.unit(), unit.unit()) <= 13 + enemy.unit().getRadius()
                         : UnitUtils.getDistance(enemy.unit(), unit.unit()) <= range + enemy.unit().getRadius()) &&
                 !enemy.unit().getFlying().orElse(true) &&
                 !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getHallucination().orElse(false) &&
-                !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
     }
 

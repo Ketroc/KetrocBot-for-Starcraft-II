@@ -78,11 +78,11 @@ public class TestingBot extends Bot {
                 .findFirst()
                 .get()
                 .getRequestedRace();
-        LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
+        //LocationConstants.onGameStart(Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
 //        DebugHelper.onGameStart();
-//        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
-//        debug().debugGiveAllTech();
+        debug().debugGodMode().debugFastBuild().debugIgnoreFood().debugIgnoreMineral().debugIgnoreResourceCost();
+        debug().debugGiveAllTech();
 //        debug().debugCreateUnit(Units.ZERG_ROACH, LocationConstants.baseLocations.get(13), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_MARINE, LocationConstants.baseLocations.get(13), myId, 1);
 //        debug().debugCreateUnit(Units.NEUTRAL_MINERAL_FIELD, Point2d.of(88.5f, 90.5f), myId, 1);
@@ -176,28 +176,28 @@ public class TestingBot extends Bot {
 //        }
 
 
-        List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV);
-        scvs.removeIf(scv -> containsScv(scv));
-
-        if (!scvs.isEmpty()) {
-            mineralPatches.sort(Comparator.comparing(mineralPatch -> 1500 - mineralPatch.mineralPatch.unit().getMineralContents().get()));
-            outer: for (MineralPatch mineralPatch : mineralPatches) {
-                while (mineralPatch.scvs.size() < 2) {
-                    UnitInPool closestScv = scvs.stream()
-                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.mineralPatch.unit())))
-                            .get();
-                    mineralPatch.scvs.add(new ScvMiner(closestScv, mineralPatch.mineralPatch));
-                    scvs.remove(closestScv);
-                    if (scvs.isEmpty()) {
-                        break outer;
-                    }
-                }
-            }
-        }
-
-        mineralPatches.forEach(mineralPatch ->
-                mineralPatch.scvs.forEach(scvMiner -> scvMiner.onStep()));
-
+//        List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV);
+//        scvs.removeIf(scv -> containsScv(scv));
+//
+//        if (!scvs.isEmpty()) {
+//            mineralPatches.sort(Comparator.comparing(mineralPatch -> 1500 - mineralPatch.mineralPatch.unit().getMineralContents().get()));
+//            outer: for (MineralPatch mineralPatch : mineralPatches) {
+//                while (mineralPatch.scvs.size() < 2) {
+//                    UnitInPool closestScv = scvs.stream()
+//                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.mineralPatch.unit())))
+//                            .get();
+//                    mineralPatch.scvs.add(new ScvMiner(closestScv, mineralPatch.mineralPatch));
+//                    scvs.remove(closestScv);
+//                    if (scvs.isEmpty()) {
+//                        break outer;
+//                    }
+//                }
+//            }
+//        }
+//
+//        mineralPatches.forEach(mineralPatch ->
+//                mineralPatch.scvs.forEach(scvMiner -> scvMiner.onStep()));
+//
 
         ACTION.sendActions();
         DEBUG.sendDebug();

@@ -28,7 +28,8 @@ public class TestingBotLauncher {
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));

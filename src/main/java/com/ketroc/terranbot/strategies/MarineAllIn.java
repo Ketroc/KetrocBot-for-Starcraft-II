@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class MarineAllIn {
     public static boolean doAttack;
     public static List<Point2d> attackPoints;
-    public static boolean doHuntOverlords = false;
+    public static boolean isInitialBuildUp = false;
 
     public static void onGameStart() {
         //attack enemy natural then enemy main
@@ -38,9 +38,10 @@ public class MarineAllIn {
 
         List<MarineBasic> marineList = UnitMicroList.getUnitSubList(MarineBasic.class);
         List<Unit> marineUnitList = marineList.stream().map(marineBasic -> marineBasic.unit.unit()).collect(Collectors.toList());
-        setDoHuntOverlords(marineList);
-        if (doHuntOverlords) {
-            patrolForOverlords(marineList);
+        setInitialBuildUp(marineList);
+        if (isInitialBuildUp) {
+            //patrolForOverlords(marineList);
+            Marine.setTargetPos(GameCache.baseList.get(0).getResourceMidPoint());
         }
         toggleAttackMode(marineUnitList);
         if (doAttack) {
@@ -48,13 +49,13 @@ public class MarineAllIn {
         }
     }
 
-    private static void setDoHuntOverlords(List<MarineBasic> marineList) {
-        if (doHuntOverlords &&
-                (LocationConstants.opponentRace != Race.ZERG ||
-                    marineList.size() >= 20 ||
-                    GameCache.allEnemiesList.stream().anyMatch(enemy -> UnitUtils.canAttackGround(enemy.unit()))
-                )) {
-            doHuntOverlords = false;
+    private static void setInitialBuildUp(List<MarineBasic> marineList) {
+        if (isInitialBuildUp && marineList.size() >= 20) {
+//                (LocationConstants.opponentRace != Race.ZERG ||
+//                    marineList.size() >= 20 ||
+//                    GameCache.allEnemiesList.stream().anyMatch(enemy -> UnitUtils.canAttackGround(enemy.unit()))
+//                )) {
+            isInitialBuildUp = false;
             Marine.setTargetPos(LocationConstants.insideMainWall);
         }
     }
