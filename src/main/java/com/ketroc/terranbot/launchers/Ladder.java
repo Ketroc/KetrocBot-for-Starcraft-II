@@ -53,7 +53,7 @@ public class Ladder {
         Bot bot = new KetrocBot(false, opponentId, realTime);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
-                .setRawAffectsSelection(false)
+                .setRawAffectsSelection(true)
                 .loadLadderSettings(args)
                 .setShowCloaked(true)
                 .setShowBurrowed(true)

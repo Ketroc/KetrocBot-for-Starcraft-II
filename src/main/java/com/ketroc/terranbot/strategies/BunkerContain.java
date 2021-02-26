@@ -72,7 +72,7 @@ public class BunkerContain {
                 bunkerPos, -85);
         marinesNeeded = 4;
         if (LocationConstants.opponentRace == Race.TERRAN) {
-            marinesNeeded = (proxyBunkerLevel == 2) ? 2 : Integer.MAX_VALUE;
+            marinesNeeded = 3;
         }
         scoutProxy = (LocationConstants.opponentRace == Race.TERRAN);
     }
@@ -90,9 +90,9 @@ public class BunkerContain {
         }
 
         // ========= SCVS ===========
-        if (Time.nowFrames() == Time.toFrames(13)) {
+        if (Time.nowFrames() == Time.toFrames(6)) {
             Unit scv = WorkerManager.getClosestAvailableScv(LocationConstants.extraDepots.get(0)).unit();
-            Bot.ACTION.unitCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
+            ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0));
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
@@ -110,7 +110,13 @@ public class BunkerContain {
         if (BunkerContain.proxyBunkerLevel == 2) {
             if (factorySwap == null) {
                 if (readyToBuildFactory()) {
-                    factorySwap = new AddonSwap(barracks, Abilities.BUILD_TECHLAB_BARRACKS, Units.TERRAN_FACTORY, repairScvList.get(0));
+                    UnitInPool availableRepairScv = repairScvList.stream()
+                            .filter(scv -> UnitUtils.getOrder(scv.unit()) == null ||
+                                    UnitUtils.getOrder(scv.unit()) != Abilities.BUILD_BUNKER)
+                            .findFirst()
+                            .orElse(repairScvList.get(0));
+                    factorySwap = new AddonSwap(barracks, Abilities.BUILD_TECHLAB_BARRACKS, Units.TERRAN_FACTORY, availableRepairScv);
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
                 }
             }
             else if (factorySwap.removeMe) {
@@ -178,7 +184,7 @@ public class BunkerContain {
                 //get closest tank within 8 - 16 range of bunker
                 Unit closestEnemyTank = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, UnitUtils.SIEGE_TANK_TYPE, bunkerPos);
                 //set targetPos to tank towards bunkerPos
-                if (UnitUtils.getDistance(closestEnemyTank, bunkerPos) < 15) {
+                if (closestEnemyTank != null && UnitUtils.getDistance(closestEnemyTank, bunkerPos) < 15) {
                     barracksSpotter.targetPos = Position.towards(closestEnemyTank.getPosition().toPoint2d(), bunkerPos,
                             UnitUtils.rangeToSee(barracksSpotter.unit.unit(), closestEnemyTank) - 0.5f);
                 }
@@ -202,7 +208,7 @@ public class BunkerContain {
     }
 
     private static boolean readyToBuildFactory() {
-        return Bot.OBS.getVespene() > 70 &&
+        return Bot.OBS.getVespene() > 55 &&
                 UnitUtils.getNumFriendlyUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
                 barracks != null;
     }
@@ -230,6 +236,7 @@ public class BunkerContain {
 
     public static void addRepairScv(UnitInPool scv) {
         repairScvList.add(scv);
+        Base.releaseMineralScv(scv.unit());
         Ignored.add(new IgnoredUnit(scv.getTag()));
     }
 
@@ -326,8 +333,9 @@ public class BunkerContain {
     }
 
     private static void sendFirstScv() {
-        if (!isFirstScvSent && Time.nowFrames() >= 174) {
+        if (!isFirstScvSent && Time.nowFrames() >= Time.toFrames(8)) {
             Unit firstScv = repairScvList.get(0).unit();
+            Base.releaseMineralScv(firstScv);
             if (UnitUtils.isCarryingResources(firstScv)) {
                 Bot.ACTION.unitCommand(firstScv, Abilities.HARVEST_RETURN, false)
                         .unitCommand(firstScv, Abilities.MOVE, barracksPos, true);
@@ -342,9 +350,10 @@ public class BunkerContain {
     }
 
     private static void sendScoutScvs() {
-        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames("0:25")) {
+        if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(23)) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
             scoutScvs = availableScvs.subList(0, 2);
+            scoutScvs.forEach(scv -> Base.releaseMineralScv(scv.unit()));
             if (!LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
@@ -568,9 +577,10 @@ public class BunkerContain {
             UnitInPool oldScv = repairScvList.get(i);
             if (!oldScv.isAlive() || oldScv.unit().getHealth().orElse(45f) < 10) {
                 if (oldScv.isAlive()) {
-                    Bot.ACTION.unitCommand(oldScv.unit(), Abilities.SMART, GameCache.baseList.get(0).getRallyNode(), false);
+                    Bot.ACTION.unitCommand(oldScv.unit(), Abilities.STOP, false);
                 }
                 UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
+                Base.releaseMineralScv(newScv.unit());
                 Ignored.remove(oldScv.getTag());
                 Ignored.add(new IgnoredUnit(newScv.getTag()));
                 repairScvList.set(i, newScv);
@@ -772,8 +782,8 @@ public class BunkerContain {
 
         if (proxyBunkerLevel == 2) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
 
         //set barracks rally

@@ -1278,7 +1278,7 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(84.5f, 122.5f));
         muleLetterPosList.add(Point2d.of(95.5f, 122.5f));
         if (isTopPos) {
-            proxyBarracksPos = Point2d.of(97.5f, 88.5f);
+            proxyBarracksPos = Point2d.of(98.5f, 89.5f);
             proxyBunkerPos = Point2d.of(49.5f, 73.5f);
             proxyBunkerPos2 = Point2d.of(66.5f, 78.5f);
 
@@ -1638,7 +1638,7 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(171.0f, 160.0f));
         }
         else {
-            proxyBarracksPos = Point2d.of(148.5f, 139.5f);
+            proxyBarracksPos = Point2d.of(147.5f, 139.5f);
             proxyBunkerPos = Point2d.of(178.5f, 139.5f);
             proxyBunkerPos2 = Point2d.of(156.5f, 154.5f);
 

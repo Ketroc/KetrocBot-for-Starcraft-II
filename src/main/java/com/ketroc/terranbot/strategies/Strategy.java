@@ -32,7 +32,7 @@ public class Strategy {
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
-    public static boolean NO_TURRETS = true;
+    public static boolean NO_TURRETS;
 
     public static boolean DO_DEFENSIVE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
@@ -195,7 +195,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 5;
         if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+            selectedStrategy = 1;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -204,7 +204,7 @@ public class Strategy {
                 DelayedChat.add("Standard Strategy");
                 break;
             case 1:
-                BunkerContain.proxyBunkerLevel = 1;
+                BunkerContain.proxyBunkerLevel = 2;
                 break;
             case 2:
                 DelayedChat.add("SCV Rush Strategy");
@@ -289,8 +289,8 @@ public class Strategy {
         }
         switch (KetrocBot.opponentId) {
 //        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") {
-            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-                return 4;
+//            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+//                return 4;
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                return 1;
