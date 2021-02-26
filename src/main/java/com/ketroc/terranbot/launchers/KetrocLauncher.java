@@ -21,12 +21,12 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "",false)),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE, AiBuild.RUSH))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
 //                        .startGame(LocalMap.of(Paths.get("DeathAura505.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
@@ -34,7 +34,7 @@ public class KetrocLauncher {
         //                .startGame(LocalMap.of(Paths.get("EternalEmpire505.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDream506.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("GoldenWall506.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));

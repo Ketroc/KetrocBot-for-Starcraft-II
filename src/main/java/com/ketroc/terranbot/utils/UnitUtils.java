@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.managers.StructureSize;
@@ -460,9 +459,9 @@ public class UnitUtils {
 
     public static Unit getSafestMineralPatch() {
         List<Unit> mineralPatches = GameCache.baseList.stream()
-                .filter(base -> base.isMyBase() && !base.getMineralPatches().isEmpty())
+                .filter(base -> base.isMyBase() && !base.getMineralPatchUnits().isEmpty())
                 .findFirst()
-                .map(Base::getMineralPatches)
+                .map(Base::getMineralPatchUnits)
                 .orElse(null);
         if (mineralPatches == null) {
             return null;
@@ -749,12 +748,11 @@ public class UnitUtils {
         return unit.getRadius() + targetUnit.getRadius() + Bot.OBS.getUnitTypeData(false).get(unit.getType()).getSightRange().orElse(0f);
     }
 
-    public static List<Unit> getIdleScvs() {
-        return toUnitList(Bot.OBS.getUnits(Alliance.SELF, scv ->
+    public static List<UnitInPool> getIdleScvs() {
+        return Bot.OBS.getUnits(Alliance.SELF, scv ->
                 scv.unit().getType() == Units.TERRAN_SCV &&
                 scv.unit().getOrders().isEmpty() &&
-                !Ignored.contains(scv.getTag()))
-        );
+                !Ignored.contains(scv.getTag()));
     }
 
     public static boolean isEnemyEnteringDetection(Unit enemy) {
@@ -762,5 +760,9 @@ public class UnitUtils {
                 (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
                         u.unit().getBuildProgress() == 1 &&
                         UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
+    }
+
+    public static int getNumScvs(boolean includeProducing) {
+        return Bot.OBS.getFoodWorkers() + (includeProducing ? numInProductionOfType(Units.TERRAN_SCV) : 0);
     }
 }

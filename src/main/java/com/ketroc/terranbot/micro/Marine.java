@@ -31,9 +31,9 @@ public class Marine extends BasicUnitMicro {
             Bot.ACTION.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
         }
-        if (!unit.unit().getActive().orElse(true)) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
-        }
+//        if (!unit.unit().getActive().orElse(true)) {
+//            Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
+//        }
     }
 
     @Override

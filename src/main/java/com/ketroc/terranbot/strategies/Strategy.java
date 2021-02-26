@@ -27,12 +27,12 @@ import java.util.List;
 public class Strategy {
     public static int selectedStrategy = -1;
 
-    public static int SKIP_FRAMES;
+    public static int SKIP_FRAMES = 2;
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
-    public static boolean NO_TURRETS;
+    public static boolean NO_TURRETS = true;
 
     public static boolean DO_DEFENSIVE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
@@ -287,10 +287,10 @@ public class Strategy {
         if (KetrocBot.opponentId == null) {
             return -1;
         }
-//        switch (KetrocBot.opponentId) {
-        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") {
-//            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-//                return 4;
+        switch (KetrocBot.opponentId) {
+//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") {
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+                return 4;
 //            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
 //            case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
 //                return 1;
@@ -512,7 +512,8 @@ public class Strategy {
             case 2:
                 //rally back to mineral node
                 if (Bot.OBS.getFoodWorkers() == 13) {
-                    Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, GameCache.baseList.get(0).getMineralPatches().get(0), false);
+                    Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER,
+                            GameCache.baseList.get(0).getFullestMineralPatch(), false);
                     step_TvtFastStart++;
                 }
                 break;

@@ -19,6 +19,7 @@ public class IgnoredMineralWallScv extends Ignored {
     public IgnoredMineralWallScv(Tag unitTag) {
         super(unitTag);
         scv = Bot.OBS.getUnit(unitTag);
+        Base.releaseMineralScv(scv.unit());
     }
 
     @Override

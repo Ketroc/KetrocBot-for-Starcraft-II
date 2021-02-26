@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.KetrocBot;
+import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.*;
@@ -60,6 +61,7 @@ public class CannonRushDefense {
                     int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.getScvList().size(), availableScvs.size());
                     for (int i = 0; i < numScvsToSend; i++) {
                         UnitInPool newScv = availableScvs.remove(0);
+                        Base.releaseMineralScv(newScv.unit());
                         //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
                         if (numScvsToSend >= 4 && i < numScvsToSend/2) {
                             Point2d behindCannon = Position.towards(

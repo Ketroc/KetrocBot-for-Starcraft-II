@@ -114,7 +114,7 @@ public class BuildManager {
             isMuleSpamming = true;
             for (Base base : GameCache.baseList) {
                 if (isBaseReadyForMuleSpam(base)) {
-                    for (Unit mineralNode : base.getMineralPatches()) {
+                    for (Unit mineralNode : base.getMineralPatchUnits()) {
                         Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
                         Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineralNode, false);
                         numMulesAvailable -= 2;
@@ -145,7 +145,7 @@ public class BuildManager {
         for (int i=GameCache.baseList.size()-1; i >= 0; i--) {
             Base base = GameCache.baseList.get(i);
             if (base.isReadyForMining() && base.prevMuleSpamFrame + Time.toFrames(64) < Time.nowFrames()) {
-                for (Unit mineral : base.getMineralPatches()) {
+                for (Unit mineral : base.getMineralPatchUnits()) {
                     base.prevMuleSpamFrame = Time.nowFrames();
                     Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineral, false);
                     Bot.ACTION.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, mineral, false);
@@ -167,8 +167,8 @@ public class BuildManager {
     //checks if base is enemy owned, has minerals, is being scanned, and has no mules
     private static boolean isBaseReadyForMuleSpam(Base base) {
         return !base.isMyBase() &&
-                !base.getMineralPatches().isEmpty() &&
-                isMineralsVisible(base.getMineralPatches()) &&
+                !base.getMineralPatchUnits().isEmpty() &&
+                isMineralsVisible(base.getMineralPatchUnits()) &&
                 base.prevMuleSpamFrame + Time.toFrames(10) < Time.nowFrames();
     }
 
@@ -176,8 +176,8 @@ public class BuildManager {
         Base nextBase = GameCache.baseList.stream()
                 .filter(base -> !base.isMyBase() &&
                         base.prevMuleSpamFrame + Time.toFrames(30) < Time.nowFrames() &&
-                        !base.getMineralPatches().isEmpty() &&
-                        !isMineralsVisible(base.getMineralPatches()))
+                        !base.getMineralPatchUnits().isEmpty() &&
+                        !isMineralsVisible(base.getMineralPatchUnits()))
                 .findFirst()
                 .orElse(null);
         if (nextBase != null) {
@@ -336,7 +336,7 @@ public class BuildManager {
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
 
                                 //if not main cc, and if needed for expansion
-                                if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isNeededForExpansion()) {
+                                if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isCcNeededForExpansion()) {
                                     Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
                                     if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up
                                         break;
@@ -376,7 +376,7 @@ public class BuildManager {
                         }
                         //build scv
                         if (Bot.OBS.getMinerals() >= 50 &&
-                                Bot.OBS.getFoodWorkers() < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
+                                UnitUtils.getNumScvs(true) < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
                             Bot.ACTION.unitCommand(cc, Abilities.TRAIN_SCV, false);
                             Cost.updateBank(Units.TERRAN_SCV);
                         }
@@ -406,7 +406,7 @@ public class BuildManager {
                                     Base base = GameCache.baseList.get(i);
                                     if (base.isReadyForMining()) {
                                         int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
-                                        if (numMules < base.getMineralPatches().size()) {
+                                        if (numMules < base.getMineralPatchUnits().size()) {
                                             if (base.getRallyNode() != null) {
                                                 Bot.ACTION.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, base.getRallyNode(), false);
                                                 didMule = true;
@@ -431,7 +431,7 @@ public class BuildManager {
                         //no break
                     case TERRAN_PLANETARY_FORTRESS:
                         //build scv
-                        if (Bot.OBS.getFoodWorkers() < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
+                        if (UnitUtils.getNumScvs(true) < Math.min(Base.totalScvsRequiredForMyBases() + 10, Strategy.maxScvs)) {
                             Bot.ACTION.unitCommand(cc, Abilities.TRAIN_SCV, false);
                             Cost.updateBank(Units.TERRAN_SCV);
                         }
@@ -441,9 +441,9 @@ public class BuildManager {
         }
     }
 
-    private static boolean isNeededForExpansion() {
+    private static boolean isCcNeededForExpansion() {
         //if safe and oversaturated
-        return !UnitUtils.isWallUnderAttack() && CannonRushDefense.isSafe && Base.totalScvsRequiredForMyBases() < Math.min(Strategy.maxScvs, Bot.OBS.getFoodWorkers() + 5);
+        return !UnitUtils.isWallUnderAttack() && CannonRushDefense.isSafe && Base.totalScvsRequiredForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.getNumScvs(true) + 5);
     }
 
     private static void saveDyingCCs() {
@@ -793,7 +793,7 @@ public class BuildManager {
             }
         } else {
             int scvsForMaxSaturation = Base.totalScvsRequiredForMyBases();
-            int numScvs = Bot.OBS.getFoodWorkers();
+            int numScvs = UnitUtils.getNumScvs(true);
             if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
                 purchaseMacroCC();
             } else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
@@ -826,7 +826,7 @@ public class BuildManager {
                 .filter(base -> !base.isMyBase())
                 .anyMatch(base -> !base.isMyBase() &&
                         base.lastScoutedFrame + Time.toFrames("5:00") > Time.nowFrames() &&
-                        !base.getMineralPatches().isEmpty());
+                        !base.getMineralPatchUnits().isEmpty());
     }
 
     private static boolean purchaseExpansionCC() {
@@ -894,7 +894,7 @@ public class BuildManager {
 
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
-        return (int)(Math.min(Strategy.maxScvs - Bot.OBS.getFoodWorkers(), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
+        return (int)(Math.min(Strategy.maxScvs - UnitUtils.getNumScvs(true), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
                 GameCache.starportList.size() * 2.34 +
                 GameCache.factoryList.stream()
                         .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)

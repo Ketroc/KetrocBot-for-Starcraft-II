@@ -11,6 +11,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.Marine;
 import com.ketroc.terranbot.micro.MarineBasic;
 import com.ketroc.terranbot.micro.UnitMicroList;
+import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
@@ -19,13 +20,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MarineAllIn {
+    public static final int MIN_MARINES_TO_ATTACK = 14;
+
     public static boolean doAttack;
     public static List<Point2d> attackPoints;
-    public static boolean isInitialBuildUp = false;
+    public static boolean isInitialBuildUp = true;
 
     public static void onGameStart() {
+        //calculate typical zerg 3rd base (base nearest enemy natural but far from my natural)
+        List<Point2d> basesClosestToEnemyNatural = GameCache.baseList.subList(GameCache.baseList.size()/2, GameCache.baseList.size() - 2).stream()
+                .map(Base::getResourceMidPoint)
+                .sorted(Comparator.comparing(basePos -> basePos.distance(GameCache.baseList.get(GameCache.baseList.size() - 2).getResourceMidPoint())))
+                .collect(Collectors.toList());
+        Point2d thirdBase1 = basesClosestToEnemyNatural.get(0);
+        Point2d thirdBase2 = basesClosestToEnemyNatural.get(1);
+        Point2d thirdBaseFinal = thirdBase1;
+        if (thirdBase1.distance(LocationConstants.BUNKER_NATURAL) < thirdBase2.distance(LocationConstants.BUNKER_NATURAL)) {
+            thirdBaseFinal = thirdBase2;
+        }
+
         //attack enemy natural then enemy main
         attackPoints = new ArrayList<>(List.of(
+                thirdBaseFinal,
                 GameCache.baseList.get(GameCache.baseList.size()-2).getResourceMidPoint(),
                 GameCache.baseList.get(GameCache.baseList.size()-1).getResourceMidPoint()
         ));
@@ -50,9 +66,9 @@ public class MarineAllIn {
     }
 
     private static void setInitialBuildUp(List<MarineBasic> marineList) {
-        if (isInitialBuildUp && marineList.size() >= 20) {
+        if (isInitialBuildUp && marineList.size() >= MIN_MARINES_TO_ATTACK) {
 //                (LocationConstants.opponentRace != Race.ZERG ||
-//                    marineList.size() >= 20 ||
+//                    marineList.size() >= MIN_MARINES_TO_ATTACK ||
 //                    GameCache.allEnemiesList.stream().anyMatch(enemy -> UnitUtils.canAttackGround(enemy.unit()))
 //                )) {
             isInitialBuildUp = false;
@@ -111,7 +127,7 @@ public class MarineAllIn {
     }
 
     private static void toggleAttackMode(List<Unit> marineList) {
-        if (doAttack && marineList.size() < 20) {
+        if (doAttack && marineList.size() < MIN_MARINES_TO_ATTACK) {
             Chat.chatWithoutSpam("Run away! Run away!", 60);
             doAttack = false;
         }

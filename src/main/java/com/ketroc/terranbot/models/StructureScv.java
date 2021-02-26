@@ -68,6 +68,7 @@ public class StructureScv {
             Ignored.remove(this.scv.getTag());
         }
         this.scv = scv;
+        Base.releaseMineralScv(scv.unit());
         scvAddedFrame = Time.nowFrames();
         Ignored.add(new IgnoredUnit(scv.getTag()));
         if (structureType == Units.TERRAN_COMMAND_CENTER) {

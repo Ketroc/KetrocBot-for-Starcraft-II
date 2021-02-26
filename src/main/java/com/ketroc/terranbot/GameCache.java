@@ -60,7 +60,6 @@ public class GameCache {
     public static Unit defaultRallyNode;
     public static List<Unit> wallStructures = new ArrayList<>();
     public static List<Unit> burningStructures = new ArrayList<>();
-    ;
 
 
     public static void onStep() throws Exception {
@@ -157,6 +156,10 @@ public class GameCache {
                     Abilities curOrder = UnitUtils.getOrder(unit);
                     switch (unitType) {
                         case TERRAN_COMMAND_CENTER: case TERRAN_PLANETARY_FORTRESS: case TERRAN_ORBITAL_COMMAND:
+                            if (curOrder != null) {
+                                Units unitProducing = Bot.abilityToUnitType.get(curOrder);
+                                inProductionMap.put(unitProducing, inProductionMap.getOrDefault(unitProducing, 0) + 1);
+                            }
                         case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
                             ccList.add(unit);
                             break;
@@ -334,8 +337,8 @@ public class GameCache {
             //ignore bases that aren't mine AND aren't visible
             if (!base.isMyBase() &&
                     Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE &&
-                    base.getMineralPatches().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE) &&
-                    (base.lastScoutedFrame != 0 || !base.getMineralPatches().isEmpty())) {
+                    base.getMineralPatchUnits().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE) &&
+                    (base.lastScoutedFrame != 0 || !base.getMineralPatchUnits().isEmpty())) {
                 continue;
             }
             base.lastScoutedFrame = Time.nowFrames();
@@ -347,14 +350,22 @@ public class GameCache {
             //set who owns the base
             base.isEnemyBase = enemyCCs.stream().anyMatch(enemyCC -> UnitUtils.getDistance(enemyCC.unit(), base.getCcPos()) < 2);
 
-            //set mineral nodes
-            base.getMineralPatches().clear();
-            base.getMineralPatches().addAll(mineralNodeList.stream()
-                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
-                    .collect(Collectors.toList()));
+            //update mineral nodes
+//            base.getMineralPatchUnits().clear();
+//            base.getMineralPatchUnits().addAll(mineralNodeList.stream()
+//                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
+//                    .collect(Collectors.toList()));
+            base.getMineralPatches().forEach(mineralPatch -> mineralPatch.updateUnit());
+            base.getMineralPatches().removeIf(mineralPatch -> mineralPatch.getUnit() == null);
+
+
+//            base.getMineralPatches().addAll(mineralNodeList.stream()
+//                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
+//                    .map(node -> new MineralPatch(node, base.getCcPos()))
+//                    .collect(Collectors.toList()));
 
             //check if base is dry
-            if (!base.isDryedUp() && base.getMineralPatches().isEmpty()) { //TODO: check gas (need workaround for geyser snapshot always having zero gas)
+            if (!base.isDryedUp() && base.getMineralPatchUnits().isEmpty()) { //TODO: check gas (need workaround for geyser snapshot always having zero gas)
                 base.setDryedUp(true);
             }
 
@@ -364,8 +375,8 @@ public class GameCache {
             }
 
             //set this base's rally node
-            if (!base.getMineralPatches().isEmpty()) {
-                base.setRallyNode(base.getMineralPatches().stream()
+            if (!base.getMineralPatchUnits().isEmpty()) {
+                base.setRallyNode(base.getMineralPatchUnits().stream()
                         .max(Comparator.comparing(node -> node.getMineralContents().orElse(0)))
                         .orElse(null));
             }
@@ -390,7 +401,7 @@ public class GameCache {
             if (cc.getIdealHarvesters().isEmpty()) {
                 Print.print("error on GameCache::414");
             }
-            if (!base.getMineralPatches().isEmpty()) {
+            if (!base.getMineralPatchUnits().isEmpty()) {
                 if (defaultRallyNode == null) {
                     defaultRallyNode = base.getRallyNode();
                 }
@@ -422,9 +433,9 @@ public class GameCache {
         //if all my bases have no minerals left, distance mine to an untaken base
         if (defaultRallyNode == null) {
             baseList.stream()
-                    .filter(base -> base.isUntakenBase() && !base.getMineralPatches().isEmpty())
+                    .filter(base -> base.isUntakenBase() && !base.getMineralPatchUnits().isEmpty())
                     .findFirst()
-                    .ifPresent(base -> defaultRallyNode = base.getMineralPatches().get(0));
+                    .ifPresent(base -> defaultRallyNode = base.getMineralPatchUnits().get(0));
         }
 
         //if no minerals to distance mine either, then mine nearest mineral wall
@@ -804,7 +815,7 @@ public class GameCache {
         if (!base.getMineralPatches().isEmpty()) {
             base.setRallyNode(base.getMineralPatches().get(0));
         }
-        if ((cc.getAssignedHarvesters().get() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) {
+        if ((base.getNumMineralScvs() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) {
             if (GameState.defaultRallyNode == null) {
                 GameState.defaultRallyNode = base.getRallyNode();
             }

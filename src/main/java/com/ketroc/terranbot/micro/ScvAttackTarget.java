@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -19,12 +20,12 @@ public class ScvAttackTarget extends Scv {
     public UnitInPool targetUnit;
 
     public ScvAttackTarget(UnitInPool scv, UnitInPool targetUnit) {
-        super(scv, targetUnit.unit().getPosition().toPoint2d(), MicroPriority.DPS);
-        this.targetUnit = targetUnit;
+        this(scv.unit(), targetUnit);
     }
 
     public ScvAttackTarget(Unit scv, UnitInPool targetUnit) {
         super(scv, targetUnit.unit().getPosition().toPoint2d(), MicroPriority.DPS);
+        Base.releaseMineralScv(scv);
         this.targetUnit = targetUnit;
     }
 

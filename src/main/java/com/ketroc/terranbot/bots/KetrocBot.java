@@ -179,7 +179,8 @@ public class KetrocBot extends Bot {
                 EnemyManager.onStep();
 
                 //clearing bases that have just dried up or died
-                GameCache.baseList.stream().forEach(Base::onStep);
+                GameCache.baseList.forEach(Base::onStep);
+                GameCache.baseList.forEach(base -> base.onStepEnd());
 
                 //purchase from queue
                 Purchase toRemove = null;
@@ -445,23 +446,23 @@ public class KetrocBot extends Bot {
                         break;
                     case TERRAN_ORBITAL_COMMAND:
                         //set rally point main base mineral patch (next base if main is dry)
-                        for (Base base : GameCache.baseList) {
-                            if (base.isMyBase() && !base.getMineralPatches().isEmpty()) {
-                                Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, base.getMineralPatches().get(0), false);
-                                break;
-                            }
-                        }
+//                        for (Base base : GameCache.baseList) {
+//                            if (base.isMyBase() && !base.getMineralPatchUnits().isEmpty()) {
+//                                Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, base.getFullestMineralPatch(), false);
+//                                break;
+//                            }
+//                        }
                         break;
                     case TERRAN_PLANETARY_FORTRESS:
                         //set rally point to nearest mineral patch
-                        List<UnitInPool> bigMinerals = Bot.OBS.getUnits(Alliance.NEUTRAL,
-                                u -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(u.unit().getType()) && UnitUtils.getDistance(unit, u.unit()) < 10);
-                        if (!bigMinerals.isEmpty()) {
-                            Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
-                        }
+//                        List<UnitInPool> bigMinerals = Bot.OBS.getUnits(Alliance.NEUTRAL,
+//                                u -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(u.unit().getType()) && UnitUtils.getDistance(unit, u.unit()) < 10);
+//                        if (!bigMinerals.isEmpty()) {
+//                            Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
+//                        }
 
                         //send some scvs to this base so it can saturate gas when needed
-                        WorkerManager.sendScvsToNewPf(unit);
+                        //TODO: removed just for testing: WorkerManager.sendScvsToNewPf(unit);
                         break;
                 }
             }
@@ -496,6 +497,9 @@ public class KetrocBot extends Bot {
                 if (BunkerContain.proxyBunkerLevel > 0) {
                     BunkerContain.onMarineCreated(unitInPool);
                 }
+                break;
+            case TERRAN_SCV:
+                Base.assignScvToAMineralPatch(unitInPool);
                 break;
         }
     }
@@ -556,6 +560,8 @@ public class KetrocBot extends Bot {
                                     }
                                 }
                                 break;
+                            case TERRAN_SCV:
+                                Base.releaseMineralScv(unit);
                         }
                         break;
                 }

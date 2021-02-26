@@ -11,10 +11,12 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.models.MineralPatch;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.strategies.Strategy;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LocationConstants {
     public static final Point2d SCREEN_BOTTOM_LEFT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP0().toPoint2d();
@@ -176,9 +178,19 @@ public class LocationConstants {
 
     private static void createBaseList(UnitInPool mainCC) {
         for (Point2d baseLocation : baseLocations) {
-            GameCache.baseList.add(new Base(baseLocation));
+            Base newBase = new Base(baseLocation);
+            newBase.setMineralPatches(getMineralPatches(newBase));
+            GameCache.baseList.add(newBase);
         }
         GameCache.baseList.get(0).setCc(mainCC);
+    }
+
+    private static List<MineralPatch> getMineralPatches(Base base) {
+        return Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
+                UnitUtils.getDistance(node.unit(), base.getCcPos()) < 10)
+                .stream()
+                    .map(node -> new MineralPatch(node.unit(), base.getCcPos()))
+                    .collect(Collectors.toList());
     }
 
     public static boolean setEnemyTypes() {
