@@ -106,13 +106,15 @@ public class LocationConstants {
         }
     }
 
-    public static void rotateBaseAttackIndex() {
+    public static Point2d getNextBaseAttackPos() {
         baseAttackIndex++;
         setNewEnemyBaseIndex();
         if (baseAttackIndex >= baseLocations.size()) {
             Switches.finishHim = true;
-            Bot.ACTION.sendChat("Finish Him!", ActionChat.Channel.BROADCAST);
+            Chat.chatWithoutSpam("Finish Him!", 120);
+            return null;
         }
+        return baseLocations.get(baseAttackIndex);
     }
 
 

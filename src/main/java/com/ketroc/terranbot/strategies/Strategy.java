@@ -20,6 +20,9 @@ import com.ketroc.terranbot.utils.MapNames;
 import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -120,8 +123,8 @@ public class Strategy {
     }
 
     private static void applyOpponentSpecificTweaks() {
-//        switch (KetrocBot.opponentId) {
-        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+        switch (KetrocBot.opponentId) {
+//        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_BANSHEE_HARASS = false;
                 break;
@@ -169,17 +172,16 @@ public class Strategy {
                 EXPAND_SLOWLY = true;
                 break;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-            case "aedf9a1bd8f862b": //RStrelok (LM)
+            case "10ecc3c36541ead": //RStrelok (LM)
                 BUILD_EXPANDS_IN_MAIN = true;
-                DO_INCLUDE_LIBS = false;
-                DO_DEFENSIVE_TANKS = false;
-                DO_BANSHEE_HARASS = false;
                 DO_DIVE_RAVENS = false;
-                ANTI_CYCLONE = true;
+                //ANTI_CYCLONE = true;
                 //Switches.enemyCanProduceAir = true;
                 break;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
                 BUILD_EXPANDS_IN_MAIN = true;
+                DO_DIVE_RAVENS = false;
+                //ANTI_CYCLONE = true;
                 break;
         }
     }
@@ -195,7 +197,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 5;
         if (selectedStrategy == -1) {
-            selectedStrategy = 1;
+            selectedStrategy = 3;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -324,9 +326,10 @@ public class Strategy {
 ////                EXPAND_SLOWLY = true;
 //                return 0;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                return 0;
+            case "10ecc3c36541ead": //RStrelok (LM)
+                return 2;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                return 0;
+                return 3;
             default:
                 return -1;
         }
@@ -361,30 +364,30 @@ public class Strategy {
 
     private static void setStrategyNumber() {
         //hardcoded strategies by ID
-        selectedStrategy = getStrategyByOpponentId();
-//        try {
-//            // ====================================
-//            // ===== For Best-of Series Below =====
-//            // ====================================
-//
-//            //get list of previous results vs this opponent
-//            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
-//            List<String[]> prevResults = new ArrayList<>();
-//            Print.print("fileText = " + fileText);
-//            if (fileText.contains(KetrocBot.opponentId)) {
-//                String[] rows = fileText.split("\r\n");
-//                for (String row : rows) {
-//                    Print.print(row);
-//                    prevResults.add(row.split("~"));
-//                }
-//            }
-//            //playAllStrategiesFirst(fileText, prevResults);
-//            playStrategyUntilItLoses(fileText, prevResults);
-//
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
+//        selectedStrategy = getStrategyByOpponentId();
+        try {
+            // ====================================
+            // ===== For Best-of Series Below =====
+            // ====================================
+
+            //get list of previous results vs this opponent
+            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
+            List<String[]> prevResults = new ArrayList<>();
+            Print.print("fileText = " + fileText);
+            if (fileText.contains(KetrocBot.opponentId)) {
+                String[] rows = fileText.split("\r\n");
+                for (String row : rows) {
+                    Print.print(row);
+                    prevResults.add(row.split("~"));
+                }
+            }
+            playAllStrategiesFirst(fileText, prevResults);
+            //playStrategyUntilItLoses(fileText, prevResults);
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResults) {
@@ -452,8 +455,8 @@ public class Strategy {
                 .filter(result -> result[2].equals("W"))
                 .map(result -> Integer.valueOf(result[1]))
                 .findFirst()
-                .orElse(0);
-        Print.print("using " + selectedStrategy + " cuz list finished and this is a strat that won (default 0)");
+                .orElse(Integer.valueOf(prevResults.get(0)[1]));
+        Print.print("using " + selectedStrategy + " cuz list finished and this is a strat that won (default: first in list)");
     }
 
     private static boolean wereAllStrategiesUsed(int[] strategies, String fileText) {
@@ -466,12 +469,12 @@ public class Strategy {
     }
 
     private static int[] getTournamentStrategyOrder() {
-        switch (KetrocBot.opponentId) {
+        switch (KetrocBot.opponentId) { //0 standard, 1 proxy bunker, 2 scv rush, 3 mass raven, 4 marine all-in
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
                 return new int[]{0, 2};
-            case "aedf9a1bd8f862b": //RStrelok (LM)
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-                return new int[]{0, 3, 1};
+            case "10ecc3c36541ead": //RStrelok (LM)
+                return new int[]{1};
             case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
                 return new int[]{3, 1};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
@@ -480,9 +483,11 @@ public class Strategy {
             //case "b7b611bdaa2e2d1": //Spiny (LM)
                 return new int[]{0, 1};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-                return new int[]{0, 2};
+                return new int[]{3, 0, 1};
             case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
                 return new int[]{0, 1, 2};
+            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
+                return new int[]{0, 2, 1};
         }
         return null;
     }

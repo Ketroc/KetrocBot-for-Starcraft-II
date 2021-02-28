@@ -494,8 +494,7 @@ public class ArmyManager {
                                     UnitUtils.getHealthPercentage(raven) >= Strategy.RETREAT_HEALTH &&
                                             UnitUtils.getDistance(raven, retreatPos) > 10) ||
                             UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 3))) {
-                LocationConstants.rotateBaseAttackIndex();
-                attackGroundPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
+                attackGroundPos = LocationConstants.getNextBaseAttackPos();
             }
         }
     }

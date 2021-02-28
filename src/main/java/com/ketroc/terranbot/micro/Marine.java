@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -48,6 +49,17 @@ public class Marine extends BasicUnitMicro {
 
     public static void setTargetPos(Point2d newTargetPos) {
         List<Marine> marineList = UnitMicroList.getUnitSubList(Marine.class);
+        //for null position do nothing, or seek for hidden structures if finishHim == true
+        if (newTargetPos == null) {
+            if (Switches.finishHim) {
+                marineList.forEach(marine -> {
+                    if (UnitUtils.getDistance(marine.unit.unit(), marine.targetPos) < 2) {
+                        marine.targetPos = UnitUtils.getRandomPathablePos();
+                    }
+                });
+            }
+            return;
+        }
         marineList.forEach(marine -> marine.targetPos = newTargetPos);
     }
 

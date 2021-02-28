@@ -765,4 +765,12 @@ public class UnitUtils {
     public static int getNumScvs(boolean includeProducing) {
         return Bot.OBS.getFoodWorkers() + (includeProducing ? numInProductionOfType(Units.TERRAN_SCV) : 0);
     }
+
+    public static Point2d getRandomPathablePos() {
+        Point2d randomPos = Bot.OBS.getGameInfo().findRandomLocation();
+        while (!Bot.OBS.isPathable(randomPos)) {
+            randomPos = Bot.OBS.getGameInfo().findRandomLocation();
+        }
+        return randomPos;
+    }
 }

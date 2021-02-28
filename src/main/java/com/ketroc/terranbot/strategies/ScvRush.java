@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.DelayedAction;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.utils.*;
@@ -38,11 +39,14 @@ public class ScvRush {
         try {
             //update snapshots
             LocationConstants.enemyMineralTriangle.updateNodes();
-
+            if (scvList != null) {  //TODO: hack for preventing idle scvs from getting picked up for speed mining
+                scvList.forEach(scv -> Base.releaseMineralScv(scv.unit()));
+            }
             switch (scvRushStep) {
                 case 0: //cluster up scvs
                     if (scvList == null) {
                         scvList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, GameCache.ccList.get(0).getPosition().toPoint2d(), 20);
+                        scvList.forEach(scv -> Base.releaseMineralScv(scv.unit()));
                     }
                     if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
                         scvRushStep++;

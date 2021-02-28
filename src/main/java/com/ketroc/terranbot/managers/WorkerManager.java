@@ -130,7 +130,7 @@ public class WorkerManager {
     }
 
     private static void repairLogic() {  //TODO: don't repair wall if ranged units on other side
-        if (GameCache.mineralBank < 15) {
+        if (Bot.OBS.getMinerals() < 15) {
             return;
         }
 
@@ -194,7 +194,7 @@ public class WorkerManager {
     }
 
     private static boolean scvNotBehindPF(Unit unit, Base pfBase) {
-        return UnitUtils.getDistance(unit, pfBase.getCcPos()) + 1 < UnitUtils.getDistance(unit, pfBase.getResourceMidPoint());
+        return UnitUtils.getDistance(unit, pfBase.getCcPos()) + 1.5 < UnitUtils.getDistance(unit, pfBase.getResourceMidPoint());
     }
 
     private static List<Unit> getScvsForRepairing(Unit unitToRepair, int numScvsToAdd) {

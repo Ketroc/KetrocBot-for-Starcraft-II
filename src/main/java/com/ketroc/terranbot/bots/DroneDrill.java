@@ -323,8 +323,7 @@ public class DroneDrill extends Bot {
                             Point2d attackPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
                             Point2d lambdaAttackPos = attackPos;
                             if (mutas.stream().anyMatch(muta -> UnitUtils.getDistance(muta, lambdaAttackPos) < 3)) {
-                                LocationConstants.rotateBaseAttackIndex();
-                                attackPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
+                                attackPos = LocationConstants.getNextBaseAttackPos();
                             }
                             Bot.ACTION.unitCommand(mutas, Abilities.ATTACK,
                                     LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex), false);
