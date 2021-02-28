@@ -437,8 +437,8 @@ public class Strategy {
         if (!wereAllStrategiesUsed(strategies, fileText)) {
             for (int strategy : strategies) {
                 Print.print("checking strategy: " + strategy);
-                if (!fileText.contains("~" + strategy + "~")) {
-                    if (strategy == 3 &&
+                if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
+                    if (strategy == 2 &&
                             (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505))) {
                         Print.print("skipping scv rush cuz it's Pillars of Gold");
                         continue;
@@ -452,7 +452,7 @@ public class Strategy {
 
         //if no more planned strategies, pick whichever one won
         selectedStrategy = prevResults.stream()
-                .filter(result -> result[2].equals("W"))
+                .filter(result -> result[0].equals(KetrocBot.opponentId) && result[2].equals("W"))
                 .map(result -> Integer.valueOf(result[1]))
                 .findFirst()
                 .orElse(Integer.valueOf(prevResults.get(0)[1]));
@@ -582,13 +582,11 @@ public class Strategy {
             case ZERG:
                 DO_INCLUDE_LIBS = true;
                 DO_DEFENSIVE_TANKS = true;
-                EXPAND_SLOWLY = false;
                 break;
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
                 DO_DEFENSIVE_TANKS = true;
-                EXPAND_SLOWLY = false;
                 NUM_MARINES = 5;
                 break;
             case TERRAN:
