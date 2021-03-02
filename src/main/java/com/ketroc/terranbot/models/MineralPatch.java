@@ -19,6 +19,7 @@ public class MineralPatch {
     private List<UnitInPool> scvs = new ArrayList<>();
     private Point2d ccPos;
     private Point2d byMineral;
+    private float distanceToHarvest = 1.38f;
     private Point2d mineralPos;
     private Point2d byCC;
 
@@ -29,11 +30,13 @@ public class MineralPatch {
         byMineral = Position.towards(mineralPos, ccPos, 0.2f);
         byCC = Position.towards(ccPos, mineralPos, 2.15f);
         float angle = Position.getAngle(byCC, byMineral);
-        if ((angle>70 && angle<120) || (angle>240 && angle<300)) {
+        if ((angle > 70 && angle < 120) || (angle > 240 && angle < 300)) { //mining angle is up or down
             byMineral = mineralPos;
             //byMineralTweak = -0.55f;
         }
-        int x = 0;
+        else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
+            distanceToHarvest = 1.5f;
+        }
     }
 
     public Unit getUnit() {
@@ -80,7 +83,7 @@ public class MineralPatch {
         float distToPatch = UnitUtils.getDistance(scv, mineralPos);
         if (UnitUtils.getOrder(scv) == Abilities.HARVEST_GATHER) {
             //start speed MOVE
-            if (distToPatch < 3.1f && distToPatch > 1.38f) {
+            if (distToPatch < 3.1f && distToPatch > distanceToHarvest) {
                 Bot.ACTION.unitCommand(scv, Abilities.MOVE, byMineral, false);
             }
             //fix bounce
@@ -90,7 +93,7 @@ public class MineralPatch {
         }
         else if (UnitUtils.getOrder(scv) == Abilities.MOVE) {
             //end speed MOVE
-            if (distToPatch <= 1.38f) {
+            if (distToPatch <= distanceToHarvest) {
                 Bot.ACTION.unitCommand(scv, Abilities.HARVEST_GATHER, unit, false);
             }
         }

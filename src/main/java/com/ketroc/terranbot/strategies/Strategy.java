@@ -197,7 +197,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         int numStrategies = 5;
         if (selectedStrategy == -1) {
-            selectedStrategy = 3;
+            selectedStrategy = 0;
         }
         selectedStrategy = selectedStrategy % numStrategies;
 
@@ -364,30 +364,30 @@ public class Strategy {
 
     private static void setStrategyNumber() {
         //hardcoded strategies by ID
-//        selectedStrategy = getStrategyByOpponentId();
-        try {
-            // ====================================
-            // ===== For Best-of Series Below =====
-            // ====================================
-
-            //get list of previous results vs this opponent
-            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
-            List<String[]> prevResults = new ArrayList<>();
-            Print.print("fileText = " + fileText);
-            if (fileText.contains(KetrocBot.opponentId)) {
-                String[] rows = fileText.split("\r\n");
-                for (String row : rows) {
-                    Print.print(row);
-                    prevResults.add(row.split("~"));
-                }
-            }
-            playAllStrategiesFirst(fileText, prevResults);
-            //playStrategyUntilItLoses(fileText, prevResults);
-
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        selectedStrategy = getStrategyByOpponentId();
+//        try {
+//            // ====================================
+//            // ===== For Best-of Series Below =====
+//            // ====================================
+//
+//            //get list of previous results vs this opponent
+//            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
+//            List<String[]> prevResults = new ArrayList<>();
+//            Print.print("fileText = " + fileText);
+//            if (fileText.contains(KetrocBot.opponentId)) {
+//                String[] rows = fileText.split("\r\n");
+//                for (String row : rows) {
+//                    Print.print(row);
+//                    prevResults.add(row.split("~"));
+//                }
+//            }
+//            playAllStrategiesFirst(fileText, prevResults);
+//            //playStrategyUntilItLoses(fileText, prevResults);
+//
+//        }
+//        catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResults) {
