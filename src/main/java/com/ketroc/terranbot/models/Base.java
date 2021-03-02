@@ -513,8 +513,9 @@ public class Base {
     public boolean isGasUnderLiberationZone(Unit refinery) {
         Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
         return Bot.OBS.getEffects().stream()
-                .filter(effect -> effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
-                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT)
+                .filter(effect -> effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY &&
+                        (effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
+                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT))
                 .map(effect -> effect.getPositions().iterator().next())
                 .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
 

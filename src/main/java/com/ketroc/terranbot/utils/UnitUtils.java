@@ -140,6 +140,13 @@ public class UnitUtils {
             Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED,
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE));
 
+    public static final Set<Units> VIKING_PEEL_TARGET_TYPES = new HashSet<>(Set.of(
+            Units.ZERG_OVERLORD, Units.ZERG_TRANSPORT_OVERLORD_COCOON, Units.ZERG_OVERSEER,
+            Units.ZERG_OVERSEER_SIEGED, Units.ZERG_OVERLORD_TRANSPORT, Units.ZERG_OVERLORD_COCOON,
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE,
+            Units.PROTOSS_WARP_PRISM, Units.PROTOSS_WARP_PRISM_PHASING, Units.TERRAN_MEDIVAC,
+            Units.TERRAN_BANSHEE, Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
+
     public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN));
 
@@ -205,6 +212,8 @@ public class UnitUtils {
         }
         return minerals >= mineralCost && gas >= gasCost && supply >= supplyCost;
     }
+
+
 
     public static boolean isUnitTypesNearby(Alliance alliance, Units unitType, Point2d position, float distance) {
         return !getUnitsNearbyOfType(alliance, unitType, position, distance).isEmpty();
@@ -772,5 +781,16 @@ public class UnitUtils {
             randomPos = Bot.OBS.getGameInfo().findRandomLocation();
         }
         return randomPos;
+    }
+
+    public static Point2d getPosLeadingUnit(Unit myUnit, Unit targetUnit) {
+        Point2d targetPos = targetUnit.getPosition().toPoint2d();
+        //float targetFacingAngle = Position.getFacingAngle(targetUnit);
+        float distance = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType()).getMovementSpeed().orElse(0f) * 0.75f; //use speed as distance to lead
+        Point2d leadPos = Position.getDestinationByAngle(targetPos, targetUnit.getFacing(), distance);
+        if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(leadPos)) {
+            return targetPos;
+        }
+        return leadPos;
     }
 }

@@ -61,6 +61,8 @@ public class TankToPosition extends Tank {
 
     @Override
     public void onArrival() {
-
+        if (!isMovingToTargetPos()) {
+            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+        }
     }
 }

@@ -500,31 +500,20 @@ public class ArmyManager {
     }
 
     private static void setAirTarget() {
-        //send vikings at the closest non-threatening air, and set the main air attack target
-        UnitInPool closestEnemyAir;
-        do {
-            closestEnemyAir = getClosestEnemyAirUnit();
-        } while (doPeelOffVikingForEasyTarget(closestEnemyAir));
-        attackAirPos = (closestEnemyAir != null) ? closestEnemyAir.unit().getPosition().toPoint2d() : attackGroundPos;
-    }
+        //set air attack pos
+        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
+        if (closestEnemyAir == null) {
+            attackAirPos = attackGroundPos;
+            return;
+        }
+        attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
 
-    private static boolean doPeelOffVikingForEasyTarget(UnitInPool closestEnemyAir) {
-        //TODO: turn on when viking peel is good vs observers and smart not to die
-//        if (closestEnemyAir == null) {
-//            return false;
-//        }
-//        if (UnitUtils.NO_THREAT_ENEMY_AIR.contains(closestEnemyAir.unit().getType())) {
-//            Unit closestViking = GameCache.vikingList.stream()
-//                    .min(Comparator.comparing(unit -> UnitUtils.getDistance(closestEnemyAir.unit(), unit)))
-//                    .orElse(null);
-//            if (closestViking != null) {
-//                Bot.ACTION.unitCommand(closestViking, Abilities.ATTACK, closestEnemyAir.unit(), false);
-//                GameCache.vikingList.remove(closestViking);
-//            }
-//            GameCache.allVisibleEnemiesList.remove(closestEnemyAir);
-//            return true;
-//        }
-        return false;
+        //send kill squad if criteria met TODO: track into fog, but ignore deep targets
+        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, attackAirPos) &&
+                UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType())) {
+            AirUnitKillSquad.add(closestEnemyAir);
+            attackAirPos = attackGroundPos;
+        }
     }
 
     private static UnitInPool getClosestEnemyGroundUnit() {
@@ -564,8 +553,9 @@ public class ArmyManager {
     private static UnitInPool getClosestEnemyAirUnit() {
         return GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
+                        !Ignored.contains(u.getTag()) &&
                         u.unit().getFlying().orElse(false) && //air unit
-                        (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units TODO: handle banshees DTs etc with scan
+                        (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
                         !u.unit().getHallucination().orElse(false) && !UnitUtils.isInFogOfWar(u)) //ignore hallucs and units in the fog
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +

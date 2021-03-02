@@ -354,4 +354,17 @@ public class Position {
         float difference = Math.abs(angle1 - angle2) % 360;
         return (difference > 180) ? Math.abs(360 - difference) : difference;
     }
+
+    public static float getFacingAngle(Unit unit) {
+        return (float)Math.toDegrees(unit.getFacing());
+    }
+
+    public static Point2d getDestinationByAngle(Point2d origin, float angle, float distance) {
+        return inBounds(
+                Point2d.of(
+                        distance * (float)Math.cos(angle) + origin.getX(),
+                        distance * (float)Math.sin(angle) + origin.getY()
+                )
+        );
+    }
 }

@@ -50,7 +50,7 @@ public class BasicUnitMicro {
         if (this instanceof StructureFloater) {
             return InfluenceMaps.pointThreatToAirPlusBuffer;
         }
-        if (priority != MicroPriority.SURVIVAL) {
+        if (priority != MicroPriority.SURVIVAL && priority != MicroPriority.CHASER) {
             switch ((Units) unit.unit().getType()) {
                 case TERRAN_BANSHEE:
                     return InfluenceMaps.pointInBansheeRange;
@@ -104,14 +104,19 @@ public class BasicUnitMicro {
 
     protected boolean attackIfAvailable() {
         if (UnitUtils.isWeaponAvailable(unit.unit())) {
-            UnitInPool attackTarget = selectTarget();
-            //attack if there's a target
-            if (attackTarget != null) {
-                if (!isTargettingUnit(attackTarget.unit())) {
-                    Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
-                }
-                return true;
+            return attack();
+        }
+        return false;
+    }
+
+    protected boolean attack() {
+        UnitInPool attackTarget = selectTarget();
+        //attack if there's a target
+        if (attackTarget != null) {
+            if (!isTargettingUnit(attackTarget.unit())) {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
             }
+            return true;
         }
         return false;
     }
@@ -317,5 +322,16 @@ public class BasicUnitMicro {
 
     public boolean isAlive() {
         return unit != null && unit.isAlive();
+    }
+
+    protected boolean attackTarget(Unit target) {
+        float attackRange = target.getFlying().orElse(false) ? airAttackRange : groundAttackRange;
+        if (UnitUtils.getDistance(unit.unit(), target) < attackRange) {
+            if (!isAttackingTarget(unit.getTag())) {
+                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, target, false);
+            }
+            return true;
+        }
+        return false;
     }
 }
