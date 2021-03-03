@@ -604,8 +604,6 @@ public class Base {
     public static boolean distanceMineScv(UnitInPool scv) {
         MineralPatch nextBaseMineral = GameCache.baseList.stream()
                 .filter(base -> !base.isReadyForMining() && !base.isEnemyBase)
-                .findFirst()
-                .stream()
                 .flatMap(base -> base.getMineralPatches().stream())
                 .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
                 .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
