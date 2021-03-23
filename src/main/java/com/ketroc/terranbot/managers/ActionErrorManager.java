@@ -11,6 +11,9 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.ExpansionClearing;
+import com.ketroc.terranbot.micro.StructureFloaterExpansionCC;
+import com.ketroc.terranbot.micro.UnitMicroList;
+import com.ketroc.terranbot.models.FlyingCC;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
@@ -28,15 +31,39 @@ public class ActionErrorManager {
             ActionResult actionResult = warning.getActionResult();
             if (UnitUtils.BUILD_ABILITIES.contains(ability) || ability == Abilities.LAND_COMMAND_CENTER) {
                 Units structureType = Bot.abilityToUnitType.get(ability);
-                StructureScv structureScv = StructureScv.findByScvTag(warning.getUnitTag().get());
-                if (structureScv == null) {
-                    Print.print("structure not found for ability: " + ability);
-                    continue;
+                StructureScv structureScv = null;
+                Unit scv = null;
+                Point2d pos;
+                if (ability == Abilities.LAND_COMMAND_CENTER) {
+                    List<StructureFloaterExpansionCC> expandingCCs = UnitMicroList.getUnitSubList(StructureFloaterExpansionCC.class);
+                    pos = expandingCCs.stream()
+                            .filter(cc -> UnitUtils.getDistance(cc.unit.unit(), cc.basePos) < 2)
+                            .map(cc -> cc.basePos)
+                            .findFirst()
+                            .orElse(null);
+                    if (pos == null) { //TODO: stop using deprecated FlyingCC
+                        pos = FlyingCC.flyingCCs.stream()
+                                .filter(flyingCC -> UnitUtils.getDistance(flyingCC.unit.unit(), flyingCC.destination) < 2)
+                                .map(flyingCC -> flyingCC.destination)
+                                .findFirst()
+                                .orElse(null);
+                    }
+                    if (pos == null) {
+                        Print.print("1.structure not found for ability: " + ability);
+                        continue;
+                    }
                 }
-                Point2d pos = structureScv.structurePos;
-                Unit scv = structureScv.getScv().unit();
-                Print.print("Action Error.  Structure: " + structureType);
-                Print.print("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
+                else {
+                    structureScv = StructureScv.findByScvTag(warning.getUnitTag().get());
+                    if (structureScv == null) {
+                        Print.print("2.structure not found for ability: " + ability);
+                        continue;
+                    }
+                    pos = structureScv.structurePos;
+                    scv = structureScv.getScv().unit();
+                    Print.print("Action Error.  Structure: " + structureType);
+                    Print.print("Structure Pos: " + pos + ".  Scv Pos: " + scv.getPosition().toPoint2d());
+                }
 
                 //blocked by creep
                 if (isBlockedByCreep(actionResult)) {

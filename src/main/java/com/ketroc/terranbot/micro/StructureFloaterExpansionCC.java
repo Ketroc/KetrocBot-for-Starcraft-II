@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class StructureFloaterExpansionCC extends StructureFloater {
 
-    private Point2d basePos;
+    public Point2d basePos;
 
     public StructureFloaterExpansionCC(UnitInPool structure, Point2d targetPos) {
         super(structure, targetPos, true);
