@@ -26,6 +26,17 @@ public interface Purchase {
         return false;
     }
 
+    static boolean isMorphQueued(Tag structureTag, Abilities morphType) { //TODO: relook at this.  it looks out of place here (but it is static)
+        for (Purchase p : KetrocBot.purchaseQueue) {
+            if (p instanceof PurchaseStructureMorph &&
+                    ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType &&
+                    ((PurchaseStructureMorph) p).getStructure().getTag().equals(structureTag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static boolean isUpgradeQueued(Upgrades upgrade) {
         return KetrocBot.purchaseQueue.stream()
                 .anyMatch(p -> p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getUpgrade() == upgrade);

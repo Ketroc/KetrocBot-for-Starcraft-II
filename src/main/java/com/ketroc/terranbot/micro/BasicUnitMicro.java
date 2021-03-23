@@ -1,7 +1,6 @@
 package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -16,6 +15,7 @@ import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -55,7 +55,7 @@ public class BasicUnitMicro {
                 case TERRAN_BANSHEE:
                     return InfluenceMaps.pointInBansheeRange;
                 case TERRAN_VIKING_FIGHTER:
-                    return InfluenceMaps.pointInVikingRange;
+                    return InfluenceMaps.enemyInVikingRange;
                 case TERRAN_MARINE:
                     return InfluenceMaps.pointInMarineRange;
             }
@@ -93,13 +93,13 @@ public class BasicUnitMicro {
         }
         //continue moving to target
         else if (!isMovingToTargetPos()) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
     }
 
     protected void detour() {
         Point2d detourPos = findDetourPos();
-        Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
+        ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, detourPos, false);
     }
 
     protected boolean attackIfAvailable() {
@@ -114,7 +114,7 @@ public class BasicUnitMicro {
         //attack if there's a target
         if (attackTarget != null) {
             if (!isTargettingUnit(attackTarget.unit())) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
             }
             return true;
         }
@@ -127,27 +127,28 @@ public class BasicUnitMicro {
 
     public void onDeath() {
         removeMe = true;
-        return;
     }
 
     protected boolean isMovingToTargetPos() {
-        return !unit.unit().getOrders().isEmpty() &&
-                unit.unit().getOrders().get(0).getTargetedWorldSpacePosition().isPresent() &&
-                unit.unit().getOrders().get(0).getTargetedWorldSpacePosition().get().toPoint2d().distance(targetPos) < 1;
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        return order.isPresent() &&
+                order.get().targetPos != null &&
+                order.get().targetPos.distance(targetPos) < 1;
 
     }
 
-    protected boolean isAttackingTarget(Tag targetUnit) {
-        return !unit.unit().getOrders().isEmpty() &&
-                unit.unit().getOrders().get(0).getAbility() == Abilities.ATTACK &&
-                unit.unit().getOrders().get(0).getTargetedUnitTag().isPresent() &&
-                unit.unit().getOrders().get(0).getTargetedUnitTag().get().equals(targetUnit);
+    protected boolean isAttackingTarget(Tag targetTag) {
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        return order.isPresent() &&
+                order.get().ability == Abilities.ATTACK &&
+                targetTag.equals(order.get().targetTag);
 
     }
 
     private boolean isTargettingUnit(Unit target) {
-        return !unit.unit().getOrders().isEmpty() &&
-                target.getTag().equals(unit.unit().getOrders().get(0).getTargetedUnitTag().orElse(null));
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        return order.isPresent() &&
+                target.getTag().equals(order.get().targetTag);
     }
 
     //selects target based on cost:health ratio
@@ -326,9 +327,9 @@ public class BasicUnitMicro {
 
     protected boolean attackTarget(Unit target) {
         float attackRange = target.getFlying().orElse(false) ? airAttackRange : groundAttackRange;
-        if (UnitUtils.getDistance(unit.unit(), target) < attackRange) {
+        if (target.getDisplayType() == DisplayType.VISIBLE && UnitUtils.getDistance(unit.unit(), target) < attackRange) {
             if (!isAttackingTarget(unit.getTag())) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, target, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, target, false);
             }
             return true;
         }

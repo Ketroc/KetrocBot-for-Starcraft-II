@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.utils.ActionIssued;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
@@ -52,7 +53,7 @@ public class UpgradeManager {
             return;
         }
         List<Unit> armories = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ARMORY);
-        Unit idleArmory = armories.stream().filter(unit -> unit.getOrders().isEmpty()).findFirst().orElse(null);
+        Unit idleArmory = armories.stream().filter(unit -> ActionIssued.getCurOrder(unit).isEmpty()).findFirst().orElse(null);
 
         //if an armory is idle and not already in purchase queue for a new upgrade
         if (idleArmory != null && !Purchase.isUpgradeQueued(idleArmory.getTag())) {
@@ -64,10 +65,11 @@ public class UpgradeManager {
     }
 
     private static Upgrades getNextArmoryUpgrade(List<Unit> armories) {
-        Optional<Unit> activeArmory = armories.stream()
-                .filter(unit -> !unit.getOrders().isEmpty())
-                .findFirst();
-        Abilities activeAbility = (activeArmory.isPresent()) ? (Abilities)activeArmory.get().getOrders().get(0).getAbility() : null;
+        Unit activeArmory = armories.stream()
+                .filter(unit -> ActionIssued.getCurOrder(unit).isPresent())
+                .findFirst()
+                .orElse(null);
+        Abilities activeAbility = (activeArmory != null) ? (Abilities)ActionIssued.getCurOrder(activeArmory).get().ability : null;
         if (activeAbility == Abilities.RESEARCH_TERRAN_SHIP_WEAPONS) {
             if (!shipArmor.isEmpty()) return shipArmor.get(0);
         }
@@ -98,8 +100,8 @@ public class UpgradeManager {
             return;
         }
         List<Upgrades> starportUpgradesInProgress = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                .filter(unit -> UnitUtils.getOrder(unit) != null)
-                .map(unit -> Bot.abilityToUpgrade.get(unit.getOrders().get(0).getAbility()))
+                .filter(unit -> ActionIssued.getCurOrder(unit).isPresent())
+                .map(unit -> Bot.abilityToUpgrade.get(ActionIssued.getCurOrder(unit).get().ability))
                 .collect(Collectors.toList());
 
         if (doStarportUpgrades) { //if at least 1 banshee
@@ -108,7 +110,7 @@ public class UpgradeManager {
                     .findFirst()
                     .ifPresent(upgrade -> {
                         UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                                .filter(unit -> unit.getOrders().isEmpty())
+                                .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
                                 .findFirst()
                                 .ifPresent(techLab -> {
                                     if (!Purchase.isUpgradeQueued(upgrade)) {
@@ -122,7 +124,7 @@ public class UpgradeManager {
     private static void getStarportUpgrades() { //TODO: don't start if making vikings
         if (!starportUpgradeList.isEmpty() && !Purchase.containsUpgrade()) {
             UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                    .filter(techLab -> techLab.getOrders().isEmpty())
+                    .filter(techLab -> ActionIssued.getCurOrder(techLab).isEmpty())
                     .findFirst()
                     .map(techLab -> Bot.OBS.getUnit(techLab.getTag()))
                     .ifPresent(techLab -> KetrocBot.purchaseQueue.add(new PurchaseUpgrade(starportUpgradeList.remove(0), techLab)));

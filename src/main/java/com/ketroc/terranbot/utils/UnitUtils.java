@@ -138,7 +138,7 @@ public class UnitUtils {
 
     public static final Set<Units> NO_THREAT_ENEMY_AIR = new HashSet<>(Set.of(
             Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED,
-            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE));
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED));
 
     public static final Set<Units> VIKING_PEEL_TARGET_TYPES = new HashSet<>(Set.of(
             Units.ZERG_OVERLORD, Units.ZERG_TRANSPORT_OVERLORD_COCOON, Units.ZERG_OVERSEER,
@@ -163,8 +163,10 @@ public class UnitUtils {
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
 
+    //includes units in Ignored List
     public static int getNumFriendlyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
-        int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
+        //int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
+        int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
             if (isStructure(unitType)) {
                 numUnits += numStructuresProducingOrQueued(unitType);
@@ -179,7 +181,8 @@ public class UnitUtils {
     public static int getNumFriendlyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = 0;
         for (Units unitType : unitTypes) {
-            numUnits += getFriendlyUnitsOfType(unitType).size();
+            //numUnits += getFriendlyUnitsOfType(unitType).size();
+            numUnits += Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType && u.unit().getBuildProgress() == 1).size();
             if (includeProducing) {
                 if (isStructure(unitType)) {
                     numUnits += numStructuresProducingOrQueued(unitType);
@@ -243,9 +246,8 @@ public class UnitUtils {
 
     public static int numRepairingScvs(Unit repairTarget) {
         return (int)getFriendlyUnitsOfType(Units.TERRAN_SCV).stream()
-                .filter(scv -> scv.getOrders().stream()
-                        .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
-                                order.getTargetedUnitTag().orElse(Tag.of(0L)).equals(repairTarget.getTag())))
+                .filter(scv -> ActionIssued.getCurOrder(scv).stream().anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
+                        repairTarget.getTag().equals(curAction.targetTag)))
                 .count();
     }
 
@@ -275,11 +277,13 @@ public class UnitUtils {
             case TERRAN_PLANETARY_FORTRESS:
                 return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90% = 3scvs, 70-80% = 5scvs, etc
             case TERRAN_MISSILE_TURRET:
-                return 6;
+                return (InfluenceMaps.getThreatToStructure(unit) == 0 ||
+                        InfluenceMaps.getValue(InfluenceMaps.enemyInMissileTurretRange, unit.getPosition().toPoint2d()))
+                        ? 6 : 0;
             case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:
                 return 2;
             default: //other burning structures
-                return 1;
+                return InfluenceMaps.getThreatToStructure(unit) == 0 ? 1 : 0;
         }
     }
 
@@ -293,7 +297,7 @@ public class UnitUtils {
 
     public static float getAttackRange(Unit unit, Weapon.TargetType targetType) {
         float attackRange = 0;
-        if (unit.getType() instanceof Units.Other) { //TODO: remove when shield battery Units enum is added
+        if (unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return 0;
         }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
@@ -306,6 +310,11 @@ public class UnitUtils {
             case PROTOSS_SENTRY: case TERRAN_WIDOWMINE_BURROWED:
                 attackRange = 5;
                 break;
+            case PROTOSS_ORACLE:
+                if (targetType == Weapon.TargetType.GROUND && unit.getBuffs().contains(Buffs.ORACLE_WEAPON)) {
+                    attackRange = 4;
+                }
+                break;
             default:
                 attackRange = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
                         .filter(weapon -> weapon.getTargetType() == targetType ||
@@ -314,6 +323,10 @@ public class UnitUtils {
                         .map(Weapon::getRange)
                         .orElse(0f);
                 break;
+        }
+        //make melee units 1 range
+        if (attackRange > 0 && attackRange < 1.5) {
+            attackRange = 1;
         }
         if (attackRange > 0) {
             attackRange += unit.getRadius();
@@ -395,7 +408,7 @@ public class UnitUtils {
         }
     }
 
-    public static boolean isStructure(Units unitType) {
+    public static boolean isStructure(UnitType unitType) {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE);
     }
 
@@ -443,10 +456,10 @@ public class UnitUtils {
     }
 
     public static void queueUpAttackOfEveryBase(List<Unit> units) {
-        Bot.ACTION.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(2), false);
+        ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(2), false);
         for (int i=3; i<LocationConstants.baseLocations.size(); i++) {
             Point2d basePos = LocationConstants.baseLocations.get(i);
-            Bot.ACTION.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(i), true);
+            ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(i), true);
         }
     }
 
@@ -481,13 +494,13 @@ public class UnitUtils {
     }
 
     public static boolean isAttacking(Unit unit, Unit target) {
-        return UnitUtils.getOrder(unit) == Abilities.ATTACK &&
-                target.getTag().equals(unit.getOrders().get(0).getTargetedUnitTag().orElse(null));
+        return ActionIssued.getCurOrder(unit).stream()
+                .anyMatch(order -> order.ability == Abilities.ATTACK && target.getTag().equals(order.targetTag));
     }
 
     public static boolean hasOrderTarget(Unit unit) {
-        return !unit.getOrders().isEmpty() &&
-                unit.getOrders().get(0).getTargetedUnitTag().isPresent();
+        return ActionIssued.getCurOrder(unit).stream()
+                .anyMatch(order -> order.targetTag != null);
     }
 
     public static boolean isWallUnderAttack() { //TODO: make more accurate
@@ -515,7 +528,9 @@ public class UnitUtils {
             case TERRAN_ENGINEERING_BAY: case TERRAN_BARRACKS: case TERRAN_BUNKER: case TERRAN_ARMORY: case TERRAN_FACTORY:
             case TERRAN_STARPORT: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY:
                 return StructureSize._3x3;
-            case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT:
+            case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT: case TERRAN_TECHLAB: case TERRAN_BARRACKS_TECHLAB:
+            case TERRAN_FACTORY_TECHLAB: case TERRAN_STARPORT_TECHLAB: case TERRAN_REACTOR: case TERRAN_BARRACKS_REACTOR:
+            case TERRAN_FACTORY_REACTOR: case TERRAN_STARPORT_REACTOR:
                 return StructureSize._2x2;
             default: //case TERRAN_SENSOR_TOWER:
                 return StructureSize._1x1;
@@ -595,11 +610,11 @@ public class UnitUtils {
     }
 
     public static void patrolInPlace(Unit unit, Point2d pos) {
-        Bot.ACTION.unitCommand(unit, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
     }
 
     public static void patrolInPlace(List<Unit> unitList, Point2d pos) {
-        Bot.ACTION.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+        ActionHelper.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
     }
 
     public static Unit getEnemyInRange(Unit myUnit) {
@@ -658,7 +673,7 @@ public class UnitUtils {
 
     public static boolean isWeaponAvailable(Unit unit) {
         //if matrixed
-        if (unit.getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
+        if (unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return false;
         }
 
@@ -671,8 +686,8 @@ public class UnitUtils {
         //if weapon will be ready to fire next step
         float weaponSpeed = weapons.iterator().next().getSpeed() / 1.4f;
         float curCooldown = unit.getWeaponCooldown().orElse(0f);
-        float stepTime = Strategy.SKIP_FRAMES / 22.4f;
-        return curCooldown * weaponSpeed < stepTime;
+        float stepTime = Strategy.STEP_SIZE / 22.4f;
+        return curCooldown * weaponSpeed < stepTime*2;
     }
 
     public static UnitInPool getClosestUnit(List<UnitInPool> unitList, Unit targetUnit) {
@@ -686,8 +701,8 @@ public class UnitUtils {
     }
 
     public static boolean isScvRepairing(Unit scv) {
-        return scv.getOrders().stream()
-                .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.EFFECT_REPAIR);
+        return ActionIssued.getCurOrder(scv).stream()
+                .anyMatch(order -> order.ability == Abilities.EFFECT_REPAIR);
     }
 
     public static float getUnitSpeed(UnitType unitType) {
@@ -745,12 +760,7 @@ public class UnitUtils {
     }
 
     public static Tag getTargetUnitTag(Unit unit) {
-        if (unit.getOrders().isEmpty() || unit.getOrders().get(0).getTargetedUnitTag().isEmpty()) {
-            return null;
-        }
-        else {
-            return unit.getOrders().get(0).getTargetedUnitTag().get();
-        }
+        return ActionIssued.getCurOrder(unit).map(actionIssued -> actionIssued.targetTag).orElse(null);
     }
 
     public static float rangeToSee(Unit unit, Unit targetUnit) {
@@ -767,8 +777,15 @@ public class UnitUtils {
     public static boolean isEnemyEnteringDetection(Unit enemy) {
         return !Bot.OBS.getUnits(Alliance.SELF, u ->
                 (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
-                        u.unit().getBuildProgress() == 1 &&
-                        UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
+                u.unit().getBuildProgress() == 1 &&
+                UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
+    }
+
+    public static boolean isInMyDetection(Point2d pos) {
+        return !Bot.OBS.getUnits(Alliance.SELF, u ->
+                (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
+                u.unit().getBuildProgress() == 1 &&
+                UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
     }
 
     public static int getNumScvs(boolean includeProducing) {
@@ -786,11 +803,37 @@ public class UnitUtils {
     public static Point2d getPosLeadingUnit(Unit myUnit, Unit targetUnit) {
         Point2d targetPos = targetUnit.getPosition().toPoint2d();
         //float targetFacingAngle = Position.getFacingAngle(targetUnit);
-        float distance = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType()).getMovementSpeed().orElse(0f) * 0.75f; //use speed as distance to lead
+        float distance = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType()).getMovementSpeed().orElse(0f); //use speed as distance to lead
         Point2d leadPos = Position.getDestinationByAngle(targetPos, targetUnit.getFacing(), distance);
         if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(leadPos)) {
             return targetPos;
         }
         return leadPos;
+    }
+
+    public static boolean hasOrderPosition(Unit unit, Point2d pos) {
+        return unit.getOrders().stream()
+                .anyMatch(unitOrder -> unitOrder.getTargetedWorldSpacePosition().isPresent() &&
+                        unitOrder.getTargetedWorldSpacePosition().get().toPoint2d().distance(pos) < 1);
+    }
+
+    public static boolean justLostVisionOf(UnitInPool unit) {
+        return unit.unit().getDisplayType() != DisplayType.SNAPSHOT &&
+                unit.isAlive() &&
+                unit.getLastSeenGameLoop() < Time.nowFrames() &&
+                unit.getLastSeenGameLoop() >= (Time.nowFrames() - Strategy.STEP_SIZE);
+    }
+
+    public static boolean canAttack(UnitType unitType) {
+        return !Bot.OBS.getUnitTypeData(false).get(unitType)
+                .getWeapons().isEmpty();
+    }
+
+    public static Set<UnitAttribute> getAttributes(Unit unit) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getAttributes();
+    }
+
+    public static float getTotalHealth(Unit unit) {
+        return unit.getHealth().orElse(0f) + unit.getShield().orElse(0f);
     }
 }

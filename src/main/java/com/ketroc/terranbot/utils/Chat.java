@@ -28,6 +28,9 @@ public class Chat {
         botResponses.put("What a clown", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
         botResponses.put("Not today", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
         botResponses.put("stupid idea", "It wasn't my choice. After downloading VLADIMIR_PUTIN.EXE, decisions are now made for me.");
+
+        //MicroMachine responses
+        botResponses.put("range upgrade on your missile turrets", "Did you know if you zoom in, there is guy manning the cockpit of that turret?");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(

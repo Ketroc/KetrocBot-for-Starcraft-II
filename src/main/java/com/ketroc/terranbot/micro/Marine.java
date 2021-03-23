@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.List;
@@ -29,11 +30,11 @@ public class Marine extends BasicUnitMicro {
                 .map(UnitInPool::unit)
                 .orElse(null);
         if (bunker != null && bunker.getBuildProgress() == 1f) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
         }
 //        if (!unit.unit().getActive().orElse(true)) {
-//            Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
+//            ActionHelper.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
 //        }
     }
 

@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -34,10 +35,10 @@ public class TankOffense extends Tank {
         Unit enemyTankToSiege = getEnemyTankToSiege();
         if (enemyTankToSiege != null) {
             if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) > 12.9f + enemyTankToSiege.getRadius()*2) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege, false);
             }
             else {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
             }
         }
 

@@ -13,8 +13,10 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.bots.TestingBot;
+import com.ketroc.terranbot.managers.WorkerManager;
+import com.ketroc.terranbot.micro.BasicUnitMicro;
 import com.ketroc.terranbot.micro.Liberator;
+import com.ketroc.terranbot.micro.MicroPriority;
 import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.*;
@@ -198,7 +200,7 @@ public class Base {
         mineralPatches.stream()
                 .map(MineralPatch::getUnit)
                 .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
-                .ifPresent(mineral -> Bot.ACTION.unitCommand(scv, Abilities.SMART, mineral, false));
+                .ifPresent(mineral -> ActionHelper.unitCommand(scv, Abilities.SMART, mineral, false));
     }
 
 
@@ -228,7 +230,10 @@ public class Base {
             mineralPatch.getScvs().forEach(scv -> {
                 DebugHelper.drawBox(mineralPatch.getByMineral(), Color.YELLOW, 0.2f);
                 DebugHelper.drawBox(mineralPatch.getByCC(), Color.YELLOW, 0.2f);
-                if (scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS)) {
+                if (doFleeScv(scv)) {
+                    new BasicUnitMicro(scv, mineralPatch.getMineralPos(), MicroPriority.SURVIVAL);
+                }
+                else if (UnitUtils.isCarryingResources(scv.unit())) {
                     if (isReadyForMining()) {
                         mineralPatch.returnMicro(scv.unit());
                     }
@@ -246,6 +251,11 @@ public class Base {
                 }
             });
         });
+    }
+
+    private boolean doFleeScv(UnitInPool scv) {
+        return InfluenceMaps.getValue(InfluenceMaps.pointPersistentDamageToGround, scv.unit().getPosition().toPoint2d()) ||
+                (scv.unit().getHealth().orElse(0f) < 20 && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, scv.unit().getPosition().toPoint2d()));
     }
 
     public List<UnitInPool> getAvailableGeysers() {
@@ -415,14 +425,14 @@ public class Base {
                 //.flatMap(mineralPatch -> mineralPatch.getScvs().stream())
                 //.map(UnitInPool::unit)
                 .forEach(mineralPatch -> {
-                    mineralPatch.getScvs().forEach(scv -> Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false));
+                    mineralPatch.getScvs().forEach(scv -> ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false));
                     mineralPatch.getScvs().clear();
                 });
 
         //set rally
         Unit rallyNode = getFullestMineralPatch();
         if (rallyNode != null) {
-            Bot.ACTION.unitCommand(cc.unit(), Abilities.RALLY_COMMAND_CENTER, rallyNode, false);
+            ActionHelper.unitCommand(cc.unit(), Abilities.RALLY_COMMAND_CENTER, rallyNode, false);
         }
     }
 
@@ -432,21 +442,21 @@ public class Base {
 //        Unit mineralPatch = UnitUtils.getSafestMineralPatch();
 //        List<Unit> scvsCarrying = baseScvs.stream().filter(unit -> UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());//scvs carrying return cargo first
 //        if (!scvsCarrying.isEmpty()) {
-//            Bot.ACTION.unitCommand(scvsCarrying, Abilities.HARVEST_RETURN, false);
+//            ActionHelper.unitCommand(scvsCarrying, Abilities.HARVEST_RETURN, false);
 //            if (mineralPatch == null) {
-//                Bot.ACTION.unitCommand(scvsCarrying, Abilities.STOP, true);
+//                ActionHelper.unitCommand(scvsCarrying, Abilities.STOP, true);
 //            }
 //            else {
-//                Bot.ACTION.unitCommand(scvsCarrying, Abilities.SMART, mineralPatch, true);
+//                ActionHelper.unitCommand(scvsCarrying, Abilities.SMART, mineralPatch, true);
 //            }
 //        }
 //        List<Unit> scvsNotCarrying = baseScvs.stream().filter(unit -> !UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());
 //        if (!scvsNotCarrying.isEmpty()) {
 //            if (mineralPatch == null) {
-//                Bot.ACTION.unitCommand(scvsNotCarrying, Abilities.STOP, false);
+//                ActionHelper.unitCommand(scvsNotCarrying, Abilities.STOP, false);
 //            }
 //            else {
-//                Bot.ACTION.unitCommand(scvsNotCarrying, Abilities.SMART, mineralPatch, false);
+//                ActionHelper.unitCommand(scvsNotCarrying, Abilities.SMART, mineralPatch, false);
 //            }
 //        }
         List<Unit> scvs = mineralPatches.stream()
@@ -454,7 +464,7 @@ public class Base {
                 .map(UnitInPool::unit)
                 .collect(Collectors.toList());
         if (!scvs.isEmpty()) {
-            Bot.ACTION.unitCommand(scvs, Abilities.STOP, false);
+            ActionHelper.unitCommand(scvs, Abilities.STOP, false);
         }
         mineralPatches.stream().forEach(mineralPatch -> mineralPatch.getScvs().clear());
 
@@ -488,9 +498,9 @@ public class Base {
             if (libPos.getUnit() != null) {
                 Unit baseLib = libPos.getUnit().unit();
                 if (baseLib.getType() == Units.TERRAN_LIBERATOR_AG) {
-                    Bot.ACTION.unitCommand(baseLib, Abilities.MORPH_LIBERATOR_AA_MODE, false);
+                    ActionHelper.unitCommand(baseLib, Abilities.MORPH_LIBERATOR_AA_MODE, false);
                 } else {
-                    Bot.ACTION.unitCommand(baseLib, Abilities.STOP, false);
+                    ActionHelper.unitCommand(baseLib, Abilities.STOP, false);
                 }
                 libPos.setUnit(null);
             }
@@ -519,6 +529,18 @@ public class Base {
                 .map(effect -> effect.getPositions().iterator().next())
                 .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
 
+    }
+
+
+    public List<UnitInPool> getAndReleaseAvailableScvs(int numScvs) {
+        List<UnitInPool> baseScvs = WorkerManager.getAllScvs(ccPos, 9).stream()
+                .filter(scv -> !scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) &&
+                        !scv.unit().getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS) &&
+                        !scv.unit().getBuffs().contains(Buffs.CARRY_HIGH_YIELD_MINERAL_FIELD_MINERALS))
+                .limit(5)
+                .collect(Collectors.toList());
+        baseScvs.forEach(scv -> releaseMineralScv(scv.unit()));
+        return baseScvs;
     }
 
 
@@ -598,7 +620,7 @@ public class Base {
             mineralToMine.getScvs().add(scv);
             return true;
         }
-        return distanceMineScv(scv);
+        return distanceMineScv(scv); //TODO: change to 'return false;' when better distance mining method is used
     }
 
     public static boolean distanceMineScv(UnitInPool scv) {

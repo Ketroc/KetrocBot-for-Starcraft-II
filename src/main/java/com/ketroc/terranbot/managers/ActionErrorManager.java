@@ -68,7 +68,10 @@ public class ActionErrorManager {
                     //scv got stuck en route, TODO: or location unreachable by any scv
                     else {
                         //switch scv
-                        structureScv.setScv(WorkerManager.getOneScv());
+                        UnitInPool oneScv = WorkerManager.getOneScv();
+                        if (oneScv != null) {
+                            structureScv.setScv(oneScv);
+                        }
                     }
                 }
             }

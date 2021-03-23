@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.managers.BuildManager;
-import com.ketroc.terranbot.utils.LocationConstants;
+import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
@@ -16,21 +16,17 @@ import com.ketroc.terranbot.managers.UpgradeManager;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.DelayedChat;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.utils.MapNames;
-import com.ketroc.terranbot.utils.Print;
-import com.ketroc.terranbot.utils.Time;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Strategy {
-    public static int selectedStrategy = -1;
+    public static GamePlan gamePlan = null;
+    public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
-    public static int SKIP_FRAMES = 2;
+    public static int STEP_SIZE = 2;
     public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
@@ -39,7 +35,7 @@ public class Strategy {
 
     public static boolean DO_DEFENSIVE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
-    public static final int MAX_TANKS = 10;
+    public static int MAX_TANKS = 10;
 
     public static boolean DO_INCLUDE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
@@ -53,13 +49,13 @@ public class Strategy {
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.4f;
-    public static int RETREAT_HEALTH = 40; //% health of mech unit to go home to get repaired
+    public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
     public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
     public static final float MARINE_RANGE = 5.1f; //range in which banshee will be given the command to attack
-    public static final float AUTOTURRET_RANGE = 7f;
+    public static float RAVEN_CAST_RANGE = 7f;
     public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static int DIVE_RANGE = 12;
@@ -76,15 +72,15 @@ public class Strategy {
     public static boolean MARINE_ALLIN;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
-    public static boolean BUILD_EXPANDS_IN_MAIN;
+    public static boolean BUILD_EXPANDS_IN_MAIN = true; //TODO: true for testing only
     public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
+    public static boolean DO_MATRIX;
     public static boolean DO_ANTIDROP_TURRETS;
     public static int AUTOTURRET_AT_ENERGY = 50;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
-    public static boolean ANTI_CYCLONE = false;
-
-
+    public static boolean DO_USE_CYCLONES;
+    public static boolean ENEMY_DOES_BANSHEE_HARASS;
 
 
     public static int step_TvtFastStart = 1;
@@ -93,8 +89,12 @@ public class Strategy {
     public static boolean NO_RAMP_WALL;
 
     public static void onGameStart() {
-        SKIP_FRAMES = (KetrocBot.isRealTime) ? 4 : 2;
+        STEP_SIZE = (KetrocBot.isRealTime) ? 2 : 2;
         getGameStrategyChoice();
+
+        if (DO_MATRIX && !DO_SEEKER_MISSILE) {
+            RAVEN_CAST_RANGE = 9f;
+        }
 //
 //        if (ANTI_NYDUS_BUILD) {
 //            antiNydusBuild();
@@ -104,7 +104,7 @@ public class Strategy {
     private static void getGameStrategyChoice() {
         setRaceStrategies();
         if (!Bot.isRealTime) {
-            setStrategyNumber();
+//            setStrategyNumber(); TODO: this is off for ladder
         }
         switch (LocationConstants.opponentRace) {
             case TERRAN:
@@ -117,6 +117,14 @@ public class Strategy {
                 chooseTvZStrategy();
                 break;
         }
+
+        //TODO: delete - turning off 2nd factory unless raven+cyclones TvT
+        if (LocationConstants.opponentRace != Race.TERRAN || gamePlan != GamePlan.MASS_RAVEN_WITH_CYCLONES) {
+            if (LocationConstants.FACTORIES.size() == 2) {
+                LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
+            }
+        }
+
         applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
@@ -157,14 +165,14 @@ public class Strategy {
                 BUILD_EXPANDS_IN_MAIN = true;
                 NO_RAMP_WALL = true;
                 NO_TURRETS = true;
-                NUM_MARINES = 0;
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
-                BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+                NUM_MARINES = 1;
+                ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-                NUM_MARINES = 8;
+            case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
+                NUM_MARINES = 7;
                 Switches.enemyCanProduceAir = true;
+                BUILD_EXPANDS_IN_MAIN = true;
                 DO_BANSHEE_HARASS = false;
                 break;
             case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
@@ -175,13 +183,17 @@ public class Strategy {
             case "10ecc3c36541ead": //RStrelok (LM)
                 BUILD_EXPANDS_IN_MAIN = true;
                 DO_DIVE_RAVENS = false;
-                //ANTI_CYCLONE = true;
+                ENEMY_DOES_BANSHEE_HARASS = true;
                 //Switches.enemyCanProduceAir = true;
                 break;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+                Switches.enemyCanProduceAir = true;
+                MAX_TANKS = 1;
+                DO_DEFENSIVE_TANKS = true;
                 BUILD_EXPANDS_IN_MAIN = true;
                 DO_DIVE_RAVENS = false;
-                //ANTI_CYCLONE = true;
+                ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
         }
     }
@@ -195,99 +207,148 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
-        int numStrategies = 5;
-        if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+        Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
+                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MASS_RAVEN,
+                GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.MASS_RAVEN_WITH_CYCLONES
+        ));
+        while (!availableTvTGamePlans.contains(gamePlan)) {
+            gamePlan = getNextGamePlan(gamePlan);
         }
-        selectedStrategy = selectedStrategy % numStrategies;
-
-        switch (selectedStrategy) {
-            case 0:
-                DelayedChat.add("Standard Strategy");
+        //gamePlan = GamePlan.MASS_RAVEN;
+        switch (gamePlan) {
+            case BANSHEES:
+                DelayedChat.add("Mass Banshee Strategy");
                 break;
-            case 1:
+            case BANSHEES_WITH_CYCLONES:
+                DelayedChat.add("Banshee & Cyclone Strategy");
+                useCyclonesAdjustments();
+                break;
+            case BUNKER_CONTAIN_STRONG:
+                DelayedChat.add("Strong Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 2;
                 break;
-            case 2:
+            case SCV_RUSH:
                 DelayedChat.add("SCV Rush Strategy");
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case 3:
+            case MASS_RAVEN:
+                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case 4:
+            case MASS_RAVEN_WITH_CYCLONES:
+                DelayedChat.add("Raven & Cyclone Strategy");
+                massRavenStrategy();
+                useCyclonesAdjustments();
+                DO_MATRIX = true;
+                Strategy.AUTOTURRET_AT_ENERGY = 125;
+                break;
+            case MARINE_RUSH:
+                DelayedChat.add("7Rax Marine All in");
+                DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
                 marineAllinStrategy();
                 break;
         }
     }
 
+    public static GamePlan getNextGamePlan(GamePlan curPlan) {
+        int nextIndex = (availableGamePlans.indexOf(curPlan) + 1) % availableGamePlans.size();
+        return availableGamePlans.get(nextIndex);
+    }
+
     private static void marineAllinStrategy() {
-        DelayedChat.add("7Rax Marine All in");
-        DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
         MARINE_ALLIN = true;
         maxScvs = 18;
         NUM_MARINES = Integer.MAX_VALUE;
     }
 
     private static void chooseTvPStrategy() {
-        int numStrategies = 5;
-        if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+        Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
+                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.MASS_RAVEN
+        ));
+        while (!availableTvPGamePlans.contains(gamePlan)) {
+            gamePlan = getNextGamePlan(gamePlan);
         }
-        selectedStrategy = selectedStrategy % numStrategies;
-        switch (selectedStrategy) {
-            case 0:
+        gamePlan = GamePlan.BANSHEES;
+        switch (gamePlan) {
+            case BANSHEES:
                 DelayedChat.add("Standard Strategy");
                 break;
-            case 1:
-                DelayedChat.add("Bunker Contain Strategy");
+//            case BANSHEES_WITH_CYCLONES:
+//                DelayedChat.add("Banshee & Cyclone Strategy");
+//                useCyclonesAdjustments();
+//                break;
+            case BUNKER_CONTAIN_WEAK:
+                DelayedChat.add("Light Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 1;
                 break;
-            case 2:
+            case SCV_RUSH:
                 DelayedChat.add("SCV Rush Strategy");
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case 3:
+            case MASS_RAVEN:
+                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case 4:
+//            case MASS_RAVEN_WITH_CYCLONES:
+//                DelayedChat.add("Raven & Cyclone Strategy");
+//                massRavenStrategy();
+//                useCyclonesAdjustments();
+//                break;
+            case MARINE_RUSH:
+                DelayedChat.add("7Rax Marine All in");
+                DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
                 marineAllinStrategy();
                 break;
         }
     }
 
     private static void chooseTvZStrategy() {
-        int numStrategies = 5;
-        if (selectedStrategy == -1) {
-            selectedStrategy = 0;
+        Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
+                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK,
+                GamePlan.MASS_RAVEN, GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.MASS_RAVEN_WITH_CYCLONES
+        ));
+        while (!availableTvZGamePlans.contains(gamePlan)) {
+            gamePlan = getNextGamePlan(gamePlan);
         }
-        selectedStrategy = selectedStrategy % numStrategies;
-        switch (selectedStrategy) {
-            case 0:
+        gamePlan = GamePlan.MASS_RAVEN_WITH_CYCLONES;
+        switch (gamePlan) {
+            case BANSHEES:
                 DelayedChat.add("Standard Strategy");
                 break;
-            case 1:
+            case BANSHEES_WITH_CYCLONES:
+                DelayedChat.add("Banshee & Cyclone Strategy");
+                useCyclonesAdjustments();
+                break;
+            case BUNKER_CONTAIN_WEAK:
                 BunkerContain.proxyBunkerLevel = 1;
                 break;
-            case 2:
+            case SCV_RUSH:
                 DelayedChat.add("SCV Rush Strategy");
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case 3:
+            case MASS_RAVEN:
+                DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case 4:
+            case MASS_RAVEN_WITH_CYCLONES:
+                DelayedChat.add("Raven & Cyclone Strategy");
+                massRavenStrategy();
+                useCyclonesAdjustments();
+                break;
+            case MARINE_RUSH:
+                DelayedChat.add("7Rax Marine All in");
+                DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
                 marineAllinStrategy();
                 break;
         }
     }
 
-    private static int getStrategyByOpponentId() {
+    private static GamePlan getStrategyByOpponentId() {
         if (KetrocBot.opponentId == null) {
-            return -1;
+            return gamePlan;
         }
         switch (KetrocBot.opponentId) {
 //        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") {
@@ -327,16 +388,16 @@ public class Strategy {
 //                return 0;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
-                return 2;
+                return GamePlan.BANSHEES;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-                return 3;
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+                return GamePlan.BANSHEES;
             default:
-                return -1;
+                return gamePlan;
         }
     }
 
     private static void massRavenStrategy() {
-        DelayedChat.add("Mass Raven Strategy");
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
         UpgradeManager.doStarportUpgrades = true;
@@ -364,103 +425,182 @@ public class Strategy {
 
     private static void setStrategyNumber() {
         //hardcoded strategies by ID
-        selectedStrategy = getStrategyByOpponentId();
-//        try {
-//            // ====================================
-//            // ===== For Best-of Series Below =====
-//            // ====================================
+//        gamePlan = getStrategyByOpponentId();
+        try {
+            // ====================================
+            // ===== For Best-of Series Below =====
+            // ====================================
+
+            //get list of previous results vs this opponent
+            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
+            List<String[]> prevResults = new ArrayList<>();
+            Print.print("fileText = " + fileText);
+            if (fileText.contains(KetrocBot.opponentId)) {
+                String[] rows = fileText.split("\r\n");
+                for (String row : rows) {
+                    Print.print(row);
+                    prevResults.add(row.split("~"));
+                }
+            }
+            playAllStrategiesFirst(fileText, prevResults);
+//            if (KetrocBot.opponentId.equals("81fa0acc-93ea-479c-9ba5-08ae63b9e3f5")) { //Micromachine
+//                playStrategyUntilItLoses(fileText, prevResults);
+//            }
+//            else {
+//                playAllStrategiesFirst(fileText, prevResults);
+//                playStrategyUntilItLoses(fileText, prevResults); //TODO: switch back
+//            }
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+//    private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResults) {
+//        //get strategy order by id
+//        GamePlan[] strategies = getTournamentStrategyOrder();
 //
-//            //get list of previous results vs this opponent
-//            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
-//            List<String[]> prevResults = new ArrayList<>();
-//            Print.print("fileText = " + fileText);
-//            if (fileText.contains(KetrocBot.opponentId)) {
-//                String[] rows = fileText.split("\r\n");
-//                for (String row : rows) {
-//                    Print.print(row);
-//                    prevResults.add(row.split("~"));
+//        if (prevResults.isEmpty()) {
+//            return;
+//        }
+//        String[] prevGame = prevResults.get(prevResults.size()-1);
+//        GamePlan prevGamePlan = GamePlan.valueOf(prevGame[1]);
+//        String prevGameResult = prevGame[2];
+//        if (prevGameResult.equals("W")) {
+//            gamePlan = prevGamePlan;
+//            Print.print("Selecting strategy: " + gamePlan + " cuz it won last game.");
+//        }
+//        else {
+//            gamePlan = getNextGamePlan(prevGamePlan);
+//            Print.print("Selecting strategy: " + gamePlan + " cuz prev strategy lost last game.");
+//        }
+//
+//    }
+
+//    private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResultList) {
+//        //get strategy order by id
+//        GamePlan[] strategies = getTournamentStrategyOrder();
+//
+//        //no opponent specific strategy, and no history
+//        if (strategies == null) {
+//            if (prevResultList.isEmpty() || !prevResultList.get(0)[0].equals(KetrocBot.opponentId)) {
+//                Print.print("using GamePlan.BANSHEES cuz no list and no history");
+//                gamePlan = GamePlan.BANSHEES;
+//            }
+//            //no opponent specific strategy, and with history
+//            else {
+//                String[] prevResult = prevResultList.get(prevResultList.size() - 1);
+//                if (prevResult[2].equals("L")) {
+//                    gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
+//                    Print.print("using " + gamePlan + " cuz no list and lost last game");
+//                }
+//                else {
+//                    gamePlan = GamePlan.valueOf(prevResult[1]);
+//                    Print.print("using " + gamePlan + " cuz no list and won last game");
 //                }
 //            }
-//            playAllStrategiesFirst(fileText, prevResults);
-//            //playStrategyUntilItLoses(fileText, prevResults);
+//            return;
+//        }
+//        //if opponent specific strategy, and no history
+//        if (prevResultList.isEmpty() || !prevResultList.get(0)[0].equals(KetrocBot.opponentId)) {
+//            gamePlan = GamePlan.valueOf(prevResultList.get(0)[1]);
+//            Print.print("using " + gamePlan + " cuz first in list and no history");
+//        }
+//        //if opponent specific strategy, and with history
+//        else {
+//            String[] prevResult = prevResultList.get(prevResultList.size() - 1);
+//            if (prevResult[2].equals("W")) {
+//                gamePlan = GamePlan.valueOf(prevResult[1]);
+//                Print.print("using " + gamePlan + " cuz no list and won last game");
+//            }
+//            else {
+//                int nextIndex = (strategies.indexOf(GamePlan.valueOf(prevResult[1])) + 1) % availableGamePlans.size();
+//                .get(nextIndex);
+//                gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
+//                Print.print("using " + gamePlan + " cuz no list and lost last game");
+//            }
+//        }
 //
+//
+//        if (!wereAllStrategiesUsed(strategies, fileText)) {
+//            for (GamePlan strategy : strategies) {
+//                Print.print("checking strategy: " + strategy);
+//                if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
+//                    if (strategy == GamePlan.SCV_RUSH &&
+//                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
+//                        Print.print("skipping scv rush cuz it's Pillars of Gold");
+//                        continue;
+//                    }
+//                    gamePlan = strategy;
+//                    Print.print("using " + gamePlan + " cuz it's in the strategy list");
+//                    return;
+//                }
+//            }
 //        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
-    }
+//
+//        //if no more planned strategies, pick whichever one won
+//        gamePlan = prevResultList.stream()
+//                .filter(result -> result[0].equals(KetrocBot.opponentId) && result[2].equals("W"))
+//                .map(result -> GamePlan.valueOf(result[1]))
+//                .findFirst()
+//                .orElse(GamePlan.valueOf(prevResultList.get(0)[1]));
+//        Print.print("using " + gamePlan + " cuz list finished and this is a strat that won (default: first in list)");
+//    }
 
-    private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResults) {
-        if (prevResults.isEmpty()) {
-            selectedStrategy = 0;
-            return;
-        }
-        String[] lastGame = prevResults.get(prevResults.size()-1);
-        int lastGameStrategy = Integer.valueOf(lastGame[1]);
-        String lastGameResult = lastGame[2];
-        if (lastGameResult.equals("W")) {
-            selectedStrategy = lastGameStrategy;
-            Print.print("Selecting strategy: " + selectedStrategy + " cuz it won last game.");
-        }
-        else {
-            selectedStrategy = lastGameStrategy + 1;
-            Print.print("Selecting strategy: " + selectedStrategy + " cuz prev strategy lost last game.");
-        }
-
-    }
 
     private static void playAllStrategiesFirst(String fileText, List<String[]> prevResults) {
         //get strategy order by id
-        int[] strategies = getTournamentStrategyOrder();
+        GamePlan[] strategies = getTournamentStrategyOrder();
 
         //no opponent specific strategy, and no history
         if (strategies == null) {
-            if (prevResults.isEmpty() || prevResults.get(0)[0].equals("")) {
-                Print.print("using 0 cuz no list and no history");
-                selectedStrategy = 0;
+            if (prevResults.isEmpty() || !prevResults.get(0)[0].equals(KetrocBot.opponentId)) {
+                Print.print("using GamePlan.BANSHEES cuz no list and no history");
+                gamePlan = GamePlan.BANSHEES;
             }
             //no opponent specific strategy, and with history
             else {
                 String[] prevResult = prevResults.get(prevResults.size() - 1);
                 if (prevResult[2].equals("L")) {
-                    selectedStrategy = Integer.valueOf(prevResult[1]) + 1;
-                    Print.print("using " + selectedStrategy + " cuz no list and lost last game");
+                    gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
+                    Print.print("using " + gamePlan + " cuz no list and lost last game");
                 }
                 else {
-                    selectedStrategy = Integer.valueOf(prevResult[1]);
-                    Print.print("using " + selectedStrategy + " cuz no list and won last game");
+                    gamePlan = GamePlan.valueOf(prevResult[1]);
+                    Print.print("using " + gamePlan + " cuz no list and won last game");
                 }
             }
             return;
         }
         //select next planned strategy
         if (!wereAllStrategiesUsed(strategies, fileText)) {
-            for (int strategy : strategies) {
+            for (GamePlan strategy : strategies) {
                 Print.print("checking strategy: " + strategy);
                 if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
-                    if (strategy == 2 &&
-                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505))) {
+                    if (strategy == GamePlan.SCV_RUSH &&
+                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
                         Print.print("skipping scv rush cuz it's Pillars of Gold");
                         continue;
                     }
-                    selectedStrategy = strategy;
-                    Print.print("using " + selectedStrategy + " cuz it's in the strategy list");
+                    gamePlan = strategy;
+                    Print.print("using " + gamePlan + " cuz it's in the strategy list");
                     return;
                 }
             }
         }
 
         //if no more planned strategies, pick whichever one won
-        selectedStrategy = prevResults.stream()
+        gamePlan = prevResults.stream()
                 .filter(result -> result[0].equals(KetrocBot.opponentId) && result[2].equals("W"))
-                .map(result -> Integer.valueOf(result[1]))
+                .map(result -> GamePlan.valueOf(result[1]))
                 .findFirst()
-                .orElse(Integer.valueOf(prevResults.get(0)[1]));
-        Print.print("using " + selectedStrategy + " cuz list finished and this is a strat that won (default: first in list)");
+                .orElse(GamePlan.valueOf(prevResults.get(0)[1]));
+        Print.print("using " + gamePlan + " cuz list finished and this is a strat that won (default: first in list)");
     }
 
-    private static boolean wereAllStrategiesUsed(int[] strategies, String fileText) {
-        for (int strategy : strategies) {
+    private static boolean wereAllStrategiesUsed(GamePlan[] strategies, String fileText) {
+        for (GamePlan strategy : strategies) {
             if (!fileText.contains("~" + strategy + "~")) {
                 return false;
             }
@@ -468,26 +608,31 @@ public class Strategy {
         return true;
     }
 
-    private static int[] getTournamentStrategyOrder() {
+    private static GamePlan[] getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) { //0 standard, 1 proxy bunker, 2 scv rush, 3 mass raven, 4 marine all-in
-            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
-                return new int[]{0, 2};
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
-                return new int[]{1};
-            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
-                return new int[]{3, 1};
+                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_STRONG};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-                return new int[]{0};
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES};
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
             //case "b7b611bdaa2e2d1": //Spiny (LM)
-                return new int[]{0, 1};
+                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.MASS_RAVEN};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-                return new int[]{3, 0, 1};
-            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
-                return new int[]{0, 1, 2};
-            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
-                return new int[]{0, 2, 1};
+            case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
+                return new GamePlan[]{GamePlan.MASS_RAVEN, GamePlan.BANSHEES, GamePlan.BUNKER_CONTAIN_STRONG};
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEES, GamePlan.BANSHEES_WITH_CYCLONES};
+//            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
+//                return new int[]{0, 1, 2};
+//            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
+//                return new int[]{0, 2, 1};
+//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
+//                return new int[]{0, 2};
+//            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
+//                return new int[]{3, 1};
         }
         return null;
     }
@@ -510,31 +655,38 @@ public class Strategy {
     public static void onStep_TvtFaststart() {
         switch (step_TvtFastStart) {
             case 1:
-                //rally it to the depot1
-                Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, LocationConstants.extraDepots.get(0), false);
+                //remove depot and rax from production queue (temporarily)
+//                KetrocBot.purchaseQueue.remove(0);
+//                KetrocBot.purchaseQueue.remove(0);
+
+                //rally cc to the depot pos
+                ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, LocationConstants.extraDepots.get(0), false);
                 step_TvtFastStart++;
                 break;
+
             case 2:
-                //rally back to mineral node
+                //rally cc to mineral node
                 if (Bot.OBS.getFoodWorkers() == 13) {
-                    Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER,
+                    ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER,
                             GameCache.baseList.get(0).getFullestMineralPatch(), false);
                     step_TvtFastStart++;
                 }
                 break;
             case 3:
-                //queue up depot and rax with first scv
+                //add depot and rax with first scv to the production queue
                 if (GameCache.mineralBank >= 100) {
                     List<UnitInPool> scvNearDepot = WorkerManager.getAllScvs(LocationConstants.extraDepots.get(0), 6);
                     if (!scvNearDepot.isEmpty()) {
                         scv_TvtFastStart = scvNearDepot.get(0); //TODO: null check
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
+                        ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv_TvtFastStart.unit());
+                        ((PurchaseStructure)KetrocBot.purchaseQueue.get(1)).setScv(scv_TvtFastStart.unit());
+//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
                     }
-                    else {
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-                    }
+//                    else {
+//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
+//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+//                    }
                     Switches.tvtFastStart = false;
                 }
                 break;
@@ -598,6 +750,13 @@ public class Strategy {
         }
     }
 
+    public static void useCyclonesAdjustments() {
+        NUM_MARINES = Math.min(5, NUM_MARINES);
+        DO_USE_CYCLONES = true;
+        DO_INCLUDE_LIBS = false;
+        DO_DEFENSIVE_TANKS = false;
+    }
+
     private static void setReaperBlockWall() {
         if (LocationConstants.opponentRace == Race.TERRAN) {
             LocationConstants.extraDepots.addAll(0, LocationConstants.reaperBlockDepots);
@@ -631,7 +790,7 @@ public class Strategy {
     }
 
     public static void printStrategySettings() {
-        Print.print("selectedStrategy = " + selectedStrategy);
+        Print.print("selectedStrategy = " + gamePlan);
         Print.print("ANTI_NYDUS_BUILD = " + ANTI_NYDUS_BUILD);
         Print.print("DO_DIVE_RAVENS = " + DO_DIVE_RAVENS);
         Print.print("EARLY_BANSHEE_SPEED = " + EARLY_BANSHEE_SPEED);

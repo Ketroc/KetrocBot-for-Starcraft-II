@@ -10,6 +10,7 @@ import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.micro.BasicUnitMicro;
 import com.ketroc.terranbot.micro.MicroPriority;
 import com.ketroc.terranbot.micro.VikingChaser;
+import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -30,6 +31,39 @@ public class AirUnitKillSquad {
         this.targetUnit = targetUnit;
     }
 
+    public BasicUnitMicro getRaven() {
+        return raven;
+    }
+
+    public void setRaven(BasicUnitMicro raven) {
+        this.raven = raven;
+    }
+
+    public List<VikingChaser> getVikings() {
+        return vikings;
+    }
+
+    public void setVikings(List<VikingChaser> vikings) {
+        this.vikings = vikings;
+    }
+
+    public UnitInPool getTargetUnit() {
+        return targetUnit;
+    }
+
+    public void setTargetUnit(UnitInPool targetUnit) {
+        this.targetUnit = targetUnit;
+    }
+
+    public int getNumVikingsRequired() {
+        return numVikingsRequired;
+    }
+
+    public void setNumVikingsRequired(int numVikingsRequired) {
+        this.numVikingsRequired = numVikingsRequired;
+    }
+
+
     public void updateUnits() {
         updateRaven();
         updateVikings();
@@ -40,20 +74,28 @@ public class AirUnitKillSquad {
     }
 
     private void updateRaven() {
-        //do nothing if raven is alive
-        if (raven != null && raven.isAlive()) {
-            return;
-        }
-        //remove dead raven
         if (raven != null) {
-            Ignored.remove(raven.unit.getTag());
-            raven = null;
+            //set targetPos if raven is alive
+            if (raven.isAlive()) {
+                raven.targetPos = targetUnit.unit().getPosition().toPoint2d();
+                raven.targetPos = UnitUtils.getPosLeadingUnit(raven.unit.unit(), targetUnit.unit());
+            }
+            //remove dead raven
+            else {
+                Ignored.remove(raven.unit.getTag());
+                raven = null;
+            }
         }
         //assign new raven
-        else if (targetUnit.unit().getType() == Units.TERRAN_BANSHEE ||
-                targetUnit.unit().getType() == Units.PROTOSS_OBSERVER) {
+        if (raven == null && isRavenRequired()) {
             addRaven();
         }
+    }
+
+    public boolean isRavenRequired() {
+        return targetUnit.unit().getType() == Units.TERRAN_BANSHEE ||
+                targetUnit.unit().getType() == Units.PROTOSS_OBSERVER ||
+                targetUnit.unit().getType() == Units.PROTOSS_OBSERVER_SIEGED;
     }
 
     private void updateVikings() {
@@ -101,50 +143,25 @@ public class AirUnitKillSquad {
         vikings.forEach(vikingChaser -> Ignored.remove(vikingChaser.unit.getTag()));
     }
 
-
-
-
-    public BasicUnitMicro getRaven() {
-        return raven;
+    private boolean shouldCancelKillSquad() {
+        return !targetUnit.isAlive() ||
+                UnitUtils.isInFogOfWar(targetUnit) ||
+                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, targetUnit.unit().getPosition().toPoint2d()) >= 2;
     }
 
-    public void setRaven(BasicUnitMicro raven) {
-        this.raven = raven;
-    }
 
-    public List<VikingChaser> getVikings() {
-        return vikings;
-    }
-
-    public void setVikings(List<VikingChaser> vikings) {
-        this.vikings = vikings;
-    }
-
-    public UnitInPool getTargetUnit() {
-        return targetUnit;
-    }
-
-    public void setTargetUnit(UnitInPool targetUnit) {
-        this.targetUnit = targetUnit;
-    }
-
-    public int getNumVikingsRequired() {
-        return numVikingsRequired;
-    }
-
-    public void setNumVikingsRequired(int numVikingsRequired) {
-        this.numVikingsRequired = numVikingsRequired;
-    }
-
+    //****************************************
+    //************ STATIC METHODS ************
+    //****************************************
 
     public static void onStep() {
         //remove targets that are dead or in fog of war
         enemyAirTargets.forEach(killSquad -> {
-            if (!killSquad.targetUnit.isAlive() || UnitUtils.isInFogOfWar(killSquad.targetUnit)) {
+            if (killSquad.shouldCancelKillSquad()) {
                 killSquad.removeAll();
             }
         });
-        enemyAirTargets.removeIf(killSquad -> !killSquad.targetUnit.isAlive() || UnitUtils.isInFogOfWar(killSquad.targetUnit));
+        enemyAirTargets.removeIf(killSquad -> killSquad.shouldCancelKillSquad());
 
         //do onStep commands
         enemyAirTargets.forEach(killSquad -> killSquad.updateUnits());
@@ -152,6 +169,12 @@ public class AirUnitKillSquad {
 
     public static boolean contains(Tag targetTag) {
         return enemyAirTargets.stream().anyMatch(killSquad -> killSquad.targetUnit.getTag().equals(targetTag));
+    }
+
+    public static boolean containsWithNoVikings(Tag targetTag) {
+        return enemyAirTargets.stream()
+                .anyMatch(killSquad -> killSquad.targetUnit.getTag().equals(targetTag) &&
+                        killSquad.vikings.isEmpty());
     }
 
     public static void add(UnitInPool newTarget) {

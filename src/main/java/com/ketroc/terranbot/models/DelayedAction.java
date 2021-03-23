@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.Print;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -78,7 +79,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
             return nextFrame();
         }
         long gameFrame = Time.nowFrames() + Time.toFrames(delaySeconds);
-        return gameFrame - (gameFrame % Strategy.SKIP_FRAMES);
+        return gameFrame - (gameFrame % Strategy.STEP_SIZE);
     }
 
     public boolean executeAction() {
@@ -87,13 +88,13 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
             return false;
         }
         if (targetUnit == null && targetPos == null) {
-            Bot.ACTION.unitCommand(unit.unit(), ability, false);
+            ActionHelper.unitCommand(unit.unit(), ability, false);
         }
         else if (targetUnit == null) {
-            Bot.ACTION.unitCommand(unit.unit(), ability, targetPos, false);
+            ActionHelper.unitCommand(unit.unit(), ability, targetPos, false);
         }
         else { //targetPos == null
-            Bot.ACTION.unitCommand(unit.unit(), ability, targetUnit.unit(), false);
+            ActionHelper.unitCommand(unit.unit(), ability, targetUnit.unit(), false);
         }
         return true;
     }
@@ -111,7 +112,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
     }
 
     public static long nextFrame() {
-        return Time.nowFrames() + Strategy.SKIP_FRAMES;
+        return Time.nowFrames() + Strategy.STEP_SIZE;
     }
 
 }

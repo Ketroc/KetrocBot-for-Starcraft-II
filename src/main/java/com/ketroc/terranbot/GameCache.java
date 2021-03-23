@@ -17,7 +17,6 @@ import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GameCache {
 
@@ -468,11 +467,17 @@ public class GameCache {
         EnemyScan.enemyScanSet.stream().forEach(enemyScan -> enemyMappingList.add(new EnemyUnit(enemyScan.scanEffect)));
 
         //add all enemies to the enemyMappingList (include enemies that entered fog within last 5sec)
+        //TODO: include snapshot units like cannons and high ground marines
+        //TODO: remember unit positions for units that can't move like siege tanks / burrowed_lurkers
+        //      but forget the unit when its position becomes visible, or the unit is seen again elsewhere (this may be auto-done)
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemy -> enemy.getLastSeenGameLoop() +
                         ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 24) >= Time.nowFrames())
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
+
+        //add siege tanks and lurkers that are no longer visible
+        EnemyUnitMemory.onStep();
 
         //check for fungal mapping
         Infestor.onStep();
@@ -552,7 +557,7 @@ public class GameCache {
                                     Switches.vikingDiveTarget.unit().getCloakState().orElse(CloakState.CLOAKED_DETECTED) == CloakState.CLOAKED) {
                                 if (UnitUtils.canScan()) {
                                     List<Unit> orbitals = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
-                                    Bot.ACTION.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2), false);
+                                    ActionHelper.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2), false);
                                 }
                                 //cancel dive if I can't scan
                                 else {
@@ -620,10 +625,11 @@ public class GameCache {
 
         InfluenceMaps.pointDetected = new boolean[800][800];
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
-        InfluenceMaps.pointAutoTurretTargets = new boolean[800][800];
+        InfluenceMaps.pointInRavenCastRange = new boolean[800][800];
         InfluenceMaps.pointInMarineRange = new boolean[800][800];
         InfluenceMaps.pointInEnemyVision = new boolean[800][800];
-        InfluenceMaps.pointInVikingRange = new boolean[800][800];
+        InfluenceMaps.enemyInVikingRange = new boolean[800][800];
+        InfluenceMaps.enemyInMissileTurretRange = new boolean[800][800];
         InfluenceMaps.pointThreatToAirPlusBufferValue = new int[800][800];
         InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
         InfluenceMaps.pointSupplyInSeekerRange = new float[800][800];
@@ -693,8 +699,8 @@ public class GameCache {
                         //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
                     }
                     //autoturret cast range
-                    if (distance < Strategy.AUTOTURRET_RANGE && !enemy.isEffect && !enemy.isTumor) {
-                        InfluenceMaps.pointAutoTurretTargets[x][y] = true;
+                    if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor) {
+                        InfluenceMaps.pointInRavenCastRange[x][y] = true;
                     }
 
                     //marine range
@@ -706,7 +712,12 @@ public class GameCache {
 
                         //viking range
                         if (distance < Strategy.VIKING_RANGE) {
-                            InfluenceMaps.pointInVikingRange[x][y] = true;
+                            InfluenceMaps.enemyInVikingRange[x][y] = true;
+                        }
+
+                        //missile turret range
+                        if (distance < 8 + (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 1 : 0)) {
+                            InfluenceMaps.enemyInMissileTurretRange[x][y] = true;
                         }
 
                         //threat to air from air
@@ -747,41 +758,41 @@ public class GameCache {
         }
 
         //debug threat text
-        if (Bot.isDebugOn) {
-            for (int x = xMin+1; x <= xMax-1; x++) {
-                for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointInEnemyVision[x][y]) {
-                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
-                    }
-//                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
+//        if (Bot.isDebugOn) {
+//            for (int x = xMin+1; x <= xMax-1; x++) {
+//                for (int y = yMin+1; y <= yMax-1; y++) {
+//                    if (InfluenceMaps.pointInEnemyVision[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }
-//                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
-//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
-//                    }
-//                    else if (InfluenceMaps.pointDetected[x][y]) {
-//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
-//                    }
-//                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
-//                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
-//                    }
-//                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
-//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
-//                    }
-                }
-            }
-//            float x = LocationConstants.mainBaseMidPos.getX();
-//            float y = LocationConstants.mainBaseMidPos.getY();
-//            float z = Position.getZ(x, y);
-//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-//
-//            x = LocationConstants.enemyMainBaseMidPos.getX();
-//            y = LocationConstants.enemyMainBaseMidPos.getY();
-//            z = Position.getZ(x, y);
-//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-        }
+////                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
+////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
+////                    }
+////                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
+////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
+////                    }
+////                    else if (InfluenceMaps.pointDetected[x][y]) {
+////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
+////                    }
+////                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
+////                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
+////                    }
+////                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
+////                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
+////                    }
+//                }
+//            }
+////            float x = LocationConstants.mainBaseMidPos.getX();
+////            float y = LocationConstants.mainBaseMidPos.getY();
+////            float z = Position.getZ(x, y);
+////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+////
+////            x = LocationConstants.enemyMainBaseMidPos.getX();
+////            y = LocationConstants.enemyMainBaseMidPos.getY();
+////            z = Position.getZ(x, y);
+////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+//        }
 
 
     }

@@ -6,6 +6,8 @@ import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.utils.ActionHelper;
+import com.ketroc.terranbot.utils.ActionIssued;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -40,7 +42,7 @@ public class BasicAttacker {
         float attackRange = (target.getFlying().orElse(false)) ? airAttackRange : groundAttackRange;
         if (doMoveInToEngage(targetDistance - attackRange)) {
             if (!isTargettingUnit(target)) {
-                Bot.ACTION.unitCommand(attacker.unit(), Abilities.ATTACK, target, false);
+                ActionHelper.unitCommand(attacker.unit(), Abilities.ATTACK, target, false);
             }
         }
         else {
@@ -50,8 +52,8 @@ public class BasicAttacker {
     }
 
     private boolean isTargettingUnit(Unit target) {
-        return !attacker.unit().getOrders().isEmpty() &&
-                target.getTag().equals(attacker.unit().getOrders().get(0).getTargetedUnitTag().orElse(null));
+        return ActionIssued.getCurOrder(attacker.unit()).isPresent() &&
+                target.getTag().equals(ActionIssued.getCurOrder(attacker.unit()).get().targetTag);
     }
 
     private Unit findTarget() {

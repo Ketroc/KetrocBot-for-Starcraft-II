@@ -3,9 +3,7 @@ package com.ketroc.terranbot.managers;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
@@ -24,9 +22,7 @@ import com.ketroc.terranbot.strategies.CannonRushDefense;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
-import javax.swing.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
@@ -37,7 +33,7 @@ public class WorkerManager {
         Strategy.setMaxScvs();
         repairLogic();
         //fix3ScvsOn1MineralPatch();
-        if (Time.nowFrames()/Strategy.SKIP_FRAMES % 2 == 0) {
+        if (Time.nowFrames()/Strategy.STEP_SIZE % 2 == 0) {
             fixOverSaturation();
         }
         else {
@@ -88,7 +84,7 @@ public class WorkerManager {
 //            //distance-mine
 //            if (nearestPatch != null) {
 //                Chat.chatOnceOnly("distance mining");
-//                Bot.ACTION.unitCommand(idleScvs, Abilities.SMART, nearestPatch, false);
+//                ActionHelper.unitCommand(idleScvs, Abilities.SMART, nearestPatch, false);
 //            }
 //            //if no minerals to distance mine, join the attack as auto-repairers
 //            else {
@@ -96,7 +92,7 @@ public class WorkerManager {
 //                idleScvs.stream()
 //                        .forEach(scv -> Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV));
 //                //UnitUtils.queueUpAttackOfEveryBase(scvsToMove);
-//                Bot.ACTION.unitCommand(idleScvs, Abilities.ATTACK, ArmyManager.groundAttackersMidPoint, false);
+//                ActionHelper.unitCommand(idleScvs, Abilities.ATTACK, ArmyManager.groundAttackersMidPoint, false);
 //            }
 //        }
     }
@@ -110,7 +106,7 @@ public class WorkerManager {
                                 UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN,
                                         mule.getPosition().toPoint2d())) < 3)
                 .forEach(mule -> {
-                    Bot.ACTION.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
+                    ActionHelper.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
                     Bot.ACTION.toggleAutocast(mule.getTag(), Abilities.EFFECT_REPAIR_MULE);
                 });
     }
@@ -129,7 +125,7 @@ public class WorkerManager {
         });
     }
 
-    private static void repairLogic() {  //TODO: don't repair wall if ranged units on other side
+    private static void repairLogic() {
         if (Bot.OBS.getMinerals() < 15) {
             return;
         }
@@ -175,19 +171,22 @@ public class WorkerManager {
                 //line up scvs behind PF before giving repair command
                 if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS || UnitUtils.getOrder(unit) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);
+                    if (pfBase == null) { //ignore offensive PFs
+                        continue;
+                    }
                     Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
                     for (Unit scv : scvsForRepair) {
                         if (pfBase != null && scvNotBehindPF(scv, pfBase)) {
-                            Bot.ACTION.unitCommand(scv, Abilities.MOVE, behindPFPos, false)
-                                    .unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, true);
+                            ActionHelper.unitCommand(scv, Abilities.MOVE, behindPFPos, false);
+                            ActionHelper.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, true);
                         }
                         else {
-                            Bot.ACTION.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                            ActionHelper.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, false);
                         }
                     }
                 }
                 else {
-                    Bot.ACTION.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                    ActionHelper.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
                 }
             }
         }
@@ -211,7 +210,7 @@ public class WorkerManager {
                         u.unit().getType() == Units.TERRAN_SCV &&
                                 Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
                                 UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
-                                (u.unit().getOrders().isEmpty() || isMiningMinerals(u))));
+                                (ActionIssued.getCurOrder(u.unit()).isEmpty() || isMiningMinerals(u))));
             }
 //                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
 //                            //only send if safe
@@ -327,7 +326,7 @@ public class WorkerManager {
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced, boolean includeGasScvs) {
         List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv -> {
             return scv.unit().getType() == Units.TERRAN_SCV &&
-                    (scv.unit().getOrders().isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
+                    (ActionIssued.getCurOrder(scv.unit()).isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
                     UnitUtils.getDistance(scv.unit(), targetPosition) < distance &&
                     !Ignored.contains(scv.getTag());
         });
@@ -366,18 +365,17 @@ public class WorkerManager {
         return isMiningNode(scv, UnitUtils.REFINERY_TYPE);
     }
 
-    private static boolean isMiningNode(UnitInPool scv, Set<Units> nodeType) { //TODO: doesn't include scvs returning minerals
-        if (scv.unit().getOrders().size() != 1 || scv.unit().getOrders().get(0).getAbility() != Abilities.HARVEST_GATHER) {
+    private static boolean isMiningNode(UnitInPool scv, Set<Units> nodeType) {
+        if (ActionIssued.getCurOrder(scv.unit()).isEmpty() || ActionIssued.getCurOrder(scv.unit()).get().ability != Abilities.HARVEST_GATHER) {
             return false;
         }
 
-        //if returning resources
-        Optional<Tag> scvTargetTag = scv.unit().getOrders().get(0).getTargetedUnitTag();
-        if (scvTargetTag.isEmpty()) { //return false if scv has no target
+        Tag scvTargetTag = ActionIssued.getCurOrder(scv.unit()).get().targetTag;
+        if (scvTargetTag == null) { //return false if scv has no target
             return false;
         }
 
-        UnitInPool targetNode = Bot.OBS.getUnit(scvTargetTag.get());
+        UnitInPool targetNode = Bot.OBS.getUnit(scvTargetTag);
         return targetNode != null && nodeType.contains(targetNode.unit().getType());
     }
 
@@ -408,14 +406,14 @@ public class WorkerManager {
                         }
                         if (refinery.getAssignedHarvesters().get() > numScvsRequiredForGas) {
                              List<UnitInPool> availableGasScvs = Bot.OBS.getUnits(Alliance.SELF, u -> {
-                                if (u.unit().getType() == Units.TERRAN_SCV && !u.unit().getOrders().isEmpty()) {
-                                    UnitOrder order = u.unit().getOrders().get(0);
-                                    return order.getTargetedUnitTag().isPresent() && order.getAbility() == Abilities.HARVEST_GATHER && order.getTargetedUnitTag().get().equals(refinery.getTag());
+                                if (u.unit().getType() == Units.TERRAN_SCV && ActionIssued.getCurOrder(u.unit()).isPresent()) {
+                                    ActionIssued order = ActionIssued.getCurOrder(u.unit()).get();
+                                    return order.ability == Abilities.HARVEST_GATHER && refinery.getTag().equals(order.targetTag);
                                 }
                                 return false;
                              });
                              if (!availableGasScvs.isEmpty()) {
-                                 Bot.ACTION.unitCommand(UnitUtils.toUnitList(availableGasScvs), Abilities.STOP, false);
+                                 ActionHelper.unitCommand(UnitUtils.toUnitList(availableGasScvs), Abilities.STOP, false);
                              }
                         }
                     }
@@ -519,7 +517,7 @@ public class WorkerManager {
     }
 
     //Up a new pf base to a minimum of 10 scvs (12 for nat)
-    public static void sendScvsToNewPf(Unit pf) { //TODO: fix this to create MineralPatch scvs at natural
+    public static void sendScvsToNewPf(Unit pf) { //TODO: fix this to create MineralPatch scvs
         Point2d pfPos = pf.getPosition().toPoint2d();
 
         //transfer a lot to nat PF for early rushes
@@ -530,11 +528,11 @@ public class WorkerManager {
             }
             mainBaseScvs.forEach(scv -> {
                     if (UnitUtils.isCarryingResources(scv.unit())) {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false)
-                                .unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), true);
+                        ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false);
+                        ActionHelper.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), true);
                     }
                     else {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), false);
+                        ActionHelper.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), false);
                     }
             });
             return;
@@ -552,7 +550,7 @@ public class WorkerManager {
 
         List<Unit> scvs = getDeepestMineralScvs(scvsNeeded);
         if (!scvs.isEmpty()) {
-            Bot.ACTION.unitCommand(scvs, Abilities.SMART, targetNode, false);
+            ActionHelper.unitCommand(scvs, Abilities.SMART, targetNode, false);
         }
     }
 

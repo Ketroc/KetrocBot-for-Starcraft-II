@@ -19,6 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+    Assign a target in your main or natural, and it will pull the appropriate amount of scvs to kill it
+    Scvs will retreat when low hp and get replaced.
+    On target death, or if target leaves, scvs free up to be used for mining
+ */
 public class ScvTarget {
     public static List<ScvTarget> targets = new ArrayList<>();
 
@@ -58,6 +63,17 @@ public class ScvTarget {
                 }
                 else {
                     numScvs = 0;
+                }
+                break;
+            case ZERG_HATCHERY: //TODO: math the answer for numScvs
+                if (targetUnit.unit().getBuildProgress() > 0.80) {
+                    giveUp = true;
+                }
+                else if (targetUnit.unit().getBuildProgress() > 0.5) {
+                    numScvs = 12;
+                }
+                else {
+                    numScvs = 7;
                 }
                 break;
         }
@@ -100,4 +116,9 @@ public class ScvTarget {
             }
         }
     }
+
+    public static boolean contains(Tag targetTag) {
+        return targets.stream().anyMatch(scvTarget -> targetTag.equals(scvTarget.targetUnit.getTag()));
+    }
+
 }

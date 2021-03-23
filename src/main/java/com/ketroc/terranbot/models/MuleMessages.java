@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -78,7 +79,7 @@ public class MuleMessages {
 
         //calldown mules
         while (!remainingMulePositions.isEmpty() && !ocList.isEmpty()) {
-            Bot.ACTION.unitCommand(ocList.remove(0).unit(), Abilities.EFFECT_CALL_DOWN_MULE, remainingMulePositions.remove(0), false);
+            ActionHelper.unitCommand(ocList.remove(0).unit(), Abilities.EFFECT_CALL_DOWN_MULE, remainingMulePositions.remove(0), false);
         }
 
         //finished message
@@ -89,7 +90,7 @@ public class MuleMessages {
 
     private static void scanLetterPositions(char[] message, List<UnitInPool> ocList) {
         for (int i=0; i<message.length; i++) {
-            Bot.ACTION.unitCommand(ocList.get(i).unit(), Abilities.EFFECT_SCAN,
+            ActionHelper.unitCommand(ocList.get(i).unit(), Abilities.EFFECT_SCAN,
                     LocationConstants.muleLetterPosList.get(i).add(Point2d.of(3f, 5f)), false);
         }
     }

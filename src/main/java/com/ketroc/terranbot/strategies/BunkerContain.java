@@ -243,7 +243,7 @@ public class BunkerContain {
     public static void removeRepairScv(UnitInPool scv) {
         repairScvList.remove(scv);
         if (UnitUtils.getOrder(scv.unit()) != null) {
-            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
+            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
         }
         Ignored.remove(scv.getTag());
     }
@@ -265,7 +265,7 @@ public class BunkerContain {
         List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.getDistance(enemy.unit(), bunker.unit()) < BUNKER_RANGE);
         UnitInPool target = selectTarget(enemiesInRange);
         if (target != null) {
-            Bot.ACTION.unitCommand(bunker.unit(), Abilities.ATTACK, target.unit(), false);
+            ActionHelper.unitCommand(bunker.unit(), Abilities.ATTACK, target.unit(), false);
         }
     }
 
@@ -283,7 +283,7 @@ public class BunkerContain {
             });
             UnitInPool target = selectTarget(enemiesInRange);
             if (target != null) {
-                Bot.ACTION.unitCommand(tank, Abilities.ATTACK, target.unit(), false);
+                ActionHelper.unitCommand(tank, Abilities.ATTACK, target.unit(), false);
             }
         }
     }
@@ -309,13 +309,13 @@ public class BunkerContain {
                     //2 tanks per expansion base
                     if (GameCache.siegeTankList.size() < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
                             UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                        Bot.ACTION.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
                         Cost.updateBank(Units.TERRAN_SIEGE_TANK);
                     }
                 }
                 else if (!factory.getFlying().orElse(true) && !Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
-                    Bot.ACTION.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
+                    ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                 }
             }
         }
@@ -324,7 +324,7 @@ public class BunkerContain {
     private static void sendBarracksHome() {
         if (!isBarracksSentHome) {
             if (UnitUtils.getOrder(barracks.unit()) == Abilities.TRAIN_MARINE) {
-                Bot.ACTION.unitCommand(barracks.unit(), Abilities.CANCEL_LAST, false);
+                ActionHelper.unitCommand(barracks.unit(), Abilities.CANCEL_LAST, false);
             }
             DelayedAction.delayedActions.add(new DelayedAction(Time.nowFrames()+2, Abilities.LIFT_BARRACKS, barracks));
             DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.LAND, barracks, LocationConstants._3x3Structures.remove(0)));
@@ -337,12 +337,12 @@ public class BunkerContain {
             Unit firstScv = repairScvList.get(0).unit();
             Base.releaseMineralScv(firstScv);
             if (UnitUtils.isCarryingResources(firstScv)) {
-                Bot.ACTION.unitCommand(firstScv, Abilities.HARVEST_RETURN, false)
-                        .unitCommand(firstScv, Abilities.MOVE, barracksPos, true);
+                ActionHelper.unitCommand(firstScv, Abilities.HARVEST_RETURN, false);
+                ActionHelper.unitCommand(firstScv, Abilities.MOVE, barracksPos, true);
                 UnitUtils.patrolInPlace(firstScv, barracksPos);
             }
             else {
-                Bot.ACTION.unitCommand(firstScv, Abilities.MOVE, barracksPos, false);
+                ActionHelper.unitCommand(firstScv, Abilities.MOVE, barracksPos, false);
                 UnitUtils.patrolInPlace(firstScv, barracksPos);
             }
             isFirstScvSent = true;
@@ -357,19 +357,19 @@ public class BunkerContain {
             if (!LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
-                Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false)
-                        .unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true)
-                        .unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(3)), true);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(3)), true);
                 UnitUtils.patrolInPlace(scoutScvs.get(0).unit(), getResourceMidPoint(LocationConstants.clockBasePositions.get(3)));
-                Bot.ACTION.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(1)), false)
-                        .unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(2)), true)
-                        .unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)), true);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(1)), false);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(2)), true);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)), true);
                 UnitUtils.patrolInPlace(scoutScvs.get(1).unit(), getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)));
             }
             else {
-                Bot.ACTION.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(3)), false);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(3)), false);
                 UnitUtils.patrolInPlace(scoutScvs.get(0).unit(), getResourceMidPoint(LocationConstants.baseLocations.get(3)));
-                Bot.ACTION.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(4)), false);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(4)), false);
                 UnitUtils.patrolInPlace(scoutScvs.get(1).unit(), getResourceMidPoint(LocationConstants.baseLocations.get(4)));
             }
             isScoutScvsSent = true;
@@ -381,13 +381,13 @@ public class BunkerContain {
                 if (!enemyBarracks.isEmpty()) {
                     List<UnitInPool> enemyScv = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_SCV, enemyBarracks.get(0).unit().getPosition().toPoint2d(), 5);
                     Unit scvAttackTarget = (!enemyScv.isEmpty()) ? enemyScv.get(0).unit() : enemyBarracks.get(0).unit();
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scoutScvs), Abilities.ATTACK, scvAttackTarget, false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scoutScvs), Abilities.ATTACK, scvAttackTarget, false);
                     UnitUtils.patrolInPlace(UnitUtils.toUnitList(scoutScvs), scvAttackTarget.getPosition().toPoint2d());
                 }
                 //if no enemy proxy or after enemy proxy cancelled, then go to behindBunkerPos
                 else if (scoutScvs.stream().anyMatch(
                         scv -> UnitUtils.getOrder(scv.unit()) == Abilities.ATTACK)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scoutScvs), Abilities.MOVE, behindBunkerPos, false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scoutScvs), Abilities.MOVE, behindBunkerPos, false);
                 }
             }
             //make scoutscv a repairscv when it arrives at bunker
@@ -398,7 +398,7 @@ public class BunkerContain {
                     if (!didFirstScoutScvIdle) {
                         didFirstScoutScvIdle = true;
                         if (LocationConstants.proxyBunkerPos2 != null) {
-                            Bot.ACTION.unitCommand(scoutScv.unit(), Abilities.MOVE, LocationConstants.proxyBunkerPos2, false);
+                            ActionHelper.unitCommand(scoutScv.unit(), Abilities.MOVE, LocationConstants.proxyBunkerPos2, false);
                             UnitUtils.patrolInPlace(scoutScv.unit(), LocationConstants.proxyBunkerPos2);
                             KetrocBot.purchaseQueue.stream()
                                     .filter(purchase -> purchase instanceof PurchaseStructure &&
@@ -415,7 +415,7 @@ public class BunkerContain {
             scoutScvs.stream()
                     .map(UnitInPool::unit)
                     .filter(scv -> UnitUtils.getOrder(scv) == Abilities.PATROL)
-                    .forEach(scv -> Bot.ACTION.unitCommand(scv, Abilities.MOVE, behindBunkerPos, false));
+                    .forEach(scv -> ActionHelper.unitCommand(scv, Abilities.MOVE, behindBunkerPos, false));
         }
     }
 
@@ -431,7 +431,7 @@ public class BunkerContain {
 //        //allow first marine to head home
 //        if (LocationConstants.opponentRace == Race.TERRAN) {
 //            if (getMarineCount() == 1) {
-//                Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
+//                ActionHelper.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
 //                return;
 //            }
 //        }
@@ -450,27 +450,27 @@ public class BunkerContain {
 //            //enter bunker if nearby
 //            if (isBunkerComplete && UnitUtils.getDistance(marine, bunker.unit()) < 6) {
 //                if (bunker.unit().getPassengers().stream().anyMatch(unitInBunker -> unitInBunker.getType() == Units.TERRAN_SCV)) {
-//                    Bot.ACTION.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL, false);
+//                    ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL, false);
 //                }
-//                Bot.ACTION.unitCommand(marine, Abilities.SMART, bunker.unit(), false);
+//                ActionHelper.unitCommand(marine, Abilities.SMART, bunker.unit(), false);
 //            }
 //            //no enemies
 //            else if (closestEnemy == null) {
-//                Bot.ACTION.unitCommand(marine, Abilities.MOVE, behindBunkerPos, false);
+//                ActionHelper.unitCommand(marine, Abilities.MOVE, behindBunkerPos, false);
 //            }
 //            //enemies in range
 //            else {
 //                //always shoot when available
 //                if (UnitUtils.isWeaponAvailable(marine)) {
-//                    Bot.ACTION.unitCommand(marine, Abilities.ATTACK, behindBunkerPos, false);
+//                    ActionHelper.unitCommand(marine, Abilities.ATTACK, behindBunkerPos, false);
 //                }
 //                //retreat from enemy when on weapon cooldown and bunker incomplete
 //                else if (isBunkerComplete) {
 //                    Point2d retreatPos = Position.towards(marine.getPosition().toPoint2d(), closestEnemy.getPosition().toPoint2d(), -10);
-//                    Bot.ACTION.unitCommand(marine, Abilities.MOVE, retreatPos, false);
+//                    ActionHelper.unitCommand(marine, Abilities.MOVE, retreatPos, false);
 //                }
 //                else {
-//                    Bot.ACTION.unitCommand(marine, Abilities.MOVE, behindBunkerPos, false);
+//                    ActionHelper.unitCommand(marine, Abilities.MOVE, behindBunkerPos, false);
 //                }
 //            }
 //        }
@@ -478,7 +478,7 @@ public class BunkerContain {
 
     private static void buildMarines() {
         if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
-            Bot.ACTION.unitCommand(barracks.unit(), Abilities.TRAIN_MARINE, false);
+            ActionHelper.unitCommand(barracks.unit(), Abilities.TRAIN_MARINE, false);
             Cost.updateBank(Units.TERRAN_MARINE);
         }
     }
@@ -510,11 +510,11 @@ public class BunkerContain {
         //move back to position if no repair targets
         if (injuredUnits.isEmpty()) {
             List<Unit> scvsToMove = availableScvs.stream()
-                    .filter(scv -> scv.getOrders().isEmpty())
+                    .filter(scv -> ActionIssued.getCurOrder(scv).isEmpty())
                     .filter(scv -> UnitUtils.getDistance(scv, behindBunkerPos) > 2)
                     .collect(Collectors.toList());
             if (!scvsToMove.isEmpty()) {
-                Bot.ACTION.unitCommand(scvsToMove, Abilities.MOVE, behindBunkerPos, false);
+                ActionHelper.unitCommand(scvsToMove, Abilities.MOVE, behindBunkerPos, false);
             }
         }
         //repair logic
@@ -523,19 +523,19 @@ public class BunkerContain {
             for (UnitInPool injuredUnit : injuredUnits) {
                 //2nd target solely for the injured scv
                 if (injuredScv != null) {
-                    Bot.ACTION.unitCommand(injuredScv.unit(), Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+                    ActionHelper.unitCommand(injuredScv.unit(), Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
                     break;
                 }
                 //if target is an scv
                 else if (availableScvs.remove(injuredUnit)) {
                     injuredScv = injuredUnit;
                     if (!availableScvs.isEmpty()) {
-                        Bot.ACTION.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+                        ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
                     }
                 }
                 //if target is not an scv
                 else {
-                    Bot.ACTION.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+                    ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
                     break;
                 }
             }
@@ -550,12 +550,13 @@ public class BunkerContain {
     }
 
     public static boolean isRepairingValidTarget(Unit scv) {
-        if (!scv.getOrders().isEmpty()) {
-            UnitOrder order = scv.getOrders().get(0);
-            if (order.getAbility() == Abilities.EFFECT_REPAIR) {
-                if (order.getTargetedUnitTag().isPresent()) {
-                    Unit target = Bot.OBS.getUnit(order.getTargetedUnitTag().get()).unit();
-                    if (target.getType() != Units.TERRAN_SCV || repairScvList.stream().anyMatch(u -> u.getTag().equals(target.getTag()))) {
+        if (ActionIssued.getCurOrder(scv).isPresent()) {
+            ActionIssued order = ActionIssued.getCurOrder(scv).get();
+            if (order.ability == Abilities.EFFECT_REPAIR) {
+                if (order.targetTag != null) {
+                    UnitInPool target = Bot.OBS.getUnit(order.targetTag);
+                    if (target != null && target.unit().getType() != Units.TERRAN_SCV ||
+                            repairScvList.stream().anyMatch(u -> u.getTag().equals(target.getTag()))) {
                         return true;
                     }
                 }
@@ -577,7 +578,7 @@ public class BunkerContain {
             UnitInPool oldScv = repairScvList.get(i);
             if (!oldScv.isAlive() || oldScv.unit().getHealth().orElse(45f) < 10) {
                 if (oldScv.isAlive()) {
-                    Bot.ACTION.unitCommand(oldScv.unit(), Abilities.STOP, false);
+                    ActionHelper.unitCommand(oldScv.unit(), Abilities.STOP, false);
                 }
                 UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
                 Base.releaseMineralScv(newScv.unit());
@@ -587,7 +588,7 @@ public class BunkerContain {
                 if (isFactoryScv(oldScv.getTag())) {
                     setFactoryScv();
                 }
-                Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
+                ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
             }
         }
     }
@@ -595,7 +596,7 @@ public class BunkerContain {
     public static void addNewRepairScv() {
         UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
         addRepairScv(newScv);
-        Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
+        ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
     }
 
     private static boolean abandonProxy() {
@@ -656,7 +657,7 @@ public class BunkerContain {
         if (bunker != null && bunker.isAlive()) {
             //empty bunker and salvage
             if (bunker.unit().getBuildProgress() == 1) {
-                Bot.ACTION.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
+                ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
                 DelayedAction.delayedActions.add(
                         new DelayedAction(Time.nowFrames()+2, Abilities.EFFECT_SALVAGE, bunker));
             }
@@ -679,7 +680,7 @@ public class BunkerContain {
 
         //send scvs home
         if (!repairScvList.isEmpty()) { //TODO: does this work?  Is this required
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(repairScvList), Abilities.STOP, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(repairScvList), Abilities.STOP, false);
             repairScvList.forEach(scv -> Ignored.remove(scv.getTag()));
         }
 
@@ -790,12 +791,12 @@ public class BunkerContain {
         Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null)
                 ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.pointOnMyRamp, 2)
                 : behindBunkerPos;
-        Bot.ACTION.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
+        ActionHelper.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
     }
 
     private static void onBunkerStarted(UnitInPool bunk) {
         bunker = bunk;
-        Bot.ACTION.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
+        ActionHelper.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
 
         //send out another scv
         if (!scoutProxy) {
@@ -831,7 +832,7 @@ public class BunkerContain {
                     PurchaseStructure p = (PurchaseStructure) purchase;
                     if (p.getStructureType() == Units.TERRAN_FACTORY) {
                         p.setScv(factoryScv.unit());
-                        Bot.ACTION.unitCommand(factoryScv.unit(), Abilities.MOVE, p.getPosition(), false);
+                        ActionHelper.unitCommand(factoryScv.unit(), Abilities.MOVE, p.getPosition(), false);
                         UnitUtils.patrolInPlace(factoryScv.unit(), p.getPosition());
                         break;
                     }
@@ -841,7 +842,7 @@ public class BunkerContain {
     }
 
     public static void onBunkerComplete() {
-        Bot.ACTION.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
+        ActionHelper.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
         if (proxyBunkerLevel != 2) {
             repairScvList.stream()
                     .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.myMineralPos)))
@@ -851,7 +852,7 @@ public class BunkerContain {
 
     private static void onFactoryStarted(UnitInPool fact) {
         factory = fact;
-        Bot.ACTION.unitCommand(factory.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
+        ActionHelper.unitCommand(factory.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
 
         Point2d turretPos = calcTurretPosition(true);
         if (!Strategy.NO_TURRETS) {

@@ -179,7 +179,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
         //cancel starport purchases if any existing starport is idle
         if (structureType == Units.TERRAN_STARPORT && Bot.OBS.getFoodUsed() <= 197 &&
-                GameCache.starportList.stream().anyMatch(u -> u.unit().getOrders().isEmpty())) {
+                GameCache.starportList.stream().anyMatch(u -> ActionIssued.getCurOrder(u.unit()).isEmpty())) {
             makePositionAvailableAgain(position);
             return PurchaseResult.CANCEL;
         }
@@ -200,6 +200,11 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             }
         }
 
+        //if structure position unsafe, wait
+        if (InfluenceMaps.getThreatToStructure(structureType, position) > 1) {
+            return PurchaseResult.WAITING;
+        }
+
         if (scv == null) { //select an scv if none was provided
             if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && LocationConstants.baseLocations.get(0).distance(position) > 50) {
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);
@@ -211,11 +216,14 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     makePositionAvailableAgain(position);
                     return PurchaseResult.CANCEL;
                 }
-                scv = availableScvs.get(0).unit();
+                scv = availableScvs.stream()
+                        .map(unitInPool -> unitInPool.unit())
+                        .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv, position)))
+                        .get();
             }
         }
         Print.print("sending action " + buildAction + " at pos: " + position.toString());
-        Bot.ACTION.unitCommand(this.scv, buildAction, this.position, false);
+        ActionHelper.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
         return PurchaseResult.SUCCESS;
@@ -242,7 +250,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             this.scv = availableScvs.get(0).unit();
                             gas.setGeyser(getGeyserUnitAtPosition(gas.getPosition()));
                             Print.print("sending action " + Abilities.BUILD_REFINERY);
-                            Bot.ACTION.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
+                            ActionHelper.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);
                             return PurchaseResult.SUCCESS;
@@ -278,12 +286,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
     private void selectARallyUnit() {
         if (this.rallyUnit == null) {
-            if (this.scv.getOrders().isEmpty()) { //send to main base mineral patch
+            if (ActionIssued.getCurOrder(this.scv).isEmpty()) { //send to main base mineral patch
                 this.rallyUnit = GameCache.defaultRallyNode;
             } else { //back to same mineral patch it's mining now
-                this.rallyUnit = Bot.OBS.getUnit(
-                        this.scv.getOrders().get(0).getTargetedUnitTag().get()
-                ).unit();
+                this.rallyUnit = Bot.OBS.getUnit(ActionIssued.getCurOrder(this.scv).get().targetTag).unit();
             }
         }
     }
@@ -292,6 +298,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         switch (structureType) {
             case TERRAN_SUPPLY_DEPOT:
                 LocationConstants.extraDepots.add(pos);
+                break;
+            case TERRAN_FACTORY:
+                LocationConstants.FACTORIES.add(pos);
                 break;
             case TERRAN_STARPORT:
                 LocationConstants.STARPORTS.add(pos);
@@ -328,6 +337,17 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     if (base.isUntakenBase() &&
                             isLocationSafeAndAvailable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER)) {
                         position = base.getCcPos(); //TODO: check for minerals/gas at base
+                        return true;
+                    }
+                }
+                return false;
+            case TERRAN_FACTORY:
+                if (!LocationConstants.FACTORIES.isEmpty()) {
+                    position = LocationConstants.FACTORIES.stream()
+                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_FACTORY))
+                            .findFirst().orElse(null);
+                    if (position != null) {
+                        LocationConstants.FACTORIES.remove(position);
                         return true;
                     }
                 }

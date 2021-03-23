@@ -4,7 +4,6 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
@@ -41,6 +40,7 @@ public class StructureScv {
         this.structurePos = structurePos;
         this.buildAbility = buildAbility;
         this.structureType = Bot.abilityToUnitType.get(buildAbility);
+        PlacementMap.makeUnavailable(structureType, structurePos);
         scvAddedFrame = Time.nowFrames();
         setScv(scv);
     }
@@ -100,14 +100,19 @@ public class StructureScv {
     public void cancelProduction() {
         //cancel structure
         if (getStructureUnit() != null && getStructureUnit().isAlive()) {
-            Bot.ACTION.unitCommand(getStructureUnit().unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
+            ActionHelper.unitCommand(getStructureUnit().unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
         }
+        PlacementMap.makeAvailable(structureType, structurePos);
 
         //send scv to mineral patch
         if (scv.isAlive()) {
             Ignored.remove(scv.getTag());
-            Bot.ACTION.unitCommand(scv.unit(), Abilities.STOP, false);
+            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
         }
+    }
+
+    public boolean isStructurePosSafe() {
+        return InfluenceMaps.getGroundThreatToStructure(structureType, structurePos) > 1;
     }
 
     @Override
@@ -161,7 +166,7 @@ public class StructureScv {
     }
 
     public static void checkScvsActivelyBuilding() {
-        for (int i = 0; i< scvBuildingList.size(); i++) {
+        for (int i = 0; i<scvBuildingList.size(); i++) {
             StructureScv structureScv = scvBuildingList.get(i);
 
             //if assigned scv is dead add another
@@ -175,6 +180,10 @@ public class StructureScv {
                             .ifPresent(u -> structureScv.setScv(u));
                 }
                 if (!structureScv.scv.isAlive()) {
+                    //don't add another scv if the structure is under enemy threat
+                    if (InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
+                        continue;
+                    }
                     List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
                     if (!availableScvs.isEmpty()) {
                         structureScv.setScv(availableScvs.get(0));
@@ -183,7 +192,9 @@ public class StructureScv {
             }
 
             //if scv doesn't have the build command
-            if (structureScv.scv.unit().getOrders().isEmpty() || !structureScv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == structureScv.buildAbility)) {
+            if (ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty() ||
+                    (ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility) &&
+                            structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility))) { //scv can have the order queued if it just finished building another structure
                 UnitInPool structure = structureScv.getStructureUnit();
 
                 //if structure never started/destroyed, repurchase
@@ -211,7 +222,7 @@ public class StructureScv {
 
                     //send another scv
                     else {
-                        Bot.ACTION.unitCommand(structureScv.scv.unit(), Abilities.SMART, structure.unit(), false);
+                        ActionHelper.unitCommand(structureScv.scv.unit(), Abilities.SMART, structure.unit(), false);
                     }
                 }
 
@@ -235,6 +246,9 @@ public class StructureScv {
                 break;
             case TERRAN_SUPPLY_DEPOT:
                 LocationConstants.extraDepots.add(structureScv.structurePos);
+                break;
+            case TERRAN_FACTORY:
+                LocationConstants.FACTORIES.add(structureScv.structurePos);
                 break;
             case TERRAN_STARPORT:
                 LocationConstants.STARPORTS.add(structureScv.structurePos);

@@ -80,6 +80,11 @@ public class ArmyManager {
             positionMarines();
         }
 
+        //TODO: this is a temporary test
+        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
+            UnitMicroList.add(new Cyclone(cyclone, LocationConstants.insideMainWall));
+        });
+
         //repair station
         manageRepairBay();
 
@@ -98,15 +103,15 @@ public class ArmyManager {
 
             //send actions
             if (!armyGoingHome.isEmpty()) {
-                Bot.ACTION.unitCommand(armyGoingHome, Abilities.MOVE, retreatPos, false);
+                ActionHelper.unitCommand(armyGoingHome, Abilities.MOVE, retreatPos, false);
             }
             if (!armyGroundAttacking.isEmpty()) {
                 Point2d targetPos = attackGroundPos;
-                Bot.ACTION.unitCommand(armyGroundAttacking, Abilities.ATTACK, targetPos, false);
+                ActionHelper.unitCommand(armyGroundAttacking, Abilities.ATTACK, targetPos, false);
             }
             if (!armyAirAttacking.isEmpty()) {
                 Point2d targetPos = attackAirPos;
-                Bot.ACTION.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
+                ActionHelper.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
             }
 
             pfTargetting();
@@ -137,7 +142,7 @@ public class ArmyManager {
                         Point2d libZone = Position.towards(lib.getPosition().toPoint2d(), base.getCcPos(), 5);
                         Unit targetUnit = getLibTarget(lib, libZone);
                         if (targetUnit != null) {
-                            Bot.ACTION.unitCommand(lib, Abilities.ATTACK, targetUnit, false);
+                            ActionHelper.unitCommand(lib, Abilities.ATTACK, targetUnit, false);
                         }
                     }
                 }
@@ -206,8 +211,8 @@ public class ArmyManager {
             List<Unit> army = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
             army.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_HELLION_TANK));
             if (army.size() >= 20 || Bot.OBS.getFoodUsed() >= 199 || Cost.isMineralBroke()) {
-                if (army.stream().anyMatch(unit -> !unit.getOrders().isEmpty())) {
-                    Bot.ACTION.unitCommand(army, Abilities.ATTACK, attackGroundPos, false);
+                if (army.stream().anyMatch(unit -> ActionIssued.getCurOrder(unit).isPresent())) {
+                    ActionHelper.unitCommand(army, Abilities.ATTACK, attackGroundPos, false);
                 }
             }
         }
@@ -218,7 +223,7 @@ public class ArmyManager {
                 .filter(turret -> UnitUtils.isWeaponAvailable(turret))
                 .forEach(turret -> {
                     selectTarget(turret).ifPresent(target ->
-                            Bot.ACTION.unitCommand(turret, Abilities.ATTACK, target, false));
+                            ActionHelper.unitCommand(turret, Abilities.ATTACK, target, false));
                 });
     }
 
@@ -250,9 +255,6 @@ public class ArmyManager {
     }
 
     private static float getDamageMultiple(Unit enemy) {
-        if (enemy.getType() instanceof Units.Other) { //TODO: remove when shield battery Units enum is added
-            return 1;
-        }
         switch ((Units)enemy.getType()) {
             case PROTOSS_IMMORTAL:
                 return 2;
@@ -312,16 +314,16 @@ public class ArmyManager {
                         //scan behind the tempest
                         if (UnitUtils.canScan()) {
                             List<Unit> orbitals = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
-                            Bot.ACTION.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -5), false);
+                            ActionHelper.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -5), false);
                         }
-                        Bot.ACTION.unitCommand(attackVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
+                        ActionHelper.unitCommand(attackVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
                     }
                     else {
-                        Bot.ACTION.unitCommand(attackVikings, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
+                        ActionHelper.unitCommand(attackVikings, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
                     }
                 }
                 if (!moveVikings.isEmpty()) {
-                    Bot.ACTION.unitCommand(moveVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
+                    ActionHelper.unitCommand(moveVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
                 }
             }
             else {
@@ -333,7 +335,12 @@ public class ArmyManager {
     }
 
     private static void setDoOffense() {
-        if (Strategy.MASS_RAVENS) {
+        //TODO: testing cyclones
+        if (Strategy.DO_USE_CYCLONES &&
+                (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty())) {
+            doOffense = true;
+        }
+        else if (Strategy.MASS_RAVENS) {
             numAutoturretsAvailable = GameCache.ravenList.stream()
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
@@ -411,10 +418,10 @@ public class ArmyManager {
             }
         }
         if (!attackers.isEmpty()) {
-            Bot.ACTION.unitCommand(attackers, Abilities.ATTACK, diveTarget.unit(), false);
+            ActionHelper.unitCommand(attackers, Abilities.ATTACK, diveTarget.unit(), false);
         }
         if (!retreaters.isEmpty()) {
-            Bot.ACTION.unitCommand(retreaters, Abilities.MOVE, retreatPos, false);
+            ActionHelper.unitCommand(retreaters, Abilities.MOVE, retreatPos, false);
         }
         return true;
     }
@@ -508,11 +515,14 @@ public class ArmyManager {
         }
         attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
 
-        //send kill squad if criteria met TODO: track into fog, but ignore deep targets
+        //send kill squad if criteria met TODO: track into fog
         if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, attackAirPos) &&
-                UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType())) {
+                UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
+                attackAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40) {
+            if (!GameCache.vikingList.isEmpty()) {
+                attackAirPos = attackGroundPos;
+            }
             AirUnitKillSquad.add(closestEnemyAir);
-            attackAirPos = attackGroundPos;
         }
     }
 
@@ -520,9 +530,7 @@ public class ArmyManager {
         UnitInPool closestEnemyGroundUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> //(Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
                         !u.unit().getFlying().orElse(false) && //ground unit
-                                u.unit().getDisplayType() != DisplayType.HIDDEN &&
-                                //u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units TODO: handle banshees DTs etc with scan
-                                //!u.unit().getBurrowed().orElse(false) && //ignore burrowed units TODO: handle with scan
+                                (!GameCache.ravenList.isEmpty() || u.unit().getDisplayType() != DisplayType.HIDDEN) && //TODO: handle with scan?
                                 !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
                                 u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                                 !u.unit().getHallucination().orElse(false)) //ignore hallucs
@@ -553,7 +561,7 @@ public class ArmyManager {
     private static UnitInPool getClosestEnemyAirUnit() {
         return GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
-                        !Ignored.contains(u.getTag()) &&
+                        (!Ignored.contains(u.getTag()) || AirUnitKillSquad.containsWithNoVikings(u.getTag())) &&
                         u.unit().getFlying().orElse(false) && //air unit
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
@@ -588,7 +596,7 @@ public class ArmyManager {
             attackGroundPos = nydusWorm.get().unit().getPosition().toPoint2d();
             attackUnit = nydusWorm.get().unit();
             if (!nydusDivers.isEmpty()) {
-                Bot.ACTION.unitCommand(nydusDivers, Abilities.ATTACK, ArmyManager.attackUnit, false);
+                ActionHelper.unitCommand(nydusDivers, Abilities.ATTACK, ArmyManager.attackUnit, false);
             }
 
             //also set banshee dive target to nydus
@@ -662,7 +670,7 @@ public class ArmyManager {
 
             //attack
             if (bestTargetUnit != null) {
-                Bot.ACTION.unitCommand(pf, Abilities.ATTACK, bestTargetUnit, false);
+                ActionHelper.unitCommand(pf, Abilities.ATTACK, bestTargetUnit, false);
             }
         }
     }
@@ -682,7 +690,7 @@ public class ArmyManager {
         if (enemyInMain() || enemyInNaturalPastBunker() ||
                 (enemyInNatural() && bunker == null)) {
             if (bunker != null) {
-                Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
+                ActionHelper.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
             }
             MarineBasic.setTargetPos(attackGroundPos);
             return;
@@ -737,7 +745,7 @@ public class ArmyManager {
 
     private static void positionLiberators() { //positions only 1 liberator per game loop
         Unit idleLib = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
-                .filter(unit -> unit.getOrders().isEmpty())
+                .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
                 .findFirst().orElse(null);
 
         if (idleLib == null) {
@@ -791,8 +799,8 @@ public class ArmyManager {
 //        if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
 //            GameCache.baseList.stream()
 //                    .filter(base -> base.isEnemyBase)
-//                    .forEach(base -> Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
-//            Bot.ACTION.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
+//                    .forEach(base -> ActionHelper.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
+//            ActionHelper.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
 //        }
     }
 
@@ -804,8 +812,8 @@ public class ArmyManager {
         }
         Unit bunker = bunkerList.get(0).unit();
         if (UnitUtils.getHealthPercentage(bunker) < 40 || bunkerUnnecessary()) {
-            Bot.ACTION.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
-            Bot.ACTION.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
+            ActionHelper.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
+            ActionHelper.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
         }
     }
 
@@ -823,22 +831,22 @@ public class ArmyManager {
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
             if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos)) {
-                Bot.ACTION.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
+                ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
         }
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT_LOWERED)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
             if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) &&
                     (CannonRushDefense.cannonRushStep == 0 || !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ZEALOT).isEmpty())) {
-                Bot.ACTION.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
             }
         }
     }
 
     public static void spreadArmy(List<Unit> army) {
         for (Unit unit : army) {
-            if (unit.getOrders().isEmpty()) {
-                Bot.ACTION.unitCommand(unit, Abilities.ATTACK, Bot.OBS.getGameInfo().findRandomLocation(), false);
+            if (ActionIssued.getCurOrder(unit).isEmpty()) {
+                ActionHelper.unitCommand(unit, Abilities.ATTACK, Bot.OBS.getGameInfo().findRandomLocation(), false);
             }
         }
     }
@@ -884,7 +892,7 @@ public class ArmyManager {
                     answer += 0.5;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
-                    answer += 1.5;
+                    answer += 1.67;
                     break;
                 case ZERG_CORRUPTOR:
                     answer += 1.3;
@@ -928,9 +936,7 @@ public class ArmyManager {
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
         boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
-        boolean canAttack = banshee.getWeaponCooldown().orElse(1f) < 0.1f &&
-                InfluenceMaps.pointThreatToAirValue[x][y] < 200 &&
-                !banshee.getBuffs().contains(Buffs.DEFENSIVE_MATRIX);
+        boolean canAttack = UnitUtils.isWeaponAvailable(banshee) && InfluenceMaps.pointThreatToAirValue[x][y] < 200;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
@@ -942,7 +948,7 @@ public class ArmyManager {
         //always flee if locked on by cyclone
         if (banshee.getBuffs().contains(Buffs.LOCK_ON)) {
             if (!isInDetectionRange && canCloak && !isDecloakBuffed) {
-                Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
+                ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
             else {
                 retreatUnitFromCyclone(banshee);
@@ -956,7 +962,7 @@ public class ArmyManager {
         }
         //fly to enemy main if parasitic'ed
         else if (isParasitic) {
-            Bot.ACTION.unitCommand(banshee, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
+            ActionHelper.unitCommand(banshee, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
         else if (isUnsafe) {
             if (isInDetectionRange) {
@@ -967,7 +973,7 @@ public class ArmyManager {
                     kiteBackPos = retreatPos;
                 }
                 if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
-                    Bot.ACTION.unitCommand(banshee, Abilities.MOVE, kiteBackPos, false);
+                    ActionHelper.unitCommand(banshee, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
                     new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
@@ -989,7 +995,7 @@ public class ArmyManager {
             }
             else if (canCloak && !isDecloakBuffed) {
                 //cloak
-                Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
+                ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
             else {
                 //retreat
@@ -1003,7 +1009,7 @@ public class ArmyManager {
                 UnitUtils.getDistance(banshee, retreatPos) < 3 && //at repair bay
                 UnitUtils.getHealthPercentage(banshee) < 100) { //wait for heal
             if (cloakState == CloakState.CLOAKED_ALLIED && !isUnsafe) {
-                Bot.ACTION.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
+                ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_OFF_BANSHEE, false);
             }
             else {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
@@ -1059,7 +1065,7 @@ public class ArmyManager {
         }
         else {
             //retreat command away from nearest cyclone position
-            Bot.ACTION.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -4f), false);
+            ActionHelper.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -4f), false);
         }
     }
 
@@ -1070,20 +1076,20 @@ public class ArmyManager {
 
     private static ArmyCommands getCurrentCommand(Unit unit) {
         ArmyCommands currentCommand = ArmyCommands.EMPTY;
-        if (!unit.getOrders().isEmpty()) {
-            UnitOrder order = unit.getOrders().get(0);
-            if (order.getAbility() == Abilities.ATTACK) {
-                if (order.getTargetedWorldSpacePosition().isPresent() &&
-                        order.getTargetedWorldSpacePosition().get().toPoint2d().distance(attackGroundPos) < 1) {
+        if (ActionIssued.getCurOrder(unit).isPresent()) {
+            ActionIssued curAction = ActionIssued.getCurOrder(unit).get();
+            if (curAction.ability == Abilities.ATTACK) {
+                if (curAction.targetPos != null &&
+                        curAction.targetPos.distance(attackGroundPos) < 1) {
                     currentCommand = ArmyCommands.ATTACK;
                 }
-                else if (order.getTargetedUnitTag().isPresent()) {
+                else if (curAction.targetTag != null) {
                     currentCommand = ArmyCommands.DIVE;
                 }
             }
-            else if (order.getAbility() == Abilities.MOVE &&
-                    order.getTargetedWorldSpacePosition().isPresent() &&
-                    order.getTargetedWorldSpacePosition().get().toPoint2d().distance(ArmyManager.retreatPos) < 1) {
+            else if (curAction.ability == Abilities.MOVE &&
+                    curAction.targetPos != null &&
+                    curAction.targetPos.distance(ArmyManager.retreatPos) < 1) {
                 currentCommand = ArmyCommands.HOME;
             }
         }
@@ -1106,9 +1112,8 @@ public class ArmyManager {
             stayBack = true;
         }
 
-        boolean isInVikingRange = InfluenceMaps.pointInVikingRange[x][y];
-        boolean canAttack = viking.getWeaponCooldown().orElse(1f) < 0.1f &&
-                !viking.getBuffs().contains(Buffs.DEFENSIVE_MATRIX);
+        boolean isInVikingRange = InfluenceMaps.enemyInVikingRange[x][y];
+        boolean canAttack = UnitUtils.isWeaponAvailable(viking);
         boolean isParasitic = viking.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
 
         //always flee if locked on by cyclone
@@ -1123,7 +1128,7 @@ public class ArmyManager {
         }
         //fly to enemy main if parasitic'ed
         else if (isParasitic) {
-            Bot.ACTION.unitCommand(viking, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
+            ActionHelper.unitCommand(viking, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
         //in enemy attack range, then back up
         else if (isUnsafe) {
@@ -1136,7 +1141,7 @@ public class ArmyManager {
                     kiteBackPos = retreatPos;
                 }
                 if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirFromGround, kiteBackPos) == 0) {
-                    Bot.ACTION.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
+                    ActionHelper.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
                     new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
@@ -1183,11 +1188,11 @@ public class ArmyManager {
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
-        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY)
+        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY))
                 ? InfluenceMaps.pointThreatToAir
                 : (Strategy.MASS_RAVENS) ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer;
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
-        boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointAutoTurretTargets, raven.getPosition().toPoint2d());
+        boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInRavenCastRange, raven.getPosition().toPoint2d());
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
         boolean isParasitic = raven.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
@@ -1200,7 +1205,7 @@ public class ArmyManager {
 
         //fly to enemy main if parasitic'ed
         else if (isParasitic) {
-            Bot.ACTION.unitCommand(raven, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
+            ActionHelper.unitCommand(raven, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
         }
 
         //stay in repair bay if not on offensive or under 100% health
@@ -1224,21 +1229,21 @@ public class ArmyManager {
         //back up if in range
         else if (isUnsafe || inRange) {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
-                if (!doCastTurrets || !doAutoTurret(raven)) {
-                    if (isUnsafe) {
-                        Point2d kiteBackPos = getKiteBackPos(raven);
-                        if (kiteBackPos == null) {
-                            kiteBackPos = Position.towards(raven.getPosition().toPoint2d(), retreatPos, -4);
+                if (!Strategy.DO_MATRIX || !castMatrix(raven)) {
+                    if (!doCastTurrets || !doAutoTurret(raven)) {
+                        if (isUnsafe) {
+                            Point2d kiteBackPos = getKiteBackPos(raven);
+                            if (kiteBackPos == null) {
+                                kiteBackPos = Position.towards(raven.getPosition().toPoint2d(), retreatPos, -4);
+                            }
+                            if (!InfluenceMaps.getValue(threatMap, kiteBackPos)) {
+                                ActionHelper.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
+                            } else {
+                                new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
+                            }
+                        } else if (lastCommand != ArmyCommands.HOME) {
+                            armyGoingHome.add(raven);
                         }
-                        if (!InfluenceMaps.getValue(threatMap, kiteBackPos)) {
-                            Bot.ACTION.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
-                        }
-                        else {
-                            new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
-                        }
-                    }
-                    else if (lastCommand != ArmyCommands.HOME) {
-                        armyGoingHome.add(raven);
                     }
                 }
             }
@@ -1252,7 +1257,7 @@ public class ArmyManager {
     //drop auto-turrets near enemy before going home to repair
     private static boolean doAutoTurretOnRetreat(Unit raven) {
         if (raven.getEnergy().orElse(0f) >= 50 &&
-                !raven.getBuffs().contains(Buffs.DEFENSIVE_MATRIX) &&
+                !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
                 UnitUtils.getDistance(raven, attackGroundPos) < 12 &&
                 attackUnit != null) {
             return castAutoTurret(raven, 0);
@@ -1264,7 +1269,7 @@ public class ArmyManager {
     private static boolean doAutoTurret(Unit raven) {
         if (!isAttackUnitRetreating &&
                 raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
-                !raven.getBuffs().contains(Buffs.DEFENSIVE_MATRIX)) {
+                !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return castAutoTurret(raven, 2);
         }
         return false;
@@ -1304,7 +1309,7 @@ public class ArmyManager {
 //            Bot.DEBUG.sendDebug();
 
             Point2d placementPos = posList.get(placementList.indexOf(true));
-            Bot.ACTION.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
+            ActionHelper.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
             turretsCast++;
             return true;
         }
@@ -1329,7 +1334,25 @@ public class ArmyManager {
             if (targetUnitList.isEmpty()) {
                 return false;
             }
-            Bot.ACTION.unitCommand(raven, Abilities.EFFECT_ANTI_ARMOR_MISSILE, targetUnitList.get(0).unit(), false);
+            ActionHelper.unitCommand(raven, Abilities.EFFECT_ANTI_ARMOR_MISSILE, targetUnitList.get(0).unit(), false);
+            prevSeekerFrame = Time.nowFrames();
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean castMatrix(Unit raven) {
+        //cast matrix only once every 1sec TODO: track matrices
+        if (Time.nowFrames() < prevSeekerFrame + 24) {
+            return false;
+        }
+        float ravenEnergy = raven.getEnergy().orElse(0f);
+        if (ravenEnergy >= 75) {
+            Unit targetUnit = findMatrixTarget(raven);
+            if (targetUnit == null) {
+                return false;
+            }
+            ActionHelper.unitCommand(raven, Abilities.EFFECT_INTERFERENCE_MATRIX, targetUnit, false);
             prevSeekerFrame = Time.nowFrames();
             return true;
         }
@@ -1353,6 +1376,19 @@ public class ArmyManager {
         }
         float minSupplyToSeeker = (isMaxEnergy) ? Strategy.MIN_SUPPLY_TO_SEEKER - 7 : Strategy.MIN_SUPPLY_TO_SEEKER;
         return (bestValue < minSupplyToSeeker) ? null : Point2d.of(bestX/2f, bestY/2f);
+    }
+
+    private static Unit findMatrixTarget(Unit raven) {
+        List<UnitInPool> enemyMatrixTargetsInRange = Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED &&
+                !u.unit().getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
+                UnitUtils.getDistance(u.unit(), raven) <= 9);
+        if (enemyMatrixTargetsInRange.isEmpty()) {
+            return null;
+        }
+        else {
+            return enemyMatrixTargetsInRange.get(0).unit();
+        }
     }
 
     public static boolean shouldDive(Units unitType, Unit enemy) {
@@ -1436,7 +1472,7 @@ public class ArmyManager {
         List<Unit> bio = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
         bio.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARAUDER));
         if (!bio.isEmpty()) {
-            Bot.ACTION.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
+            ActionHelper.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
         }
     }
 

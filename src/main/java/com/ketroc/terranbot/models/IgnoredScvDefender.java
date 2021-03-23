@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.unit.Tag;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -21,7 +22,7 @@ public class IgnoredScvDefender extends Ignored {
         if (!target.isAlive() ||
                 target.getLastSeenGameLoop() != Time.nowFrames() ||
                 UnitUtils.getDistance(target.unit(), LocationConstants.baseLocations.get(0)) >= 40) {
-            Bot.ACTION.unitCommand(unitTag, Abilities.STOP, false);
+            ActionHelper.unitCommand(unitTag, Abilities.STOP, false);
             return true;
         }
         return false;

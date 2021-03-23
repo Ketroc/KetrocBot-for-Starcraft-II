@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
@@ -30,14 +31,14 @@ public class TankToPosition extends Tank {
         if (enemyTankToSiege != null) {
             if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) > 12.9f + enemyTankToSiege.getRadius()*2) {
                 if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-                    Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE,false);
+                    ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE,false);
                 }
                 else {
-                    Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege, false);
+                    ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege, false);
                 }
             }
             else {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
             }
         }
 
@@ -62,7 +63,7 @@ public class TankToPosition extends Tank {
     @Override
     public void onArrival() {
         if (!isMovingToTargetPos()) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
     }
 }

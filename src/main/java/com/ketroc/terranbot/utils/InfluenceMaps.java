@@ -8,8 +8,9 @@ public class InfluenceMaps {
 
     public static boolean[][] pointDetected;
     public static boolean[][] pointInBansheeRange;
-    public static boolean[][] pointAutoTurretTargets;
-    public static boolean[][] pointInVikingRange;
+    public static boolean[][] pointInRavenCastRange;
+    public static boolean[][] enemyInVikingRange;
+    public static boolean[][] enemyInMissileTurretRange;
     public static boolean[][] pointInMarineRange;
     public static boolean[][] pointInEnemyVision;
     public static int[][] pointThreatToAirValue;
@@ -56,8 +57,28 @@ public class InfluenceMaps {
     }
 
     //return highest threat of the 4 corners of the structure
+    public static int getThreatToStructure(Unit structure) {
+        return getThreatToStructure(pointThreatToGroundValue, structure);
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getThreatToStructure(Units structureType, Point2d structurePos) {
+        return getThreatToStructure(pointThreatToGroundValue, structureType, structurePos);
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getAirThreatToStructure(Units structureType, Point2d structurePos) {
+        return getThreatToStructure(pointThreatToAirValue, structureType, structurePos);
+    }
+
+    //return highest threat of the 4 corners of the structure
     public static int getAirThreatToStructure(Unit structure) {
         return getThreatToStructure(pointThreatToAirValue, structure);
+    }
+
+    //return highest threat of the 4 corners of the structure
+    public static int getGroundThreatToStructure(Units structureType, Point2d structurePos) {
+        return getThreatToStructure(pointThreatToGroundValue, structureType, structurePos);
     }
 
     //return highest threat of the 4 corners of the structure
@@ -66,11 +87,16 @@ public class InfluenceMaps {
     }
 
     //return highest threat of the 4 corners of the structure
-    public static int getThreatToStructure(int[][] map, Unit structure) {
-        Point2d structurePos = Position.toNearestHalfPoint(structure.getPosition().toPoint2d());
+    private static int getThreatToStructure(int[][] map, Unit structure) {
+        return getThreatToStructure(map, (Units)structure.getType(), structure.getPosition().toPoint2d());
+    }
+
+    //return highest threat of the 4 corners of the structure
+    private static int getThreatToStructure(int[][] map, Units structureType, Point2d structurePos) {
+        structurePos = Position.toNearestHalfPoint(structurePos);
         float x = structurePos.getX();
         float y = structurePos.getY();
-        float radius = UnitUtils.getStructureRadius((Units)structure.getType());
+        float radius = UnitUtils.getStructureRadius(structureType);
         return Math.max(getValue(map, x + radius, y + radius),
                 Math.max(getValue(map, x - radius, y + radius),
                         Math.max(getValue(map, x + radius, y - radius),

@@ -10,6 +10,8 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.models.IgnoredUnit;
+import com.ketroc.terranbot.utils.ActionHelper;
+import com.ketroc.terranbot.utils.ActionIssued;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -71,7 +73,7 @@ public class ExpansionClearing {
             //TODO: if raven can't reach position, turret now
             if (false) { //destinationUnreachable()) {
                 Point2d turretPos = Position.towards(raven.unit.unit().getPosition().toPoint2d(), raven.targetPos, 1);
-                Bot.ACTION.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+                ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
             }
             else {
                 raven.onStep();
@@ -94,7 +96,7 @@ public class ExpansionClearing {
                     //cast autoturret
                     if (turretPos != null) {
                         raven.targetPos = turretPos;
-                        Bot.ACTION.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+                        ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
                         isTurretActive = true;
                     }
                 }
@@ -134,12 +136,12 @@ public class ExpansionClearing {
                 .filter(enemy -> enemy.getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED)
                 .min(Comparator.comparing(enemy -> enemy.getHealth().orElse(Float.MAX_VALUE)))
                 .ifPresent(enemy ->
-                        Bot.ACTION.unitCommand(turret.unit(), Abilities.ATTACK, enemy, false));
+                        ActionHelper.unitCommand(turret.unit(), Abilities.ATTACK, enemy, false));
 
     }
 
     public boolean hasAutoturretQueued(Unit raven) {
-        return raven.getOrders().stream().anyMatch(order -> order.getAbility() == Abilities.EFFECT_AUTO_TURRET);
+        return ActionIssued.getCurOrder(raven).stream().anyMatch(order -> order.ability == Abilities.EFFECT_AUTO_TURRET);
     }
 
     private void removeRaven() {

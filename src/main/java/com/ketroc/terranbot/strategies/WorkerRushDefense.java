@@ -11,10 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.models.TriangleOfNodes;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.models.StructureScv;
 
@@ -60,12 +57,12 @@ public class WorkerRushDefense {
                 int numWorkersNearCC = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, cc.getPosition().toPoint2d(), 12).size();
                 if (numWorkersNearCC > 0 && cc.getType() == Units.TERRAN_COMMAND_CENTER) {
                     if (UnitUtils.getOrder(cc) == Abilities.TRAIN_SCV) {
-                        Bot.ACTION.unitCommand(cc, Abilities.CANCEL_LAST, false);
+                        ActionHelper.unitCommand(cc, Abilities.CANCEL_LAST, false);
                     } else {
-                        Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.LIFT_COMMAND_CENTER, false);
+                        ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.LIFT_COMMAND_CENTER, false);
                     }
                 } else if (numWorkersNearCC == 0 && GameCache.ccList.get(0).getType() == Units.TERRAN_COMMAND_CENTER_FLYING) {
-                    Bot.ACTION.unitCommand(GameCache.ccList.get(0), Abilities.LAND_COMMAND_CENTER, LocationConstants.baseLocations.get(0), false);
+                    ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.LAND_COMMAND_CENTER, LocationConstants.baseLocations.get(0), false);
                 }
 
             }
@@ -87,13 +84,13 @@ public class WorkerRushDefense {
                         //cancel structure if started
                         for (UnitInPool structure : producingStructures) {
                             if (UnitUtils.getDistance(structure.unit(), scv.structurePos) < 1) {
-                                Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
+                                ActionHelper.unitCommand(structure.unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
                                 break;
                             }
                         }
 
                         //put scv back to mineral line
-                        Bot.ACTION.unitCommand(scv.getScv().unit(), Abilities.SMART, GameCache.baseList.get(0).getRallyNode(), false);
+                        ActionHelper.unitCommand(scv.getScv().unit(), Abilities.SMART, GameCache.baseList.get(0).getRallyNode(), false);
 
                         //put depot back in depot list
                         if (scv.structureType == Units.TERRAN_SUPPLY_DEPOT) {
@@ -147,8 +144,8 @@ public class WorkerRushDefense {
         List<UnitInPool> townHallList = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
         if (townHallList.isEmpty()) {
             //send scvs home on attack-move
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false)
-                    .unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
             defenseStep++;
             return;
         }
@@ -163,7 +160,7 @@ public class WorkerRushDefense {
                 //if enemy worker < 1 distance from scv, attack worker
                 if (!Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                         UnitUtils.getDistance(worker.unit(), scv.unit()) < 1).isEmpty()) {
-                    Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.enemyMineralPos, false);
+                    ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.enemyMineralPos, false);
                 }
                 else {
                     List<UnitInPool> nearbyWeakScvs = Bot.OBS.getUnits(Alliance.SELF, weakScv -> weakScv.unit().getType() == Units.TERRAN_SCV &&
@@ -172,12 +169,12 @@ public class WorkerRushDefense {
 
                     //if not broke and near weak scv, then repair it
                     if (GameCache.mineralBank > 0 && !nearbyWeakScvs.isEmpty()) {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.EFFECT_REPAIR, nearbyWeakScvs.get(0).unit(), false);
+                        ActionHelper.unitCommand(scv.unit(), Abilities.EFFECT_REPAIR, nearbyWeakScvs.get(0).unit(), false);
                     }
 
                     //otherwise attack townhall
                     else {
-                        Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, townHall, false);
+                        ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, townHall, false);
                     }
                 }
             }
@@ -194,13 +191,13 @@ public class WorkerRushDefense {
             else {
                 Unit closestEnemyWorker = UnitUtils.getClosestEnemyOfType(UnitUtils.enemyWorkerType, scvList.get(0).unit().getPosition().toPoint2d());
                 if (UnitUtils.getDistance(closestEnemyWorker, scvList.get(0).unit()) > 1) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 } else {
                     for (UnitInPool scv : scvList) {
                         if (UnitUtils.isWeaponAvailable(scv.unit())) {
-                            Bot.ACTION.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.myMineralPos, false);
+                            ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.myMineralPos, false);
                         } else {
-                            Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                            ActionHelper.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
                         }
                     }
                 }
@@ -212,7 +209,7 @@ public class WorkerRushDefense {
         switch (clusterTriangleStep) {
             case 0:
                 if (scvList.stream().filter(u -> UnitUtils.getDistance(u.unit(), triangle.getInner().unit()) > 2.7).count() > 2) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getInner().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getInner().unit(), false);
                 }
                 else {
                     clusterTriangleStep++;
@@ -220,7 +217,7 @@ public class WorkerRushDefense {
                 break;
             case 1:
                 if (scvList.stream().filter(u -> UnitUtils.getDistance(u.unit(), triangle.getOuter().unit()) > 2.7).count() > 2) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getOuter().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getOuter().unit(), false);
                 }
                 else {
                     clusterTriangleStep++;
@@ -228,7 +225,7 @@ public class WorkerRushDefense {
                 break;
             case 2:
                 if (scvList.stream().allMatch(u -> UnitUtils.getDistance(u.unit(), triangle.getMiddle().unit()) > 1.4)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, triangle.getMiddle().unit(), false);
                 }
                 else {
                     clusterTriangleStep = 0;

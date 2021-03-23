@@ -13,7 +13,7 @@ public class TestingBotLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-                //.setRealtime(true)
+//                .setRealtime(true)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
@@ -29,14 +29,14 @@ public class TestingBotLauncher {
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
+        //                .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("GoldenWallLE.SC2Map")));
+                        .startGame(LocalMap.of(Paths.get("GoldenWall506.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));

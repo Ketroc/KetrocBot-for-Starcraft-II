@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -32,7 +33,7 @@ public class RepairBayScv extends BasicUnitMicro {
                 removeMe = true;
             }
             else {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
             }
         }
         else if (order != Abilities.ATTACK && order != Abilities.EFFECT_REPAIR) {

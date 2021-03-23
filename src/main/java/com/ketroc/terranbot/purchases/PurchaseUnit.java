@@ -7,6 +7,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class PurchaseUnit implements Purchase {
@@ -56,7 +57,7 @@ public class PurchaseUnit implements Purchase {
             return PurchaseResult.CANCEL;
         }
         if (canAfford()) {
-            Bot.ACTION.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
+            ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
             Cost.updateBank(cost);
             return PurchaseResult.SUCCESS;
         }

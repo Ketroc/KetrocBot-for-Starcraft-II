@@ -9,6 +9,10 @@ public class Cost {
     public int gas;
     public float supply;
 
+    public Cost() {
+
+    }
+
     public Cost(int minerals, int gas) {
         this(minerals, gas, 0);
     }
@@ -20,6 +24,15 @@ public class Cost {
     }
 
     // =========== METHODS ===========
+
+    public void add(Cost addCost) {
+        minerals += addCost.minerals;
+        gas += addCost.gas;
+        supply += addCost.supply;
+    }
+
+
+    // =========== STATIC METHODS ===========
 
     public static Cost getUnitCost(UnitType unitType) {
         if (unitType == Units.INVALID) {

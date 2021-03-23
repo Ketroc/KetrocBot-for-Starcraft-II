@@ -12,7 +12,7 @@ public class Time {
 
     public static long toFrames(int seconds) {
         long frames = (long) (seconds * FRAMES_PER_SECOND);
-        frames -= frames % Strategy.SKIP_FRAMES;
+        frames -= frames % Strategy.STEP_SIZE;
         return frames;
     }
 

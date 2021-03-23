@@ -9,9 +9,7 @@ import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.utils.Print;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.Set;
 
@@ -78,7 +76,7 @@ public class PurchaseStructureMorph implements Purchase {
         //if production under 40% and can afford if unit production is cancelled TODO: doesn't account for which cc
         if (shouldCancelPreviousOrder()) {
             Print.print("cancelled unit");
-            Bot.ACTION.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
+            ActionHelper.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
             GameCache.mineralBank += 50;
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
@@ -91,10 +89,10 @@ public class PurchaseStructureMorph implements Purchase {
         }
 
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
-        if (structure.unit().getOrders().isEmpty()) {
+        if (!structure.unit().getActive().orElse(true)) {
             Print.print("start building " + this.morphOrAddOn.toString());
             Print.print("sending action " + this.morphOrAddOn);
-            Bot.ACTION.unitCommand(structure.unit(), this.morphOrAddOn, false);
+            ActionHelper.unitCommand(structure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
             if (morphOrAddOn == Abilities.MORPH_PLANETARY_FORTRESS) {
                 Base.setBaseMorphTime(structure.unit());
@@ -108,8 +106,8 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean structureAlreadyMorphing() {
-        return structure.unit().getOrders().stream()
-                .anyMatch(unitOrder -> unitOrder.getAbility() == morphOrAddOn);
+        return ActionIssued.getCurOrder(structure.unit()).stream()
+                .anyMatch(unitOrder -> unitOrder.ability == morphOrAddOn);
     }
 
     private boolean shouldCancelPreviousOrder() {

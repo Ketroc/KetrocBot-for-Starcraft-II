@@ -89,7 +89,7 @@ public class Tank extends BasicUnitMicro {
 
     protected boolean siegeUpMicro() {
         if (UnitUtils.getDistance(unit.unit(), targetPos) < 1 || !getEnemiesInRange(13).isEmpty()) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
             return true;
         }
         return false;
@@ -100,7 +100,7 @@ public class Tank extends BasicUnitMicro {
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
             if (lastActiveFrame + 150 > Time.nowFrames()) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
                 return true;
             }
             return false;

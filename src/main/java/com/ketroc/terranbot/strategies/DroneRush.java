@@ -66,7 +66,7 @@ public class DroneRush {
                     else if (clusterTriangleNode(LocationConstants.myMineralTriangle, true)) {
                         UnitInPool drone = droneList.remove(0);
                         DroneDrill.lateDrones.add(drone);
-                        Bot.ACTION.unitCommand(drone.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
+                        ActionHelper.unitCommand(drone.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
                         droneRushStep++;
                     }
                     break;
@@ -85,7 +85,7 @@ public class DroneRush {
                     droneList.addAll(DroneDrill.lateDrones);
                     DroneDrill.lateDrones.clear();
                     if (!enemyList.isEmpty()) {
-                        Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, enemyList.get(0).unit().getPosition().toPoint2d(), false);
+                        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, enemyList.get(0).unit().getPosition().toPoint2d(), false);
                     }
                     else {
                         droneRushStep++;
@@ -93,9 +93,9 @@ public class DroneRush {
                     break;
                 case 4: //end drone rush
                     if (!droneList.isEmpty()) {
-                        Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, ENEMY_MAIN_POS, false)
-                                .unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), true)
-                                .unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), true);
+                        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, ENEMY_MAIN_POS, false);
+                        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), true);
+                        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), true);
                     }
                     droneList.clear();
                     break;
@@ -117,17 +117,17 @@ public class DroneRush {
                 );
 
                 if (!dronesEmpty.isEmpty()) {
-                    Bot.ACTION.unitCommand(dronesEmpty, Abilities.ATTACK,
+                    ActionHelper.unitCommand(dronesEmpty, Abilities.ATTACK,
                             LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), false);
                 }
                 if (!dronesWithMinerals.isEmpty()) {
-                    Bot.ACTION.unitCommand(dronesWithMinerals, Abilities.HARVEST_RETURN_DRONE, false);
+                    ActionHelper.unitCommand(dronesWithMinerals, Abilities.HARVEST_RETURN_DRONE, false);
                 }
 
                 if (UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EGG).isEmpty()) {
                     droneList.addAll(DroneDrill.lateDrones);
                     DroneDrill.lateDrones.clear();
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK,
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK,
                             LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), false);
                     noTriangleStep++;
                 }
@@ -138,7 +138,7 @@ public class DroneRush {
                     if (!drone.isAlive()) {
                         droneList.remove(i--);
                     } else if (drone.unit().getHealth().get() <= 10) {
-                        Bot.ACTION.unitCommand(drone.unit(), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), false);
+                        ActionHelper.unitCommand(drone.unit(), Abilities.SMART, LocationConstants.myMineralTriangle.getOuter().unit(), false);
                         droneList.remove(i--);
                     }
                 }
@@ -175,7 +175,7 @@ public class DroneRush {
                 UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyMineralTriangle.getClusterPos()) < 2)) ||
                 enemyWorkers.stream().noneMatch(enemy ->
                         UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyMineralTriangle.getClusterPos()) < 3)) {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, ENEMY_MAIN_POS, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, ENEMY_MAIN_POS, false);
             isAttackingCommand = true;
         }
         else {
@@ -216,7 +216,7 @@ public class DroneRush {
                 UnitInPool temp = getTargetWorker(enemyWorkers);
                 Unit targetWorker = (temp == null) ? null : temp.unit();
                 if (targetWorker != null) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, targetWorker, false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, targetWorker, false);
                     //attack
 //                    List<Unit> clusterScvs = new ArrayList<>();
 //                    List<Unit> attackScvs = new ArrayList<>();
@@ -228,17 +228,17 @@ public class DroneRush {
 //                        }
 //                    }
 //                    if (!clusterScvs.isEmpty()) {
-//                        Bot.ACTION.unitCommand(clusterScvs, Abilities.SMART, LocationConstants.enemyMineralTriangle.inner.unit(), false);
+//                        ActionHelper.unitCommand(clusterScvs, Abilities.SMART, LocationConstants.enemyMineralTriangle.inner.unit(), false);
 //                    }
 //                    if (!attackScvs.isEmpty()) {
-//                        Bot.ACTION.unitCommand(attackScvs, Abilities.ATTACK, targetWorker.unit(), false);
+//                        ActionHelper.unitCommand(attackScvs, Abilities.ATTACK, targetWorker.unit(), false);
 //                    }
 //                    else {
 //                        targetWorker = null;
 //                    }
                 }
                 else {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
                 }
             }
         }
@@ -256,10 +256,10 @@ public class DroneRush {
             }
         }
         if (!attackDrones.isEmpty()) {
-            Bot.ACTION.unitCommand(attackDrones, Abilities.ATTACK, LocationConstants.myMineralPos, false);
+            ActionHelper.unitCommand(attackDrones, Abilities.ATTACK, LocationConstants.myMineralPos, false);
         }
         if (!clusterDrones.isEmpty()) {
-            Bot.ACTION.unitCommand(clusterDrones, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(clusterDrones, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
@@ -277,23 +277,23 @@ public class DroneRush {
             }
             if (!attackDrones.isEmpty()) {
                 Print.print("attackDrones.size() = " + attackDrones.size());
-                Bot.ACTION.unitCommand(attackDrones, Abilities.ATTACK, target.unit(), false);
+                ActionHelper.unitCommand(attackDrones, Abilities.ATTACK, target.unit(), false);
             }
             if (!clusterDrones.isEmpty()) {
-                Bot.ACTION.unitCommand(clusterDrones, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                ActionHelper.unitCommand(clusterDrones, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
             }
         }
         else if (isDronesOffCooldown()) {
             target = oneShotTarget(enemyWorkers, droneList);
             if (target != null) {
-                Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, target.unit(), false);
+                ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, target.unit(), false);
             }
             else { //TODO: bug this only allows 1 drone to attack
-                Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, LocationConstants.myMineralPos, false);
+                ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK, LocationConstants.myMineralPos, false);
             }
         }
         else {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
@@ -311,16 +311,16 @@ public class DroneRush {
             return;
         }
         if (isDronesClustered()) {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
-            long attackFrame = Time.nowFrames() + (Strategy.SKIP_FRAMES * 3);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
+            long attackFrame = Time.nowFrames() + (Strategy.STEP_SIZE * 3);
             droneList.forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
-            long clusterFrame = attackFrame + (Strategy.SKIP_FRAMES * 3);
+            long clusterFrame = attackFrame + (Strategy.STEP_SIZE * 3);
             droneList.forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(clusterFrame, Abilities.SMART, scv, LocationConstants.enemyMineralTriangle.getMiddle())));
         }
         else {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
@@ -350,7 +350,7 @@ public class DroneRush {
     }
 
     private static void clusterUp() {
-        Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
     }
 
     private static boolean isDronesClustered() {
@@ -416,14 +416,14 @@ public class DroneRush {
                         );
 
                         if (!dronesEmpty.isEmpty()) {
-                            Bot.ACTION.unitCommand(dronesEmpty, Abilities.SMART, triangle.getInner().unit(), false);
+                            ActionHelper.unitCommand(dronesEmpty, Abilities.SMART, triangle.getInner().unit(), false);
                         }
                         if (!dronesWithMinerals.isEmpty()) {
-                            Bot.ACTION.unitCommand(dronesWithMinerals, Abilities.HARVEST_RETURN_DRONE, false);
+                            ActionHelper.unitCommand(dronesWithMinerals, Abilities.HARVEST_RETURN_DRONE, false);
                         }
                     }
                     else {
-                        Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getInner().unit(), false);
+                        ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getInner().unit(), false);
                     }
                 }
                 else {
@@ -432,7 +432,7 @@ public class DroneRush {
                 break;
             case 1:
                 if (droneList.stream().anyMatch(u -> UnitUtils.getDistance(u.unit(), triangle.getOuter().unit()) > 2)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getOuter().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getOuter().unit(), false);
                 }
                 else {
                     clusterTriangleStep++;
@@ -440,7 +440,7 @@ public class DroneRush {
                 break;
             case 2:
                 if (droneList.stream().anyMatch(u -> UnitUtils.getDistance(u.unit(), triangle.getMiddle().unit()) > 1.4)) {
-                    Bot.ACTION.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, triangle.getMiddle().unit(), false);
                 }
                 else {
                     clusterTriangleStep = 0;

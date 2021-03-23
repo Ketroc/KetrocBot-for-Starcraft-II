@@ -5,16 +5,22 @@ import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.Comparator;
 
+/*
+    This scv object will attack a target until it dies or flees the main&nat area
+    Scv is replaced with a fresh scv when it's hp drops below 10
+ */
 public class ScvAttackTarget extends Scv {
 
     public UnitInPool targetUnit;
@@ -46,7 +52,7 @@ public class ScvAttackTarget extends Scv {
         if (!unit.isAlive() || unit.unit().getHealth().orElse(45f) <= 10) {
             UnitInPool newScv = getNewScv();
             if (newScv != null) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.STOP, false);
                 replaceUnit(newScv);
             }
             else { //remove object if no replacement scv is found
@@ -58,12 +64,12 @@ public class ScvAttackTarget extends Scv {
         //attack
         if (!UnitUtils.isInFogOfWar(targetUnit)) {
             if (!isAttackingTarget(targetUnit.getTag())) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.ATTACK, targetUnit.unit(), false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, targetUnit.unit(), false);
             }
         }
         else {
             if (!isMovingToTargetPos()) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
             }
         }
     }
@@ -76,7 +82,7 @@ public class ScvAttackTarget extends Scv {
     public void remove() {
         removeMe = true;
         if (unit.isAlive()) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.STOP, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.STOP, false);
         }
     }
 
@@ -96,6 +102,11 @@ public class ScvAttackTarget extends Scv {
         return WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getCcPos()).stream()
                 .max(Comparator.comparing(scv -> scv.unit().getHealth().orElse(0f)))
                 .orElse(null);
+    }
+
+    public static boolean contains(Tag targetTag) {
+        return UnitMicroList.getUnitSubList(ScvAttackTarget.class).stream()
+                .anyMatch(scvAttackTarget -> scvAttackTarget.targetUnit != null && scvAttackTarget.targetUnit.getTag().equals(targetTag));
     }
 
 }

@@ -6,9 +6,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Cost;
 import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.utils.Print;
-import com.ketroc.terranbot.utils.Time;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 public class PurchaseUpgrade implements Purchase {
     private UnitInPool structure;
@@ -56,17 +54,22 @@ public class PurchaseUpgrade implements Purchase {
             return PurchaseResult.WAITING;
         }
         //if structure not producing unit/upgrade
-        if (structure.unit().getOrders().isEmpty()) {
+        if (ActionIssued.getCurOrder(structure.unit()).isEmpty()) {
             Print.print("sending action " + this.upgrade);
-            Abilities upgradeAbility = (Abilities) Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
-            switch (upgradeAbility) {
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL2_V2:
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3_V2:
-                    upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING;
-                    break;
+            Ability upgradeAbility = Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
+            if (upgradeAbility instanceof Abilities) {
+                switch ((Abilities) upgradeAbility) {
+                    case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:
+                    case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL2_V2:
+                    case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3_V2:
+                        upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING;
+                        break;
+                }
             }
-            Bot.ACTION.unitCommand(structure.unit(), upgradeAbility, false);
+            else { //missing Abilities enum
+                Print.print("Unknown Ability: " + upgradeAbility.getAbilityId() + " for upgrade: " + upgrade);
+            }
+            ActionHelper.unitCommand(structure.unit(), upgradeAbility, false);
             Cost.updateBank(cost);
             return PurchaseResult.SUCCESS;
         }

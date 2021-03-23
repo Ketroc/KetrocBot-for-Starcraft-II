@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -43,7 +44,7 @@ public class IgnoredMineralWallScv extends Ignored {
             UnitInPool scv = WorkerManager.getClosestAvailableScv(mineral.getPosition().toPoint2d());
             if (scv != null) {
                 Ignored.add(new IgnoredMineralWallScv(scv.getTag()));
-                Bot.ACTION.unitCommand(scv.unit(), Abilities.SMART, mineral, false);
+                ActionHelper.unitCommand(scv.unit(), Abilities.SMART, mineral, false);
             }
         }
     }

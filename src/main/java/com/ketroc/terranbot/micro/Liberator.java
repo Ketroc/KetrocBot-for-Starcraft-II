@@ -11,10 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.bots.Bot;
-import com.ketroc.terranbot.utils.InfluenceMaps;
-import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Position;
-import com.ketroc.terranbot.utils.UnitUtils;
+import com.ketroc.terranbot.utils.*;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -76,8 +73,8 @@ public class Liberator extends BasicUnitMicro {
         if (!enemiesInRange.isEmpty()) {
             Point2d enemiesMidPoint = Position.midPoint(enemiesInRange);
             Point2d newLibZonePos = Position.towards(unit.unit().getPosition().toPoint2d(), enemiesMidPoint, castRange);
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, unit.unit().getPosition().toPoint2d(), false)
-                    .unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, newLibZonePos, true);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, unit.unit().getPosition().toPoint2d(), false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, newLibZonePos, true);
             curLibZonePos = newLibZonePos;
             return true;
         }
@@ -85,8 +82,8 @@ public class Liberator extends BasicUnitMicro {
         //siege up at pre-determined position
         if (isLibAtPlannedPosition()) {
             plannedLibZonePos = Position.towards(targetPos, plannedLibZonePos, castRange); //update libZonePos (in case lib range finished en route)
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false)
-                    .unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, plannedLibZonePos, true);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, plannedLibZonePos, true);
             curLibZonePos = plannedLibZonePos;
             return true;
         }
@@ -107,7 +104,7 @@ public class Liberator extends BasicUnitMicro {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange().isEmpty()) { //TODO: change to check lib zone only
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AA_MODE, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AA_MODE, false);
             return true;
         }
         return false;
@@ -131,10 +128,9 @@ public class Liberator extends BasicUnitMicro {
     }
 
     protected boolean isMorphing() {
-        List<UnitOrder> orders = unit.unit().getOrders();
-        return orders.stream()
-                .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.MORPH_LIBERATOR_AG_MODE ||
-                        unitOrder.getAbility() == Abilities.MORPH_LIBERATOR_AA_MODE);
+        return ActionIssued.getCurOrder(unit.unit()).stream()
+                .anyMatch(unitOrder -> unitOrder.ability == Abilities.MORPH_LIBERATOR_AG_MODE ||
+                        unitOrder.ability == Abilities.MORPH_LIBERATOR_AA_MODE);
     }
 
 

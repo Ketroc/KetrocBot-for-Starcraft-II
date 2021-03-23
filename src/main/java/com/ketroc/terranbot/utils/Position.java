@@ -296,13 +296,17 @@ public class Position {
                 .sorted(Comparator.comparing(p -> p.distance(pos)))
                 .collect(Collectors.toList());
 
-        List<QueryBuildingPlacement> queryList = possiblePosList.stream()
+        return getFirstPosFromQuery(possiblePosList, placementAbility);
+    }
+
+    public static Point2d getFirstPosFromQuery(List<Point2d> posList, Ability placementAbility) {
+        List<QueryBuildingPlacement> queryList = posList.stream()
                 .map(p -> QueryBuildingPlacement.placeBuilding().useAbility(placementAbility).on(p).build())
                 .collect(Collectors.toList());
 
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
         if (placementList.contains(true)) {
-            return possiblePosList.get(placementList.indexOf(true));
+            return posList.get(placementList.indexOf(true));
         }
         return null;
     }

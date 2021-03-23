@@ -49,7 +49,7 @@ public class DroneDrill extends Bot {
         try {
             super.onGameStart();
 
-            Strategy.SKIP_FRAMES = (Bot.isRealTime) ? 4 : 2;
+            Strategy.STEP_SIZE = (Bot.isRealTime) ? 4 : 2;
 
             //set map
             LocationConstants.MAP = OBS.getGameInfo().getMapName();
@@ -90,8 +90,8 @@ public class DroneDrill extends Bot {
         super.onStep();
         availableDrones = getAvailableDrones();
         try {
-            if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
-                if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
+            if (Time.nowFrames() % Strategy.STEP_SIZE == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
+                if (Time.nowFrames() == Strategy.STEP_SIZE) {
                     DroneDrill.ACTION.sendChat("Last updated: Sept 24, 2020", ActionChat.Channel.BROADCAST);
                 }
                 //free up ignored units
@@ -150,10 +150,10 @@ public class DroneDrill extends Bot {
                         if (curMinerals >= 125) {
                             UnitInPool closestDrone = getClosest(availableDrones, geyser1.getPosition().toPoint2d());
                             availableDrones.remove(closestDrone);
-                            Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser1, false);
+                            ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser1, false);
                             closestDrone = getClosest(availableDrones, geyser2.getPosition().toPoint2d());
                             availableDrones.remove(closestDrone);
-                            Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser2, false);
+                            ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser2, false);
                             droneRushBuildStep++;
                         }
                         break;
@@ -171,7 +171,7 @@ public class DroneDrill extends Bot {
                         List<Unit> extractors = UnitUtils.toUnitList(
                                 Bot.OBS.getUnits(Alliance.SELF, gas -> gas.unit().getType() == Units.ZERG_EXTRACTOR)
                         );
-                        Bot.ACTION.unitCommand(extractors, Abilities.CANCEL_BUILD_IN_PROGRESS, false);
+                        ActionHelper.unitCommand(extractors, Abilities.CANCEL_BUILD_IN_PROGRESS, false);
                         droneRushBuildStep++;
                         break;
 
@@ -180,7 +180,7 @@ public class DroneDrill extends Bot {
                         if (!eggRallyComplete && Bot.OBS.getFoodUsed() == 16) {
                             List<Unit> eggs = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EGG);
                             if (!eggs.isEmpty()) {
-                                Bot.ACTION.unitCommand(eggs, Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
+                                ActionHelper.unitCommand(eggs, Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
                             }
                             eggRallyComplete = true;
                         }
@@ -191,7 +191,7 @@ public class DroneDrill extends Bot {
                 }
                 if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getFoodWorkers() < 14) {
                     if (!larvaList.isEmpty()) {
-                        Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_DRONE, false);
+                        ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_DRONE, false);
                     }
                 }
 
@@ -208,7 +208,7 @@ public class DroneDrill extends Bot {
         if (mutaRushBuildStep >= 3 && curMinerals >= 100 &&
                 Bot.OBS.getFoodUsed() + 6 > Bot.OBS.getFoodCap() && !isProducing(Abilities.TRAIN_OVERLORD)) {
             if (!larvaList.isEmpty()) {
-                Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
+                ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
             }
         }
         if (Bot.OBS.getFoodWorkers() > 6) {
@@ -216,7 +216,7 @@ public class DroneDrill extends Bot {
                 for (Unit extractor : UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EXTRACTOR)) {
                     if (extractor.getBuildProgress() == 1f && extractor.getAssignedHarvesters().orElse(3) < 3) {
                         UnitInPool closestDrone = getClosest(availableDrones, extractor.getPosition().toPoint2d());
-                        Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.SMART, extractor, false);
+                        ActionHelper.unitCommand(closestDrone.unit(), Abilities.SMART, extractor, false);
                         availableDrones.remove(closestDrone);
                         break;
                     }
@@ -228,7 +228,7 @@ public class DroneDrill extends Bot {
             case 0:
                 if (Bot.OBS.getFoodWorkers() > 6 && curMinerals >= 75) {
                     UnitInPool closestDrone = getClosest(availableDrones, geyser1.getPosition().toPoint2d());
-                    Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser1, false);
+                    ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser1, false);
                     availableDrones.remove(closestDrone);
                     mutaRushBuildStep++;
                 }
@@ -237,7 +237,7 @@ public class DroneDrill extends Bot {
             case 1:
                 if (Bot.OBS.getFoodWorkers() > 6 && curMinerals >= 75) {
                     UnitInPool closestDrone = getClosest(availableDrones, geyser2.getPosition().toPoint2d());
-                    Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser2, false);
+                    ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_EXTRACTOR, geyser2, false);
                     availableDrones.remove(closestDrone);
                     mutaRushBuildStep++;
                 }
@@ -247,7 +247,7 @@ public class DroneDrill extends Bot {
                 if (curMinerals >= 200) {
                     Point2d poolPos = Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), -7);
                     UnitInPool closestDrone = getClosest(availableDrones, poolPos);
-                    Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_SPAWNING_POOL, poolPos, false);
+                    ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_SPAWNING_POOL, poolPos, false);
                     availableDrones.remove(closestDrone);
                     mutaRushBuildStep++;
                 }
@@ -255,11 +255,11 @@ public class DroneDrill extends Bot {
             //lair
             case 3:
                 if (curMinerals >= 150 && curGas >= 100 && !UnitUtils.getFriendlyUnitsOfType(Units.ZERG_SPAWNING_POOL).isEmpty()) {
-                    Bot.ACTION.unitCommand(mainHatch.unit(), Abilities.MORPH_LAIR, false);
+                    ActionHelper.unitCommand(mainHatch.unit(), Abilities.MORPH_LAIR, false);
                     mutaRushBuildStep++;
                 }
                 if (curMinerals >= 251 && larvaList.size() >= 3) {
-                    Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
+                    ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
                 }
                 break;
             //spire
@@ -271,25 +271,25 @@ public class DroneDrill extends Bot {
                                 Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), -7),
                                 GameCache.baseList.get(0).getCcPos(), 60);
                         UnitInPool closestDrone = getClosest(availableDrones, spirePos);
-                        Bot.ACTION.unitCommand(closestDrone.unit(), Abilities.BUILD_SPIRE, spirePos, false);
+                        ActionHelper.unitCommand(closestDrone.unit(), Abilities.BUILD_SPIRE, spirePos, false);
                         availableDrones.remove(closestDrone);
                         mainHatch = Bot.OBS.getUnit(lair.get(0).getTag());
                         mutaRushBuildStep++;
                     }
                 }
                 if (curMinerals >= 301 && larvaList.size() >= 3) {
-                    Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
+                    ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
                 }
                 break;
 
             //start making mutas
             case 5:
                 if (curMinerals >= curGas && larvaList.size() >= 3 && Bot.OBS.getUnits(Alliance.SELF, spire -> spire.unit().getType() == Units.ZERG_SPIRE && spire.unit().getBuildProgress() > 0.7f).isEmpty()) {
-                    Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
+                    ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_OVERLORD, false);
                 }
                 if (curMinerals >= 100 && curGas >= 100) {
                     if (!larvaList.isEmpty()) {
-                        Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_MUTALISK, false);
+                        ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_MUTALISK, false);
                     }
                 }
                 if (curGas < 100) {
@@ -300,7 +300,7 @@ public class DroneDrill extends Bot {
             case 6:
                 if (curMinerals >= 100 && curGas >= 100) {
                     if (!larvaList.isEmpty()) {
-                        Bot.ACTION.unitCommand(larvaList.remove(0), Abilities.TRAIN_MUTALISK, false);
+                        ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_MUTALISK, false);
                     }
                 }
                 List<Unit> mutas = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_MUTALISK);
@@ -309,12 +309,12 @@ public class DroneDrill extends Bot {
                                 .anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY));
                 if (!mutas.isEmpty()) {
                     if (!enemyAA.isEmpty()) {
-                        Bot.ACTION.unitCommand(mutas, Abilities.ATTACK, enemyAA.get(0).unit(), false);
+                        ActionHelper.unitCommand(mutas, Abilities.ATTACK, enemyAA.get(0).unit(), false);
                     }
                     else {
                         List<UnitInPool> enemies = Bot.OBS.getUnits(Alliance.ENEMY);
                         if (!enemies.isEmpty()) {
-                            Bot.ACTION.unitCommand(mutas, Abilities.ATTACK, enemies.get(0).unit().getPosition().toPoint2d(), false);
+                            ActionHelper.unitCommand(mutas, Abilities.ATTACK, enemies.get(0).unit().getPosition().toPoint2d(), false);
                         }
                         else if (Switches.finishHim) {
                             ArmyManager.spreadArmy(mutas);
@@ -325,7 +325,7 @@ public class DroneDrill extends Bot {
                             if (mutas.stream().anyMatch(muta -> UnitUtils.getDistance(muta, lambdaAttackPos) < 3)) {
                                 attackPos = LocationConstants.getNextBaseAttackPos();
                             }
-                            Bot.ACTION.unitCommand(mutas, Abilities.ATTACK,
+                            ActionHelper.unitCommand(mutas, Abilities.ATTACK,
                                     LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex), false);
                         }
                     }
@@ -349,7 +349,7 @@ public class DroneDrill extends Bot {
         if (!enemyBarracksList.isEmpty() && enemyBarracksList.get(0).unit().getBuildProgress() < 1f) {
             Unit producingScv = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.TERRAN_SCV, enemyBarracksList.get(0).unit().getPosition().toPoint2d());
             if (producingScv != null && UnitUtils.getDistance(producingScv, enemyBarracksList.get(0).unit()) < 3.5f) {
-                Bot.ACTION.unitCommand(UnitUtils.toUnitList(lateDrones), Abilities.ATTACK, producingScv, false);
+                ActionHelper.unitCommand(UnitUtils.toUnitList(lateDrones), Abilities.ATTACK, producingScv, false);
             }
         }
         List<Unit> idleDrones = lateDrones.stream()
@@ -357,7 +357,7 @@ public class DroneDrill extends Bot {
                 .filter(drone -> drone.getOrders().isEmpty())
                 .collect(Collectors.toList());
         if (!idleDrones.isEmpty()) {
-            Bot.ACTION.unitCommand(UnitUtils.toUnitList(lateDrones), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(lateDrones), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
         }
     }
 
@@ -378,8 +378,8 @@ public class DroneDrill extends Bot {
                         LocationConstants.enemyMineralTriangle.getInner().unit()) < 1) {
             lateDrones.add(drone);
             if (LocationConstants.opponentRace == Race.TERRAN) { //for finding proxy barracks
-                Bot.ACTION.unitCommand(drone.unit(), Abilities.MOVE, LocationConstants.baseLocations.get(baseScoutIndex++), false)
-                        .unitCommand(drone.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), true);
+                ActionHelper.unitCommand(drone.unit(), Abilities.MOVE, LocationConstants.baseLocations.get(baseScoutIndex++), false);
+                ActionHelper.unitCommand(drone.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), true);
             }
         }
     }

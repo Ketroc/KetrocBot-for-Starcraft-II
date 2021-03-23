@@ -49,7 +49,7 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
 
     public static long getDelayedGameFrame(int delaySeconds) {
         long gameLoop = Time.nowFrames() + (long)(delaySeconds * 22.4);
-        gameLoop -= gameLoop % Strategy.SKIP_FRAMES;
+        gameLoop -= gameLoop % Strategy.STEP_SIZE;
         return gameLoop;
     }
 

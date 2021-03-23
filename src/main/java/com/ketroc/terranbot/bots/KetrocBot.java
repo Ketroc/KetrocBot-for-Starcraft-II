@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
@@ -58,7 +59,7 @@ public class KetrocBot extends Bot {
 
             //start first scv
             UnitInPool mainCC = Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
-            Bot.ACTION.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
+            ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
             Bot.ACTION.sendActions();
 
             //get map, get hardcoded map locations
@@ -77,6 +78,7 @@ public class KetrocBot extends Bot {
 
             //set main midpoint (must be done after GameState.onStep())
             LocationConstants.setRepairBayLocation();
+            PlacementMap.onGameStart();
 
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
@@ -95,6 +97,9 @@ public class KetrocBot extends Bot {
     @Override
     public void onStep() {
         try {
+            //************************************
+            //********* DO EVERY FRAME ***********
+            //************************************
             super.onStep();
 
             //prevent multiple runs on the same frame
@@ -110,179 +115,179 @@ public class KetrocBot extends Bot {
                 }
             }
 
-            if (Time.nowFrames() % Strategy.SKIP_FRAMES == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
-                if (Time.nowFrames() == Strategy.SKIP_FRAMES) {
-                    Bot.ACTION.sendChat("Last updated: Feb 13, 2021", ActionChat.Channel.BROADCAST);
-                }
+            if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
+                return;
+            }
 
-                //TODO: delete - for testing
-                Optional<StructureScv> first = StructureScv.scvBuildingList.stream()
-                        .filter(structureScv -> structureScv.scvAddedFrame + Time.toFrames("4:30") < Time.nowFrames())
-                        .findFirst();
-                if (first.isPresent()) {
-                    Print.print("Stalled StructureScv = \n" + first);
-                }
+            //************************************
+            //***** DO EVERY STEPSIZE FRAME ******
+            //************************************
 
-                DebugHelper.onStep();
+            //first step of the game
+            if (Time.nowFrames() == Strategy.STEP_SIZE) {
+                Bot.ACTION.sendChat("Last updated: March 10, 2021", ActionChat.Channel.BROADCAST);
+            }
 
-                //free up ignored units
-                Ignored.onStep();
+            DebugHelper.onStep();
+            ActionIssued.onStep(); //remove saved actions that are >12 frames old
+            PlacementMap.visualizePlacementMap();
+//            PlacementMap.setColumn();
 
-                //remove expired enemy scans
-                EnemyScan.onStep();
+            //free up ignored units
+            Ignored.onStep();
 
-                //rebuild unit cache every frame
-                GameCache.onStep();
+            //remove expired enemy scans
+            EnemyScan.onStep();
 
-                //handle action errors like "cannot place building"
-                ActionErrorManager.onStep();
+            //rebuild unit cache every frame
+            GameCache.onStep();
 
-                //micro to clear expansion positions
-                ExpansionClearing.onStep();
+            //handle action errors like "cannot place building"
+            ActionErrorManager.onStep();
 
-                //Do individual unit micro
-                UnitMicroList.onStep();
+            //micro to clear expansion positions
+            ExpansionClearing.onStep();
 
-                //check switches
-                Switches.onStep();
+            //check switches
+            Switches.onStep();
 
-                //execute actions queued to this game frame
-                DelayedAction.onStep();
-                DelayedChat.onStep();
+            //execute actions queued to this game frame
+            DelayedAction.onStep();
+            DelayedChat.onStep();
 
-                //print report of current game state
+            //print report of current game state
 //                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 
-                //move flying CCs
-                FlyingCC.onStep();
+            //move flying CCs
+            FlyingCC.onStep();
 
-                //update status of scvs building structures
-                StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
+            //update status of scvs building structures
+            StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
 
-                //don't build up during probe rush
-                if (WorkerRushDefense.onStep()) {
-                    return;
-                }
-
-                //scv rush opener
-                if (!Switches.scvRushComplete) {
-                    Switches.scvRushComplete = ScvRush.onStep();
-                }
-
-                CannonRushDefense.onStep();
-                ProxyHatchDefense.onStep();
-                ProxyBunkerDefense.onStep();
-                BunkerContain.onStep();
-                MarineAllIn.onStep();
-                EnemyManager.onStep();
-
-                //clearing bases that have just dried up or died
-                GameCache.baseList.forEach(Base::onStep);
-                GameCache.baseList.forEach(base -> base.onStepEnd());
-
-                //purchase from queue
-                Purchase toRemove = null;
-                if (Switches.tvtFastStart) {
-                    Strategy.onStep_TvtFaststart();
-                }
-                else {
-                    purchaseLoop:
-                    for (int i = 0; i < purchaseQueue.size(); i++) {
-                        PurchaseResult result = purchaseQueue.get(i).build();
-                        switch (result) {
-                            case SUCCESS:
-                                toRemove = purchaseQueue.get(i); // delay removal of purchase so that the other onStep()s don't add it back
-                                break purchaseLoop;
-                            case WAITING:
-                                break;
-                            case CANCEL:
-                                if (toRemove instanceof PurchaseStructure) {
-                                    Print.print(((PurchaseStructure)toRemove).getStructureType() + " failed to build at: " + ((PurchaseStructure)toRemove).getPosition());
-                                }
-                                purchaseQueue.remove(i--);
-                                break;
-                        }
-                    }
-                }
-
-                //TODO: order to spend should be workers, units, build queue, structures
-                //Strategy.onStep(); //effect game strategy
-                UpgradeManager.onStep();
-                BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
-                WorkerManager.onStep(); //fix workers, make refineries
-                ArmyManager.onStep(); //decide army movements
-                AirUnitKillSquad.onStep(); //micro anti-air kill squads
-                Harassers.onStep();
-                MuleMessages.onStep(); //make minimap troll messages with mules
-                LocationConstants.onStep(); //manage which enemy base to target
-
-                purchaseQueue.remove(toRemove);
-
-                if (isDebugOn) {
-//                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-//                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-                    for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
-                        DebugHelper.addInfoLine("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
-                                " raven: " +
-                                (ExpansionClearing.expoClearList.get(i).raven != null
-                                        ? ExpansionClearing.expoClearList.get(i).raven.unit.unit().getPosition().toPoint2d()
-                                        : "none"));
-                    }
-                    DebugHelper.addInfoLine("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
-                            .filter(ignored -> Bot.OBS.getUnit(ignored.unitTag) != null)
-                            .map(ignored -> Bot.OBS.getUnit(ignored.unitTag).unit().getType())
-                            .filter(unitType -> unitType == Units.TERRAN_SCV)
-                            .count());
-                    DebugHelper.addInfoLine("# Scvs Building: " + StructureScv.scvBuildingList.stream()
-                            .map(structureScv -> structureScv.getScv().unit().getType())
-                            .filter(unitType -> unitType == Units.TERRAN_SCV)
-                            .count());
-                    DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
-                    DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
-                    DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
-                    DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
-                    if (LocationConstants.opponentRace == Race.PROTOSS) {
-                        DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
-                    }
-
-                    UnitInPool tempest = UnitUtils.getClosestEnemyUnitOfType(Units.PROTOSS_TEMPEST, ArmyManager.retreatPos);
-                    if (tempest != null) {
-                        DebugHelper.addInfoLine("vikings near tempest: " + UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER,
-                                tempest.unit().getPosition().toPoint2d(), Strategy.DIVE_RANGE).size());
-                    }
-
-                    DebugHelper.addInfoLine("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7);
-                    DebugHelper.addInfoLine("Purchase Queue: " + KetrocBot.purchaseQueue.size());
-                    DebugHelper.addInfoLine("BaseTarget: " + LocationConstants.baseAttackIndex);
-                    DebugHelper.addInfoLine("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir);
-                    if (ArmyManager.attackGroundPos != null) {
-                        DebugHelper.draw3dBox(ArmyManager.attackGroundPos, Color.YELLOW, 0.6f);
-                    }
-                    for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
-                        DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
-                    }
-
-                    DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
-                    DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
-                    DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
-                    Bot.DEBUG.sendDebug();
-                }
-                Bot.ACTION.sendActions();
-                
-                //time check
-//                long stepDuration = System.currentTimeMillis() - Bot.stepStartTime;
-//                if (stepDuration > 40) {
-//                    Print.print("stepDuration = " + stepDuration);
-//                }
+            //don't build up during probe rush
+            if (WorkerRushDefense.onStep()) {
+                return;
             }
+
+            //scv rush opener
+            if (!Switches.scvRushComplete) {
+                Switches.scvRushComplete = ScvRush.onStep();
+            }
+
+
+            UnitMicroList.onStep(); //do individual unit micro
+            CannonRushDefense.onStep();
+            ProxyHatchDefense.onStep();
+            ProxyBunkerDefense.onStep();
+            BunkerContain.onStep();
+            MarineAllIn.onStep();
+            EnemyManager.onStep();
+
+            //clearing bases that have just dried up or died
+            GameCache.baseList.forEach(Base::onStep);
+            GameCache.baseList.forEach(base -> base.onStepEnd());
+
+            //purchase from queue
+            Purchase toRemove = null;
+            if (Switches.tvtFastStart) {
+                Strategy.onStep_TvtFaststart();
+            }
+            else {
+                purchaseLoop:
+                for (int i = 0; i < purchaseQueue.size(); i++) {
+                    PurchaseResult result = purchaseQueue.get(i).build();
+                    switch (result) {
+                        case SUCCESS:
+                            toRemove = purchaseQueue.get(i); // delay removal of purchase so that the other onStep()s don't add it back
+                            break purchaseLoop;
+                        case WAITING:
+                            break;
+                        case CANCEL:
+                            if (toRemove instanceof PurchaseStructure) {
+                                Print.print(((PurchaseStructure)toRemove).getStructureType() + " failed to build at: " + ((PurchaseStructure)toRemove).getPosition());
+                            }
+                            purchaseQueue.remove(i--);
+                            break;
+                    }
+                }
+            }
+
+            //TODO: order to spend should be workers, units, build queue, structures
+            //Strategy.onStep(); //effect game strategy
+            UpgradeManager.onStep();
+            BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
+            WorkerManager.onStep(); //fix workers, make refineries
+            ArmyManager.onStep(); //decide army movements
+            AirUnitKillSquad.onStep(); //micro anti-air kill squads
+            Harassers.onStep();
+            MuleMessages.onStep(); //make minimap troll messages with mules
+            LocationConstants.onStep(); //manage which enemy base to target
+
+            purchaseQueue.remove(toRemove);
+
+            PlacementMap.setColumn();
+            if (isDebugOn) {
+                displayGameInfo();
+            }
+            Bot.ACTION.sendActions();
         }
         catch (Exception e) {
             Print.print("Bot.onStep() error");
             e.printStackTrace();
         }
     } // end onStep()
+
+    private void displayGameInfo() {
+        //                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+//                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+        for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
+            DebugHelper.addInfoLine("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
+                    " raven: " +
+                    (ExpansionClearing.expoClearList.get(i).raven != null
+                            ? ExpansionClearing.expoClearList.get(i).raven.unit.unit().getPosition().toPoint2d()
+                            : "none"));
+        }
+        DebugHelper.addInfoLine("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
+                .filter(ignored -> Bot.OBS.getUnit(ignored.unitTag) != null)
+                .map(ignored -> Bot.OBS.getUnit(ignored.unitTag).unit().getType())
+                .filter(unitType -> unitType == Units.TERRAN_SCV)
+                .count());
+        DebugHelper.addInfoLine("# Scvs Building: " + StructureScv.scvBuildingList.stream()
+                .map(structureScv -> structureScv.getScv().unit().getType())
+                .filter(unitType -> unitType == Units.TERRAN_SCV)
+                .count());
+        DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
+        DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
+        DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
+        DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
+        if (LocationConstants.opponentRace == Race.PROTOSS) {
+            DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
+        }
+
+        UnitInPool tempest = UnitUtils.getClosestEnemyUnitOfType(Units.PROTOSS_TEMPEST, ArmyManager.retreatPos);
+        if (tempest != null) {
+            DebugHelper.addInfoLine("vikings near tempest: " + UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER,
+                    tempest.unit().getPosition().toPoint2d(), Strategy.DIVE_RANGE).size());
+        }
+
+        DebugHelper.addInfoLine("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7);
+        DebugHelper.addInfoLine("Purchase Queue: " + KetrocBot.purchaseQueue.size());
+        DebugHelper.addInfoLine("BaseTarget: " + LocationConstants.baseAttackIndex);
+        DebugHelper.addInfoLine("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir);
+        if (ArmyManager.attackGroundPos != null) {
+            DebugHelper.draw3dBox(ArmyManager.attackGroundPos, Color.YELLOW, 0.6f);
+        }
+        for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
+            DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
+        }
+
+        DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
+        DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
+        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
+        Bot.DEBUG.sendDebug();
+    }
 
     private void printCurrentGameInfo() {
         Print.print("\n\nGame info");
@@ -302,6 +307,7 @@ public class KetrocBot extends Bot {
         Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
+        Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
         Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
         Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
         Print.print("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
@@ -355,7 +361,7 @@ public class KetrocBot extends Bot {
                             } else {
                                 barracksRally = LocationConstants.insideMainWall;
                             }
-                            Bot.ACTION.unitCommand(unit, Abilities.SMART, barracksRally, false);
+                            ActionHelper.unitCommand(unit, Abilities.SMART, barracksRally, false);
 
                             //queue tech lab if marauders needed
                             if (Strategy.ANTI_NYDUS_BUILD) {
@@ -392,12 +398,12 @@ public class KetrocBot extends Bot {
                         }
                         else {
                             //rally bunker to inside main base wall
-                            Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
+                            ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
 
                             //load bunker with nearby marines
                             List<UnitInPool> nearbyMarines = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MARINE, unit.getPosition().toPoint2d(), 60);
                             if (!nearbyMarines.isEmpty()) {
-                                Bot.ACTION.unitCommand(UnitUtils.toUnitList(nearbyMarines), Abilities.SMART, unit, false);
+                                ActionHelper.unitCommand(UnitUtils.toUnitList(nearbyMarines), Abilities.SMART, unit, false);
                             }
                         }
                         break;
@@ -412,7 +418,7 @@ public class KetrocBot extends Bot {
                         }
                         else {
                             //start with (1 factory + 1 starport), or start with (2 starports)
-                            Bot.ACTION.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
+                            ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
                             if (Strategy.DO_DEFENSIVE_TANKS) {
                                 purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
                             }
@@ -425,16 +431,20 @@ public class KetrocBot extends Bot {
                         if (BunkerContain.proxyBunkerLevel == 2) {
                             BunkerContain.onFactoryTechLabComplete();
                         }
+                        //TODO: testing cyclones
+                        else if (Strategy.DO_USE_CYCLONES) {
+                            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE, unitInPool));
+                        }
                         else if (Time.nowFrames() < Time.toFrames("5:00")) {
                             KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, GameCache.factoryList.get(0)));
                         }
                         break;
                     case TERRAN_STARPORT:
-                        Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, ArmyManager.retreatPos, false);
+                        ActionHelper.unitCommand(unit, Abilities.RALLY_BUILDING, ArmyManager.retreatPos, false);
                         break;
-                    case TERRAN_SUPPLY_DEPOT:
-                        Bot.ACTION.unitCommand(unit, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false); //lower depot
-                        break;
+//                    case TERRAN_SUPPLY_DEPOT:
+//                        ActionHelper.unitCommand(unit, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false); //lower depot
+//                        break;
                     case TERRAN_COMMAND_CENTER:
                         //start mining out mineral wall
                         if ((LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) ||
@@ -449,7 +459,7 @@ public class KetrocBot extends Bot {
                         //set rally point main base mineral patch (next base if main is dry)
 //                        for (Base base : GameCache.baseList) {
 //                            if (base.isMyBase() && !base.getMineralPatchUnits().isEmpty()) {
-//                                Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, base.getFullestMineralPatch(), false);
+//                                ActionHelper.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, base.getFullestMineralPatch(), false);
 //                                break;
 //                            }
 //                        }
@@ -459,11 +469,11 @@ public class KetrocBot extends Bot {
 //                        List<UnitInPool> bigMinerals = Bot.OBS.getUnits(Alliance.NEUTRAL,
 //                                u -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(u.unit().getType()) && UnitUtils.getDistance(unit, u.unit()) < 10);
 //                        if (!bigMinerals.isEmpty()) {
-//                            Bot.ACTION.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
+//                            ActionHelper.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
 //                        }
 
                         //send some scvs to this base so it can saturate gas when needed
-                        //TODO: removed just for testing: WorkerManager.sendScvsToNewPf(unit);
+                        //WorkerManager.sendScvsToNewPf(unit); //TODO: turned off cuz it doesn't use new MineralPatch objects for the scvs
                         break;
                 }
             }
@@ -519,6 +529,10 @@ public class KetrocBot extends Bot {
             if (unit.getType() instanceof Units) {
                 switch (alliance) {
                     case SELF:
+                        if (UnitUtils.isStructure(unit.getType())) {
+                            PlacementMap.makeAvailable(unit);
+                        }
+
                         switch ((Units) unit.getType()) {
                             case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND:
                                 //if macro OC
@@ -534,9 +548,10 @@ public class KetrocBot extends Bot {
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
                                 break;
                             case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
-                                if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: use same location for factory
-                                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
-                                }
+//                                if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: use same location for factory
+//                                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
+//                                }
+                                LocationConstants.FACTORIES.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 break;
                             case TERRAN_STARPORT:
                                 LocationConstants.STARPORTS.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
@@ -635,6 +650,7 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onGameEnd() {
+        Cyclone.cycloneKillReport();
         recordGameResult();
         Print.print("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
@@ -655,7 +671,7 @@ public class KetrocBot extends Bot {
         Path path = Paths.get("./data/prevResult.txt");
         char charResult = (result == Result.DEFEAT) ? 'L' : 'W';
         try {
-            String newFileText = Bot.opponentId + "~" + Strategy.selectedStrategy + "~" + charResult;
+            String newFileText = Bot.opponentId + "~" + Strategy.gamePlan + "~" + charResult;
             String prevFileText = Files.readString(Paths.get("./data/prevResult.txt"));
             if (prevFileText.contains(Bot.opponentId)) {
                 newFileText = prevFileText + "\r\n" + newFileText;
@@ -670,4 +686,5 @@ public class KetrocBot extends Bot {
         Print.print("  Result: " + result.toString());
         Print.print("==========================");
     }
+
 }

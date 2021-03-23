@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.DebugHelper;
 import com.ketroc.terranbot.utils.InfluenceMaps;
 import com.ketroc.terranbot.utils.UnitUtils;
@@ -36,11 +37,11 @@ public class ScvMiner extends Scv {
         //mine node
         if (!UnitUtils.isCarryingResources(unit.unit())) {
             if (!targetNode.getTag().equals(UnitUtils.getTargetUnitTag(unit.unit()))) {
-                Bot.ACTION.unitCommand(unit.unit(), Abilities.SMART, targetNode.unit(), false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.SMART, targetNode.unit(), false);
             }
         }
         else if (UnitUtils.getOrder(unit.unit()) != Abilities.HARVEST_RETURN) {
-            Bot.ACTION.unitCommand(unit.unit(), Abilities.HARVEST_RETURN, false);
+            ActionHelper.unitCommand(unit.unit(), Abilities.HARVEST_RETURN, false);
         }
     }
 

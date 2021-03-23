@@ -5,8 +5,11 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.utils.ActionHelper;
+import com.ketroc.terranbot.utils.ActionIssued;
 import com.ketroc.terranbot.utils.LocationConstants;
 import com.ketroc.terranbot.bots.Bot;
+import com.ketroc.terranbot.utils.PlacementMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,8 @@ public class FlyingCC {
         this.unit = unit;
         this.destination = destination;
         this.makeMacroOC = makeMacroOC;
+        PlacementMap.makeAvailable5x5(unit.unit().getPosition().toPoint2d());
+        PlacementMap.makeUnavailable5x5(destination);
     }
 
     // ***************
@@ -36,7 +41,7 @@ public class FlyingCC {
     // ***************
 
     public boolean isMoving() {
-        return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING && !unit.unit().getOrders().isEmpty();
+        return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit.unit()).isPresent();
     }
     public boolean hasLanded() {
         return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER;
@@ -47,8 +52,8 @@ public class FlyingCC {
 
     public void keepCCMoving() {
         Unit cc = unit.unit();
-        if (cc.getType() == Units.TERRAN_COMMAND_CENTER_FLYING && cc.getOrders().isEmpty()) {
-            Bot.ACTION.unitCommand(cc, Abilities.LAND, destination, false);
+        if (cc.getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(cc).isEmpty()) {
+            ActionHelper.unitCommand(cc, Abilities.LAND, destination, false);
         }
     }
 
@@ -58,7 +63,7 @@ public class FlyingCC {
 
     public static void addFlyingCC(UnitInPool cc, Point2d destination, boolean makeMacroOC) {
         flyingCCs.add(new FlyingCC(cc, destination, makeMacroOC));
-        Bot.ACTION.unitCommand(cc.unit(), Abilities.LIFT_COMMAND_CENTER, false);
+        ActionHelper.unitCommand(cc.unit(), Abilities.LIFT_COMMAND_CENTER, false);
     }
 
     public static void addFlyingCC(Unit cc, Point2d destination, boolean makeMacroOC) {

@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 import com.ketroc.terranbot.bots.Bot;
@@ -69,7 +70,7 @@ public class Infestor {
                 .forEach(unit -> {
                     Ignored.add(new IgnoredFungalDodger(unit.getTag()));
                     Point2d dodgePoint = Position.towards(unit.unit().getPosition().toPoint2d(), infestor.getPosition().toPoint2d(), -3);
-                    Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
+                    ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
                     switch ((Units)unit.unit().getType()) {
                         case TERRAN_BANSHEE:
                             GameCache.bansheeList.remove(unit.unit());
@@ -103,7 +104,7 @@ public class Infestor {
 //                .forEach(unit -> {
 //                    IgnoredUnit.ignoredUnits.add(new IgnoredFungalDodge(unit.getTag()));
 //                    Point2d dodgePoint = Position.towards(unit.unit().getPosition().toPoint2d(), fungalPos, -3);
-//                    Bot.ACTION.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
+//                    ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
 //                    switch ((Units)unit.unit().getType()) {
 //                        case TERRAN_BANSHEE:
 //                            GameCache.bansheeList.remove(unit.unit());

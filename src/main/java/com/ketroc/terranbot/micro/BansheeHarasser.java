@@ -63,7 +63,7 @@ public class BansheeHarasser {
 
         //if should cloak
         if (shouldCloak()) {
-            Bot.ACTION.unitCommand(banshee.unit(), Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
+            ActionHelper.unitCommand(banshee.unit(), Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             return;
         }
 
@@ -73,7 +73,7 @@ public class BansheeHarasser {
             //attack when safe, or when there's a good value target and not headed home
             if (target.unit != null) {
                 if (isSafe() || (!retreatForRepairs && target.hp <= 24)){
-                    Bot.ACTION.unitCommand(banshee.unit(), Abilities.ATTACK, target.unit.unit(), false);
+                    ActionHelper.unitCommand(banshee.unit(), Abilities.ATTACK, target.unit.unit(), false);
                     return;
                 }
             }
@@ -118,7 +118,7 @@ public class BansheeHarasser {
 
     private void giveMovementCommand(Point2d targetPos) {
         Point2d safePos = getSafePos(targetPos);
-        Bot.ACTION.unitCommand(banshee.unit(), Abilities.MOVE, safePos, false);
+        ActionHelper.unitCommand(banshee.unit(), Abilities.MOVE, safePos, false);
         DebugHelper.drawBox(safePos, Color.GREEN, 0.22f);
         DebugHelper.drawBox(safePos, Color.GREEN, 0.20f);
         DebugHelper.drawBox(safePos, Color.GREEN, 0.18f);
@@ -132,13 +132,16 @@ public class BansheeHarasser {
         Point2d towardsTarget = Position.towards(banshee.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         Point2d safestPos = null;
         int safestThreatValue = Integer.MAX_VALUE;
+        boolean canCloak = canCloak();
         for (int i=0; i<360; i+=20) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
             Point2d detourPos = Position.rotate(towardsTarget, banshee.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null) {
                 continue;
             }
-            int threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, detourPos);
+            int threatValue = (canCloak && !InfluenceMaps.getValue(InfluenceMaps.pointDetected, detourPos))
+                    ? 0
+                    : InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, detourPos);
             if (rangeCheck > 7 && threatValue < safestThreatValue) { //save least dangerous position in case no safe position is found
                 safestThreatValue = threatValue;
                 safestPos = detourPos;

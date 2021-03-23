@@ -91,10 +91,10 @@ public class EnemyUnit {
         isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch ((Units)enemy.getType()) {
-            case PROTOSS_PHOENIX:
+            case PROTOSS_PHOENIX: case PROTOSS_COLOSSUS:
                 airAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
                 break;
-            case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
+            case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: case TERRAN_PLANETARY_FORTRESS: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
             case ZERG_MUTALISK: //giving more kiting range since it's fast
                 if (airAttackRange != 0) {
                     airAttackRange++;
@@ -228,7 +228,7 @@ public class EnemyUnit {
             case TERRAN_BUNKER: //assume 4 marines
                 return 12;
             case TERRAN_VIKING_FIGHTER:
-                return Strategy.ANTI_CYCLONE ? 1 : 3;
+                return 3;
             case TERRAN_LIBERATOR:
                 return 6;
             case TERRAN_GHOST:

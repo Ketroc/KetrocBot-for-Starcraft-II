@@ -10,6 +10,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.purchases.PurchaseStructureMorph;
+import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 import java.util.Arrays;
@@ -48,7 +49,7 @@ public class AddonSwap {
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(newStructureType, newStructurePos));
         } else {
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv.unit(), newStructureType, newStructurePos));
-            Bot.ACTION.unitCommand(scv.unit(), Abilities.MOVE, newStructurePos, false);
+            ActionHelper.unitCommand(scv.unit(), Abilities.MOVE, newStructurePos, false);
             UnitUtils.patrolInPlace(scv.unit(), newStructurePos);
         }
     }
@@ -90,7 +91,7 @@ public class AddonSwap {
     private void land(UnitInPool structure, Point2d structurePos) {
         if (!structure.unit().getActive().orElse(true) &&
                 structure.unit().getFlying().get()) {
-            Bot.ACTION.unitCommand(structure.unit(), Abilities.LAND, structurePos, false);
+            ActionHelper.unitCommand(structure.unit(), Abilities.LAND, structurePos, false);
         }
     }
 
@@ -98,7 +99,7 @@ public class AddonSwap {
         if (!structure.unit().getActive().orElse(true) &&
                 !structure.unit().getFlying().get() &&
                 UnitUtils.getDistance(structure.unit(), structurePos) < 1) {
-            Bot.ACTION.unitCommand(structure.unit(), Abilities.LIFT, false);
+            ActionHelper.unitCommand(structure.unit(), Abilities.LIFT, false);
         }
     }
 

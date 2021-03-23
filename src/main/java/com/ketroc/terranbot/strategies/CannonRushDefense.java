@@ -67,17 +67,17 @@ public class CannonRushDefense {
                             Point2d behindCannon = Position.towards(
                                     scvTarget.targetUnit.unit().getPosition().toPoint2d(),
                                     newScv.unit().getPosition().toPoint2d(), 3);
-                            Bot.ACTION.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false)
-                                    .unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);
+                            ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false);
+                            ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);
                         }
                         else {
-                            Bot.ACTION.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+                            ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
                         }
                         scvTarget.addScv(newScv);
                     }
 //                    //attack with marines if cannon
 //                    if (!marines.isEmpty() && scvTarget.targetUnit.unit().getType() == Units.PROTOSS_PHOTON_CANNON) {
-//                        Bot.ACTION.unitCommand(marines, Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+//                        ActionHelper.unitCommand(marines, Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
 //                    }
                 }
 //                //if marines don't have a target, attack starting with closest to natural base
@@ -88,7 +88,7 @@ public class CannonRushDefense {
 //                            .sorted(Comparator.comparing(targetUnit -> UnitUtils.getDistance(targetUnit, GameCache.baseList.get(1).getCcPos())))
 //                            .findFirst()
 //                            .get();
-//                    Bot.ACTION.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
+//                    ActionHelper.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
 //                }
 
                 DebugHelper.addInfoLine("targets list size: " + ScvTarget.targets.size());
@@ -149,6 +149,10 @@ public class CannonRushDefense {
                 ScvTarget.targets.add(new ScvTarget(newTarget));
             }
         }
+    }
+
+    private static void add(UnitInPool targetUnit) {
+        ScvTarget.targets.add(new ScvTarget(targetUnit));
     }
 
 }
