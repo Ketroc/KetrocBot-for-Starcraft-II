@@ -941,13 +941,13 @@ public class ArmyManager {
         boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
         boolean isParasitic = banshee.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
-        boolean isDecloakBuffed = UnitUtils.hasDecloakBuff(banshee);
+        boolean hasDecloakBuff = UnitUtils.hasDecloakBuff(banshee);
         boolean isAnyBaseUnderAttack = !doOffense && attackUnit != null;
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : Strategy.RETREAT_HEALTH;
 
         //always flee if locked on by cyclone
         if (banshee.getBuffs().contains(Buffs.LOCK_ON)) {
-            if (!isInDetectionRange && canCloak && !isDecloakBuffed) {
+            if (!isInDetectionRange && canCloak && !hasDecloakBuff) {
                 ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
             else {
@@ -980,7 +980,7 @@ public class ArmyManager {
                 }
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
-            else if (cloakState == CloakState.CLOAKED_ALLIED &&
+            else if (cloakState != CloakState.NOT_CLOAKED &&
                     banshee.getEnergy().get() > 3 + ((UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() > 2) ? 2 : 0)) { //additional energy for time to flee tempest range
                 if (isInBansheeRange) { //maintain max range
                     //retreat
@@ -993,7 +993,7 @@ public class ArmyManager {
                     if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
                 }
             }
-            else if (canCloak && !isDecloakBuffed) {
+            else if (canCloak && !hasDecloakBuff) {
                 //cloak
                 ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }

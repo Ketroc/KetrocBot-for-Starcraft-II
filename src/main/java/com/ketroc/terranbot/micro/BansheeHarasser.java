@@ -186,7 +186,7 @@ public class BansheeHarasser {
     }
 
     private boolean isCloaked() {
-        return banshee.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED_ALLIED;
+        return banshee.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.NOT_CLOAKED;
     }
 
     //is safe if position is free from threat, or undetected with cloak available
@@ -228,7 +228,7 @@ public class BansheeHarasser {
     }
 
     private boolean isDetected(Point2d p) {
-        return InfluenceMaps.getValue(InfluenceMaps.pointDetected, p);
+        return InfluenceMaps.getValue(InfluenceMaps.pointDetected, p) || UnitUtils.hasDecloakBuff(banshee.unit());
     }
 
     //selects target based on cost:health ratio

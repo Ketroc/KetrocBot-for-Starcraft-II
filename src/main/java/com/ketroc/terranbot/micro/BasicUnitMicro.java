@@ -32,6 +32,7 @@ public class BasicUnitMicro {
     public boolean isDodgeClockwise;
     private long prevDirectionChangeFrame;
     public boolean removeMe;
+    public boolean doDetourAroundEnemy;
 
     public BasicUnitMicro(Unit unit, Point2d targetPos, MicroPriority priority) {
         this(Bot.OBS.getUnit(unit.getTag()), targetPos, priority);
@@ -235,9 +236,10 @@ public class BasicUnitMicro {
     }
 
     private Point2d findDetourPos() {
-        return findDetourPos(2f);
+        return doDetourAroundEnemy ? findDetourPos2(2f) : findDetourPos(2f);
     }
 
+    //tries to go around the threat
     private Point2d findDetourPos2(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         for (int i=0; i<360; i+=15) {
@@ -263,6 +265,7 @@ public class BasicUnitMicro {
         return findDetourPos(rangeCheck+2);
     }
 
+    //retreats as straight back as possible from the threat
     private Point2d findDetourPos(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         for (int i=180; i<360; i+=15) {

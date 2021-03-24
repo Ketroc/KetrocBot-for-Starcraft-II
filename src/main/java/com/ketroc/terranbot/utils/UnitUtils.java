@@ -246,8 +246,13 @@ public class UnitUtils {
 
     public static int numRepairingScvs(Unit repairTarget) {
         return (int)getFriendlyUnitsOfType(Units.TERRAN_SCV).stream()
-                .filter(scv -> ActionIssued.getCurOrder(scv).stream().anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
-                        repairTarget.getTag().equals(curAction.targetTag)))
+                .filter(scv ->
+                        ActionIssued.getCurOrder(scv).stream()
+                                .anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
+                                        repairTarget.getTag().equals(curAction.targetTag)) ||
+                        scv.getOrders().stream()
+                                .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
+                                        repairTarget.getTag().equals(order.getTargetedUnitTag().orElse(null))))
                 .count();
     }
 
@@ -523,10 +528,12 @@ public class UnitUtils {
 
     public static StructureSize getSize(Units structureType) {
         switch (structureType) {
-            case TERRAN_COMMAND_CENTER:
+            case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND: case TERRAN_PLANETARY_FORTRESS:
+            case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
                 return StructureSize._5x5;
             case TERRAN_ENGINEERING_BAY: case TERRAN_BARRACKS: case TERRAN_BUNKER: case TERRAN_ARMORY: case TERRAN_FACTORY:
-            case TERRAN_STARPORT: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY:
+            case TERRAN_STARPORT: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY: case TERRAN_BARRACKS_FLYING:
+            case TERRAN_FACTORY_FLYING: case TERRAN_STARPORT_FLYING:
                 return StructureSize._3x3;
             case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT: case TERRAN_TECHLAB: case TERRAN_BARRACKS_TECHLAB:
             case TERRAN_FACTORY_TECHLAB: case TERRAN_STARPORT_TECHLAB: case TERRAN_REACTOR: case TERRAN_BARRACKS_REACTOR:
@@ -835,5 +842,29 @@ public class UnitUtils {
 
     public static float getTotalHealth(Unit unit) {
         return unit.getHealth().orElse(0f) + unit.getShield().orElse(0f);
+    }
+
+    //just checks placement grid and creep in observation()
+    public static boolean isPlaceable(Units structureType, Point2d structurePos) {
+        float structureRadius = getStructureRadius(structureType);
+        float x = structurePos.getX();
+        float y = structurePos.getY();
+        Point2d top = Point2d.of(x, y+structureRadius);
+        Point2d bottom = Point2d.of(x, y-structureRadius);
+        Point2d left = Point2d.of(x-structureRadius, y);
+        Point2d right = Point2d.of(x+structureRadius, y);
+        Point2d center = structurePos;
+        Point2d topLeft = Point2d.of(x-structureRadius, y+structureRadius);
+        Point2d topRight = Point2d.of(x+structureRadius, y+structureRadius);
+        Point2d botLeft = Point2d.of(x-structureRadius, y-structureRadius);
+        Point2d botRight = Point2d.of(x+structureRadius, y-structureRadius);
+
+        return Bot.OBS.isPlacable(topLeft) && Bot.OBS.isPlacable(top) && Bot.OBS.isPlacable(topRight) &&
+                Bot.OBS.isPlacable(left) && Bot.OBS.isPlacable(center) && Bot.OBS.isPlacable(right) &&
+                Bot.OBS.isPlacable(botLeft) && Bot.OBS.isPlacable(bottom) && Bot.OBS.isPlacable(botRight) &&
+
+                !Bot.OBS.hasCreep(topLeft) && !Bot.OBS.hasCreep(top) && !Bot.OBS.hasCreep(topRight) &&
+                !Bot.OBS.hasCreep(left) && !Bot.OBS.hasCreep(center) && !Bot.OBS.hasCreep(right) &&
+                !Bot.OBS.hasCreep(botLeft) && !Bot.OBS.hasCreep(bottom) && !Bot.OBS.hasCreep(botRight);
     }
 }

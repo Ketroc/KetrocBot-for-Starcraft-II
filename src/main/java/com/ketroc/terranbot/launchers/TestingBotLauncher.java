@@ -13,7 +13,7 @@ public class TestingBotLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-//                .setRealtime(true)
+                .setRealtime(true)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
@@ -24,7 +24,7 @@ public class TestingBotLauncher {
 //                .setDataVersion("B89B5D6FA7CBF6452E721311BFBC6CB2")
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(true, null,false)),
-                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.VERY_EASY, AiBuild.MACRO))
+                        S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));

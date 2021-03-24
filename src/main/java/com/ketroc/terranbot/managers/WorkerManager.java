@@ -151,7 +151,7 @@ public class WorkerManager {
             unitsToRepair.addAll(GameCache.wallStructures);
         }
         GameCache.burningStructures.forEach(structure -> {
-            if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, structure.getPosition().toPoint2d())) {
+            if (structure.getType() != Units.TERRAN_PLANETARY_FORTRESS && InfluenceMaps.getGroundThreatToStructure(structure) == 0) {
                 unitsToRepair.add(structure);
             }
         });
@@ -198,34 +198,30 @@ public class WorkerManager {
 
     private static List<Unit> getScvsForRepairing(Unit unitToRepair, int numScvsToAdd) {
         List<Unit> availableScvs;
-        if (numScvsToAdd > 9999) {
-            availableScvs = getAllScvUnits(unitToRepair.getPosition().toPoint2d()).stream()
-                    .filter(scv -> !UnitUtils.isScvRepairing(scv))
-                    .collect(Collectors.toList());
+        //only choose scvs inside the wall within 20 distance
+        if (GameCache.wallStructures.contains(unitToRepair) && !isRangedEnemyNearby()) {
+            availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u ->
+                    u.unit().getType() == Units.TERRAN_SCV &&
+                            Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
+                            UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
+                            (ActionIssued.getCurOrder(u.unit()).isEmpty() || isMiningMinerals(u))));
         }
-        else {
-            //only choose scvs inside the wall within 20 distance
-            if (GameCache.wallStructures.contains(unitToRepair) && !isRangedEnemyNearby()) {
-                availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u ->
-                        u.unit().getType() == Units.TERRAN_SCV &&
-                                Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
-                                UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
-                                (ActionIssued.getCurOrder(u.unit()).isEmpty() || isMiningMinerals(u))));
-            }
 //                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
 //                            //only send if safe
 //                            //TODO: make threat to ground gridmap to check against (replace above if statement for wall structures)
 //                        }
-            else {
-                availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d()));
-            }
-
-            //sort by closest scvs then sublist
-            availableScvs = availableScvs.stream()
-                    .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, unitToRepair)))
-                    .limit(Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)))
-                    .collect(Collectors.toList());
+        else if (unitToRepair.getType() == Units.TERRAN_PLANETARY_FORTRESS) {
+            availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d(), 10));
         }
+        else {
+            availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d()));
+        }
+
+        //sort by closest scvs then sublist
+        availableScvs = availableScvs.stream()
+                .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, unitToRepair)))
+                .limit(Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)))
+                .collect(Collectors.toList());
         return availableScvs;
     }
 

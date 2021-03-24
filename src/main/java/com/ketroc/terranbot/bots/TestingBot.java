@@ -82,9 +82,9 @@ public class TestingBot extends Bot {
 
         DebugHelper.onGameStart();
         debug().debugGiveAllTech();
-//        debug().debugCreateUnit(Units.TERRAN_CYCLONE, LocationConstants.baseLocations.get(1), myId, 1);
-        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
-        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
+        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER_FLYING, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
+//        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
+//        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
         debug().sendDebug();
 
 
@@ -113,8 +113,12 @@ public class TestingBot extends Bot {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        PlacementMap.visualizePlacementMap();
+        List<UnitInPool> enemyHatchList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.ZERG_HATCHERY);
+        if (!enemyHatchList.isEmpty()) {
+            Unit myFlyingCC = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING).get(0).unit();
+            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
+            int wer = 392847;
+        }
 
         ACTION.sendActions();
         DEBUG.sendDebug();

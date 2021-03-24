@@ -333,7 +333,23 @@ public class BuildManager {
                 switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
-                            if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
+                            if (UnitUtils.getNumFriendlyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
+                                Point2d expansionBasePos = getNextAvailableExpansionPosition();
+                                if (expansionBasePos == null) {
+                                    //send to a random enemy base
+                                    List<Base> enemyBases = GameCache.baseList.stream()
+                                            .filter(base -> !base.isMyBase())
+                                            .collect(Collectors.toList());
+                                    if (!enemyBases.isEmpty()) {
+                                        Random r = new Random();
+                                        expansionBasePos = enemyBases.get(r.nextInt(enemyBases.size())).getCcPos();
+                                    }
+                                }
+                                if (expansionBasePos != null) {
+                                    floatCCForExpansion(cc, expansionBasePos);
+                                }
+                            }
+                            else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
                                 UnitMicroList.add(new StructureFloater(cc));
                             }
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
@@ -341,28 +357,10 @@ public class BuildManager {
                                 //if not main cc, and if needed for expansion
                                 if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isCcNeededForExpansion()) {
                                     Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
-                                    if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up
+                                    if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up TODO: make OC or wait??
                                         break;
                                     }
-                                    //FlyingCC.addFlyingCC(cc, nextFreeBasePos, false);
-                                    UnitMicroList.add(new StructureFloaterExpansionCC(cc, nextFreeBasePos));
-                                    LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
-                                    GameCache.baseList.stream()
-                                            .filter(base -> base.getCcPos().distance(nextFreeBasePos) < 1)
-                                            .findFirst()
-                                            .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
-
-                                    //remove OC morph from purchase queue
-                                    for (int i = 0; i < KetrocBot.purchaseQueue.size(); i++) {
-                                        Purchase p = KetrocBot.purchaseQueue.get(i);
-                                        if (p instanceof PurchaseStructureMorph) {
-                                            if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
-                                                KetrocBot.purchaseQueue.remove(i);
-                                                break;
-                                            }
-                                        }
-                                    }
-
+                                    floatCCForExpansion(cc, nextFreeBasePos);
                                 }
                                 else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
                                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
@@ -449,6 +447,18 @@ public class BuildManager {
                 }
             }
         }
+    }
+
+    private static void floatCCForExpansion(Unit cc, Point2d basePos) {
+        UnitMicroList.add(new StructureFloaterExpansionCC(cc, basePos));
+        LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
+        GameCache.baseList.stream()
+                .filter(base -> base.getCcPos().distance(basePos) < 1)
+                .findFirst()
+                .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
+
+        //remove OC morph from purchase queue
+        PurchaseStructureMorph.remove(cc.getTag());
     }
 
     private static boolean isCcNeededForExpansion() {

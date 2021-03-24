@@ -2,6 +2,7 @@ package com.ketroc.terranbot.purchases;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.bots.Bot;
@@ -30,6 +31,12 @@ public class PurchaseStructureMorph implements Purchase {
         this.structure = structure;
         setCost();
         Print.print("Added to queue: " + this.morphOrAddOn);
+    }
+
+    public static void remove(Tag structureTag) {
+        KetrocBot.purchaseQueue.removeIf(p ->
+                p instanceof PurchaseStructureMorph &&
+                ((PurchaseStructureMorph) p).structure.getTag().equals(structureTag));
     }
 
 
