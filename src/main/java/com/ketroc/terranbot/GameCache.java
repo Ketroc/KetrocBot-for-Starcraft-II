@@ -251,6 +251,11 @@ public class GameCache {
                         continue;
                     }
 
+                    //ignore autoturret snapshots
+                    if (unit.getDisplayType() == DisplayType.SNAPSHOT && unit.getType() == Units.TERRAN_AUTO_TURRET) {
+                        continue;
+                    }
+
                     //check if enemy can create air units
                     if (!Switches.enemyCanProduceAir &&
                             UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
