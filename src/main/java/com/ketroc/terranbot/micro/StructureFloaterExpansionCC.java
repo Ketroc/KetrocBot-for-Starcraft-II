@@ -93,10 +93,10 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 .filter(b -> b.getCcPos().distance(basePos) < 1)
                 .findFirst().get();
         Point2d outFrontPos = Position.toHalfPoint(
-                Position.towards(basePos, base.getResourceMidPoint(), -9));
+                Position.towards(basePos, base.getResourceMidPoint(), -10));
 
         //get a list of cc positions sorted by nearest to flying cc
-        List<Point2d> landingPosList = Position.getSpiralList(outFrontPos, 6);
+        List<Point2d> landingPosList = Position.getSpiralList(outFrontPos, 7);
         landingPosList = landingPosList.stream()
                 //.filter(landingPos -> landingPos.distance(basePos) < 12) //in range for PF to kill enemy command structure
                 .filter(landingPos -> UnitUtils.isPlaceable(Units.TERRAN_COMMAND_CENTER, landingPos))

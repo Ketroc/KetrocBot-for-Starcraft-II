@@ -317,6 +317,8 @@ public class EnemyUnit {
 
     public static int getPFTargetValue(Unit enemy) {
         switch ((Units)enemy.getType()) {
+            case TERRAN_SCV:
+                return 3;
             case TERRAN_MARINE:
                 return 5;
             case TERRAN_MARAUDER:
@@ -341,6 +343,8 @@ public class EnemyUnit {
                 return 5;
             case PROTOSS_ZEALOT:
                 return 5;
+            case PROTOSS_PROBE:
+                return 5;
             case PROTOSS_ADEPT:
                 return 3;
             case PROTOSS_SENTRY:
@@ -360,6 +364,10 @@ public class EnemyUnit {
                 return 5;
             case PROTOSS_DARK_TEMPLAR:
                 return 9;
+            case ZERG_DRONE:
+                return 5;
+            case ZERG_DRONE_BURROWED:
+                return 4;
             case ZERG_HYDRALISK:
                 return 6;
             case ZERG_HYDRALISK_BURROWED:
