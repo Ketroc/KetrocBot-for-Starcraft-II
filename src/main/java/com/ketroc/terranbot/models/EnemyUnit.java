@@ -99,6 +99,9 @@ public class EnemyUnit {
                 if (airAttackRange != 0) {
                     airAttackRange++;
                 }
+                if (groundAttackRange != 0) {
+                    groundAttackRange++;
+                }
                 break;
             case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
                 airAttackRange -= 0.5f;

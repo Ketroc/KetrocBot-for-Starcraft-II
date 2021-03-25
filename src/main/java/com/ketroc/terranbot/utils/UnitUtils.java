@@ -609,7 +609,7 @@ public class UnitUtils {
                 getDistance(enemy.unit(), pos) <= range);
     }
 
-    public static Abilities getOrder(Unit unit) {
+    public static Abilities getOrder(Unit unit) { //TODO: update for realtime
         if (!unit.getOrders().isEmpty() && unit.getOrders().get(0).getAbility() instanceof Abilities) {
             return (Abilities) unit.getOrders().get(0).getAbility();
         }
@@ -846,7 +846,7 @@ public class UnitUtils {
 
     //just checks placement grid and creep in observation()
     public static boolean isPlaceable(Units structureType, Point2d structurePos) {
-        float structureRadius = getStructureRadius(structureType);
+        float structureRadius = getStructureRadius(structureType) - 0.05f;
         float x = structurePos.getX();
         float y = structurePos.getY();
         Point2d top = Point2d.of(x, y+structureRadius);
@@ -866,5 +866,16 @@ public class UnitUtils {
                 !Bot.OBS.hasCreep(topLeft) && !Bot.OBS.hasCreep(top) && !Bot.OBS.hasCreep(topRight) &&
                 !Bot.OBS.hasCreep(left) && !Bot.OBS.hasCreep(center) && !Bot.OBS.hasCreep(right) &&
                 !Bot.OBS.hasCreep(botLeft) && !Bot.OBS.hasCreep(bottom) && !Bot.OBS.hasCreep(botRight);
+    }
+
+    public static Point2d getRandomUnownedBasePos() {
+        List<Base> notMyBases = GameCache.baseList.stream()
+                .filter(base -> !base.isMyBase())
+                .collect(Collectors.toList());
+        if (!notMyBases.isEmpty()) {
+            Random r = new Random();
+            return notMyBases.get(r.nextInt(notMyBases.size())).getCcPos();
+        }
+        return null;
     }
 }

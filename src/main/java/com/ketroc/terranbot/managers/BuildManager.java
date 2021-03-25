@@ -335,18 +335,15 @@ public class BuildManager {
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
                             if (UnitUtils.getNumFriendlyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
                                 Point2d expansionBasePos = getNextAvailableExpansionPosition();
-                                if (expansionBasePos == null) {
-                                    //send to a random enemy base
-                                    List<Base> enemyBases = GameCache.baseList.stream()
-                                            .filter(base -> !base.isMyBase())
-                                            .collect(Collectors.toList());
-                                    if (!enemyBases.isEmpty()) {
-                                        Random r = new Random();
-                                        expansionBasePos = enemyBases.get(r.nextInt(enemyBases.size())).getCcPos();
-                                    }
-                                }
                                 if (expansionBasePos != null) {
                                     floatCCForExpansion(cc, expansionBasePos);
+                                }
+                                else {
+                                    //send to a random enemy base
+                                    expansionBasePos = UnitUtils.getRandomUnownedBasePos();
+                                    if (expansionBasePos != null) {
+                                        floatCCForPfHarass(cc, expansionBasePos);
+                                    }
                                 }
                             }
                             else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
@@ -449,8 +446,20 @@ public class BuildManager {
         }
     }
 
+    private static void floatCCForPfHarass(Unit cc, Point2d basePos) {
+        floatCCToBase(cc, basePos, true);
+    }
+
     private static void floatCCForExpansion(Unit cc, Point2d basePos) {
-        UnitMicroList.add(new StructureFloaterExpansionCC(cc, basePos));
+        floatCCToBase(cc, basePos, false);
+    }
+
+    private static void floatCCToBase(Unit cc, Point2d basePos, boolean isEnemyBase) {
+        StructureFloaterExpansionCC ccFloater = new StructureFloaterExpansionCC(cc, basePos);
+        if (isEnemyBase) {
+            ccFloater.removeCCFromBaseList();
+        }
+        UnitMicroList.add(ccFloater);
         LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
         GameCache.baseList.stream()
                 .filter(base -> base.getCcPos().distance(basePos) < 1)

@@ -47,7 +47,7 @@ public class BasicUnitMicro {
         this.movementSpeed = UnitUtils.getUnitSpeed(unit.unit().getType());
     }
 
-    private boolean[][] getThreatMap() {
+    protected boolean[][] getThreatMap() {
         if (this instanceof StructureFloater) {
             return InfluenceMaps.pointThreatToAirPlusBuffer;
         }
@@ -146,7 +146,7 @@ public class BasicUnitMicro {
 
     }
 
-    private boolean isTargettingUnit(Unit target) {
+    protected boolean isTargettingUnit(Unit target) {
         Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
         return order.isPresent() &&
                 target.getTag().equals(order.get().targetTag);
@@ -191,11 +191,11 @@ public class BasicUnitMicro {
         return bestTarget.unit;
     }
 
-    private boolean isAir(UnitInPool enemy) {
+    protected boolean isAir(UnitInPool enemy) {
         return enemy.unit().getFlying().orElse(true);
     }
 
-    private List<UnitInPool> getValidTargetsInRange() {
+    protected List<UnitInPool> getValidTargetsInRange() {
         Predicate<UnitInPool> enemyTargetPredicate = enemy -> {
             boolean isEnemyGround = !enemy.unit().getFlying().orElse(false);
             float range = ((isEnemyGround) ? groundAttackRange : airAttackRange);
@@ -205,7 +205,7 @@ public class BasicUnitMicro {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemyTargetPredicate);
     }
 
-    private void setWeaponInfo() {
+    protected void setWeaponInfo() {
         Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getWeapons();
         for (Weapon weapon : weapons) {
             switch (weapon.getTargetType()) {
@@ -235,12 +235,12 @@ public class BasicUnitMicro {
         return !InfluenceMaps.getValue(getThreatMap(), pos);
     }
 
-    private Point2d findDetourPos() {
+    protected Point2d findDetourPos() {
         return doDetourAroundEnemy ? findDetourPos2(2f) : findDetourPos(2f);
     }
 
     //tries to go around the threat
-    private Point2d findDetourPos2(float rangeCheck) {
+    protected Point2d findDetourPos2(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         for (int i=0; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
@@ -253,7 +253,7 @@ public class BasicUnitMicro {
                     toggleDodgeClockwise();
                 }
                 //add 15degrees more angle as buffer, to account for chasing units
-                i += 15;
+                i += 10;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
                 return detourPos;
@@ -266,7 +266,7 @@ public class BasicUnitMicro {
     }
 
     //retreats as straight back as possible from the threat
-    private Point2d findDetourPos(float rangeCheck) {
+    protected Point2d findDetourPos(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
         for (int i=180; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
@@ -297,7 +297,7 @@ public class BasicUnitMicro {
         return findDetourPos(rangeCheck+2);
     }
 
-    private boolean isPathable(Point2d detourPos) {
+    protected boolean isPathable(Point2d detourPos) {
         return !isGround || Bot.OBS.isPathable(detourPos);
     }
 
@@ -317,7 +317,7 @@ public class BasicUnitMicro {
         Ignored.add(new IgnoredUnit(newUnit.getTag()));
     }
 
-    private boolean isEnemyFacingMe(Unit enemy) {
+    protected boolean isEnemyFacingMe(Unit enemy) {
         float facing = (float)Math.toDegrees(enemy.getFacing());
         float attackAngle = Position.getAngle(enemy.getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d());
         float angleDiff = Position.getAngleDifference(facing, attackAngle);

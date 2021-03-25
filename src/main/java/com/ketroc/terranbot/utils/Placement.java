@@ -48,7 +48,8 @@ public class Placement {
                 Point2d thisPos = Point2d.of(x, y);
                 if (LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2).distance(thisPos) > MIN_DISTANCE_FROM_ENEMY_NAT &&
                         checkCcCorners(x, y) &&
-                        resourceNodePosList.stream().noneMatch(p -> p.distance(thisPos) < 6)) {
+                        resourceNodePosList.stream().noneMatch(p -> p.distance(thisPos) < 6) &&
+                        !InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, thisPos)) {
                     possibleCcPosList.add(thisPos);
                 }
             }
@@ -97,15 +98,15 @@ public class Placement {
     }
 
     private static boolean checkCcCorners(float x, float y) {
-        Point2d top = Point2d.of(x, y+2.5f);
-        Point2d bottom = Point2d.of(x, y-3.5f);
-        Point2d left = Point2d.of(x-2.5f, y);
-        Point2d right = Point2d.of(x+3.5f, y);
+        Point2d top = Point2d.of(x, y+2.49f);
+        Point2d bottom = Point2d.of(x, y-3.49f);
+        Point2d left = Point2d.of(x-2.49f, y);
+        Point2d right = Point2d.of(x+3.49f, y);
         Point2d center = Point2d.of(x, y);
-        Point2d topLeft = Point2d.of(x-2.5f, y+2.5f);
-        Point2d topRight = Point2d.of(x+3.5f, y+2.5f);
-        Point2d botLeft = Point2d.of(x-2.5f, y-3.5f);
-        Point2d botRight = Point2d.of(x+3.5f, y-3.5f);
+        Point2d topLeft = Point2d.of(x-2.49f, y+2.49f);
+        Point2d topRight = Point2d.of(x+3.49f, y+2.49f);
+        Point2d botLeft = Point2d.of(x-2.49f, y-3.49f);
+        Point2d botRight = Point2d.of(x+3.49f, y-3.49f);
         return Bot.OBS.isPlacable(topLeft) && Bot.OBS.isPlacable(topRight) &&
                 Bot.OBS.isPlacable(botLeft) && Bot.OBS.isPlacable(botRight) &&
                 Bot.OBS.isPlacable(top) && Bot.OBS.isPlacable(bottom) &&

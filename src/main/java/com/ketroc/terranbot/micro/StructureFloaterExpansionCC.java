@@ -37,44 +37,45 @@ public class StructureFloaterExpansionCC extends StructureFloater {
     @Override
     public void onStep() {
         //landing code
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 13) {
-            //if flying
-            if (unit.unit().getFlying().orElse(true)) {
-                if (UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
-                    if (isBlockedByEnemyCommandStructure()) {
-                        Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
-                        Point2d safeLandingPos = calcSafeLandingPos();
-                        if (safeLandingPos != null) {
-                            targetPos = safeLandingPos;
-                            ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
-                            removeCCFromBaseList();
-                            return;
-                        }
-                        else {
-                            targetPos = basePos;
-                            addCCToBaseList();
-                            super.onStep();
-                        }
-                    }
-                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
-                }
+        if (unit.unit().getFlying().orElse(true) &&
+                UnitUtils.getDistance(unit.unit(), basePos) < 13.5 &&
+                UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
+            if (isBlockedByMyCommandStructure()) {
+                basePos = targetPos = UnitUtils.getRandomUnownedBasePos();
             }
-            else if (!unit.unit().getActive().get()) {
-                //if landed not on position
-                if (targetPos != basePos) {
-                    Chat.chatWithoutSpam("CC landed off base position", 180);
-                    //end if morphing to PF
-                    if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS)) {
-                        removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
-                    }
-                    //morph to PF
-                    else if (!Purchase.isMorphQueued(unit.getTag(), Abilities.MORPH_PLANETARY_FORTRESS)) {
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, unit));
-                    }
+            else if (isBlockedByEnemyCommandStructure()) {
+                Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
+                removeCCFromBaseList();
+                Point2d safeLandingPos = calcSafeLandingPos();
+                if (safeLandingPos != null) {
+                    targetPos = safeLandingPos;
+                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
+                    return;
                 }
                 else {
-                    removeMe = true;
+                    super.onStep();
                 }
+            }
+            else {
+                ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
+                addCCToBaseList();
+            }
+        }
+        if (!unit.unit().getFlying().orElse(true) && !unit.unit().getActive().get()) {
+            //if landed not on position
+            if (targetPos != basePos) {
+                Chat.chatWithoutSpam("CC landed off base position", 180);
+                //remove this object when PF starts morphing
+                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS)) {
+                    removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
+                }
+                //morph to PF
+                else if (!Purchase.isMorphQueued(unit.getTag(), Abilities.MORPH_PLANETARY_FORTRESS)) {
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, unit));
+                }
+            }
+            else {
+                removeMe = true;
             }
         }
         else {
@@ -87,16 +88,21 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         return;
     }
 
+    @Override
+    protected Point2d findDetourPos() {
+        return findDetourPos2(4f);
+    }
+
     private Point2d calcSafeLandingPos() {
         //get position in front of enemy command structure
         Base base = GameCache.baseList.stream()
                 .filter(b -> b.getCcPos().distance(basePos) < 1)
                 .findFirst().get();
         Point2d outFrontPos = Position.toHalfPoint(
-                Position.towards(basePos, base.getResourceMidPoint(), -10));
+                Position.towards(basePos, unit.unit().getPosition().toPoint2d(), 11));
 
         //get a list of cc positions sorted by nearest to flying cc
-        List<Point2d> landingPosList = Position.getSpiralList(outFrontPos, 7);
+        List<Point2d> landingPosList = Position.getSpiralList(outFrontPos, 8);
         landingPosList = landingPosList.stream()
                 //.filter(landingPos -> landingPos.distance(basePos) < 12) //in range for PF to kill enemy command structure
                 .filter(landingPos -> UnitUtils.isPlaceable(Units.TERRAN_COMMAND_CENTER, landingPos))
@@ -105,14 +111,18 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 .sorted(Comparator.comparing(p -> p.distance(basePos)))
                 .collect(Collectors.toList());
 
+        //go to another base if no viable landing positions
+        if (landingPosList.isEmpty()) {
+            basePos = targetPos = UnitUtils.getRandomUnownedBasePos();
+        }
         //query closest valid landing position
-        if (!landingPosList.isEmpty()) {
+        else {
             return Position.getFirstPosFromQuery(landingPosList, Abilities.LAND_COMMAND_CENTER);
         }
         return null;
     }
 
-    private void removeCCFromBaseList() {
+    public void removeCCFromBaseList() {
         GameCache.baseList.stream()
                 .filter(base -> basePos.distance(base.getCcPos()) < 1)
                 .findFirst()
@@ -124,6 +134,14 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 .filter(base -> targetPos.distance(base.getCcPos()) < 1)
                 .findFirst()
                 .ifPresent(base -> base.setCc(unit));
+    }
+
+    private boolean isBlockedByMyCommandStructure() {
+        return !Bot.OBS.getUnits(Alliance.SELF, u ->
+                UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(u.unit().getType()) &&
+                !u.unit().getFlying().orElse(true) &&
+                UnitUtils.getDistance(u.unit(), basePos) < 1 &&
+                !u.getTag().equals(unit.getTag())).isEmpty();
     }
 
     private boolean isBlockedByEnemyCommandStructure() {
