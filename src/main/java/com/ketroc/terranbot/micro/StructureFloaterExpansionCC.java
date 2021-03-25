@@ -36,31 +36,12 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
     @Override
     public void onStep() {
-        //landing code
-        if (unit.unit().getFlying().orElse(true) &&
-                UnitUtils.getDistance(unit.unit(), basePos) < 13.5 &&
-                UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
-            if (isBlockedByMyCommandStructure()) {
-                basePos = targetPos = UnitUtils.getRandomUnownedBasePos();
-            }
-            else if (isBlockedByEnemyCommandStructure()) {
-                Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
-                removeCCFromBaseList();
-                Point2d safeLandingPos = calcSafeLandingPos();
-                if (safeLandingPos != null) {
-                    targetPos = safeLandingPos;
-                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
-                    return;
-                }
-                else {
-                    super.onStep();
-                }
-            }
-            else {
-                ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
-                addCCToBaseList();
-            }
+        //no new micro commands if landing
+        if (UnitUtils.getOrder(unit.unit()) == Abilities.LAND) {
+            return;
         }
+
+        //Post-Landed code
         if (!unit.unit().getFlying().orElse(true) && !unit.unit().getActive().get()) {
             //if landed not on position
             if (targetPos != basePos) {
@@ -77,10 +58,37 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             else {
                 removeMe = true;
             }
+            return;
         }
-        else {
-            super.onStep();
+
+        //preparing to land
+        if (unit.unit().getFlying().orElse(true) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
+            if (isBaseBlockedByMyCommandStructure()) {
+                Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
+                if (randomUnownedBasePos != null) {
+                    basePos = targetPos = randomUnownedBasePos;
+                }
+            }
+            else if (isBaseBlockedByEnemyCommandStructure()) {
+                Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
+                removeCCFromBaseList();
+                Point2d safeLandingPos = calcSafeLandingPos();
+                if (safeLandingPos != null) {
+                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
+                }
+                else {
+                    super.onStep();
+                }
+            }
+            else {
+                ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
+                addCCToBaseList();
+            }
+            return;
         }
+
+        //travel micro
+        super.onStep();
     }
 
     @Override
@@ -113,7 +121,10 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
         //go to another base if no viable landing positions
         if (landingPosList.isEmpty()) {
-            basePos = targetPos = UnitUtils.getRandomUnownedBasePos();
+            Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
+            if (randomUnownedBasePos != null) {
+                basePos = targetPos = randomUnownedBasePos;
+            }
         }
         //query closest valid landing position
         else {
@@ -124,7 +135,8 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
     public void removeCCFromBaseList() {
         GameCache.baseList.stream()
-                .filter(base -> basePos.distance(base.getCcPos()) < 1)
+                .filter(base -> base.getCc() != null &&
+                        base.getCc().getTag().equals(unit.getTag()))
                 .findFirst()
                 .ifPresent(base -> base.setCc(null));
     }
@@ -136,7 +148,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 .ifPresent(base -> base.setCc(unit));
     }
 
-    private boolean isBlockedByMyCommandStructure() {
+    private boolean isBaseBlockedByMyCommandStructure() {
         return !Bot.OBS.getUnits(Alliance.SELF, u ->
                 UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(u.unit().getType()) &&
                 !u.unit().getFlying().orElse(true) &&
@@ -144,7 +156,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 !u.getTag().equals(unit.getTag())).isEmpty();
     }
 
-    private boolean isBlockedByEnemyCommandStructure() {
+    private boolean isBaseBlockedByEnemyCommandStructure() {
         return !Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 UnitUtils.COMMAND_STRUCTURE_TYPE.contains(u.unit().getType()) &&
                 !u.unit().getFlying().orElse(true) &&

@@ -455,16 +455,16 @@ public class BuildManager {
     }
 
     private static void floatCCToBase(Unit cc, Point2d basePos, boolean isEnemyBase) {
-        StructureFloaterExpansionCC ccFloater = new StructureFloaterExpansionCC(cc, basePos);
-        if (isEnemyBase) {
-            ccFloater.removeCCFromBaseList();
-        }
-        UnitMicroList.add(ccFloater);
+        UnitMicroList.add(new StructureFloaterExpansionCC(cc, basePos));
         LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
-        GameCache.baseList.stream()
-                .filter(base -> base.getCcPos().distance(basePos) < 1)
-                .findFirst()
-                .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
+
+        //setCC in baseList
+        if (!isEnemyBase) {
+            GameCache.baseList.stream()
+                    .filter(base -> base.getCcPos().distance(basePos) < 1)
+                    .findFirst()
+                    .ifPresent(base -> base.setCc(Bot.OBS.getUnit(cc.getTag())));
+        }
 
         //remove OC morph from purchase queue
         PurchaseStructureMorph.remove(cc.getTag());

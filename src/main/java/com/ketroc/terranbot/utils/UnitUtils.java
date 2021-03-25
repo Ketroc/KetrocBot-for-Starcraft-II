@@ -870,7 +870,7 @@ public class UnitUtils {
 
     public static Point2d getRandomUnownedBasePos() {
         List<Base> notMyBases = GameCache.baseList.stream()
-                .filter(base -> !base.isMyBase())
+                .filter(base -> !base.isMyBase() && !base.isDryedUp())
                 .collect(Collectors.toList());
         if (!notMyBases.isEmpty()) {
             Random r = new Random();
