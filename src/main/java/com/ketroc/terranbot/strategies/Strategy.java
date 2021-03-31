@@ -49,7 +49,8 @@ public class Strategy {
     public static final float DISTANCE_RAISE_DEPOT = 10;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
-    public static final float KITING_BUFFER = 2.4f;
+    public static final float KITING_BUFFER = 2.4f + (STEP_SIZE > 2 ? 0.2f : 0);
+    public static final float STATIONARY_KITING_BUFFER = 1.4f + (STEP_SIZE > 2 ? 0.2f : 0);
     public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
@@ -86,11 +87,11 @@ public class Strategy {
 
     public static int step_TvtFastStart = 1;
     public static UnitInPool scv_TvtFastStart;
-    public static int floatBaseAt = 50; //heath% to float base away at
+    public static int floatBaseAt = 50; //health% to float base away at
     public static boolean NO_RAMP_WALL;
 
     public static void onGameStart() {
-        STEP_SIZE = (KetrocBot.isRealTime) ? 2 : 2;
+        STEP_SIZE = (KetrocBot.isRealTime) ? 4 : 2;
         getGameStrategyChoice();
 
         if (DO_MATRIX && !DO_SEEKER_MISSILE) {
@@ -119,7 +120,7 @@ public class Strategy {
                 break;
         }
 
-        //TODO: delete - turning off 2nd factory unless raven+cyclones TvT
+        //TODO: delete - turning off 2nd factory unless MASS_RAVEN_WITH_CYCLONES TvT
         if (LocationConstants.opponentRace != Race.TERRAN || gamePlan != GamePlan.MASS_RAVEN_WITH_CYCLONES) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
@@ -215,7 +216,7 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN_WITH_CYCLONES;
+        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Mass Banshee Strategy");
@@ -270,7 +271,7 @@ public class Strategy {
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEES;
+        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Standard Strategy");
@@ -313,7 +314,7 @@ public class Strategy {
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN_WITH_CYCLONES;
+        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Standard Strategy");

@@ -2,11 +2,13 @@ package com.ketroc.terranbot.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.TestingBot;
+import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
 import java.util.ArrayList;
@@ -17,7 +19,8 @@ public class MineralPatch {
     private List<UnitInPool> scvs = new ArrayList<>();
     private Point2d ccPos;
     private Point2d byMineral;
-    private float distanceToHarvest = 1.38f;
+    private float distanceToHarvest = 1.38f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
+    private float distanceToCC = 3f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);;
     private Point2d mineralPos;
     private Point2d byCC;
 
@@ -33,7 +36,8 @@ public class MineralPatch {
             //byMineralTweak = -0.55f;
         }
         else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
-            distanceToHarvest = 1.5f;
+            distanceToHarvest += 0.17f;
+            distanceToCC += 0.07f;
         }
     }
 
@@ -96,8 +100,10 @@ public class MineralPatch {
             }
         }
         else {
-            //put wayward scv back to work
-            ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, unit, false);
+            //put wayward scv back to work (if not floating cc nearby -- avoid landing conflict)
+            if (scv.getOrders().size() < 2) {
+                ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, unit, false);
+            }
 
         }
     }
@@ -108,8 +114,8 @@ public class MineralPatch {
                 ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, unit, false);
             }
         }
-        else {
-            //put wayward scv back to work
+        //put wayward scv back to work
+        else if (scv.getOrders().size() < 2) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, unit, false);
         }
     }
@@ -118,24 +124,27 @@ public class MineralPatch {
         float distToCC = UnitUtils.getDistance(scv, ccPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             //start speed MOVE
-            if (distToCC < 4.7f && distToCC > 3f) {
+            if (distToCC < 4.7f && distToCC > distanceToCC) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byCC, false);
             }
         }
         else if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.MOVE)) {
             //end speed MOVE
-            if (distToCC <= 3f) {
+            if (distToCC <= distanceToCC) {
                 ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
             }
         }
         //put wayward scv back to work
         else {
-            ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+            if (scv.getOrders().size() < 2) { //not being pushed away to make room
+                ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+            }
         }
     }
 
     public void distanceReturnMicro(Unit scv) {
-        if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability != Abilities.HARVEST_RETURN)) {
+        if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability != Abilities.HARVEST_RETURN) &&
+                scv.getOrders().size() < 2) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }

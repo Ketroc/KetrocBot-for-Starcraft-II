@@ -60,7 +60,19 @@ public class BuildManager {
         //turn low health expansion command centers into macro OCs
         saveDyingCCs();
 
-        //build marines
+        //build starport units
+        buildStarportUnitsLogic();
+
+        //build factory units
+        if (BunkerContain.proxyBunkerLevel != 2) {
+            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
+                buildFactoryUnitsLogic();
+            } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                liftFactory();
+            }
+        }
+
+        //build barracks units
         //TODO: below is hacky test code for marine rush
         if (Strategy.MARINE_ALLIN) {
             GameCache.barracksList.stream()
@@ -79,22 +91,11 @@ public class BuildManager {
             buildBarracksUnitsLogic();
         }
 
-        //build siege tanks
-        if (BunkerContain.proxyBunkerLevel != 2) {
-            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
-                buildFactoryUnitsLogic();
-            } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                liftFactory();
-            }
-        }
-        //build starport units
-        buildStarportUnitsLogic();
+        //build starport logic
+        buildStarportLogic();
 
         //build factory logic
         buildFactoryLogic();
-
-        //build starport logic
-        buildStarportLogic();
 
         //build command center logic
         if (!Strategy.EXPAND_SLOWLY || Time.nowFrames() > Time.toFrames("5:00")) {
@@ -342,7 +343,12 @@ public class BuildManager {
                                     //send to a random enemy base
                                     expansionBasePos = UnitUtils.getRandomUnownedBasePos();
                                     if (expansionBasePos != null) {
-                                        floatCCForPfHarass(cc, expansionBasePos);
+                                        if (UnitMicroList.getUnitSubList(StructureFloaterExpansionCC.class).size() < 10) {
+                                            floatCCForPfHarass(cc, expansionBasePos);
+                                        }
+                                        else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                            KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                        }
                                     }
                                 }
                             }
@@ -558,7 +564,7 @@ public class BuildManager {
             }
 
             //make marines if wall under attack TODO: don't build if starports/factories aren't all active and gas >= 75
-            else if (UnitUtils.isWallUnderAttack() || ArmyManager.enemyInMain()) {
+            else if (UnitUtils.isWallUnderAttack() || ArmyManager.isEnemyInMain()) {
                 if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                     ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                     Cost.updateBank(Units.TERRAN_MARINE);

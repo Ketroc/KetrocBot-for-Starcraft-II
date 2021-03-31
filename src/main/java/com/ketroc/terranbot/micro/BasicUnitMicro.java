@@ -284,7 +284,7 @@ public class BasicUnitMicro {
             if (detourPos == null || !isPathable(detourPos)) {
                 continue;
             }
-            if (isSafe(detourPos)) {
+            if (isSafe(detourPos) && routeIsPathable(detourPos)) {
                 if (!changedDirectionRecently()) {
                     toggleDodgeClockwise();
                 }
@@ -295,6 +295,22 @@ public class BasicUnitMicro {
             return ArmyManager.retreatPos;
         }
         return findDetourPos(rangeCheck+2);
+    }
+
+    //TODO: replace with a pathfind with numSteps limited by distance ratio
+    private boolean routeIsPathable(Point2d detourPos) {
+        if (unit.unit().getFlying().orElse(true)) {
+            return true;
+        }
+        float terrainDifference = Math.abs(Bot.OBS.terrainHeight(detourPos) - Bot.OBS.terrainHeight(unit.unit().getPosition().toPoint2d()));
+        if (terrainDifference > 1) { //only check when change terrain level
+            float distanceToDetourPos = UnitUtils.getDistance(unit.unit(), detourPos);
+            return Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.2f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.4f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.6f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.8f));
+        }
+        return true;
     }
 
     protected boolean isPathable(Point2d detourPos) {
@@ -308,7 +324,7 @@ public class BasicUnitMicro {
 
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)
     public boolean changedDirectionRecently() {
-        return prevDirectionChangeFrame + 75 > Time.nowFrames();
+        return prevDirectionChangeFrame + 175 > Time.nowFrames();
     }
 
     public void replaceUnit(UnitInPool newUnit) {

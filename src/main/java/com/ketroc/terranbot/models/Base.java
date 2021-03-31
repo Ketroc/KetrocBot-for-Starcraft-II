@@ -23,6 +23,7 @@ import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Base {
     public long lastScoutedFrame;
@@ -228,10 +229,13 @@ public class Base {
     public void onStepEnd() {
         mineralPatches.forEach(mineralPatch -> {
             mineralPatch.getScvs().forEach(scv -> {
-                DebugHelper.drawBox(mineralPatch.getByMineral(), Color.YELLOW, 0.2f);
-                DebugHelper.drawBox(mineralPatch.getByCC(), Color.YELLOW, 0.2f);
-                if (doFleeScv(scv)) {
-                    new BasicUnitMicro(scv, mineralPatch.getMineralPos(), MicroPriority.SURVIVAL);
+
+                //detour if scv can be 2-shot
+                if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
+                        scv.unit().getHealth().orElse(45f)) {
+                    DebugHelper.drawBox(mineralPatch.getByMineral(), Color.RED, 0.2f);
+                    DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
+                    new BasicUnitMicro(scv, mineralPatch.getMineralPos(), MicroPriority.SURVIVAL).onStep();
                 }
                 else if (UnitUtils.isCarryingResources(scv.unit())) {
                     if (isReadyForMining()) {
@@ -251,11 +255,6 @@ public class Base {
                 }
             });
         });
-    }
-
-    private boolean doFleeScv(UnitInPool scv) {
-        return InfluenceMaps.getValue(InfluenceMaps.pointPersistentDamageToGround, scv.unit().getPosition().toPoint2d()) ||
-                (scv.unit().getHealth().orElse(0f) < 20 && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, scv.unit().getPosition().toPoint2d()));
     }
 
     public List<UnitInPool> getAvailableGeysers() {
@@ -624,16 +623,21 @@ public class Base {
     }
 
     public static boolean distanceMineScv(UnitInPool scv) {
-        MineralPatch nextBaseMineral = GameCache.baseList.stream()
-                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase)
-                .flatMap(base -> base.getMineralPatches().stream())
-                .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
+        Base nextBase = GameCache.baseList.stream()
+                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase && !base.isDryedUp)
+                .findFirst()
                 .orElse(null);
-
-        if (nextBaseMineral != null) {
-            nextBaseMineral.getScvs().add(scv);
-            return true;
+        if (nextBase != null) {
+            MineralPatch nextBaseMineral = nextBase.getMineralPatches().stream()
+                    .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
+                    .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
+                    .orElse(null);
+            if (nextBaseMineral != null) {
+                DebugHelper.draw3dBox(nextBaseMineral.getUnit().getPosition().toPoint2d(), Color.PURPLE, 0.43f); //TODO: delete - for testing
+                Bot.DEBUG.sendDebug(); //TODO: delete - for testing
+                nextBaseMineral.getScvs().add(scv);
+                return true;
+            }
         }
         return false;
     }
@@ -652,4 +656,10 @@ public class Base {
 
     }
 
+    public void scvReport() {
+        mineralPatches.forEach(mineralPatch -> {
+            System.out.print("\nMineral " + mineralPatch.getUnit().getTag().getValue() + ": ");
+            mineralPatch.getScvs().forEach(scv -> System.out.print(scv.getTag() + " "));
+        });
+    }
 }

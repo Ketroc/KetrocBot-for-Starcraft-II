@@ -642,6 +642,7 @@ public class GameCache {
         InfluenceMaps.pointThreatToAir = new boolean[800][800];
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
         InfluenceMaps.pointThreatToGroundValue = new int[800][800];
+        InfluenceMaps.pointDamageToGroundValue = new int[800][800];
         InfluenceMaps.pointThreatToGround = new boolean[800][800];
         InfluenceMaps.pointPersistentDamageToGround = new boolean[800][800];
         InfluenceMaps.pointPFTargetValue = new int[800][800];
@@ -674,6 +675,7 @@ public class GameCache {
                     //threat level to ground
                     if (distance < enemy.groundAttackRange) {
                         InfluenceMaps.pointThreatToGroundValue[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointDamageToGroundValue[x][y] += enemy.groundDamage;
                         InfluenceMaps.pointThreatToGround[x][y] = true;
                         if (enemy.isPersistentDamage) {
                             InfluenceMaps.pointPersistentDamageToGround[x][y] = true;
@@ -763,41 +765,41 @@ public class GameCache {
         }
 
         //debug threat text
-//        if (Bot.isDebugOn) {
-//            for (int x = xMin+1; x <= xMax-1; x++) {
-//                for (int y = yMin+1; y <= yMax-1; y++) {
-//                    if (InfluenceMaps.pointInEnemyVision[x][y]) {
+        if (Bot.isDebugOn) {
+            for (int x = xMin+1; x <= xMax-1; x++) {
+                for (int y = yMin+1; y <= yMax-1; y++) {
+                    if (InfluenceMaps.pointPFTargetValue[x][y] > 0) {
+                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointPFTargetValue[x][y]),x / 2f, y / 2f, Color.RED);
+                    }
+//                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }
-////                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
-////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
-////                    }
-////                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
-////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
-////                    }
-////                    else if (InfluenceMaps.pointDetected[x][y]) {
-////                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
-////                    }
-////                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
-////                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
-////                    }
-////                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
-////                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
-////                    }
-//                }
-//            }
-////            float x = LocationConstants.mainBaseMidPos.getX();
-////            float y = LocationConstants.mainBaseMidPos.getY();
-////            float z = Position.getZ(x, y);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-////
-////            x = LocationConstants.enemyMainBaseMidPos.getX();
-////            y = LocationConstants.enemyMainBaseMidPos.getY();
-////            z = Position.getZ(x, y);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
-////            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-//        }
+//                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
+//                    }
+//                    else if (InfluenceMaps.pointDetected[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
+//                    }
+//                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
+//                    }
+//                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
+//                    }
+                }
+            }
+//            float x = LocationConstants.mainBaseMidPos.getX();
+//            float y = LocationConstants.mainBaseMidPos.getY();
+//            float z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+//
+//            x = LocationConstants.enemyMainBaseMidPos.getX();
+//            y = LocationConstants.enemyMainBaseMidPos.getY();
+//            z = Position.getZ(x, y);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
+//            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
+        }
 
 
     }

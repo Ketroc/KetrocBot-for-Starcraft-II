@@ -2,6 +2,7 @@ package com.ketroc.terranbot.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
@@ -659,13 +660,21 @@ public class ArmyManager {
                 }
             } else {
                 Point2d bestTargetPos = Point2d.of(bestValueX / 2f, bestValueY / 2f);
-
+                DebugHelper.draw3dBox(bestTargetPos, Color.YELLOW, 0.5f);
                 //get enemy Unit near bestTargetPos
-                List<UnitInPool> enemyTargets = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                        UnitUtils.getDistance(enemy.unit(), bestTargetPos) < 1f && !enemy.unit().getFlying().orElse(false));
-                if (!enemyTargets.isEmpty()) {
-                    bestTargetUnit = enemyTargets.get(0).unit();
+                UnitInPool enemyTarget = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        UnitUtils.getDistance(pf, bestTargetPos) < 9.5f && !enemy.unit().getFlying().orElse(false))
+                        .stream()
+                        .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), bestTargetPos)))
+                        .orElse(null);
+
+                if (enemyTarget != null) {
+                    bestTargetUnit = enemyTarget.unit();
+                    DebugHelper.draw3dBox(bestTargetUnit.getPosition().toPoint2d(), Color.RED, 0.4f);
                 }
+                Bot.DEBUG.sendDebug();
+                int w = 234;
             }
 
             //attack
@@ -687,12 +696,12 @@ public class ArmyManager {
 
         //if main/nat under attack, empty natural bunker and target enemy
         Unit bunker = UnitUtils.getCompletedNatBunker();
-        if (enemyInMain() || enemyInNaturalPastBunker() ||
-                (enemyInNatural() && bunker == null)) {
+        Unit enemyInMyBase = getEnemyInMainOrNatural();
+        if (enemyInMyBase != null) {
             if (bunker != null) {
                 ActionHelper.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
             }
-            MarineBasic.setTargetPos(attackGroundPos);
+            MarineBasic.setTargetPos(enemyInMyBase.getPosition().toPoint2d());
             return;
         }
 
@@ -1476,14 +1485,14 @@ public class ArmyManager {
         }
     }
 
-    public static boolean enemyInMain() {
+    public static boolean isEnemyInMain() {
         if (attackUnit == null) {
             return false;
         }
         return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, attackUnit.getPosition().toPoint2d());
     }
 
-    public static boolean enemyInNatural() {
+    public static boolean isEnemyInNatural() {
         if (attackUnit == null) {
             return false;
         }
@@ -1495,5 +1504,15 @@ public class ArmyManager {
             return false;
         }
         return InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, attackUnit.getPosition().toPoint2d());
+    }
+
+    public static Unit getEnemyInMainOrNatural() {
+        return Bot.OBS.getUnits(Alliance.ENEMY).stream()
+                .filter(enemy ->
+                        InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()) ||
+                        InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, enemy.unit().getPosition().toPoint2d()))
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos())))
+                .map(UnitInPool::unit)
+                .orElse(null);
     }
 }

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.*;
 
 public class KetrocBot extends Bot {
@@ -43,6 +44,10 @@ public class KetrocBot extends Bot {
     @Override
     public void onGameStart() {
         try {
+            //end date for bot functioning
+//            if (LocalDate.now().isAfter(LocalDate.parse("2021-05-01"))) {
+//                return;
+//            }
             super.onGameStart();
             Print.print("opponentId = " + opponentId);
 
@@ -86,6 +91,11 @@ public class KetrocBot extends Bot {
 
             Strategy.printStrategySettings();
 
+            //initialize starting scvs
+            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).forEach(scv -> {
+                Base.assignScvToAMineralPatch(scv);
+            });
+
             DEBUG.sendDebug();
             Bot.ACTION.sendActions();
         }
@@ -115,7 +125,13 @@ public class KetrocBot extends Bot {
                 }
             }
 
-            if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
+            //first step of the game
+            if (Time.nowFrames() == Strategy.STEP_SIZE) {
+                Bot.ACTION.sendChat("Last updated: March 27, 2021", ActionChat.Channel.BROADCAST);
+            }
+
+            if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||
+                    (isRealTime && Time.nowFrames() < 24)) {
                 return;
             }
 
@@ -123,14 +139,14 @@ public class KetrocBot extends Bot {
             //***** DO EVERY STEPSIZE FRAME ******
             //************************************
 
-            //first step of the game
-            if (Time.nowFrames() == Strategy.STEP_SIZE) {
-                Bot.ACTION.sendChat("Last updated: March 10, 2021", ActionChat.Channel.BROADCAST);
+            //TODO: delete - for testing
+            if (Time.nowFrames() == Time.toFrames(60)) {
+                GameCache.baseList.get(0).scvReport();
             }
 
             DebugHelper.onStep();
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
-            PlacementMap.visualizePlacementMap();
+//            PlacementMap.visualizePlacementMap();
 //            PlacementMap.setColumn();
 
             //free up ignored units
@@ -491,6 +507,9 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
+        if (Time.nowFrames() == 1) { //hack so this is never called on game start (since it does and doesn't depending on how it run)
+            return;
+        }
         Unit unit = unitInPool.unit();
         if (unit.getType() instanceof Units.Other) {
             System.out.println("****************************************************************");
@@ -534,7 +553,12 @@ public class KetrocBot extends Bot {
                         }
 
                         switch ((Units) unit.getType()) {
-                            case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND:
+                            case TERRAN_COMMAND_CENTER: //ignore CCs in enemy territory
+                                Point2d enemyNatPos = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 2);
+                                if (UnitUtils.getDistance(unit, enemyNatPos) <= Placement.MIN_DISTANCE_FROM_ENEMY_NAT){
+                                    break;
+                                }
+                            case TERRAN_ORBITAL_COMMAND:
                                 //if macro OC
                                 if (GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(unit, base.getCcPos()) < 1)) {
                                     Placement.possibleCcPosList.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));

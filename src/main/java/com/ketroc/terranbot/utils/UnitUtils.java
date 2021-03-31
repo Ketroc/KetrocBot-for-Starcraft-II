@@ -609,9 +609,10 @@ public class UnitUtils {
                 getDistance(enemy.unit(), pos) <= range);
     }
 
-    public static Abilities getOrder(Unit unit) { //TODO: update for realtime
-        if (!unit.getOrders().isEmpty() && unit.getOrders().get(0).getAbility() instanceof Abilities) {
-            return (Abilities) unit.getOrders().get(0).getAbility();
+    public static Abilities getOrder(Unit unit) {
+        Ability curOrder = ActionIssued.getCurOrder(unit).map(actionIssued -> actionIssued.ability).orElse(null);
+        if (curOrder instanceof Abilities) {
+            return (Abilities)curOrder;
         }
         return null;
     }
@@ -870,7 +871,7 @@ public class UnitUtils {
 
     public static Point2d getRandomUnownedBasePos() {
         List<Base> notMyBases = GameCache.baseList.stream()
-                .filter(base -> !base.isMyBase() && !base.isDryedUp())
+                .filter(base -> !base.isMyBase())
                 .collect(Collectors.toList());
         if (!notMyBases.isEmpty()) {
             Random r = new Random();

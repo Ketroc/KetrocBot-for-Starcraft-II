@@ -181,8 +181,8 @@ public class Cyclone extends BasicUnitMicro {
 
     private void visualizeLock() {
         if (lockTarget != null) {
-            DebugHelper.drawLine(unit.unit().getPosition().toPoint2d(),
-                    lockTarget.unit().getPosition().toPoint2d(),
+            DebugHelper.drawLine(unit.unit().getPosition(),
+                    lockTarget.unit().getPosition(),
                     Color.YELLOW);
         }
     }

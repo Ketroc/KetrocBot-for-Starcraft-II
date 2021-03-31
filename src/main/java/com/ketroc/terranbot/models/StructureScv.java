@@ -207,7 +207,9 @@ public class StructureScv {
                             ExpansionClearing.add(structureScv.structurePos);
                         }
                     }
-
+                    System.out.println("ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty() = " + ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty());
+                    System.out.println("ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility) = " + ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility));
+                    System.out.println("structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility) = " + structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility));
                     requeueCancelledStructure(structureScv);
                     remove(structureScv);
                     i--;

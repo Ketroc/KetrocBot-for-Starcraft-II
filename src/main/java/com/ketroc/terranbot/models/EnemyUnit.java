@@ -3,6 +3,7 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -11,6 +12,7 @@ import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class EnemyUnit {
+
     public float x;
     public float y;
     public float supply;
@@ -27,32 +29,10 @@ public class EnemyUnit {
     public float groundAttackRange;
     public float airAttackRange;
     public int threatLevel;
+    public int groundDamage;
     public int pfTargetLevel;
     public boolean isPersistentDamage;
     public float maxRange; //used to determine what portion of the grid to loop through
-
-    public EnemyUnit(Unit friendly, boolean isParasitic) {
-        x = friendly.getPosition().getX();
-        y = friendly.getPosition().getY();
-        isPersistentDamage = true;
-        isDetector = true;
-        detectRange = 3f + Strategy.KITING_BUFFER;
-        airAttackRange = 3f + Strategy.KITING_BUFFER;
-        threatLevel = 200;
-        calcMaxRange();
-    }
-
-    public EnemyUnit(Point2d pos, boolean isFungal) {
-        x = pos.getX();
-        y = pos.getY();
-        isDetector = true;
-        isEffect = true;
-        detectRange = 3.5f;
-        groundAttackRange = 3.5f;
-        airAttackRange = 3.5f;
-        maxRange = 3.5f;
-        threatLevel = 200;
-    }
 
     public EnemyUnit(Unit enemy) {
         x = enemy.getPosition().getX();
@@ -70,6 +50,7 @@ public class EnemyUnit {
         }
         else {
             threatLevel = getThreatValue((Units) enemy.getType());
+            groundDamage = getDamage((Units) enemy.getType());
             detectRange = getDetectionRange(enemy);
             visionRange = UnitUtils.getVisionRange(enemy);
             airAttackRange = UnitUtils.getAirAttackRange(enemy);
@@ -117,8 +98,31 @@ public class EnemyUnit {
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
     }
 
+    public EnemyUnit(Unit friendly, boolean isParasitic) {
+        x = friendly.getPosition().getX();
+        y = friendly.getPosition().getY();
+        isPersistentDamage = true;
+        isDetector = true;
+        detectRange = 3f + Strategy.KITING_BUFFER;
+        airAttackRange = 3f + Strategy.KITING_BUFFER;
+        threatLevel = 200;
+        calcMaxRange();
+    }
+
+    public EnemyUnit(Point2d pos, boolean isFungal) {
+        x = pos.getX();
+        y = pos.getY();
+        isDetector = true;
+        isEffect = true;
+        detectRange = 3.5f;
+        groundAttackRange = 3.5f;
+        groundDamage = 30;
+        airAttackRange = 3.5f;
+        maxRange = 3.5f;
+        threatLevel = 200;
+    }
+
     public EnemyUnit(EffectLocations effect) {
-        float kitingBuffer = 2;
         isEffect = true;
         isPersistentDamage = true;
         Point2d position = effect.getPositions().iterator().next();
@@ -128,18 +132,19 @@ public class EnemyUnit {
             case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
             case LIBERATOR_TARGET_MORPH_PERSISTENT:
                 threatLevel = 200;
-                groundAttackRange = effect.getRadius().get() + kitingBuffer;
+                groundAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
+                groundDamage = 75;
                 break;
             case SCANNER_SWEEP:
                 isDetector = true;
-                detectRange = 13f + kitingBuffer;
+                detectRange = 13f + Strategy.STATIONARY_KITING_BUFFER;
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
-                detectRange = 5f + kitingBuffer; //actual range is 0.5f but effect disappears prior to it landing
+                detectRange = 5f + Strategy.STATIONARY_KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
                 threatLevel = 200;
-                airAttackRange = 5f + kitingBuffer; //actual range is 0.5f but effect disappears prior to it landing
-                groundAttackRange = airAttackRange;
+                airAttackRange = 5f + Strategy.STATIONARY_KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                groundDamage = 60;
                 break;
 //            case NUKE_PERSISTENT:
 //                isDetector = true;
@@ -147,20 +152,31 @@ public class EnemyUnit {
 //                threatLevel = 200;
 //                airAttackRange = effect.getRadius().get() + kitingBuffer;
 //                groundAttackRange = airAttackRange;
+//                damage = 300;
 //                break;
             case PSI_STORM_PERSISTENT:
                 isDetector = true;
-                detectRange = effect.getRadius().get() + kitingBuffer;
+                detectRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
                 threatLevel = 200;
-                airAttackRange = effect.getRadius().get() + kitingBuffer;
+                airAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
                 groundAttackRange = airAttackRange;
+                groundDamage = 80;
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
     }
 
+    private int getDamage(Units unitType) {
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getWeapons().stream()
+                .filter(weapon -> weapon.getTargetType() != Weapon.TargetType.AIR)
+                .findFirst()
+                .map(Weapon::getDamage)
+                .orElse(0f)
+                .intValue();
+    }
+
     private float getKitingBuffer(Unit enemy) {
-        return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ? 1.4f : Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ? Strategy.STATIONARY_KITING_BUFFER : Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {
@@ -227,7 +243,7 @@ public class EnemyUnit {
             case TERRAN_MARINE:
                 return 2;
             case TERRAN_MISSILE_TURRET:
-                return 8;
+                return 7;
             case TERRAN_BUNKER: //assume 4 marines
                 return 12;
             case TERRAN_VIKING_FIGHTER:
@@ -340,6 +356,8 @@ public class EnemyUnit {
                 return 5;
             case TERRAN_SIEGE_TANK_SIEGED:
                 return 4;
+            case TERRAN_WIDOWMINE: case TERRAN_WIDOWMINE_BURROWED:
+                return 3;
             case TERRAN_HELLION:
                 return 2;
             case TERRAN_HELLION_TANK:

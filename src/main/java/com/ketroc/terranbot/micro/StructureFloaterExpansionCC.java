@@ -21,17 +21,18 @@ import java.util.stream.Collectors;
 public class StructureFloaterExpansionCC extends StructureFloater {
 
     public Point2d basePos;
+    public Point2d safeLandingPos;
+    public long createdFrame;
 
     public StructureFloaterExpansionCC(UnitInPool structure, Point2d targetPos) {
         super(structure, targetPos, true);
         basePos = targetPos;
         doDetourAroundEnemy = true;
+        createdFrame = Time.nowFrames();
     }
 
     public StructureFloaterExpansionCC(Unit structure, Point2d targetPos) {
-        super(Bot.OBS.getUnit(structure.getTag()), targetPos, true);
-        basePos = targetPos;
-        doDetourAroundEnemy = true;
+        this(Bot.OBS.getUnit(structure.getTag()), targetPos);
     }
 
     @Override
@@ -42,16 +43,18 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         }
 
         //Post-Landed code
-        if (!unit.unit().getFlying().orElse(true) && !unit.unit().getActive().get()) {
+        if (!unit.unit().getFlying().orElse(true) &&
+                !unit.unit().getActive().get() &&
+                Time.nowFrames() > createdFrame + 120) {
             //if landed not on position
-            if (targetPos != basePos) {
-                Chat.chatWithoutSpam("CC landed off base position", 180);
+            if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {
                 //remove this object when PF starts morphing
                 if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS)) {
                     removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
                 }
                 //morph to PF
                 else if (!Purchase.isMorphQueued(unit.getTag(), Abilities.MORPH_PLANETARY_FORTRESS)) {
+                    Chat.chat("Building offensive PF");
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, unit));
                 }
             }
@@ -61,18 +64,36 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             return;
         }
 
-        //preparing to land
-        if (unit.unit().getFlying().orElse(true) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
-            if (isBaseBlockedByMyCommandStructure()) {
-                Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
-                if (randomUnownedBasePos != null) {
-                    basePos = targetPos = randomUnownedBasePos;
+        //set to new base if this expansion position is now mine
+        if (isBaseBlockedByMyCommandStructure()) {
+            assignToAnotherBase();
+            return;
+        }
+
+        //3min without landing (land and PF now, or assign to another enemy base)
+        if (Time.toSeconds(Time.nowFrames() - createdFrame) >= 180) {
+            if (UnitUtils.getDistance(unit.unit(), basePos) < 20) {
+                Chat.chatWithoutSpam("Creating Offensive PF here because 3min of travel has elapsed", 120);
+                removeCCFromBaseList();
+                safeLandingPos = calcSafeLandingPos();
+                if (safeLandingPos != null) {
+                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
+                }
+                else {
+                    super.onStep();
                 }
             }
-            else if (isBaseBlockedByEnemyCommandStructure()) {
+            else {
+                assignToAnotherBase();
+            }
+        }
+
+        //approaching landing zone
+        if (unit.unit().getFlying().orElse(true) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
+            if (isBaseBlockedByEnemyCommandStructure()) {
                 Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
                 removeCCFromBaseList();
-                Point2d safeLandingPos = calcSafeLandingPos();
+                safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
                 }
@@ -101,36 +122,54 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         return findDetourPos2(4f);
     }
 
+
+    @Override
+    //ignores a marine when far away... ignores 3 marines or a missile turret when close
+    protected boolean isSafe() {
+        boolean isCloseToBase = UnitUtils.getDistance(unit.unit(), basePos) < 20;
+        return InfluenceMaps.getAirThreatToStructure(unit.unit()) <= (isCloseToBase ? 7 : 3);
+    }
+
     private Point2d calcSafeLandingPos() {
+        Point2d inFrontOfExpansionPos = Position.toHalfPoint(Position.towards(basePos, unit.unit().getPosition().toPoint2d(), 11));
+        return calcSafeLandingPos(inFrontOfExpansionPos);
+    }
+    private Point2d calcSafeLandingPos(Point2d searchOriginPos) {
         //get position in front of enemy command structure
         Base base = GameCache.baseList.stream()
                 .filter(b -> b.getCcPos().distance(basePos) < 1)
                 .findFirst().get();
-        Point2d outFrontPos = Position.toHalfPoint(
-                Position.towards(basePos, unit.unit().getPosition().toPoint2d(), 11));
 
         //get a list of cc positions sorted by nearest to flying cc
-        List<Point2d> landingPosList = Position.getSpiralList(outFrontPos, 8);
+        List<Point2d> landingPosList = Position.getSpiralList(searchOriginPos, 8);
         landingPosList = landingPosList.stream()
                 //.filter(landingPos -> landingPos.distance(basePos) < 12) //in range for PF to kill enemy command structure
                 .filter(landingPos -> UnitUtils.isPlaceable(Units.TERRAN_COMMAND_CENTER, landingPos))
-                .filter(landingPos -> InfluenceMaps.getGroundThreatToStructure(Units.TERRAN_BARRACKS, landingPos) < 3) //barracks instead of command center: is a hack to help ignore a portion of the kiting buffer of enemy units
+                .filter(landingPos -> InfluenceMaps.getGroundThreatToStructure(Units.TERRAN_BARRACKS, landingPos) < 4) //barracks instead of command center: is a hack to help ignore a portion of the kiting buffer of enemy units
                 //.filter(landingPos -> !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, landingPos))
                 .sorted(Comparator.comparing(p -> p.distance(basePos)))
                 .collect(Collectors.toList());
 
         //go to another base if no viable landing positions
         if (landingPosList.isEmpty()) {
-            Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
-            if (randomUnownedBasePos != null) {
-                basePos = targetPos = randomUnownedBasePos;
-            }
+            assignToAnotherBase();
         }
         //query closest valid landing position
         else {
             return Position.getFirstPosFromQuery(landingPosList, Abilities.LAND_COMMAND_CENTER);
         }
         return null;
+    }
+
+    private void assignToAnotherBase() {
+        Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
+        if (randomUnownedBasePos != null) {
+            basePos = targetPos = randomUnownedBasePos;
+            safeLandingPos = null;
+        }
+        else {
+            super.onStep();
+        }
     }
 
     public void removeCCFromBaseList() {
