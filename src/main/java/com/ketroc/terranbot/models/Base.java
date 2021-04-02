@@ -32,7 +32,6 @@ public class Base {
     private Point2d ccPos;
     private UnitInPool cc;
     private List<Gas> gases = new ArrayList<>();
-    //private List<Unit> mineralPatches = new ArrayList<>();
     private List<MineralPatch> mineralPatches = new ArrayList<>();
     private Unit rallyNode; //mineral node this cc is rallied to
     private Point2d resourceMidPoint = null;
@@ -194,6 +193,24 @@ public class Base {
 
     public int getNumMineralScvs() {
         return mineralPatches.stream().mapToInt(mineralPatch -> mineralPatch.getScvs().size()).sum();
+    }
+
+    public List<UnitInPool> getMineralScvs() {
+        return mineralPatches.stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .collect(Collectors.toList());
+    }
+
+    public List<UnitInPool> getGasScvs() {
+        return gases.stream()
+                .flatMap(gas -> gas.getScvs().stream())
+                .collect(Collectors.toList());
+    }
+
+    public List<UnitInPool> getAllScvs() {
+        List<UnitInPool> allScvs = getMineralScvs();
+        allScvs.addAll(getGasScvs());
+        return allScvs;
     }
 
     public void addMineralScv(Unit scv) {
@@ -631,10 +648,9 @@ public class Base {
             MineralPatch nextBaseMineral = nextBase.getMineralPatches().stream()
                     .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
                     .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
+                    //TODO: snapshots get ignored so replace above??
                     .orElse(null);
             if (nextBaseMineral != null) {
-                DebugHelper.draw3dBox(nextBaseMineral.getUnit().getPosition().toPoint2d(), Color.PURPLE, 0.43f); //TODO: delete - for testing
-                Bot.DEBUG.sendDebug(); //TODO: delete - for testing
                 nextBaseMineral.getScvs().add(scv);
                 return true;
             }

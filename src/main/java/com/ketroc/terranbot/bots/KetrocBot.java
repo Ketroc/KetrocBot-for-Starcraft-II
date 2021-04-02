@@ -467,7 +467,7 @@ public class KetrocBot extends Bot {
                                 LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) ||
                                 LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506))
                                 && UnitUtils.getNumFriendlyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
-                                        >= (Strategy.MASS_RAVENS ? 2 : 4)) {
+                                        >= (Strategy.MASS_RAVENS ? 3 : 4)) {
                             IgnoredMineralWallScv.addScv();
                         }
                         break;
