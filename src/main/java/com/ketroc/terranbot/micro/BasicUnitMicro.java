@@ -241,7 +241,7 @@ public class BasicUnitMicro {
 
     //tries to go around the threat
     protected Point2d findDetourPos2(float rangeCheck) {
-        Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
+        Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck + unit.unit().getRadius());
         for (int i=0; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
@@ -256,7 +256,7 @@ public class BasicUnitMicro {
                 i += 10;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
-                return detourPos;
+                return Position.towards(detourPos, unit.unit().getPosition().toPoint2d(), unit.unit().getRadius());
             }
         }
         if (rangeCheck > 20) {

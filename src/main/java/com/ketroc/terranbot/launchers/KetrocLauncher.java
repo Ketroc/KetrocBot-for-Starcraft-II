@@ -3,6 +3,7 @@ package com.ketroc.terranbot.launchers;
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.*;
 import com.ketroc.terranbot.bots.KetrocBot;
+import com.ketroc.terranbot.bots._12PoolBot;
 
 
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ public class KetrocLauncher {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 //.setRealtime(true)
+                .setMultithreaded(true)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
@@ -21,7 +23,8 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "",false)),
-                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
+                        //S2Coordinator.createComputer(Race.PROTOSS, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
+                        S2Coordinator.createParticipant(Race.ZERG, new _12PoolBot()))
                 .launchStarcraft()
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
