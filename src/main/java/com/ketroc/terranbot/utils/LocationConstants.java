@@ -11,6 +11,7 @@ import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.models.Base;
+import com.ketroc.terranbot.models.Gas;
 import com.ketroc.terranbot.models.MineralPatch;
 import com.ketroc.terranbot.models.TriangleOfNodes;
 import com.ketroc.terranbot.strategies.Strategy;
@@ -182,6 +183,7 @@ public class LocationConstants {
         for (Point2d baseLocation : baseLocations) {
             Base newBase = new Base(baseLocation);
             newBase.setMineralPatches(getMineralPatches(newBase));
+            newBase.setGases(getGases(newBase));
             GameCache.baseList.add(newBase);
         }
         GameCache.baseList.get(0).setCc(mainCC);
@@ -191,8 +193,16 @@ public class LocationConstants {
         return Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
                 UnitUtils.getDistance(node.unit(), base.getCcPos()) < 10)
                 .stream()
-                    .map(node -> new MineralPatch(node.unit(), base.getCcPos()))
-                    .collect(Collectors.toList());
+                .map(node -> new MineralPatch(node.unit(), base.getCcPos()))
+                .collect(Collectors.toList());
+    }
+
+    private static List<Gas> getGases(Base base) {
+        return Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.GAS_GEYSER_TYPE.contains(node.unit().getType()) &&
+                UnitUtils.getDistance(node.unit(), base.getCcPos()) < 10)
+                .stream()
+                .map(node -> new Gas(node.unit(), base.getCcPos()))
+                .collect(Collectors.toList());
     }
 
     public static boolean setEnemyTypes() {

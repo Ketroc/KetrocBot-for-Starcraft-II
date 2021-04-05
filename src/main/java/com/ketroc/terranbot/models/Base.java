@@ -3,7 +3,6 @@ package com.ketroc.terranbot.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
-import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
@@ -23,7 +22,6 @@ import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Base {
     public long lastScoutedFrame;
@@ -53,6 +51,7 @@ public class Base {
         setResourceMidPoint();
     }
 
+
     // =========== GETTERS AND SETTERS =============
 
     public Point2d getResourceMidPoint() {
@@ -69,7 +68,7 @@ public class Base {
 
     public List<Unit> getMineralPatchUnits() {
         return mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .collect(Collectors.toList());
     }
 
@@ -216,17 +215,15 @@ public class Base {
     public void addMineralScv(Unit scv) {
         scvsAddedThisFrame++;
         mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
-                .ifPresent(mineral -> ActionHelper.unitCommand(scv, Abilities.SMART, mineral, false));
+                .ifPresent(mineral -> ActionHelper.giveScvCommand(scv, Abilities.SMART, mineral, false));
     }
 
 
     // ============ METHODS ==============
 
     public void onStep() {
-        mineralPatches.forEach(mineralPatch -> mineralPatch.updateUnit());
-        mineralPatches.removeIf(mineralPatch -> mineralPatch.getUnit() == null);
         if (onMyBaseDeath) {
             onMyBaseDeath();
             onMyBaseDeath = false;
@@ -246,13 +243,12 @@ public class Base {
     public void onStepEnd() {
         mineralPatches.forEach(mineralPatch -> {
             mineralPatch.getScvs().forEach(scv -> {
-
                 //detour if scv can be 2-shot
                 if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
                         scv.unit().getHealth().orElse(45f)) {
-                    DebugHelper.drawBox(mineralPatch.getByMineral(), Color.RED, 0.2f);
+                    DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
                     DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
-                    new BasicUnitMicro(scv, mineralPatch.getMineralPos(), MicroPriority.SURVIVAL).onStep();
+                    new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
                 }
                 else if (UnitUtils.isCarryingResources(scv.unit())) {
                     if (isReadyForMining()) {
@@ -269,6 +265,40 @@ public class Base {
                     else {
                         mineralPatch.distanceHarvestMicro(scv.unit());
                     }
+                }
+            });
+        });
+
+        gases.forEach(gas -> {
+            gas.getScvs().forEach(scv -> {
+                //detour if scv can be 2-shot
+                if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
+                        scv.unit().getHealth().orElse(45f)) {
+                    DebugHelper.drawBox(gas.getByNode(), Color.RED, 0.2f);
+                    DebugHelper.drawBox(gas.getByCC(), Color.RED, 0.2f);
+                    new BasicUnitMicro(scv, gas.getNodePos(), MicroPriority.SURVIVAL).onStep();
+                }
+
+                //fix scv if not mining wrong node
+                else if (ActionIssued.getCurOrder(scv.unit()).stream()
+                        .anyMatch(order -> order.ability == Abilities.HARVEST_GATHER &&
+                                !gas.getRefinery().getTag().equals(order.targetTag))) {
+                    ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, gas.getRefinery(), false);
+                }
+
+                //mine normally if 3 scvs
+                else if (gas.getScvs().size() >= 3 || gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH) {
+                    if (!scv.unit().getActive().orElse(true)) {
+                        ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, gas.getRefinery(), false);
+                    }
+                }
+                //speed return
+                else if (UnitUtils.isCarryingResources(scv.unit())) {
+                    gas.returnMicro(scv.unit());
+                }
+                //speed mine
+                else {
+                    gas.harvestMicro(scv.unit());
                 }
             });
         });
@@ -308,7 +338,7 @@ public class Base {
 
     public int numActiveMineralPatches() {
         return (int)mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .filter(patch -> patch.getMineralContents().orElse(0) > 100).count();
     }
 
@@ -341,7 +371,7 @@ public class Base {
 
     public List<Unit> getLargeMinerals() {
         return mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .filter(node -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(node.getType())).collect(Collectors.toList());
     }
 
@@ -352,16 +382,16 @@ public class Base {
     public List<Unit> getOuterBigPatches() {
         List<Unit> minMaxNodes = new ArrayList<>(List.of(
                 mineralPatches.stream()
-                        .map(MineralPatch::getUnit)
+                        .map(MineralPatch::getNode)
                         .max(Comparator.comparing(node -> node.getPosition().getX())).get(),
                 mineralPatches.stream()
-                        .map(MineralPatch::getUnit)
+                        .map(MineralPatch::getNode)
                         .max(Comparator.comparing(node -> node.getPosition().getY())).get(),
                 mineralPatches.stream()
-                        .map(MineralPatch::getUnit)
+                        .map(MineralPatch::getNode)
                         .min(Comparator.comparing(node -> node.getPosition().getX())).get(),
                 mineralPatches.stream()
-                        .map(MineralPatch::getUnit)
+                        .map(MineralPatch::getNode)
                         .min(Comparator.comparing(node -> node.getPosition().getY())).get()
         ));
         minMaxNodes.removeIf(node -> !UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(node.getType()));
@@ -374,7 +404,7 @@ public class Base {
 
     public Unit getFullestMineralPatch() {
         return mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .max(Comparator.comparing(node -> node.getMineralContents().orElse(0)))
                 .orElse(null);
     }
@@ -382,7 +412,7 @@ public class Base {
     public List<Unit> getInnerBigPatches() {
         //get list of big patches
         List<Unit> bigPatches = mineralPatches.stream()
-                .map(MineralPatch::getUnit)
+                .map(MineralPatch::getNode)
                 .filter(node -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(node.getType()))
                 .collect(Collectors.toList());
 
@@ -438,8 +468,6 @@ public class Base {
         GameCache.baseList.stream()
                 .filter(base -> !base.isMyBase())
                 .flatMap(base -> base.mineralPatches.stream())
-                //.flatMap(mineralPatch -> mineralPatch.getScvs().stream())
-                //.map(UnitInPool::unit)
                 .forEach(mineralPatch -> {
                     mineralPatch.getScvs().forEach(scv -> ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false));
                     mineralPatch.getScvs().clear();
@@ -475,16 +503,15 @@ public class Base {
 //                ActionHelper.unitCommand(scvsNotCarrying, Abilities.SMART, mineralPatch, false);
 //            }
 //        }
-        List<Unit> scvs = mineralPatches.stream()
-                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
-                .map(UnitInPool::unit)
-                .collect(Collectors.toList());
-        if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(scvs, Abilities.STOP, false);
-        }
-        mineralPatches.stream().forEach(mineralPatch -> mineralPatch.getScvs().clear());
-
-        //TODO: reassign gas workers
+        mineralPatches.forEach(mineralPatch ->
+                mineralPatch.getScvs().forEach(scv ->
+                        ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false)));
+        mineralPatches.forEach(mineralPatch -> mineralPatch.getScvs().clear());
+        gases.forEach(gas ->
+                gas.getScvs().forEach(scv ->
+                        ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false)));
+        gases.forEach(gas -> gas.getScvs().clear());
+        //TODO: delayed action for scv inside the refinery
 
         //cancel turrets and refineries at this base
         for (int i=0; i<StructureScv.scvBuildingList.size(); i++) {
@@ -536,16 +563,16 @@ public class Base {
         return isMyBase() && isComplete();
     }
 
-    public boolean isGasUnderLiberationZone(Unit refinery) {
-        Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
-        return Bot.OBS.getEffects().stream()
-                .filter(effect -> effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY &&
-                        (effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
-                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT))
-                .map(effect -> effect.getPositions().iterator().next())
-                .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
-
-    }
+//    public boolean isGasUnderLiberationZone(Unit refinery) {
+//        Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
+//        return Bot.OBS.getEffects().stream()
+//                .filter(effect -> effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY &&
+//                        (effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
+//                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT))
+//                .map(effect -> effect.getPositions().iterator().next())
+//                .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
+//
+//    }
 
 
     public List<UnitInPool> getAndReleaseAvailableScvs(int numScvs) {
@@ -555,7 +582,7 @@ public class Base {
                         !scv.unit().getBuffs().contains(Buffs.CARRY_HIGH_YIELD_MINERAL_FIELD_MINERALS))
                 .limit(5)
                 .collect(Collectors.toList());
-        baseScvs.forEach(scv -> releaseMineralScv(scv.unit()));
+        baseScvs.forEach(scv -> releaseScv(scv.unit()));
         return baseScvs;
     }
 
@@ -630,7 +657,7 @@ public class Base {
                 .stream()
                 .flatMap(base -> base.getMineralPatches().stream())
                 .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
+                .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
                 .orElse(null);
         if (mineralToMine != null) {
             mineralToMine.getScvs().add(scv);
@@ -647,7 +674,7 @@ public class Base {
         if (nextBase != null) {
             MineralPatch nextBaseMineral = nextBase.getMineralPatches().stream()
                     .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                    .max(Comparator.comparing(mineralPatch -> mineralPatch.getUnit().getMineralContents().orElse(0)))
+                    .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
                     //TODO: snapshots get ignored so replace above??
                     .orElse(null);
             if (nextBaseMineral != null) {
@@ -658,24 +685,112 @@ public class Base {
         return false;
     }
 
-    public static void releaseMineralScv(Unit scv) {
+    public static void releaseScv(Unit scv) {
         GameCache.baseList.stream()
                 .flatMap(base -> base.getMineralPatches().stream())
                 .forEach(mineralPatch -> mineralPatch.getScvs().removeIf(u -> scv.getTag().equals(u.getTag())));
+        GameCache.baseList.stream()
+                .flatMap(base -> base.getGases().stream())
+                .forEach(gas -> gas.getScvs().removeIf(u -> scv.getTag().equals(u.getTag())));
     }
 
     public static boolean isMining(UnitInPool scv) {
         return GameCache.baseList.stream()
-                .flatMap(base -> base.getMineralPatches().stream())
-                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
-                .anyMatch(u -> scv.getTag().equals(u.getTag()));
-
+                    .flatMap(base -> base.getMineralPatches().stream())
+                    .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                    .anyMatch(u -> scv.getTag().equals(u.getTag())) ||
+                GameCache.baseList.stream()
+                        .flatMap(base -> base.getGases().stream())
+                        .flatMap(gas -> gas.getScvs().stream())
+                        .anyMatch(u -> scv.getTag().equals(u.getTag()));
     }
 
     public void scvReport() {
         mineralPatches.forEach(mineralPatch -> {
-            System.out.print("\nMineral " + mineralPatch.getUnit().getTag().getValue() + ": ");
+            System.out.print("\nMineral " + mineralPatch.getNode().getTag().getValue() + ": ");
             mineralPatch.getScvs().forEach(scv -> System.out.print(scv.getTag() + " "));
         });
+    }
+
+    public static List<Gas> getMyGases() {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.gases.stream())
+                .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1)
+                .collect(Collectors.toList());
+    }
+
+    public static List<MineralPatch> getMyMinerals() {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.mineralPatches.stream())
+                .collect(Collectors.toList());
+    }
+
+    public static List<MineralPatch> getMyUnderSaturatedMinerals() {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.mineralPatches.stream())
+                .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
+                .collect(Collectors.toList());
+    }
+
+    public static MineralPatch getClosestUnderSaturatedMineral(Point2d pos) {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.mineralPatches.stream())
+                .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
+                .min(Comparator.comparing(mineralPatch -> mineralPatch.getByNode().distance(pos)))
+                .orElse(null);
+    }
+
+    public static Gas getClosestUnmaxedGas(Point2d pos) {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.gases.stream())
+                .filter(gas -> gas.getScvs().size() < 3)
+                .min(Comparator.comparing(gas -> gas.getByNode().distance(pos)))
+                .orElse(null);
+    }
+    public static Gas getClosestUnderSaturatedGas(Point2d pos) {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.gases.stream())
+                .filter(gas -> gas.getScvs().size() < WorkerManager.numScvsPerGas)
+                .min(Comparator.comparing(gas -> gas.getByNode().distance(pos)))
+                .orElse(null);
+    }
+
+    public static UnitInPool releaseClosestMineralScv(Point2d pos) {
+        UnitInPool closestMineralScv = GameCache.baseList.stream()
+                .flatMap(base -> base.mineralPatches.stream())
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), pos)))
+                .orElse(null);
+        if (closestMineralScv != null) {
+            Base.releaseScv(closestMineralScv.unit());
+        }
+        return closestMineralScv;
+    }
+
+    public static List<MineralPatch> getDistanceMinedMineralPatches() {
+        return GameCache.baseList.stream()
+                .filter(base -> !base.isEnemyBase && !base.isReadyForMining())
+                .flatMap(base -> base.mineralPatches.stream())
+                .filter(mineralPatch -> !mineralPatch.getScvs().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static int numScvsFromMaxSaturation() {
+        return GameCache.baseList.stream()
+                        .filter(Base::isReadyForMining)
+                        .flatMap(base -> base.gases.stream())
+                        .mapToInt(gas -> 3-gas.getScvs().size())
+                        .sum() +
+                GameCache.baseList.stream()
+                        .filter(Base::isReadyForMining)
+                        .flatMap(base -> base.mineralPatches.stream())
+                        .mapToInt(mineralPatch -> 2-mineralPatch.getScvs().size())
+                        .sum();
     }
 }

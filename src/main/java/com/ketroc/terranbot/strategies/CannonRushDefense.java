@@ -61,7 +61,7 @@ public class CannonRushDefense {
                     int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.getScvList().size(), availableScvs.size());
                     for (int i = 0; i < numScvsToSend; i++) {
                         UnitInPool newScv = availableScvs.remove(0);
-                        Base.releaseMineralScv(newScv.unit());
+                        Base.releaseScv(newScv.unit());
                         //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
                         if (numScvsToSend >= 4 && i < numScvsToSend/2) {
                             Point2d behindCannon = Position.towards(

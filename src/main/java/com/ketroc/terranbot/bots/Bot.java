@@ -31,7 +31,7 @@ public class Bot extends S2Agent {
     public Bot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         this.isDebugOn = isDebugOn;
         this.opponentId = opponentId;
-        this.isRealTime = true; //isRealTime; TODO: for testing realtime changes
+        this.isRealTime = isRealTime;
     }
 
     @Override

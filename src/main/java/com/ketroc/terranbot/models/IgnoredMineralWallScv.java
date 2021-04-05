@@ -7,20 +7,16 @@ import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;
-import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.ActionHelper;
 import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
-
-import java.util.Comparator;
 
 public class IgnoredMineralWallScv extends Ignored {
     UnitInPool scv;
     public IgnoredMineralWallScv(Tag unitTag) {
         super(unitTag);
         scv = Bot.OBS.getUnit(unitTag);
-        Base.releaseMineralScv(scv.unit());
+        Base.releaseScv(scv.unit());
     }
 
     @Override

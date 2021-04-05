@@ -360,7 +360,7 @@ public class GameCache {
 //                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
 //                    .collect(Collectors.toList()));
             base.getMineralPatches().forEach(mineralPatch -> mineralPatch.updateUnit());
-            base.getMineralPatches().removeIf(mineralPatch -> mineralPatch.getUnit() == null);
+            base.getMineralPatches().removeIf(mineralPatch -> mineralPatch.getNode() == null);
 
 
 //            base.getMineralPatches().addAll(mineralNodeList.stream()
@@ -412,17 +412,18 @@ public class GameCache {
             }
 
             //set geyser nodes and refineries
-            base.getGases().clear();
-            geyserList.stream()
-                    .filter(geyser -> UnitUtils.getDistance(geyser, base.getCcPos()) < 10)
-                    .forEach(geyser -> {
-                        Gas gas = new Gas(geyser);
-                        refineryList.stream()
-                                .filter(refinery -> UnitUtils.getDistance(geyser, refinery) < 1)
-                                .findFirst()
-                                .ifPresent(refinery -> gas.setRefinery(refinery));
-                        base.getGases().add(gas);
-                    });
+//            base.getGases().clear();
+//            geyserList.stream()
+//                    .filter(geyser -> UnitUtils.getDistance(geyser, base.getCcPos()) < 10)
+//                    .forEach(geyser -> {
+//                        Gas gas = new Gas(geyser, base.getCcPos());
+//                        refineryList.stream()
+//                                .filter(refinery -> UnitUtils.getDistance(geyser, refinery) < 1)
+//                                .findFirst()
+//                                .ifPresent(refinery -> gas.setRefinery(refinery));
+//                        base.getGases().add(gas);
+//                    });
+            base.getGases().forEach(gas -> gas.updateUnit());
 
 
             //update turret

@@ -48,8 +48,9 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 Time.nowFrames() > createdFrame + 120) {
             //if landed not on position
             if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {
-                //remove this object when PF starts morphing
-                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS)) {
+                //remove this object when PF starts morphing FIXME: sometimes PF finishes without this if being true
+                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS) ||
+                        unit.unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) {
                     removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
                 }
                 //morph to PF
@@ -70,17 +71,17 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             return;
         }
 
-        //3min without landing (land and PF now, or assign to another enemy base)
-        if (Time.toSeconds(Time.nowFrames() - createdFrame) >= 180) {
+        //2.5min without landing (land and PF now, or assign to another enemy base)
+        if (Time.toSeconds(Time.nowFrames() - createdFrame) >= 150) {
             if (UnitUtils.getDistance(unit.unit(), basePos) < 20) {
-                Chat.chatWithoutSpam("Creating Offensive PF here because 3min of travel has elapsed", 120);
+                Chat.chatWithoutSpam("Creating Offensive PF here because 2.5min of travel has elapsed", 120);
                 removeCCFromBaseList();
                 safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
                 }
                 else {
-                    super.onStep();
+                    assignToAnotherBase();
                 }
             }
             else {

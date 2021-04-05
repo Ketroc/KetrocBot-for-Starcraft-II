@@ -4,7 +4,6 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.*;
 
 public class KetrocBot extends Bot {
@@ -258,6 +256,11 @@ public class KetrocBot extends Bot {
     private void displayGameInfo() {
         //                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+
+        DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
+        DebugHelper.addInfoLine("");
+
+
         for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
             DebugHelper.addInfoLine("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
                     " raven: " +
@@ -601,7 +604,7 @@ public class KetrocBot extends Bot {
                                 }
                                 break;
                             case TERRAN_SCV:
-                                Base.releaseMineralScv(unit);
+                                Base.releaseScv(unit);
                         }
                         break;
                 }

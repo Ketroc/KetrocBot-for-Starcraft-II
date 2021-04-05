@@ -31,13 +31,12 @@ public class WorkerManager {
     public static void onStep() {
         Strategy.setMaxScvs();
         repairLogic();
-        //fix3ScvsOn1MineralPatch();
-        if (Time.nowFrames()/Strategy.STEP_SIZE % 2 == 0) {
+//        if (Time.nowFrames()/Strategy.STEP_SIZE % 2 == 0) {
             fixOverSaturation();
-        }
-        else {
-            putIdleScvsToWork();
-        }
+//        }
+//        else {
+//            putIdleScvsToWork();
+//        }
         toggleWorkersInGas();
         buildRefineryLogic();
         defendWorkerHarass(); //TODO: this method break scvrush micro
@@ -56,44 +55,8 @@ public class WorkerManager {
             Chat.chatWithoutSpam("Using extra scvs to attack", 120);
             idleScvs.stream()
                     .forEach(scv -> Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV));
-            ActionHelper.giveScvCommand(UnitUtils.toUnitList(idleScvs), Abilities.ATTACK, ArmyManager.groundAttackersMidPoint);
+            ActionHelper.giveScvCommand(UnitUtils.toUnitList(idleScvs), Abilities.ATTACK, ArmyManager.groundAttackersMidPoint, false);
         }
-
-//        //send extra scvs to closest undersaturated base
-//        boolean basesOutOfMinerals = GameCache.baseList.stream()
-//                .filter(base -> base.isMyBase() && !base.getMineralPatchUnits().isEmpty())
-//                .count() == 0;
-//        if (!basesOutOfMinerals) {
-//            while (!idleScvs.isEmpty()) {
-//                Unit scv = idleScvs.remove(0);
-//                GameCache.baseList.stream()
-//                        .filter(base -> base.isMyBase() && !base.getMineralPatchUnits().isEmpty())
-//                        .min(Comparator.comparing(base -> UnitUtils.getDistance(scv, base.getMineralPatchUnits().get(0))))
-//                        .ifPresent(closestBase -> closestBase.addMineralScv(scv));
-//            }
-//        }
-
-//        //if my bases have no minerals
-//        if (!idleScvs.isEmpty()) {
-//            Chat.chatOnceOnly("No minerals left in my bases");
-//            Unit nearestPatch = Bot.OBS.getUnits(Alliance.NEUTRAL, patch -> UnitUtils.MINERAL_NODE_TYPE.contains(patch.unit().getType())).stream()
-//                    .min(Comparator.comparing(patch -> UnitUtils.getDistance(patch.unit(), GameCache.baseList.get(1).getCcPos())))
-//                    .map(UnitInPool::unit)
-//                    .orElse(null);
-//            //distance-mine
-//            if (nearestPatch != null) {
-//                Chat.chatOnceOnly("distance mining");
-//                ActionHelper.unitCommand(idleScvs, Abilities.SMART, nearestPatch, false);
-//            }
-//            //if no minerals to distance mine, join the attack as auto-repairers
-//            else {
-//                Chat.chatWithoutSpam("Using extra scvs to attack", 120);
-//                idleScvs.stream()
-//                        .forEach(scv -> Bot.ACTION.toggleAutocast(scv.getTag(), Abilities.EFFECT_REPAIR_SCV));
-//                //UnitUtils.queueUpAttackOfEveryBase(scvsToMove);
-//                ActionHelper.unitCommand(idleScvs, Abilities.ATTACK, ArmyManager.groundAttackersMidPoint, false);
-//            }
-//        }
     }
 
     //any mule in one of my bases that can't complete another mining round, will a-move + autorepair instead
@@ -166,7 +129,7 @@ public class WorkerManager {
             List<Unit> scvsForRepair = getScvsForRepairing(unit, numScvsToAdd);
             if (!scvsForRepair.isEmpty()) {
                 Print.print("sending " + scvsForRepair.size() + " scvs to repair: " + unit.getType() + " at: " + unit.getPosition().toPoint2d());
-                scvsForRepair.forEach(scv -> Base.releaseMineralScv(scv));
+                scvsForRepair.forEach(scv -> Base.releaseScv(scv));
                 //line up scvs behind PF before giving repair command
                 if (unit.getType() == Units.TERRAN_PLANETARY_FORTRESS || UnitUtils.getOrder(unit) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     Base pfBase = Base.getBase(unit);
@@ -176,16 +139,16 @@ public class WorkerManager {
                     Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
                     for (Unit scv : scvsForRepair) {
                         if (pfBase != null && scvNotBehindPF(scv, pfBase)) {
-                            ActionHelper.unitCommand(scv, Abilities.MOVE, behindPFPos, false);
-                            ActionHelper.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, true);
+                            ActionHelper.giveScvCommand(scv, Abilities.MOVE, behindPFPos, false);
+                            ActionHelper.giveScvCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, true);
                         }
                         else {
-                            ActionHelper.unitCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                            ActionHelper.giveScvCommand(scv, Abilities.EFFECT_REPAIR_SCV, unit, false);
                         }
                     }
                 }
                 else {
-                    ActionHelper.unitCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
+                    ActionHelper.giveScvCommand(scvsForRepair, Abilities.EFFECT_REPAIR_SCV, unit, false);
                 }
             }
         }
@@ -245,9 +208,9 @@ public class WorkerManager {
         for (Base base : GameCache.baseList) {
             if (base.isMyBase() && base.isComplete(0.60f)) {
                 for (Gas gas : base.getGases()) {
-                    if (gas.getRefinery() == null && gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
+                    if (gas.getRefinery() == null && gas.getNode().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY) {
                         if (StructureScv.scvBuildingList.stream()
-                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getGasPos()) < 1)) {
+                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getNodePos()) < 1)) {
                             if (!Purchase.isStructureQueued(Units.TERRAN_REFINERY)) {
                                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                                 return;
@@ -377,64 +340,86 @@ public class WorkerManager {
 
 
     private static void fixOverSaturation() {
-        List<Unit> scvsToMove = new ArrayList<>();
-        boolean mainBaseUnderAttack = mainBaseUnderAttack();
+        // add scvs to gas
+        saturateGases();
 
-        //saturate gas and create list of extra scvs
-        for (Base base : GameCache.baseList) {
-            if (base.isReadyForMining()) {
-                Unit cc = base.getCc().unit();
+        // get all idle scvs
+        List<UnitInPool> idleScvs = UnitUtils.getIdleScvs();
 
-                //get available scvs at this base
-                List<UnitInPool> baseMineralScvs = getAvailableMineralScvs(base.getCcPos(), 9);
+        // saturate minerals
+        while (!idleScvs.isEmpty()) {
+            MineralPatch closestUnderSaturatedMineral = Base.getClosestUnderSaturatedMineral(idleScvs.get(0).unit().getPosition().toPoint2d());
+            if (closestUnderSaturatedMineral == null) {
+                break;
+            }
+            closestUnderSaturatedMineral.getScvs().add(idleScvs.remove(0));
+        }
 
-                //saturate refineries
-                for (Gas gas : base.getGases()) {
-                    if (gas.getRefinery() != null) {
-                        Unit refinery = gas.getRefinery();
-                        int numScvsRequiredForGas = (base.isGasUnderLiberationZone(refinery)) ? 0 : numScvsPerGas; //Don't populate this gas if covered by a liberation zone
-                        for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), numScvsRequiredForGas) && !baseMineralScvs.isEmpty(); i++) {
-                            UnitInPool closestUnit = UnitUtils.getClosestUnit(baseMineralScvs, refinery);
-                            ActionHelper.giveScvCommand(closestUnit.unit(), Abilities.SMART, refinery);
-                            baseMineralScvs.remove(closestUnit);
-                            base.scvsAddedThisFrame--;
-                        }
-                        if (refinery.getAssignedHarvesters().get() > numScvsRequiredForGas) {
-                             List<UnitInPool> availableGasScvs = Bot.OBS.getUnits(Alliance.SELF, u -> {
-                                if (u.unit().getType() == Units.TERRAN_SCV && ActionIssued.getCurOrder(u.unit()).isPresent()) {
-                                    ActionIssued order = ActionIssued.getCurOrder(u.unit()).get();
-                                    return order.ability == Abilities.HARVEST_GATHER && refinery.getTag().equals(order.targetTag);
-                                }
-                                return false;
-                             });
-                             if (!availableGasScvs.isEmpty()) {
-                                 ActionHelper.unitCommand(UnitUtils.toUnitList(availableGasScvs), Abilities.STOP, false);
-                             }
-                        }
-                    }
+        // remove gas scvs
+        if (idleScvs.isEmpty()) {
+            Base.getMyGases().stream()
+                    .filter(gas -> gas.getRefinery().getType() != Units.TERRAN_REFINERY_RICH &&
+                            gas.getScvs().size() > numScvsPerGas)
+                    .forEach(gas -> {
+                        UnitInPool gasScv = gas.getScvs().stream()
+                                .filter(scv -> scv.getLastSeenGameLoop() == Time.nowFrames()) //not in geyser
+                                .filter(scv -> !UnitUtils.isCarryingResources(scv.unit()))
+                                .filter(scv -> UnitUtils.getDistance(scv.unit(), gas.getNodePos()) > 3)
+                                .findAny()
+                                .orElse(null);
+                        ActionHelper.unitCommand(gasScv.unit(), Abilities.STOP, false);
+                        gas.getScvs().remove(gasScv);
+                    });
+        }
+
+        // max saturate gas
+        else {
+            while (!idleScvs.isEmpty()) {
+                Gas closestUnmaxedGas = Base.getClosestUnmaxedGas(idleScvs.get(0).unit().getPosition().toPoint2d());
+                if (closestUnmaxedGas == null) {
+                    break;
                 }
-//
-//                //add extra scvs to list
-//                int numExtraScvs = base.numScvsNeeded() * -1;
-//                if (numExtraScvs > 0) {
-//                    List<UnitInPool> extraScvsList = baseMineralScvs.subList(0, Math.min(baseMineralScvs.size(), numExtraScvs));
-//                    scvsToMove.addAll(UnitUtils.toUnitList(extraScvsList));
-//                }
+                closestUnmaxedGas.getScvs().add(idleScvs.remove(0));
             }
         }
 
-//        //send extra scvs to closest undersaturated base
-//        AtomicBoolean basesAllSaturated = new AtomicBoolean(false);
-//        while (!scvsToMove.isEmpty() && !basesAllSaturated.get()) {
-//            GameCache.baseList.stream()
-//                    .filter(base -> base.isMyBase() && base.numScvsNeeded() > 0)
-//                    .min(Comparator.comparing(base -> UnitUtils.getDistance(scvsToMove.get(0), base.getMineralPatchUnits().get(0))))
-//                    .ifPresentOrElse(base -> base.addMineralScv(scvsToMove.remove(0)), () -> basesAllSaturated.set(true));
-//        }
+        // add/remove distance miners
+        if (idleScvs.isEmpty()) {
+            freeUpDistanceMiners();
+        }
+        else {
+            idleScvs.forEach(scv -> Base.distanceMineScv(scv));
+        }
+    }
 
-        //increase gas workers if minerals are all saturated
-        if (!scvsToMove.isEmpty() && numScvsPerGas < 3) {
-            numScvsPerGas++;
+    private static void freeUpDistanceMiners() {
+        int numScvsNeeded = Base.numScvsFromMaxSaturation();
+        if (numScvsNeeded == 0) {
+            return;
+        }
+        List<MineralPatch> distanceMinedMineralPatches = Base.getDistanceMinedMineralPatches();
+        for (int i = distanceMinedMineralPatches.size() - 1; i > 0; i--) {
+            MineralPatch minPatch = distanceMinedMineralPatches.get(i);
+            while (!minPatch.getScvs().isEmpty()) {
+                ActionHelper.unitCommand(minPatch.getScvs().remove(0).unit(), Abilities.STOP, false);
+                if (--numScvsNeeded == 0) {
+                    return;
+                }
+            }
+        }
+    }
+
+    private static void saturateGases() {
+        List<Gas> myGases = Base.getMyGases();
+        for (Gas gas : myGases) {
+            int numScvs = (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH) ? 3 : numScvsPerGas;
+            while (gas.getScvs().size() < numScvs) {
+                UnitInPool closestMineralScv = Base.releaseClosestMineralScv(gas.getByNode());
+                if (closestMineralScv == null) {
+                    return;
+                }
+                gas.getScvs().add(closestMineralScv);
+            }
         }
     }
 
@@ -474,7 +459,7 @@ public class WorkerManager {
         }
         else if (numScvsPerGas == 2) {
             //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (Time.nowFrames() > Time.toFrames("3:00") && (mins > 3100 || (mins > 300 && gasBankRatio() < 0.3))) {
+            if (mins > 3100 || (mins > 300 && gasBankRatio() < 0.3)) {
                 numScvsPerGas = 3;
             }
             //go to 1 in gas
@@ -523,11 +508,11 @@ public class WorkerManager {
             }
             mainBaseScvs.forEach(scv -> {
                     if (UnitUtils.isCarryingResources(scv.unit())) {
-                        ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false);
-                        ActionHelper.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), true);
+                        ActionHelper.giveScvCommand(scv.unit(), Abilities.HARVEST_RETURN, false);
+                        ActionHelper.giveScvCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), true);
                     }
                     else {
-                        ActionHelper.unitCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), false);
+                        ActionHelper.giveScvCommand(scv.unit(), Abilities.SMART, GameCache.baseList.get(1).getMineralPatchUnits().get(0), false);
                     }
             });
             return;
@@ -545,7 +530,7 @@ public class WorkerManager {
 
         List<Unit> scvs = getDeepestMineralScvs(scvsNeeded);
         if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(scvs, Abilities.SMART, targetNode, false);
+            ActionHelper.giveScvCommand(scvs, Abilities.SMART, targetNode, false);
         }
     }
 
