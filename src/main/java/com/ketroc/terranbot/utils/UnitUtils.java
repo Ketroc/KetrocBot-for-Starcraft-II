@@ -786,8 +786,9 @@ public class UnitUtils {
     public static List<UnitInPool> getIdleScvs() {
         return Bot.OBS.getUnits(Alliance.SELF, scv ->
                 scv.unit().getType() == Units.TERRAN_SCV &&
-                scv.unit().getOrders().isEmpty() &&
-                !Ignored.contains(scv.getTag()));
+                ActionIssued.getCurOrder(scv.unit()).isEmpty() &&
+                !Ignored.contains(scv.getTag()) &&
+                !Base.isMining(scv));
     }
 
     public static boolean isEnemyEnteringDetection(Unit enemy) {

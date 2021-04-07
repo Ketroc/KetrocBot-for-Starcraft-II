@@ -92,7 +92,7 @@ public class BunkerContain {
         // ========= SCVS ===========
         if (Time.nowFrames() == Time.toFrames(6)) {
             Unit scv = WorkerManager.getClosestAvailableScv(LocationConstants.extraDepots.get(0)).unit();
-            ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0));
+            ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
@@ -236,7 +236,7 @@ public class BunkerContain {
 
     public static void addRepairScv(UnitInPool scv) {
         repairScvList.add(scv);
-        Base.releaseMineralScv(scv.unit());
+        Base.releaseScv(scv.unit());
         Ignored.add(new IgnoredUnit(scv.getTag()));
     }
 
@@ -335,7 +335,7 @@ public class BunkerContain {
     private static void sendFirstScv() {
         if (!isFirstScvSent && Time.nowFrames() >= Time.toFrames(8)) {
             Unit firstScv = repairScvList.get(0).unit();
-            Base.releaseMineralScv(firstScv);
+            Base.releaseScv(firstScv);
             if (UnitUtils.isCarryingResources(firstScv)) {
                 ActionHelper.unitCommand(firstScv, Abilities.HARVEST_RETURN, false);
                 ActionHelper.unitCommand(firstScv, Abilities.MOVE, barracksPos, true);
@@ -353,7 +353,7 @@ public class BunkerContain {
         if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(23)) {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
             scoutScvs = availableScvs.subList(0, 2);
-            scoutScvs.forEach(scv -> Base.releaseMineralScv(scv.unit()));
+            scoutScvs.forEach(scv -> Base.releaseScv(scv.unit()));
             if (!LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
                     !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
@@ -581,7 +581,7 @@ public class BunkerContain {
                     ActionHelper.unitCommand(oldScv.unit(), Abilities.STOP, false);
                 }
                 UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
-                Base.releaseMineralScv(newScv.unit());
+                Base.releaseScv(newScv.unit());
                 Ignored.remove(oldScv.getTag());
                 Ignored.add(new IgnoredUnit(newScv.getTag()));
                 repairScvList.set(i, newScv);

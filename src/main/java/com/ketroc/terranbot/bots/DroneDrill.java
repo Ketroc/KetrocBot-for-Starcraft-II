@@ -76,8 +76,8 @@ public class DroneDrill extends Bot {
 
             ACTION.sendActions();
 
-            geyser1 = GameCache.baseList.get(0).getGases().get(0).getGeyser();
-            geyser2 = GameCache.baseList.get(0).getGases().get(1).getGeyser();
+            geyser1 = GameCache.baseList.get(0).getGases().get(0).getNode();
+            geyser2 = GameCache.baseList.get(0).getGases().get(1).getNode();
 
         }
         catch (Exception e) {

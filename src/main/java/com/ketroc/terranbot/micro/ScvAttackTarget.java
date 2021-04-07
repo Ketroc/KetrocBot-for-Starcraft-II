@@ -1,7 +1,6 @@
 package com.ketroc.terranbot.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -31,7 +30,7 @@ public class ScvAttackTarget extends Scv {
 
     public ScvAttackTarget(Unit scv, UnitInPool targetUnit) {
         super(scv, targetUnit.unit().getPosition().toPoint2d(), MicroPriority.DPS);
-        Base.releaseMineralScv(scv);
+        Base.releaseScv(scv);
         this.targetUnit = targetUnit;
     }
 

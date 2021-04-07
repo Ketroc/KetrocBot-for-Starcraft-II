@@ -236,22 +236,22 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 for (Gas gas : base.getGases()) {
                     //if geyser is available and isn't empty
                     if (gas.getRefinery() == null &&
-                            gas.getGeyser().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY &&
+                            gas.getNode().getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY &&
                             Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.GAS_STRUCTURE_TYPES.contains(enemy.unit().getType()) &&
-                                    UnitUtils.getDistance(enemy.unit(), gas.getPosition()) < 1).isEmpty()) {
+                                    UnitUtils.getDistance(enemy.unit(), gas.getNodePos()) < 1).isEmpty()) {
                         //if scv isn't already on the way to build at this geyser
                         if (StructureScv.scvBuildingList.stream()
-                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getPosition()) < 1)) {
-                            this.position = gas.getPosition();
+                                .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getNodePos()) < 1)) {
+                            this.position = gas.getNodePos();
                             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
                             if (availableScvs.isEmpty()) {
                                 return PurchaseResult.WAITING;
                             }
                             this.scv = availableScvs.get(0).unit();
-                            gas.setGeyser(getGeyserUnitAtPosition(gas.getPosition()));
+                            gas.setNode(getGeyserUnitAtPosition(gas.getNodePos()));
                             Print.print("sending action " + Abilities.BUILD_REFINERY);
-                            ActionHelper.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getGeyser(), false);
-                            StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getGeyser().getTag())));
+                            ActionHelper.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getNode(), false);
+                            StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getNode().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);
                             return PurchaseResult.SUCCESS;
                         }

@@ -39,13 +39,13 @@ public class ScvRush {
             //update snapshots
             LocationConstants.enemyMineralTriangle.updateNodes();
             if (scvList != null) {  //TODO: hack for preventing idle scvs from getting picked up for speed mining
-                scvList.forEach(scv -> Base.releaseMineralScv(scv.unit()));
+                scvList.forEach(scv -> Base.releaseScv(scv.unit()));
             }
             switch (scvRushStep) {
                 case 0: //cluster up scvs
                     if (scvList == null) {
                         scvList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, GameCache.ccList.get(0).getPosition().toPoint2d(), 20);
-                        scvList.forEach(scv -> Base.releaseMineralScv(scv.unit()));
+                        scvList.forEach(scv -> Base.releaseScv(scv.unit()));
                     }
                     if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
                         scvRushStep++;

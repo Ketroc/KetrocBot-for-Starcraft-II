@@ -128,28 +128,33 @@ public class ActionHelper {
     }
 
 
-    public static void giveScvCommand(Unit scv, Abilities ability) {
-        Base.releaseMineralScv(scv);
-        ActionHelper.unitCommand(scv, ability, false);
+    public static void giveScvCommand(Unit scv, Abilities ability, boolean isQueued) {
+        Base.releaseScv(scv);
+        ActionHelper.unitCommand(scv, ability, isQueued);
     }
 
-    public static void giveScvCommand(Unit scv, Abilities ability, Point2d targetPos) {
-        Base.releaseMineralScv(scv);
-        ActionHelper.unitCommand(scv, ability, targetPos, false);
+    public static void giveScvCommand(Unit scv, Abilities ability, Point2d targetPos, boolean isQueued) {
+        Base.releaseScv(scv);
+        ActionHelper.unitCommand(scv, ability, targetPos, isQueued);
     }
 
-    public static void giveScvCommand(Unit scv, Abilities ability, Unit targetUnit) {
-        Base.releaseMineralScv(scv);
-        ActionHelper.unitCommand(scv, ability, targetUnit, false);
+    public static void giveScvCommand(Unit scv, Abilities ability, Unit targetUnit, boolean isQueued) {
+        Base.releaseScv(scv);
+        ActionHelper.unitCommand(scv, ability, targetUnit, isQueued);
     }
 
-    public static void giveScvCommand(List<Unit> scvs, Abilities ability) {
-        scvs.forEach(scv -> Base.releaseMineralScv(scv));
-        ActionHelper.unitCommand(scvs, ability, false);
+    public static void giveScvCommand(List<Unit> scvList, Abilities ability, Unit targetUnit, boolean isQueued) {
+        scvList.forEach(scv -> Base.releaseScv(scv));
+        ActionHelper.unitCommand(scvList, ability, targetUnit, isQueued);
     }
 
-    public static void giveScvCommand(List<Unit> scvs, Abilities ability, Point2d targetPos) {
-        scvs.forEach(scv -> Base.releaseMineralScv(scv));
-        ActionHelper.unitCommand(scvs, ability, targetPos, false);
+    public static void giveScvCommand(List<Unit> scvs, Abilities ability, boolean isQueued) {
+        scvs.forEach(scv -> Base.releaseScv(scv));
+        ActionHelper.unitCommand(scvs, ability, isQueued);
+    }
+
+    public static void giveScvCommand(List<Unit> scvs, Abilities ability, Point2d targetPos, boolean isQueued) {
+        scvs.forEach(scv -> Base.releaseScv(scv));
+        ActionHelper.unitCommand(scvs, ability, targetPos, isQueued);
     }
 }

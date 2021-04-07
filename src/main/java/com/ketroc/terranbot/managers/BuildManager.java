@@ -408,13 +408,13 @@ public class BuildManager {
                                             Unit mineralToMule;
                                             if (i == 2 && LocationConstants.MAP.contains("Golden Wall")) { //special case so mules don't get trapped
                                                 mineralToMule = base.getMineralPatches().stream()
-                                                        .map(MineralPatch::getUnit)
+                                                        .map(MineralPatch::getNode)
                                                         .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit, base.getCcPos())))
                                                         .orElse(null);
                                             }
                                             else { //mine the largest patch
                                                 mineralToMule = base.getMineralPatches().stream()
-                                                        .map(mineralPatch -> mineralPatch.getUnit())
+                                                        .map(mineralPatch -> mineralPatch.getNode())
                                                         .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
                                                         .orElse(null);
                                             }

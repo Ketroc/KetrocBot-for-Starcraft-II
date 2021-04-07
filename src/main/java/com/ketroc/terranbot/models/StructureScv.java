@@ -68,7 +68,7 @@ public class StructureScv {
             Ignored.remove(this.scv.getTag());
         }
         this.scv = scv;
-        Base.releaseMineralScv(scv.unit());
+        Base.releaseScv(scv.unit());
         scvAddedFrame = Time.nowFrames();
         Ignored.add(new IgnoredUnit(scv.getTag()));
         if (structureType == Units.TERRAN_COMMAND_CENTER) {
@@ -131,7 +131,7 @@ public class StructureScv {
 
     public static boolean removeScvFromList(Unit structure) {
         for (int i = 0; i< scvBuildingList.size(); i++) {
-            StructureScv scv = scvBuildingList.get(i);
+            StructureScv structureScv = scvBuildingList.get(i);
 
             //hack to handle rich refineries
             Units structureType = (Units)structure.getType();
@@ -139,8 +139,16 @@ public class StructureScv {
                 structureType = Units.TERRAN_REFINERY;
             }
 
-            if (scv.structureType == structureType && scv.structurePos.distance(structure.getPosition().toPoint2d()) < 1) {
-                remove(scv);
+            if (structureScv.structureType == structureType && structureScv.structurePos.distance(structure.getPosition().toPoint2d()) < 1) {
+                if (structureScv.structureType == Units.TERRAN_REFINERY) {
+                    GameCache.baseList.stream()
+                            .flatMap(base -> base.getGases().stream())
+                            .filter(gas -> gas.getNodePos().distance(structureScv.structurePos) < 1)
+                            .findFirst()
+                            .ifPresent(gas -> gas.getScvs().add(structureScv.scv));
+                }
+
+                remove(structureScv);
                 return true;
             }
         }
@@ -248,6 +256,13 @@ public class StructureScv {
 
                 //if structure completed
                 else if (structure.unit().getBuildProgress() == 1.0f) {
+                    if (structureScv.structureType == Units.TERRAN_REFINERY) {
+                        GameCache.baseList.stream()
+                                .flatMap(base -> base.getGases().stream())
+                                .filter(gas -> gas.getNodePos().distance(structureScv.structurePos) < 1)
+                                .findFirst()
+                                .ifPresent(gas -> gas.getScvs().add(structureScv.scv));
+                    }
                     remove(structureScv);
                     i--;
                 }
