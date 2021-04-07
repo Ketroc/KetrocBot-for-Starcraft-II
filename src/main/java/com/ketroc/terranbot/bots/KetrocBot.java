@@ -64,8 +64,8 @@ public class KetrocBot extends Bot {
 
             //start first scv
             UnitInPool mainCC = Bot.OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
-            ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
-            Bot.ACTION.sendActions();
+//            ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
+//            Bot.ACTION.sendActions();
 
             //get map, get hardcoded map locations
             LocationConstants.onGameStart(mainCC);
@@ -88,6 +88,7 @@ public class KetrocBot extends Bot {
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
             MarineAllIn.onGameStart();
+            WorkerRushDefense2.onGameStart();
 
             Strategy.printStrategySettings();
 
@@ -183,8 +184,10 @@ public class KetrocBot extends Bot {
             StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
 
             //don't build up during probe rush
-            if (WorkerRushDefense.onStep()) {
-                return;
+            if (!Strategy.WALL_OFF_IMMEDIATELY) {
+                if (WorkerRushDefense.onStep()) {
+                    return;
+                }
             }
 
             //scv rush opener
@@ -207,6 +210,7 @@ public class KetrocBot extends Bot {
 
             //purchase from queue
             Purchase toRemove = null;
+            Strategy.onStep();
             if (Switches.tvtFastStart) {
                 Strategy.onStep_TvtFaststart();
             }

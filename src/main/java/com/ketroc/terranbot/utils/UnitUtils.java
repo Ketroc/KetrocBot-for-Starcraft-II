@@ -200,7 +200,14 @@ public class UnitUtils {
     }
 
     public static boolean canAfford(Units unitType) {
-        return canAfford(unitType, GameCache.mineralBank, GameCache.gasBank, GameCache.freeSupply);
+        return canAfford(unitType, false);
+    }
+
+    public static boolean canAfford(Units unitType, boolean doIgnorePurchaseQueueSaving) {
+        return canAfford(unitType,
+                doIgnorePurchaseQueueSaving ? Bot.OBS.getMinerals() : GameCache.mineralBank,
+                doIgnorePurchaseQueueSaving ? Bot.OBS.getVespene() : GameCache.gasBank,
+                GameCache.freeSupply);
     }
 
     public static boolean canAfford(Units unitType, int minerals, int gas, int supply) {
@@ -414,7 +421,8 @@ public class UnitUtils {
     }
 
     public static boolean isStructure(UnitType unitType) {
-        return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE);
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE) &&
+                unitType != Units.TERRAN_AUTO_TURRET;
     }
 
     public static boolean canScan() {
@@ -878,5 +886,16 @@ public class UnitUtils {
             return notMyBases.get(r.nextInt(notMyBases.size())).getCcPos();
         }
         return null;
+    }
+
+    public static boolean isWallComplete() {
+        return Bot.OBS.getUnits(Alliance.SELF, u -> isStructure(u.unit().getType()) && isWallStructure(u.unit())).size() >= 3;
+    }
+
+    public static boolean isWallStructure(Unit structure) {
+        return UnitUtils.getDistance(structure, LocationConstants.WALL_2x2) < 1 ||
+                UnitUtils.getDistance(structure, LocationConstants.WALL_3x3) < 1 ||
+                UnitUtils.getDistance(structure, LocationConstants.MID_WALL_2x2) < 1 ||
+                UnitUtils.getDistance(structure, LocationConstants.MID_WALL_3x3) < 1;
     }
 }

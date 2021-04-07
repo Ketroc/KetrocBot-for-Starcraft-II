@@ -565,7 +565,7 @@ public class BuildManager {
 
             //make marines if wall under attack TODO: don't build if starports/factories aren't all active and gas >= 75
             else if (UnitUtils.isWallUnderAttack() || ArmyManager.isEnemyInMain()) {
-                if (UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
                     ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                     Cost.updateBank(Units.TERRAN_MARINE);
                 }
@@ -582,7 +582,7 @@ public class BuildManager {
                 //maintain early game marine count
                 int marineCount = UnitUtils.getMarineCount();
                 if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
-                    if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getFoodUsed() < Bot.OBS.getFoodCap()) { //replaced cuz marines priority over structures: UnitUtils.canAfford(Units.TERRAN_MARINE)) {
+                    if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
                         ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                         Cost.updateBank(Units.TERRAN_MARINE);
                     }

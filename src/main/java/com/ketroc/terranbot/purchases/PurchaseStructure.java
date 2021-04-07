@@ -436,4 +436,5 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     public String getType() {
         return structureType.toString();
     }
-} //end PurchaseStructure class
+
+}

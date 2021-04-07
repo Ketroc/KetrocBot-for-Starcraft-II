@@ -100,7 +100,7 @@ public class BuildOrder {
                     marineAllInBuild();
                 }
                 else if (BunkerContain.proxyBunkerLevel != 0) {
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2)); //WALL_2x2
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
                     LocationConstants.extraDepots.remove(LocationConstants.WALL_2x2);
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));

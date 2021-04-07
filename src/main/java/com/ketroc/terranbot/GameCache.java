@@ -136,8 +136,8 @@ public class GameCache {
                     }
 
                     //see what repair is required for wall or burning structures
-                    if (UnitUtils.isStructure(unitType) && unitType != Units.TERRAN_AUTO_TURRET) {
-                        if (LocationConstants.isWallStructure(unit)) {
+                    if (UnitUtils.isStructure(unitType)) {
+                        if (UnitUtils.isWallStructure(unit)) {
                             wallStructures.add(unit);
                         }
                         else if (unit.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(unit) <= 35) {
@@ -166,17 +166,17 @@ public class GameCache {
                             refineryList.add(unit);
                             break;
                         case TERRAN_SUPPLY_DEPOT:
-                            if (LocationConstants.isWallStructure(unit)) {
+                            if (UnitUtils.isWallStructure(unit)) {
                                 GameCache.wallStructures.add(unit);
                             }
                             break;
                         case TERRAN_ENGINEERING_BAY:
-                            if (LocationConstants.isWallStructure(unit)) {
+                            if (UnitUtils.isWallStructure(unit)) {
                                 GameCache.wallStructures.add(unit);
                             }
                             break;
                         case TERRAN_BARRACKS:
-                            if (LocationConstants.isWallStructure(unit)) {
+                            if (UnitUtils.isWallStructure(unit)) {
                                 GameCache.wallStructures.add(unit);
                             }
                             if (curOrder != null) {
@@ -662,7 +662,9 @@ public class GameCache {
                 for (int y = yStart; y <= yEnd; y++) {
                     float distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
                     //depot raising
-                    if (!enemy.isAir && enemy.isArmy && distance < Strategy.DISTANCE_RAISE_DEPOT) {
+                    if (!enemy.isAir &&
+                            enemy.isArmy &&
+                            distance < Strategy.DISTANCE_RAISE_DEPOT) {
                         InfluenceMaps.pointRaiseDepots[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);
                     }
@@ -768,9 +770,9 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointPFTargetValue[x][y] > 0) {
-                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointPFTargetValue[x][y]),x / 2f, y / 2f, Color.RED);
-                    }
+//                    if (InfluenceMaps.pointPFTargetValue[x][y] > 0) {
+//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointPFTargetValue[x][y]),x / 2f, y / 2f, Color.RED);
+//                    }
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }

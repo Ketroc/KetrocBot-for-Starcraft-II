@@ -148,12 +148,30 @@ public class StructureScv {
     }
 
     //cancel structure that's already started
-    //send scv to mineral patch
+    //free up and stop scv
     //remove StructureScv from scvBuildingList
     public static boolean cancelProduction(Units type, Point2d pos) {
         for (int i = 0; i< scvBuildingList.size(); i++) {
             StructureScv scv = scvBuildingList.get(i);
             if (scv.structureType == type && scv.structurePos.distance(pos) < 1) {
+                //cancel structure
+                scv.cancelProduction();
+
+                //remove StructureScv object from list
+                remove(scv);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //cancel structure that's already started
+    //free up and stop scv
+    //remove StructureScv from scvBuildingList
+    public static boolean cancelProduction(Units type) {
+        for (int i = 0; i< scvBuildingList.size(); i++) {
+            StructureScv scv = scvBuildingList.get(i);
+            if (scv.structureType == type) {
                 //cancel structure
                 scv.cancelProduction();
 
@@ -237,12 +255,14 @@ public class StructureScv {
         }
     }
 
+    //makes structure position available again, then requeues structure purchase (sometimes)
     private static void requeueCancelledStructure(StructureScv structureScv) {
         Print.print("structure requeued");
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:
             case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
+                break;
             case TERRAN_BUNKER:
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;

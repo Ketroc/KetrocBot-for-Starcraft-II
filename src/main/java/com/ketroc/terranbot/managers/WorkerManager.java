@@ -8,7 +8,6 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.terranbot.*;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.bots.Bot;
@@ -30,7 +29,6 @@ public class WorkerManager {
     public static int numScvsPerGas = 3;
 
     public static void onStep() {
-        Strategy.setMaxScvs();
         repairLogic();
         //fix3ScvsOn1MineralPatch();
         if (Time.nowFrames()/Strategy.STEP_SIZE % 2 == 0) {
@@ -113,7 +111,7 @@ public class WorkerManager {
 
     private static void defendWorkerHarass() {
         //only for first 3min
-        if (Time.nowFrames() > Time.toFrames("4:00") || CannonRushDefense.cannonRushStep != 0) {
+        if (Strategy.WALL_OFF_IMMEDIATELY || Time.nowFrames() > Time.toFrames("3:00") || CannonRushDefense.cannonRushStep != 0) {
             return;
         }
 
@@ -393,7 +391,7 @@ public class WorkerManager {
                 for (Gas gas : base.getGases()) {
                     if (gas.getRefinery() != null) {
                         Unit refinery = gas.getRefinery();
-                        int numScvsRequiredForGas = (base.isGasUnderLiberationZone(refinery)) ? 0 : numScvsPerGas; //Don't populate this gas if covered by a liberation zone
+                        int numScvsRequiredForGas = (gas.isGasUnderLiberationZone()) ? 0 : numScvsPerGas; //Don't populate this gas if covered by a liberation zone
                         for (int i = refinery.getAssignedHarvesters().get(); i < Math.min(refinery.getIdealHarvesters().get(), numScvsRequiredForGas) && !baseMineralScvs.isEmpty(); i++) {
                             UnitInPool closestUnit = UnitUtils.getClosestUnit(baseMineralScvs, refinery);
                             ActionHelper.giveScvCommand(closestUnit.unit(), Abilities.SMART, refinery);

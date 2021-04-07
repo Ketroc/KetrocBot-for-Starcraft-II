@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
+    public static boolean WALL_OFF_IMMEDIATELY = true; //TODO: true for testing only
     public static GamePlan gamePlan = null;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
@@ -101,6 +102,10 @@ public class Strategy {
 //        if (ANTI_NYDUS_BUILD) {
 //            antiNydusBuild();
 //        }
+    }
+
+    public static void onStep() {
+        maxScvs = getMaxScvs();
     }
 
     private static void getGameStrategyChoice() {
@@ -260,7 +265,6 @@ public class Strategy {
 
     private static void marineAllinStrategy() {
         MARINE_ALLIN = true;
-        maxScvs = 18;
         NUM_MARINES = Integer.MAX_VALUE;
     }
 
@@ -413,7 +417,6 @@ public class Strategy {
         UpgradeManager.shipAttack.clear(); //no 2nd armory
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
-        maxScvs = 80;
         DO_BANSHEE_HARASS = false;
         DO_INCLUDE_LIBS = false;
         DO_DEFENSIVE_TANKS = false;
@@ -695,22 +698,32 @@ public class Strategy {
         }
     }
 
-    public static void setMaxScvs() {
-        if (MARINE_ALLIN && GameCache.baseList.get(1).isMyBase()) {
-            maxScvs = 80;
-        }
-
+    public static int getMaxScvs() {
         //if no minerals left on the map
         if (GameCache.defaultRallyNode == null) {
-            maxScvs = 6;
+            return 6;
         }
+
+        //cutting workers to wall off at the start of the game
+        if (Strategy.WALL_OFF_IMMEDIATELY && !UnitUtils.isWallComplete()) {
+            return 13; //TODO: change to 14 when my bot sends scvs to build structures early
+        }
+
+        //marine all-in without an expansion
+        if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
+            return 18;
+        }
+
         //if maxed out on macro OCs
-        else if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
-            maxScvs = 50;
+        if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
+            return 50;
         }
-//        else {
-//            maxScvs = 80;
-//        }
+
+        if (MASS_RAVENS) {
+            return 80;
+        }
+
+        return 90;
     }
 
     public static void antiNydusBuild() {

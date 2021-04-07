@@ -114,7 +114,8 @@ public class Liberator extends BasicUnitMicro {
         int range = castRange + 5; //circle radius is 5
 
         Predicate<UnitInPool> enemiesInRangeFilter = enemy ->
-                !UnitUtils.isStructure((Units) enemy.unit().getType()) &&
+                !UnitUtils.isStructure(enemy.unit().getType()) &&
+                        enemy.unit().getType() != Units.TERRAN_AUTO_TURRET &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) <= range + enemy.unit().getRadius() &&
                         !enemy.unit().getFlying().orElse(true) &&
                         !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&

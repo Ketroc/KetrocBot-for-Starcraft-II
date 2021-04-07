@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.Time;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class EnemyUnit {
@@ -69,7 +70,11 @@ public class EnemyUnit {
         }
         pfTargetLevel = getPFTargetValue(enemy);
         isDetector = detectRange > 0f;
-        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
+        isArmy = supply > 0 &&
+                (!UnitUtils.WORKER_TYPE.contains(enemy.getType()) || //any unit that costs supply and is not a worker
+                        (Strategy.WALL_OFF_IMMEDIATELY &&
+                                UnitUtils.getEnemyUnitsOfTypes(UnitUtils.WORKER_TYPE).size() > 4 &&
+                                Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch ((Units)enemy.getType()) {
             case PROTOSS_PHOENIX: case PROTOSS_COLOSSUS:

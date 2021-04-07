@@ -1,9 +1,12 @@
 package com.ketroc.terranbot.models;
 
+import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.strategies.Strategy;
+import com.ketroc.terranbot.utils.Position;
 import com.ketroc.terranbot.utils.UnitUtils;
 
 public class Gas {
@@ -53,4 +56,14 @@ public class Gas {
                 UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.GAS_STRUCTURE_TYPES, location, 1).isEmpty();
     }
 
+    public boolean isGasUnderLiberationZone() {
+//        Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
+//        return Bot.OBS.getEffects().stream()
+//                .filter(effect -> effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY &&
+//                        (effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
+//                                effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT))
+//                .map(effect -> effect.getPositions().iterator().next())
+//                .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
+        return true;
+    }
 }

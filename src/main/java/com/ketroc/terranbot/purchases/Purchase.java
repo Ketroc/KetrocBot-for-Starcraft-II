@@ -97,4 +97,10 @@ public interface Purchase {
         return null;
     }
 
+    static void removeAll(Units unitType) {
+        KetrocBot.purchaseQueue.removeIf(p ->
+                p instanceof PurchaseStructure &&
+                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_COMMAND_CENTER);
+    }
+
 }

@@ -69,7 +69,7 @@ public class WorkerRushDefense {
             switch (defenseStep) {
                 case 0: //probe rush check
                     if (UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.pointOnMyRamp, 7).size() >= 5 &&
-                            GameCache.starportList.isEmpty()) {
+                            !UnitUtils.isWallComplete()) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
                     }

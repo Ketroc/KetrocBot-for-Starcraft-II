@@ -3545,25 +3545,6 @@ public class LocationConstants {
     }
 
 
-    public static boolean isWallStructure(Unit structure) {
-        float x1 = WALL_2x2.getX();
-        float x2 = WALL_3x3.getX();
-        float y1 = WALL_2x2.getY();
-        float y2 = WALL_3x3.getY();
-
-        float xMin = Math.min(x1, x2) - 1;
-        float xMax = Math.max(x1, x2) + 1;
-        float yMin = Math.min(y1, y2) - 1;
-        float yMax = Math.max(y1, y2) + 1;
-
-        float xStructure = structure.getPosition().getX();
-        float yStructure = structure.getPosition().getY();
-
-        return (xStructure >= xMin && xStructure <= xMax && yStructure >= yMin && yStructure <= yMax);
-
-
-    }
-
     public static void setBaseLocations() {
         switch (MAP) {
             case MapNames.ACROPOLIS:

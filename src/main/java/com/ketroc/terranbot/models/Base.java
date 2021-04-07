@@ -519,18 +519,6 @@ public class Base {
         return isMyBase() && isComplete();
     }
 
-    public boolean isGasUnderLiberationZone(Unit refinery) {
-        Point2d miningPos = Position.towards(refinery.getPosition().toPoint2d(), ccPos, 2.8f);
-        return Bot.OBS.getEffects().stream()
-                .filter(effect -> effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY &&
-                        (effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_PERSISTENT ||
-                        effect.getEffect() == Effects.LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT))
-                .map(effect -> effect.getPositions().iterator().next())
-                .anyMatch(libZonePos -> libZonePos.distance(miningPos) < 5.1);
-
-    }
-
-
     public List<UnitInPool> getAndReleaseAvailableScvs(int numScvs) {
         List<UnitInPool> baseScvs = WorkerManager.getAllScvs(ccPos, 9).stream()
                 .filter(scv -> !scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) &&
