@@ -734,7 +734,7 @@ public class GameCache {
                         if (distance < enemy.airAttackRange) {
                             InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
                             InfluenceMaps.pointThreatToAir[x][y] = true;
-                            //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.2f,y/2-0.2f, z), Point.of(x/2+0.2f,y/2+0.2f, z), Color.PURPLE);
+                            DebugHelper.drawBox(x/2,y/2, Color.PURPLE, 0.4f);
                         }
                     }
                     else { //ground unit or effect

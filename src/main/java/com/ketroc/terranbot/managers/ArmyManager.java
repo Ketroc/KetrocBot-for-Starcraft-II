@@ -1150,7 +1150,7 @@ public class ArmyManager {
                 if (kiteBackPos == null) {
                     kiteBackPos = retreatPos;
                 }
-                if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirFromGround, kiteBackPos) == 0) {
+                if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
                     ActionHelper.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
                 }
                 else {
