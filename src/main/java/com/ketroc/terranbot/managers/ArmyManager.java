@@ -733,7 +733,10 @@ public class ArmyManager {
         }
 
         //if bunker exists and isn't full, head to bunker and enter
-        if (bunker != null && bunker.getCargoSpaceTaken().orElse(4) < 4) {
+        if (bunker != null &&
+                bunker.getCargoSpaceTaken().orElse(4) < 4 &&
+                ActionIssued.getCurOrder(bunker).stream()
+                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE)) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
