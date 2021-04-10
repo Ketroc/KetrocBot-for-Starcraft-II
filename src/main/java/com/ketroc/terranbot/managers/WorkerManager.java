@@ -339,7 +339,7 @@ public class WorkerManager {
 
 
     private static void fixOverSaturation() {
-        // add scvs to gas
+        // saturate gases
         saturateGases();
 
         // get all idle scvs
@@ -354,55 +354,67 @@ public class WorkerManager {
             closestUnderSaturatedMineral.getScvs().add(idleScvs.remove(0));
         }
 
-        // remove gas scvs
-        if (idleScvs.isEmpty()) {
-            Base.getMyGases().stream()
-                    .filter(gas -> gas.getRefinery().getType() != Units.TERRAN_REFINERY_RICH &&
-                            gas.getScvs().size() > numScvsPerGas)
-                    .forEach(gas -> {
-                        UnitInPool gasScv = gas.getScvs().stream()
-                                .filter(scv -> scv.getLastSeenGameLoop() == Time.nowFrames()) //not in geyser
-                                .filter(scv -> !UnitUtils.isCarryingResources(scv.unit()))
-                                .filter(scv -> UnitUtils.getDistance(scv.unit(), gas.getNodePos()) > 3)
-                                .findAny()
-                                .orElse(null);
-                        ActionHelper.unitCommand(gasScv.unit(), Abilities.STOP, false);
-                        gas.getScvs().remove(gasScv);
-                    });
-        }
-
-        // max saturate gas
-        else {
-            while (!idleScvs.isEmpty()) {
-                Gas closestUnmaxedGas = Base.getClosestUnmaxedGas(idleScvs.get(0).unit().getPosition().toPoint2d());
-                if (closestUnmaxedGas == null) {
-                    break;
-                }
-                closestUnmaxedGas.getScvs().add(idleScvs.remove(0));
+        // oversaturate gases (go up to 3 on gas even when only 0-2 are needed)
+        while (!idleScvs.isEmpty()) {
+            Gas closestUnmaxedGas = Base.getClosestUnmaxedGas(idleScvs.get(0).unit().getPosition().toPoint2d());
+            if (closestUnmaxedGas == null) {
+                break;
             }
+            closestUnmaxedGas.getScvs().add(idleScvs.remove(0));
         }
 
-        // add/remove distance miners
-        if (idleScvs.isEmpty()) {
-            freeUpDistanceMiners();
-        }
-        else {
+        // distance mine
+        if (!idleScvs.isEmpty()) {
             idleScvs.forEach(scv -> Base.distanceMineScv(scv));
         }
+
+        //free up distance miners and oversaturated gas miners
+        freeUpExtraScvs();
+
     }
 
-    private static void freeUpDistanceMiners() {
-        int numScvsNeeded = Base.numScvsFromMaxSaturation();
-        if (numScvsNeeded == 0) {
+    private static void freeUpExtraScvs() {
+        int numGasScvsNeeded = Base.numGasScvsFromMaxSaturation();
+        int numMineralScvsNeeded = Base.numMineralScvsFromMaxSaturation();
+        int totalScvsNeeded = numGasScvsNeeded + numGasScvsNeeded;
+        if (totalScvsNeeded == 0) {
             return;
         }
+
+        //take from distance miners to cover required mineral and gas scvs
         List<MineralPatch> distanceMinedMineralPatches = Base.getDistanceMinedMineralPatches();
         for (int i = distanceMinedMineralPatches.size() - 1; i > 0; i--) {
             MineralPatch minPatch = distanceMinedMineralPatches.get(i);
             while (!minPatch.getScvs().isEmpty()) {
                 ActionHelper.unitCommand(minPatch.getScvs().remove(0).unit(), Abilities.STOP, false);
-                if (--numScvsNeeded == 0) {
+                totalScvsNeeded--;
+                numMineralScvsNeeded--;
+                if (totalScvsNeeded == 0) {
                     return;
+                }
+            }
+        }
+
+        if (numMineralScvsNeeded <= 0) {
+            return;
+        }
+
+        //take from gas miners to cover required mineral scvs
+        for (Gas gas : Base.getMyGases()) {
+            if (gas.getRefinery().getType() != Units.TERRAN_REFINERY_RICH && gas.getScvs().size() > numScvsPerGas) {
+                UnitInPool gasScv = gas.getScvs().stream()
+                        .filter(scv -> scv.getLastSeenGameLoop() == Time.nowFrames()) //not in geyser
+                        .filter(scv -> !UnitUtils.isCarryingResources(scv.unit()))
+                        .filter(scv -> UnitUtils.getDistance(scv.unit(), gas.getNodePos()) > 3)
+                        .findAny()
+                        .orElse(null);
+                if (gasScv != null) {
+                    ActionHelper.unitCommand(gasScv.unit(), Abilities.STOP, false);
+                    gas.getScvs().remove(gasScv);
+                    numMineralScvsNeeded--;
+                    if (numGasScvsNeeded == 0) {
+                        break;
+                    }
                 }
             }
         }

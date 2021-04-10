@@ -703,7 +703,9 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1)
+                .filter(gas -> gas.getRefinery() != null &&
+                        gas.getRefinery().getBuildProgress() == 1 &&
+                        gas.getRefinery().getVespeneContents().orElse(0) > 0)
                 .collect(Collectors.toList());
     }
 
@@ -735,7 +737,7 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .filter(gas -> gas.getScvs().size() < 3)
+                .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1f && gas.getScvs().size() < 3)
                 .min(Comparator.comparing(gas -> gas.getByNode().distance(pos)))
                 .orElse(null);
     }
@@ -768,16 +770,33 @@ public class Base {
                 .collect(Collectors.toList());
     }
 
-    public static int numScvsFromMaxSaturation() {
+    public static int numDistanceMiningScvs() {
         return GameCache.baseList.stream()
-                        .filter(Base::isReadyForMining)
-                        .flatMap(base -> base.gases.stream())
-                        .mapToInt(gas -> 3-gas.getScvs().size())
-                        .sum() +
-                GameCache.baseList.stream()
+                .filter(base -> !base.isEnemyBase && !base.isReadyForMining())
+                .flatMap(base -> base.mineralPatches.stream())
+                .mapToInt(base -> base.getScvs().size())
+                .sum();
+    }
+
+    public static int numScvsFromMaxSaturation() {
+        return numMineralScvsFromMaxSaturation() + numGasScvsFromMaxSaturation();
+    }
+
+    public static int numMineralScvsFromMaxSaturation() {
+        return GameCache.baseList.stream()
                         .filter(Base::isReadyForMining)
                         .flatMap(base -> base.mineralPatches.stream())
                         .mapToInt(mineralPatch -> 2-mineralPatch.getScvs().size())
                         .sum();
     }
+
+    public static int numGasScvsFromMaxSaturation() {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.gases.stream())
+                .mapToInt(gas -> 3-gas.getScvs().size())
+                .sum();
+    }
+
+
 }

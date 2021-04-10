@@ -129,7 +129,7 @@ public class StructureScv {
     // ******** STATIC METHODS *********
     // *********************************
 
-    public static boolean removeScvFromList(Unit structure) {
+    public static boolean onStructureCompleted(Unit structure) {
         for (int i = 0; i< scvBuildingList.size(); i++) {
             StructureScv structureScv = scvBuildingList.get(i);
 
@@ -145,7 +145,10 @@ public class StructureScv {
                             .flatMap(base -> base.getGases().stream())
                             .filter(gas -> gas.getNodePos().distance(structureScv.structurePos) < 1)
                             .findFirst()
-                            .ifPresent(gas -> gas.getScvs().add(structureScv.scv));
+                            .ifPresent(gas -> {
+                                Base.releaseScv(structureScv.scv.unit());
+                                gas.getScvs().add(structureScv.scv);
+                            });
                 }
 
                 remove(structureScv);

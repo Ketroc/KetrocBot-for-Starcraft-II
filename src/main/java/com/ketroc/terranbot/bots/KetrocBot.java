@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
+import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class KetrocBot extends Bot {
 
@@ -246,6 +248,16 @@ public class KetrocBot extends Bot {
             purchaseQueue.remove(toRemove);
 
             PlacementMap.setColumn();
+
+            //TODO: DELETE - FOR TESTING
+//            if (Bot.OBS.getEffects().stream()
+//                    .anyMatch(effectLocations -> effectLocations.getEffect() == Effects.NUKE_PERSISTENT)) {
+//                EffectLocations nukeDot = Bot.OBS.getEffects().stream()
+//                        .filter(effectLocations -> effectLocations.getEffect() == Effects.NUKE_PERSISTENT)
+//                        .findFirst()
+//                        .orElse(null);
+//            }
+
             if (isDebugOn) {
                 displayGameInfo();
             }
@@ -368,7 +380,7 @@ public class KetrocBot extends Bot {
                 Units unitType = (Units) unit.getType();
 
                 //remove scv that built it from the tracking list
-                StructureScv.removeScvFromList(unitInPool.unit());
+                StructureScv.onStructureCompleted(unitInPool.unit());
 
                 switch (unitType) {
                     case TERRAN_BARRACKS:
@@ -517,6 +529,7 @@ public class KetrocBot extends Bot {
         if (Time.nowFrames() == 1) { //hack so this is never called on game start (since it does and doesn't depending on how it run)
             return;
         }
+
         Unit unit = unitInPool.unit();
         if (unit.getType() instanceof Units.Other) {
             System.out.println("****************************************************************");
@@ -524,6 +537,7 @@ public class KetrocBot extends Bot {
             System.out.println("****************************************************************");
             return;
         }
+
         switch ((Units)unit.getType()) {
             case TERRAN_SIEGE_TANK:
                 if (BunkerContain.proxyBunkerLevel == 2) {
@@ -536,7 +550,12 @@ public class KetrocBot extends Bot {
                 }
                 break;
             case TERRAN_SCV:
-                Base.assignScvToAMineralPatch(unitInPool);
+                //ignore scvs that existed the refinery as they are considered "created"
+                if (Bot.OBS.getUnits(Alliance.SELF, u ->
+                        UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
+                        UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
+                    Base.assignScvToAMineralPatch(unitInPool);
+                }
                 break;
         }
     }

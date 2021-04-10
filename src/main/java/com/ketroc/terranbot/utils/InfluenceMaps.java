@@ -20,7 +20,7 @@ public class InfluenceMaps {
     public static boolean[][] pointThreatToAirPlusBuffer;
     public static float[][] pointSupplyInSeekerRange;
     public static int[][] pointThreatToGroundValue;
-    public static int[][] pointDamageToGroundValue;
+    public static int[][] pointDamageToGroundValue;  //1shot damage potential
     public static boolean[][] pointThreatToGround;
     public static boolean[][] pointPersistentDamageToGround;
     public static int[][] pointPFTargetValue; //1.5 splash radius range (PF is 1.25, tank is 1.5 ... +enemy radius and rounding effects)

@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 
 //TODO: if target dies before it gets a LOCK_ON buff, then don't go on cooldown
 public class Cyclone extends BasicUnitMicro {
-    //list of unit types to never lock-on to TODO: check if KD8Charge/NUKE unit ever exists
+    //list of unit types to never lock-on to TODO: check if KD8Charge unit ever exists
     public static final Set<Units> NEVER_LOCK_TYPES = new HashSet<>(Set.of(
             Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_MULE,
             Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_DISRUPTOR_PHASED, Units.TERRAN_KD8CHARGE,
-            Units.TERRAN_NUKE, Units.ZERG_PARASITIC_BOMB_DUMMY));
+            Units.ZERG_PARASITIC_BOMB_DUMMY));
     //list of units to soft-lock-on (keep reassessing)
     public static final Set<Units> SOFT_LOCK_TYPES = new HashSet<>(Set.of(
             Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.TERRAN_MARINE,

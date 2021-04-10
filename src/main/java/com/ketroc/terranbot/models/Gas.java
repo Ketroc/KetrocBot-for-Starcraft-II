@@ -22,7 +22,7 @@ public class Gas {
     private Point2d nodePos;
     private Point2d ccPos;
     private Point2d byNode;
-    private float distanceToHarvest = 2.1f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
+    private float distanceToHarvest = 1.7f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
     private float distanceToCC = 3f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
     private Point2d byCC;
 
@@ -36,12 +36,9 @@ public class Gas {
         byNode = Position.towards(nodePos, ccPos, 1.2f);
         byCC = Position.towards(ccPos, nodePos, 2.15f);
         float angle = Position.getAngle(byCC, byNode);
-        if ((angle > 70 && angle < 120) || (angle > 240 && angle < 300)) { //mining angle is up or down
-            byNode = nodePos;
-            //byMineralTweak = -0.55f;
-        }
-        else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
-            distanceToHarvest += 0.17f;
+        if ((angle > 22 && angle < 68) || (angle > 112 && angle < 158) ||
+                (angle > 202 && angle < 248) || (angle > 282 && angle < 328)) { //mining diagonal
+            distanceToHarvest += 0.07f;
             distanceToCC += 0.07f;
         }
 

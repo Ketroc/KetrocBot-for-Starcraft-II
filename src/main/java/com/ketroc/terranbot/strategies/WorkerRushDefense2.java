@@ -1,21 +1,10 @@
 package com.ketroc.terranbot.strategies;
 
-import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.terranbot.GameCache;
-import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.bots.KetrocBot;
-import com.ketroc.terranbot.managers.WorkerManager;
-import com.ketroc.terranbot.models.MineralPatch;
-import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
 import com.ketroc.terranbot.utils.LocationConstants;
-import com.ketroc.terranbot.utils.UnitUtils;
-
-import java.util.List;
 
 public class WorkerRushDefense2 {
 

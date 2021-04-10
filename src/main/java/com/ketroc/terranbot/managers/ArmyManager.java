@@ -690,6 +690,7 @@ public class ArmyManager {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
+        //don't set target if Marine All-in code is handling it
         if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.isInitialBuildUp)) {
             return;
         }

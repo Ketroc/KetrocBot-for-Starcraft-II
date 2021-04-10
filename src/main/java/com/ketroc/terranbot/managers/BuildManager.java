@@ -352,7 +352,9 @@ public class BuildManager {
                                     }
                                 }
                             }
-                            else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
+                            //float CC from danger if it isn't my main base CC
+                            else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
+                                    UnitUtils.getDistance(cc, GameCache.baseList.get(0).getCcPos()) > 2) {
                                 UnitMicroList.add(new StructureFloater(cc));
                             }
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
@@ -387,7 +389,9 @@ public class BuildManager {
                         }
                         break;
                     case TERRAN_ORBITAL_COMMAND:
-                        if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc)) {
+                        //float OC from danger if it isn't my main base OC
+                        if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
+                                UnitUtils.getDistance(cc, GameCache.baseList.get(0).getCcPos()) > 2) {
                             UnitMicroList.add(new StructureFloater(cc));
                         }
                         else if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
@@ -720,7 +724,7 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //maintain 2+ vikings when enemy does viking harass
+        //maintain 2+ vikings when enemy does banshee harass
         if (Strategy.ENEMY_DOES_BANSHEE_HARASS && numVikings < 2) {
             return Abilities.TRAIN_VIKING_FIGHTER;
         }
@@ -746,14 +750,14 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //maintain a banshee count of 1 (2 vs zerg with mass ravens)
-        if (numBanshees < MIN_BANSHEES) {
-            return Abilities.TRAIN_BANSHEE;
-        }
-
         //get required vikings
         if (numVikings < vikingsRequired) {
             return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
+        //maintain a banshee count of 1 (2 vs zerg with mass ravens)
+        if (numBanshees < MIN_BANSHEES) {
+            return Abilities.TRAIN_BANSHEE;
         }
 
         if (LocationConstants.opponentRace == Race.ZERG) {

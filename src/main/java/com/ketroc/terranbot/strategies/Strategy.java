@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
-    public static boolean WALL_OFF_IMMEDIATELY = true; //TODO: true for testing only
+    public static boolean WALL_OFF_IMMEDIATELY;
     public static GamePlan gamePlan = null;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
@@ -221,7 +221,7 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Mass Banshee Strategy");
@@ -275,7 +275,7 @@ public class Strategy {
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEES; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Standard Strategy");
@@ -318,7 +318,7 @@ public class Strategy {
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Standard Strategy");

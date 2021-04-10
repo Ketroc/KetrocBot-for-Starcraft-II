@@ -31,7 +31,6 @@ public class MineralPatch {
         float angle = Position.getAngle(byCC, byNode);
         if ((angle > 70 && angle < 120) || (angle > 240 && angle < 300)) { //mining angle is up or down
             byNode = nodePos;
-            //byMineralTweak = -0.55f;
         }
         else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
             distanceToHarvest += 0.17f;

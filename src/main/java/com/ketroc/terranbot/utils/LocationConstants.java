@@ -1454,6 +1454,7 @@ public class LocationConstants {
             //REPAIR_BAY = Point2d.of(144.5f, 133f);
 
             WALL_2x2 = Point2d.of(41.0f, 64.0f);
+            MID_WALL_2x2 = Point2d.of(41f, 62f);
             MID_WALL_3x3 = Point2d.of(40.5f, 61.5f);
             WALL_3x3 = Point2d.of(43.5f, 60.5f);
 
@@ -1527,6 +1528,7 @@ public class LocationConstants {
 
             WALL_2x2 = Point2d.of(167.0f, 64.0f);
             WALL_3x3 = Point2d.of(164.5f, 60.5f);
+            MID_WALL_2x2 = Point2d.of(167f, 62f);
             MID_WALL_3x3 = Point2d.of(167.5f, 61.5f);
 
             _3x3Structures.add(MID_WALL_3x3);
