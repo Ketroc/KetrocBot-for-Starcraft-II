@@ -45,7 +45,7 @@ public class Position {
         return y;
     }
 
-    private static boolean isOutOfBounds(Point2d p) {
+    public static boolean isOutOfBounds(Point2d p) {
         return isOutOfBoundsX(p.getX()) || isOutOfBoundsY(p.getY());
     }
 

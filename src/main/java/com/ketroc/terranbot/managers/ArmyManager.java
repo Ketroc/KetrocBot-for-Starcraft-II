@@ -981,16 +981,7 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                Point2d kiteBackPos = getKiteBackPos(banshee);
-                if (kiteBackPos == null) {
-                    kiteBackPos = retreatPos;
-                }
-                if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
-                    ActionHelper.unitCommand(banshee, Abilities.MOVE, kiteBackPos, false);
-                }
-                else {
-                    new BasicUnitMicro(banshee, retreatPos, MicroPriority.SURVIVAL).onStep();
-                }
+                kiteBackAirUnit(banshee);
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState != CloakState.NOT_CLOAKED &&
@@ -1052,17 +1043,17 @@ public class ArmyManager {
     private static Point2d getKiteBackPos(Unit myUnit) {
         Unit closestEnemy = UnitUtils.getClosestEnemyThreat(myUnit);
         if (closestEnemy == null) {
-            return null;
+            return retreatPos;
         }
         Point2d enemyPos = closestEnemy.getPosition().toPoint2d();
-        Point2d retreatPos = Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4);
-        if (Position.isOnBoundary(retreatPos)) { //ignore when kited to the edge of the map
+        Point2d kiteBackPos = Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -4);
+        if (Position.isOutOfBounds(kiteBackPos)) { //ignore when kited to the edge of the map
             return null;
         }
-        if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(retreatPos)) { //ignore unpathable positions
+        if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(kiteBackPos)) { //ignore unpathable positions
             return null;
         }
-        return retreatPos;
+        return kiteBackPos;
     }
 
     private static void retreatUnitFromCyclone(Unit myUnit) {
@@ -1149,16 +1140,7 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                Point2d kiteBackPos = getKiteBackPos(viking);
-                if (kiteBackPos == null) {
-                    kiteBackPos = retreatPos;
-                }
-                if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
-                    ActionHelper.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
-                }
-                else {
-                    new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
-                }
+                kiteBackAirUnit(viking);
             }
         }
         //Under 100% health and at repair bay
@@ -1167,17 +1149,27 @@ public class ArmyManager {
                 UnitUtils.getDistance(viking, retreatPos) < 3) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
         }
-        //go home if low health
-        else if (canRepair && UnitUtils.getHealthPercentage(viking) < healthToRepair) {
-            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
-        }
         //in range then back up
         else if (isInVikingRange) {
+            //if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
+            kiteBackAirUnit(viking);
+        }
+        //go home if low health
+        else if (canRepair && UnitUtils.getHealthPercentage(viking) < healthToRepair) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
         }
         //out of range, then move in
         else {
             if (lastCommand != ArmyCommands.ATTACK) armyAirAttacking.add(viking);
+        }
+    }
+
+    private static void kiteBackAirUnit(Unit viking) {
+        Point2d kiteBackPos = getKiteBackPos(viking);
+        if (kiteBackPos != null && !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
+            ActionHelper.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
+        } else {
+            new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
         }
     }
 
