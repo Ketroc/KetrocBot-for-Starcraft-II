@@ -36,10 +36,10 @@ public class Gas {
         byNode = Position.towards(nodePos, ccPos, 1.2f);
         byCC = Position.towards(ccPos, nodePos, 2.15f);
         float angle = Position.getAngle(byCC, byNode);
-        if ((angle > 22 && angle < 68) || (angle > 112 && angle < 158) ||
-                (angle > 202 && angle < 248) || (angle > 282 && angle < 328)) { //mining diagonal
-            distanceToHarvest += 0.07f;
-            distanceToCC += 0.07f;
+        if ((angle > 20 && angle < 70) || (angle > 110 && angle < 160) ||
+                (angle > 200 && angle < 250) || (angle > 280 && angle < 330)) { //mining diagonal
+            distanceToHarvest += 0.1f;
+            distanceToCC += 0.1f;
         }
 
     }

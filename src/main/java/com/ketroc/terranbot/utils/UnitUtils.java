@@ -257,7 +257,7 @@ public class UnitUtils {
                         ActionIssued.getCurOrder(scv).stream()
                                 .anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
                                         repairTarget.getTag().equals(curAction.targetTag)) ||
-                        scv.getOrders().stream()
+                        scv.getOrders().stream() //TODO: try without this?? (realtime issue??)
                                 .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
                                         repairTarget.getTag().equals(order.getTargetedUnitTag().orElse(null))))
                 .count();
@@ -289,7 +289,7 @@ public class UnitUtils {
             case TERRAN_PLANETARY_FORTRESS:
                 return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90% = 3scvs, 70-80% = 5scvs, etc
             case TERRAN_MISSILE_TURRET:
-                return (InfluenceMaps.getThreatToStructure(unit) == 0 ||
+                return (InfluenceMaps.getThreatToStructure(unit) != 0 ||
                         InfluenceMaps.getValue(InfluenceMaps.enemyInMissileTurretRange, unit.getPosition().toPoint2d()))
                         ? 6 : 0;
             case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:

@@ -91,35 +91,9 @@ public class WorkerManager {
             return;
         }
 
-        //loop through units.  look for unmaxed health.  decide numscvs to repair
-        List<Unit> unitsToRepair = new ArrayList<>();
-        GameCache.baseList.stream()
-                .filter(
-                        base -> base.isMyBase() && (
-                                base.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS || (
-                                        UnitUtils.getOrder(base.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS &&
-                                        Time.nowFrames() - base.lastMorphFrame > 600
-                                )
-                        )
-                ) //complete PFs or 10sec from morphed
-                .forEach(base -> unitsToRepair.add(base.getCc().unit()));
-        unitsToRepair.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
-        if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
-            unitsToRepair.addAll(GameCache.liberatorList);
-        }
-        UnitMicroList.getUnitSubList(TankToPosition.class).forEach(tankToPosition -> unitsToRepair.add(tankToPosition.unit.unit()));
-        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) < 2) {
-            unitsToRepair.addAll(GameCache.wallStructures);
-        }
-        GameCache.burningStructures.forEach(structure -> {
-            if (structure.getType() != Units.TERRAN_PLANETARY_FORTRESS && InfluenceMaps.getGroundThreatToStructure(structure) == 0) {
-                unitsToRepair.add(structure);
-            }
-        });
-        Unit natBunker = UnitUtils.getCompletedNatBunker();
-        if (natBunker != null) {
-            unitsToRepair.add(natBunker);
-        }
+        Set<Unit> unitsToRepair = getSetOfUnitsToRepair();
+
+        //send appropriate amount of scvs to each unit
         for (Unit unit : unitsToRepair) {
             int numScvsToAdd = UnitUtils.numIdealScvsToRepair(unit) - UnitUtils.numRepairingScvs(unit);
             if (numScvsToAdd <= 0) { //skip if no additional scvs required
@@ -151,6 +125,52 @@ public class WorkerManager {
                 }
             }
         }
+    }
+
+    private static Set<Unit> getSetOfUnitsToRepair() {
+        Set<Unit> unitsToRepair = new HashSet<>();
+
+        //add PFs
+        unitsToRepair.addAll(
+            GameCache.baseList.stream()
+                    .filter(base -> base.isMyBase() &&
+                            (base.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
+                                    (UnitUtils.getOrder(base.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS &&
+                                            Time.nowFrames() - base.lastMorphFrame > 600))) //complete PFs or 10sec from morphed
+                    .map(base -> base.getCc().unit())
+                    .collect(Collectors.toSet()));
+
+        //add missile turrets
+        unitsToRepair.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
+
+        //add liberators if TvZ/TvT
+        if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
+            unitsToRepair.addAll(GameCache.liberatorList);
+        }
+
+        //add defensive tanks
+        unitsToRepair.addAll(
+                UnitMicroList.getUnitSubList(TankToPosition.class).stream()
+                .map(tank -> tank.unit.unit())
+                .collect(Collectors.toSet()));
+
+        //add wall structures
+        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) < 2) {
+            unitsToRepair.addAll(GameCache.wallStructures);
+        }
+
+        //add burning structures
+        unitsToRepair.addAll(
+                GameCache.burningStructures.stream()
+                    .filter(structure -> InfluenceMaps.getGroundThreatToStructure(structure) == 0)
+                    .collect(Collectors.toSet()));
+
+        //add bunker at natural
+        Unit natBunker = UnitUtils.getCompletedNatBunker();
+        if (natBunker != null) {
+            unitsToRepair.add(natBunker);
+        }
+        return unitsToRepair;
     }
 
     private static boolean scvNotBehindPF(Unit unit, Base pfBase) {
