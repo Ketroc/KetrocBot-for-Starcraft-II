@@ -22,7 +22,7 @@ public class Gas {
     private Point2d nodePos;
     private Point2d ccPos;
     private Point2d byNode;
-    private float distanceToHarvest = 1.7f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
+    private float distanceToHarvest = 1.9f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
     private float distanceToCC = 3f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
     private Point2d byCC;
 

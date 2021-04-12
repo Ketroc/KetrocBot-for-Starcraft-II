@@ -28,6 +28,7 @@ public class BuildOrder {
             BunkerContain.addNewRepairScv();
         }
         switch (LocationConstants.opponentRace) { //TODO: fix so that bunker contain can be used vs any race with code 1 or 2
+            case RANDOM:
             case TERRAN:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
@@ -118,7 +119,6 @@ public class BuildOrder {
                     PfExpandOpener();
                 }
                 break;
-            case RANDOM:
             case ZERG:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
