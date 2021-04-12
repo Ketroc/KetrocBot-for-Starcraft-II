@@ -98,9 +98,16 @@ public interface Purchase {
     }
 
     static void removeAll(Units unitType) {
-        KetrocBot.purchaseQueue.removeIf(p ->
-                p instanceof PurchaseStructure &&
-                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_COMMAND_CENTER);
+        KetrocBot.purchaseQueue.removeIf(p -> p instanceof PurchaseStructure &&
+                ((PurchaseStructure) p).getStructureType() == unitType);
+    }
+
+    static void removeFirst(Units unitType) {
+        KetrocBot.purchaseQueue.stream()
+                .filter(p -> p instanceof PurchaseStructure &&
+                        ((PurchaseStructure) p).getStructureType() == unitType)
+                .findFirst()
+                .ifPresent(purchase -> KetrocBot.purchaseQueue.remove(purchase));
     }
 
 }

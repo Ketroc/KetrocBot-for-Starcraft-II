@@ -1,4 +1,4 @@
-package com.ketroc.terranbot.strategies;
+package com.ketroc.terranbot.strategies.defenses;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
@@ -12,6 +12,8 @@ import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.models.Base;
 import com.ketroc.terranbot.models.StructureScv;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.strategies.ScvTarget;
+import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.WorkerManager;

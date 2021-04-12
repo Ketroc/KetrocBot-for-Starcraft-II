@@ -1,9 +1,10 @@
-package com.ketroc.terranbot.strategies;
+package com.ketroc.terranbot.strategies.defenses;
 
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.ketroc.terranbot.bots.KetrocBot;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.LocationConstants;
 
 public class WorkerRushDefense2 {

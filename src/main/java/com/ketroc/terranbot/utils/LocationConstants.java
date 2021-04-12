@@ -144,29 +144,34 @@ public class LocationConstants {
             for (int y = yMin; y <= yMax; y++) {
                 Point2d thisPos = Point2d.of(x/2f, y/2f);
                 float thisZ = Bot.OBS.terrainHeight(thisPos);
-                if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInMainBase[x][y] = true;
                     if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(natPos) < 15) {
                         pointOnMyRamp = Point2d.of(x/2, y/2);
                     }
                 }
-                else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyMainBase[x][y] = true;
                     if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(enemyNatPos) < 15) {
                         pointOnEnemyRamp = Point2d.of(x/2, y/2);
                     }
                 }
-                else if (thisPos.distance(natPos) < 16 && Math.abs(thisZ - natZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(natPos) < 16 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
                     if (thisPos.distance(LocationConstants.BUNKER_NATURAL) > 8) {
                         InfluenceMaps.pointInNatExcludingBunkerRange[x][y] = true;
                     }
                 }
-                else if (thisPos.distance(enemyNatPos) < 16 && Math.abs(thisZ - enemyNatZ) < 1.2f && Bot.OBS.isPathable(thisPos)) {
+                else if (thisPos.distance(enemyNatPos) < 16 && Math.abs(thisZ - enemyNatZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;
                 }
             }
         }
+    }
+
+    //hack to make nodes/cc in starting position pathable
+    private static boolean isPathable(Point2d thisPos) {
+        return Bot.OBS.isPathable(thisPos) || thisPos.distance(Bot.OBS.getStartLocation().toPoint2d()) < 11;
     }
 
     public static void setRepairBayLocation() {

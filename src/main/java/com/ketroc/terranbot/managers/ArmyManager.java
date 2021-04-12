@@ -13,7 +13,7 @@ import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.micro.Target;
 import com.ketroc.terranbot.models.*;
-import com.ketroc.terranbot.strategies.CannonRushDefense;
+import com.ketroc.terranbot.strategies.defenses.CannonRushDefense;
 import com.ketroc.terranbot.strategies.BunkerContain;
 import com.ketroc.terranbot.strategies.MarineAllIn;
 import com.ketroc.terranbot.strategies.Strategy;

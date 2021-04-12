@@ -17,7 +17,7 @@ import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.Purchase;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
-import com.ketroc.terranbot.strategies.CannonRushDefense;
+import com.ketroc.terranbot.strategies.defenses.CannonRushDefense;
 import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 

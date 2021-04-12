@@ -4,12 +4,12 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
-import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -19,6 +19,10 @@ import com.ketroc.terranbot.micro.*;
 import com.ketroc.terranbot.models.*;
 import com.ketroc.terranbot.purchases.*;
 import com.ketroc.terranbot.strategies.*;
+import com.ketroc.terranbot.strategies.defenses.CannonRushDefense;
+import com.ketroc.terranbot.strategies.defenses.GasStealDefense;
+import com.ketroc.terranbot.strategies.defenses.WorkerRushDefense;
+import com.ketroc.terranbot.strategies.defenses.WorkerRushDefense2;
 import com.ketroc.terranbot.utils.*;
 
 import java.io.IOException;
@@ -26,17 +30,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class KetrocBot extends Bot {
-
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
 
     public KetrocBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         super(isDebugOn, opponentId, isRealTime);
     }
 
-
+    @Override
     public void onAlert(Alert alert) {
 
     }
@@ -145,43 +147,31 @@ public class KetrocBot extends Bot {
                 GameCache.baseList.get(0).scvReport();
             }
 
-            DebugHelper.onStep();
+            DebugHelper.onStep(); //reset debug status for printing info
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
 //            PlacementMap.visualizePlacementMap();
 //            PlacementMap.setColumn();
 
-            //free up ignored units
-            Ignored.onStep();
-
-            //remove expired enemy scans
-            EnemyScan.onStep();
-
-            //rebuild unit cache every frame
-            GameCache.onStep();
-
-            //handle action errors like "cannot place building"
-            ActionErrorManager.onStep();
-
-            //micro to clear expansion positions
-            ExpansionClearing.onStep();
-
-            //check switches
-            Switches.onStep();
-
-            //execute actions queued to this game frame
-            DelayedAction.onStep();
-            DelayedChat.onStep();
+            Ignored.onStep(); //free up ignored units
+            EnemyScan.onStep(); //remove expired enemy scans
+            GameCache.onStep(); //rebuild unit cache every frame
+            GasStealDefense.onStep(); //check for early-game gas steal and respond
+            ActionErrorManager.onStep(); //handle action errors like "cannot place building"
+            ExpansionClearing.onStep(); //micro to clear expansion positions
+            Switches.onStep(); //check switches
+            DelayedAction.onStep(); //execute actions queued to this game frame
+            DelayedChat.onStep(); //execute chat queued to this game frame
+            FlyingCC.onStep(); //move flying CCs
 
             //print report of current game state
 //                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min
 //                    printCurrentGameInfo();
 //                }
 
-            //move flying CCs
-            FlyingCC.onStep();
+
 
             //update status of scvs building structures
-            StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
+            StructureScv.checkScvsActivelyBuilding();
 
             //don't build up during probe rush
             if (!Strategy.WALL_OFF_IMMEDIATELY) {
