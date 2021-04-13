@@ -696,13 +696,24 @@ public class ArmyManager {
         }
 
         //if main/nat under attack, empty natural bunker and target enemy
-        Unit bunker = UnitUtils.getCompletedNatBunker();
         Unit enemyInMyBase = getEnemyInMainOrNatural();
+        Optional<UnitInPool> bunkerAtNatural = Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
+                UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
+                bunker.unit().getCargoSpaceTaken().orElse(4) < 4 &&
+                ActionIssued.getCurOrder(bunker.unit()).stream()
+                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
+                .stream()
+                .findFirst();
         if (enemyInMyBase != null) {
-            if (bunker != null) {
-                ActionHelper.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false);
-            }
+            bunkerAtNatural.ifPresent(bunker ->
+                ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false));
             MarineBasic.setTargetPos(enemyInMyBase.getPosition().toPoint2d());
+            return;
+        }
+
+        //if bunker exists, head to bunker and enter
+        if (bunkerAtNatural.isPresent()) {
+            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
 
@@ -715,7 +726,7 @@ public class ArmyManager {
                 .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
                 .orElse(null);
         if (newMarinePos != null &&
-                (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
+                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
             MarineBasic.setTargetPos(newMarinePos);
             return;
         }
@@ -727,17 +738,8 @@ public class ArmyManager {
                 .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
                 .orElse(null);
         if (newMarinePos != null &&
-                (bunker == null || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
+                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
             MarineBasic.setTargetPos(newMarinePos);
-            return;
-        }
-
-        //if bunker exists and isn't full, head to bunker and enter
-        if (bunker != null &&
-                bunker.getCargoSpaceTaken().orElse(4) < 4 &&
-                ActionIssued.getCurOrder(bunker).stream()
-                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE)) {
-            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
 
