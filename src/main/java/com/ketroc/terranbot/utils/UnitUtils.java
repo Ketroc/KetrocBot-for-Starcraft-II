@@ -894,9 +894,14 @@ public class UnitUtils {
     }
 
     public static boolean isWallStructure(Unit structure) {
-        return UnitUtils.getDistance(structure, LocationConstants.WALL_2x2) < 1 ||
-                UnitUtils.getDistance(structure, LocationConstants.WALL_3x3) < 1 ||
-                UnitUtils.getDistance(structure, LocationConstants.MID_WALL_2x2) < 1 ||
-                UnitUtils.getDistance(structure, LocationConstants.MID_WALL_3x3) < 1;
+        return isWallStructurePos(structure.getPosition().toPoint2d());
     }
+
+    public static boolean isWallStructurePos(Point2d structurePos) {
+        return structurePos.distance(LocationConstants.WALL_2x2) < 1 ||
+                structurePos.distance(LocationConstants.WALL_3x3) < 1 ||
+                structurePos.distance(LocationConstants.MID_WALL_2x2) < 1 ||
+                structurePos.distance(LocationConstants.MID_WALL_3x3) < 1;
+    }
+
 }

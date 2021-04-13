@@ -33,7 +33,7 @@ public class Gas {
         this.node = node;
         this.ccPos = ccPos;
         this.nodePos = node.getPosition().toPoint2d();
-        byNode = Position.towards(nodePos, ccPos, 1.2f);
+        byNode = Position.towards(nodePos, ccPos, 1f);
         byCC = Position.towards(ccPos, nodePos, 2.15f);
         float angle = Position.getAngle(byCC, byNode);
         if ((angle > 20 && angle < 70) || (angle > 110 && angle < 160) ||

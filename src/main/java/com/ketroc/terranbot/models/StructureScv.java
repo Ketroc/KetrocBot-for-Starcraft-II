@@ -209,8 +209,11 @@ public class StructureScv {
                             .ifPresent(u -> structureScv.setScv(u));
                 }
                 if (!structureScv.scv.isAlive()) {
-                    //don't add another scv if the structure is under enemy threat
-                    if (InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
+                    //don't add another scv if the structure is under enemy threat (exception for wall/bunkers/turrets)
+                    if (structureScv.structureType != Units.TERRAN_BUNKER &&
+                            structureScv.structureType != Units.TERRAN_MISSILE_TURRET &&
+                            !UnitUtils.isWallStructurePos(structureScv.structurePos) &&
+                            InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
                         continue;
                     }
                     List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
