@@ -72,7 +72,12 @@ public class Cyclone extends BasicUnitMicro {
 
         //no new actions if currently locking on
         if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
-            return;
+            if (UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(lockTarget.unit()))) {
+                lockTarget = null;
+            }
+            else {
+                return;
+            }
         }
 
         //done if unit is immobile
