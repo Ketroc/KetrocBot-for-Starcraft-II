@@ -12,6 +12,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.terranbot.GameCache;
+import com.ketroc.terranbot.Switches;
 import com.ketroc.terranbot.bots.Bot;
 import com.ketroc.terranbot.managers.ArmyManager;
 import com.ketroc.terranbot.models.Cost;
@@ -72,7 +73,7 @@ public class Cyclone extends BasicUnitMicro {
 
         //no new actions if currently locking on
         if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
-            if (UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(lockTarget.unit()))) {
+            if (!isSafeToAttemptLock(lockTarget)) {
                 lockTarget = null;
             }
             else {
@@ -106,6 +107,11 @@ public class Cyclone extends BasicUnitMicro {
         //super.onStep();
     }
 
+    private boolean isSafeToAttemptLock(UnitInPool lockTarget) {
+        return Switches.isDivingTempests ||
+                !UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(lockTarget.unit()));
+    }
+
     private void updateTargetPos() {
         //locked on
         if (lockTarget != null) {
@@ -122,13 +128,14 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private boolean setLockTarget() {
+        int rangeToCheck = Switches.isDivingTempests ? 15 : 10;
         UnitInPool closestHardLockTarget = GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= 10 &&
+                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         targetAcceptingMoreLocks(enemy) &&
-                        !UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(enemy.unit())))
+                        isSafeToAttemptLock(enemy))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
         if (closestHardLockTarget != null) {
@@ -138,10 +145,10 @@ public class Cyclone extends BasicUnitMicro {
 
         UnitInPool closestSoftLockTarget = GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= 10 &&
+                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         targetAcceptingMoreLocks(enemy) &&
-                        !UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(enemy.unit())))
+                        isSafeToAttemptLock(enemy))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
         if (closestSoftLockTarget != null) {
