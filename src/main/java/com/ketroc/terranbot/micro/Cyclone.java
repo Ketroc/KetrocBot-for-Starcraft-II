@@ -35,7 +35,6 @@ public class Cyclone extends BasicUnitMicro {
             Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE));
 
     public static Map<Tag, CycloneKillTracker> cycloneKillTracker = new HashMap<>();
-
     private UnitInPool lockTarget;
     private long cooldownStartFrame;
     private static final long COOLDOWN_DURATION = 100;
@@ -123,7 +122,8 @@ public class Cyclone extends BasicUnitMicro {
                         !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= 10 &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        targetAcceptingMoreLocks(enemy))
+                        targetAcceptingMoreLocks(enemy) &&
+                        !UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(enemy.unit())))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
         if (closestHardLockTarget != null) {
@@ -135,7 +135,8 @@ public class Cyclone extends BasicUnitMicro {
                 .filter(enemy -> SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= 10 &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        targetAcceptingMoreLocks(enemy))
+                        targetAcceptingMoreLocks(enemy) &&
+                        !UnitUtils.canBeOneShotAtPos(unit.unit(), getPosForLock(enemy.unit())))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
         if (closestSoftLockTarget != null) {
@@ -151,13 +152,13 @@ public class Cyclone extends BasicUnitMicro {
         return false;
     }
 
-    //nothing locked on yet, or armored attack unit with > 90hp, or armored structure with > 250hp
+    //nothing locked on yet, or armored attack unit with > 100hp, or armored structure with > 300hp
     private boolean targetAcceptingMoreLocks(UnitInPool enemy) {
         return !Cyclone.containsTarget(enemy.getTag()) ||
                 (UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) &&
-                        (UnitUtils.getTotalHealth(enemy.unit()) > 250 ||
-                                UnitUtils.canAttack(enemy.unit().getType()) &&
-                                UnitUtils.getTotalHealth(enemy.unit()) > 90));
+                        (UnitUtils.getTotalHealth(enemy.unit()) > 300 ||
+                                (UnitUtils.canAttack(enemy.unit().getType()) &&
+                                        UnitUtils.getTotalHealth(enemy.unit()) > 100)));
 
     }
 
@@ -256,5 +257,11 @@ public class Cyclone extends BasicUnitMicro {
         System.out.println("Cyclones death cost: " + cycloneDeathCostMinerals +  "/" + cycloneDeathCostGas);
         System.out.println("Cyclones kills value: " + totalKillsMinerals +  "/" + totalKillsGas);
 
+    }
+
+    private Point2d getPosForLock(Unit targetUnit) {
+        return Position.towards(targetUnit.getPosition().toPoint2d(),
+                unit.unit().getPosition().toPoint2d(),
+                7 + unit.unit().getRadius() + targetUnit.getRadius());
     }
 }

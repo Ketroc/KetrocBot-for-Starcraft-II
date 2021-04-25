@@ -304,8 +304,7 @@ public class Base {
     }
 
     private boolean shouldFlee(UnitInPool scv) {
-        if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
-                scv.unit().getHealth().orElse(45f)) {
+        if (UnitUtils.canBeOneShot(scv.unit())) {
             List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                     UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));

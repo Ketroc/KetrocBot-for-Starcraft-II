@@ -644,6 +644,7 @@ public class GameCache {
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
         InfluenceMaps.pointThreatToGroundValue = new int[800][800];
         InfluenceMaps.pointDamageToGroundValue = new int[800][800];
+        InfluenceMaps.pointDamageToAirValue = new int[800][800];
         InfluenceMaps.pointThreatToGround = new boolean[800][800];
         InfluenceMaps.pointPersistentDamageToGround = new boolean[800][800];
         InfluenceMaps.pointPFTargetValue = new int[800][800];
@@ -684,6 +685,14 @@ public class GameCache {
                             InfluenceMaps.pointPersistentDamageToGround[x][y] = true;
                         }
                     }
+
+                    //threat to air
+                    if (distance < enemy.airAttackRange) {
+                        InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToAir[x][y] = true;
+                        InfluenceMaps.pointDamageToAirValue[x][y] += enemy.airDamage;
+                    }
+
 
                     //air threat range + extra buffer
                     if (enemy.airAttackRange != 0 && distance < enemy.airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER) {
@@ -729,13 +738,6 @@ public class GameCache {
                         if (distance < 8 + (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 1 : 0)) {
                             InfluenceMaps.enemyInMissileTurretRange[x][y] = true;
                         }
-
-                        //threat to air from air
-                        if (distance < enemy.airAttackRange) {
-                            InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
-                            InfluenceMaps.pointThreatToAir[x][y] = true;
-                            DebugHelper.drawBox(x/2,y/2, Color.PURPLE, 0.4f);
-                        }
                     }
                     else { //ground unit or effect
 
@@ -746,10 +748,7 @@ public class GameCache {
 
                         //threat to air from ground
                         if (distance < enemy.airAttackRange) {
-                            InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
-                            InfluenceMaps.pointThreatToAir[x][y] = true;
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
-                            //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.1f,y/2-0.1f, z), Point.of(x/2+0.1f,y/2+0.1f, z), Color.RED);
                         }
 
                         //PF target value (for PF & tank targetting)

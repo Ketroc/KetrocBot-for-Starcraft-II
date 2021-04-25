@@ -31,6 +31,7 @@ public class EnemyUnit {
     public float airAttackRange;
     public int threatLevel;
     public int groundDamage;
+    public int airDamage;
     public int pfTargetLevel;
     public boolean isPersistentDamage;
     public float maxRange; //used to determine what portion of the grid to loop through
@@ -51,7 +52,8 @@ public class EnemyUnit {
         }
         else {
             threatLevel = getThreatValue((Units) enemy.getType());
-            groundDamage = getDamage((Units) enemy.getType());
+            groundDamage = getGroundDamage((Units) enemy.getType());
+            airDamage = getAirDamage((Units) enemy.getType());
             detectRange = getDetectionRange(enemy);
             visionRange = UnitUtils.getVisionRange(enemy);
             airAttackRange = UnitUtils.getAirAttackRange(enemy);
@@ -111,6 +113,7 @@ public class EnemyUnit {
         detectRange = 3f + Strategy.KITING_BUFFER;
         airAttackRange = 3f + Strategy.KITING_BUFFER;
         threatLevel = 200;
+        airDamage = 120;
         calcMaxRange();
     }
 
@@ -122,6 +125,7 @@ public class EnemyUnit {
         detectRange = 3.5f;
         groundAttackRange = 3.5f;
         groundDamage = 30;
+        airDamage = 30;
         airAttackRange = 3.5f;
         maxRange = 3.5f;
         threatLevel = 200;
@@ -150,6 +154,7 @@ public class EnemyUnit {
                 threatLevel = 200;
                 airAttackRange = 5f + Strategy.STATIONARY_KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
                 groundDamage = 60;
+                airDamage = 60;
                 break;
 //            case NUKE_PERSISTENT:
 //                isDetector = true;
@@ -166,16 +171,25 @@ public class EnemyUnit {
                 airAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
                 groundAttackRange = airAttackRange;
                 groundDamage = 80;
+                airDamage = 80;
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
     }
 
-    private int getDamage(Units unitType) {
+    private int getGroundDamage(Units unitType) {
+        return getDamage(unitType, Weapon.TargetType.AIR);
+    }
+
+    private int getAirDamage(Units unitType) {
+        return getDamage(unitType, Weapon.TargetType.GROUND);
+    }
+
+    private int getDamage(Units unitType, Weapon.TargetType excludeTargetType) {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getWeapons().stream()
-                .filter(weapon -> weapon.getTargetType() != Weapon.TargetType.AIR)
+                .filter(weapon -> weapon.getTargetType() != excludeTargetType)
                 .findFirst()
-                .map(Weapon::getDamage)
+                .map(weapon -> weapon.getDamage() * weapon.getAttacks())
                 .orElse(0f)
                 .intValue();
     }

@@ -904,4 +904,13 @@ public class UnitUtils {
                 structurePos.distance(LocationConstants.MID_WALL_3x3) < 1;
     }
 
+    public static boolean canBeOneShot(Unit myUnit) {
+        return canBeOneShotAtPos(myUnit, myUnit.getPosition().toPoint2d());
+    }
+
+    public static boolean canBeOneShotAtPos(Unit myUnit, Point2d pos) {
+        boolean isGround = !myUnit.getFlying().orElse(true);
+        int[][] threatMap = isGround ? InfluenceMaps.pointDamageToGroundValue : InfluenceMaps.pointDamageToAirValue;
+        return myUnit.getHealth().orElse(0f) < InfluenceMaps.getValue(threatMap, pos);
+    }
 }
