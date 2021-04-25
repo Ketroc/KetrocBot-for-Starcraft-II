@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -18,6 +19,7 @@ import com.ketroc.terranbot.micro.Liberator;
 import com.ketroc.terranbot.micro.MicroPriority;
 import com.ketroc.terranbot.micro.UnitMicroList;
 import com.ketroc.terranbot.purchases.PurchaseStructure;
+import com.ketroc.terranbot.strategies.Strategy;
 import com.ketroc.terranbot.utils.*;
 
 import java.util.*;
@@ -243,8 +245,7 @@ public class Base {
         mineralPatches.forEach(mineralPatch -> {
             mineralPatch.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
-                if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
-                        scv.unit().getHealth().orElse(45f)) {
+                if (shouldFlee(scv)) {
                     DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
                     DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
@@ -271,8 +272,7 @@ public class Base {
         gases.forEach(gas -> {
             gas.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
-                if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
-                        scv.unit().getHealth().orElse(45f)) {
+                if (shouldFlee(scv)) {
                     DebugHelper.drawBox(gas.getByNode(), Color.RED, 0.2f);
                     DebugHelper.drawBox(gas.getByCC(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, gas.getNodePos(), MicroPriority.SURVIVAL).onStep();
@@ -301,6 +301,33 @@ public class Base {
                 }
             });
         });
+    }
+
+    private boolean shouldFlee(UnitInPool scv) {
+        if (InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, scv.unit().getPosition().toPoint2d()) * 2 >
+                scv.unit().getHealth().orElse(45f)) {
+            List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                    UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
+                            UnitUtils.getDistance(scv.unit(), enemy.unit()));
+
+            //don't flee if near PF when enemy ground in range
+            boolean enemyGroundAttackersInRange = enemiesInAttackRange.stream().anyMatch(enemy -> !enemy.unit().getFlying().orElse(true));
+            boolean baseIsPF = getCc() != null && getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS;
+            if (enemyGroundAttackersInRange && baseIsPF) {
+                return false;
+            }
+
+            //don't flee if near missile turret when enemy air in range
+            boolean enemyAirAttackersInRange = enemiesInAttackRange.stream().anyMatch(enemy -> enemy.unit().getFlying().orElse(false));
+            boolean baseHasTurret = getTurrets().stream().anyMatch(turret -> turret.getUnit() != null && turret.getUnit().unit().getBuildProgress() == 1);
+            if (enemyAirAttackersInRange && baseHasTurret) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public List<UnitInPool> getAvailableGeysers() {
@@ -567,7 +594,7 @@ public class Base {
                 .filter(scv -> !scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) &&
                         !scv.unit().getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS) &&
                         !scv.unit().getBuffs().contains(Buffs.CARRY_HIGH_YIELD_MINERAL_FIELD_MINERALS))
-                .limit(5)
+                .limit(numScvs)
                 .collect(Collectors.toList());
         baseScvs.forEach(scv -> releaseScv(scv.unit()));
         return baseScvs;

@@ -1,4 +1,4 @@
-package com.ketroc.terranbot.strategies;
+package com.ketroc.terranbot.strategies.defenses;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
@@ -27,7 +27,7 @@ public class ProxyBunkerDefense {
         setIsProxyBunker();
         if (isProxyBunker) {
             if (!isScvsSent) {
-                GameCache.baseList.get(0).getAndReleaseAvailableScvs(5)
+                GameCache.baseList.get(0).getAndReleaseAvailableScvs(4)
                         .forEach(scv -> UnitMicroList.add(new ScvAttackTarget(scv, bunker)));
                 isScvsSent = true;
             }
