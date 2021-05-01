@@ -1,4 +1,6 @@
 *.class
 *.SC2Replay
 target/
-/data/
+data/
+src/main/java/com/ketroc/launchers/KetrocLauncher.java
+src/main/java/com/ketroc/launchers/TestingBotLauncher.java
