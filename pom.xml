@@ -38,7 +38,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.ketroc.terranbot.launchers.Ladder</mainClass>
+                            <mainClass>com.ketroc.launchers.Ladder</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
