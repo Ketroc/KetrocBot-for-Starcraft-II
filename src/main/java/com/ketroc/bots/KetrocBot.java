@@ -92,6 +92,7 @@ public class KetrocBot extends Bot {
             BunkerContain.onGameStart();
             MarineAllIn.onGameStart();
             WorkerRushDefense2.onGameStart();
+            Base.onGameStart();
 
             Strategy.printStrategySettings();
 

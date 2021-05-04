@@ -117,6 +117,7 @@ public class AirUnitKillSquad {
                 .ifPresent(closestRaven -> {
                     raven = new BasicUnitMicro(closestRaven, targetPos, MicroPriority.SURVIVAL);
                     Ignored.add(new IgnoredUnit(closestRaven.getTag()));
+                    GameCache.ravenList.remove(closestRaven);
                 });
     }
 
@@ -127,6 +128,7 @@ public class AirUnitKillSquad {
                 .ifPresent(closestViking -> {
                     vikings.add(new VikingChaser(closestViking, targetUnit));
                     Ignored.add(new IgnoredUnit(closestViking.getTag()));
+                    GameCache.ravenList.remove(closestViking);
                 });
     }
 

@@ -96,7 +96,7 @@ public class EnemyUnit {
                 break;
             case TERRAN_CYCLONE: //lessen attack range of cyclones assuming they will only lock on
                 airAttackRange = 3.5f;
-                groundAttackRange = 3.5f;
+                groundAttackRange = 4.5f;
                 break;
             case PROTOSS_TEMPEST:
                 isTempest = true;

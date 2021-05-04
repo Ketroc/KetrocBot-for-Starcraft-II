@@ -372,4 +372,20 @@ public class Position {
                 )
         );
     }
+
+    //moves towards target where the x-distance or y-distance has moved by the specified distance
+    public static Point2d towards1dDistance(Point2d origin, Point2d target, float distance) {
+        Point2d unitVector = unitVector(origin, target);
+        return inBounds(origin.add(unitVector.mul(distance / Math.max(Math.abs(unitVector.getX()), Math.abs(unitVector.getY())))));
+    }
+
+    public static Point2d towardsXAxis(Point2d origin, Point2d target, float distance) {
+        float xCoord = origin.getX() + (origin.getX() > target.getX() ? distance * -1 : distance);
+        return inBounds(Point2d.of(xCoord, origin.getY()));
+    }
+
+    public static Point2d towardsYAxis(Point2d origin, Point2d target, float distance) {
+        float yCoord = origin.getY() + (origin.getY() > target.getY() ? distance * -1 : distance);
+        return inBounds(Point2d.of(origin.getX(), yCoord));
+    }
 }

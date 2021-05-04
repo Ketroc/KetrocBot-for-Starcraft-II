@@ -55,6 +55,13 @@ public class DebugHelper {
         if (!Bot.isDebugOn) {
             return;
         }
+
+        //if point isn't over chasm, change z from default to terrainHeight
+        float z = DebugHelper.z;
+        float terrainHeight = Bot.OBS.terrainHeight(pos);
+        if (Math.abs(z - terrainHeight) < 7) {
+            z = terrainHeight;
+        }
         float x = pos.getX();
         float y = pos.getY();
 
@@ -62,8 +69,8 @@ public class DebugHelper {
         float right = x + radius;
         float bottom = y - radius;
         float top = y + radius;
-        float up = z + 0.5f;
-        float down = z - 3;
+        float up = z + 3;
+        float down = z - 8;
         Bot.DEBUG.debugBoxOut(Point.of(left, bottom, up), Point.of(right, top, up), color);
         Bot.DEBUG.debugLineOut(Point.of(left, top, up), Point.of(left, top, down), color);
         Bot.DEBUG.debugLineOut(Point.of(left, bottom, up), Point.of(left, bottom, down), color);

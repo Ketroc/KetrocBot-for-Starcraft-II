@@ -265,11 +265,6 @@ public class BuildManager {
         }
     }
 
-    private static void buildMainBaseTurrets() {
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(0)));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, LocationConstants.TURRETS.get(1)));
-    }
-
     private static void cancelStructureLogic() {
         for (Unit structure : GameCache.inProductionList) {
             if (structure.getBuildProgress() < 1.0f) {
@@ -291,34 +286,14 @@ public class BuildManager {
         if (Strategy.NO_TURRETS && !Switches.enemyHasCloakThreat) {
             return;
         }
-        //check if we need 0, 1, or 3 turrets at each base
-        int turretsRequired = 0;
-        if (!UnitUtils.getEnemyUnitsOfType(Units.ZERG_MUTALISK).isEmpty() ||
-                (Switches.enemyCanProduceAir && LocationConstants.opponentRace == Race.TERRAN && !Strategy.DO_USE_CYCLONES)) {
-            turretsRequired = 3;
-        }
-        else if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) { // || Time.nowFrames() > Time.toFrames("3:30")) {
-            turretsRequired = 1;
-        }
-        if (turretsRequired > 0) {
-            for (Base base : GameCache.baseList) {
-                if (base.isMyBase() && !base.isMyMainBase() && base.isComplete()) {
-                    for (int i = 0; i < turretsRequired; i++) {
-                        DefenseUnitPositions turret = base.getTurrets().get(i);
-                        if (turret.getUnit() == null &&
-                                !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
-                                !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos())) {
-                            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos()));
-                        }
-                    }
-                }
-            }
-            //build main base missile turrets now
-            if (Switches.doBuildMainBaseTurrets) {
-                buildAntiDropTurrets();
-                buildMainBaseTurrets();
-                Switches.doBuildMainBaseTurrets = false;
-            }
+        if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) { // || Time.nowFrames() > Time.toFrames("3:30")) {
+            GameCache.baseList.stream()
+                    .filter(base -> base.isMyBase() && base.isComplete())
+                    .flatMap(base -> base.getTurrets().stream())
+                    .filter(turret -> turret.getUnit() == null &&
+                            !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
+                            !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos()))
+                    .forEach(turret -> KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos())));
         }
     }
 

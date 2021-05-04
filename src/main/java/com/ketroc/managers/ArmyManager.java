@@ -528,10 +528,9 @@ public class ArmyManager {
         //send kill squad if criteria met TODO: track into fog
         if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, attackAirPos) &&
                 UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
+                !GameCache.vikingList.isEmpty() &&
                 attackAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40) {
-            if (!GameCache.vikingList.isEmpty()) {
-                attackAirPos = attackGroundPos;
-            }
+            attackAirPos = attackGroundPos;
             AirUnitKillSquad.add(closestEnemyAir);
         }
     }

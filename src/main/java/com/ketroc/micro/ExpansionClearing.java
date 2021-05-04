@@ -51,6 +51,7 @@ public class ExpansionClearing {
         if (nearestRaven != null) {
             this.raven = new BasicUnitMicro(Bot.OBS.getUnit(nearestRaven), expansionPos, MicroPriority.SURVIVAL);
             Ignored.add(new IgnoredUnit(raven.unit.getTag()));
+            GameCache.ravenList.remove(raven.unit.unit());
         }
     }
 

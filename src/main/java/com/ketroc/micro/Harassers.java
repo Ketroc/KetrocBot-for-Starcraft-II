@@ -62,6 +62,7 @@ public class Harassers {
             if (newBansheeTag != null) {
                 clockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), true);
                 Ignored.add(new IgnoredUnit(newBansheeTag));
+                GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
             }
         }
         else if (counterClockwiseBanshee == null) {
@@ -69,6 +70,7 @@ public class Harassers {
             if (newBansheeTag != null) {
                 counterClockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), false);
                 Ignored.add(new IgnoredUnit(newBansheeTag));
+                GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
             }
         }
     }

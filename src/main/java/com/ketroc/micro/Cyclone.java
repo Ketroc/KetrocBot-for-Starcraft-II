@@ -148,7 +148,8 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         UnitInPool closestSoftLockTarget = GameCache.allVisibleEnemiesList.stream()
-                .filter(enemy -> SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                        SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         targetAcceptingMoreLocks(enemy) &&

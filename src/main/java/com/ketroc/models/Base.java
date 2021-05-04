@@ -126,17 +126,17 @@ public class Base {
     }
 
     public List<DefenseUnitPositions> getTurrets() {
-        if (turrets.isEmpty() && !isMyMainBase()) {
-            //middle turret
-            turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(resourceMidPoint, ccPos, 3.5f), null));
-
-            //extra side turrets
-            turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 100), ccPos, 3.5f), null));
-            turrets.add(new DefenseUnitPositions(
-                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -100), ccPos, 3.5f), null));
-        }
+//        if (turrets.isEmpty() && !isMyMainBase()) {
+//            //middle turret
+//            turrets.add(new DefenseUnitPositions(
+//                    Position.moveClearExactly(resourceMidPoint, ccPos, 3.5f), null));
+//
+//            //extra side turrets
+//            turrets.add(new DefenseUnitPositions(
+//                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 100), ccPos, 3.5f), null));
+//            turrets.add(new DefenseUnitPositions(
+//                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -100), ccPos, 3.5f), null));
+//        }
         return turrets;
     }
 
@@ -601,8 +601,79 @@ public class Base {
         return baseScvs;
     }
 
+    public void setTurretPositions() {
+        //TODO: handle mineral-only base (just put 1 turret at resource midpoint??)
+
+        //1 gas base
+        if (getGases().size() == 1) {
+            addTurretPosForEach1GasSide();
+            addTurretPosFor0GasSide();
+        }
+        //if gases next to each other
+        else if (getGases().get(0).getNodePos().distance(getGases().get(1).getNodePos()) < 9) {
+            addTurretPosFor2GasSide();
+            addTurretPosFor0GasSide();
+        }
+        else {
+            addTurretPosForEach1GasSide();
+        }
+    }
+
+    private void addTurretPosFor0GasSide() {
+        Point2d farMineralPos = getMineralPatchUnits().stream()
+                .max(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, getGases().get(0).getNodePos())))
+                .get().getPosition().toPoint2d();
+        Point2d ccTowardsMineral = Position.toWholePoint(Position.towards1dDistance(getCcPos(), farMineralPos, 3.5f));
+        System.out.println(Math.abs(ccTowardsMineral.getX() - getCcPos().getX()));
+        Point2d turretPos = Position.toWholePoint(
+                Position.towards(ccTowardsMineral, getResourceMidPoint(), -1));
+        if (!PlacementMap.canFit2x2(turretPos)) {
+            turretPos = ccTowardsMineral;
+        }
+        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        turrets.add(new DefenseUnitPositions(turretPos, null));
+
+    }
+
+    private void addTurretPosFor2GasSide() {
+        Point2d gasMidPoint = Position.midPoint(getGases().get(0).getNodePos(), getGases().get(1).getNodePos());
+        Point2d midPointTowardsCc = Position.towards(gasMidPoint, getCcPos(), 1f);
+        Point2d turretPos = Position.toWholePoint(midPointTowardsCc);
+        if (!PlacementMap.canFit2x2(turretPos)) {
+            Point2d finalMidPointTowardsCc = midPointTowardsCc;
+            turretPos = Position.getSpiralList(turretPos, 2).stream()
+                    .filter(pos -> PlacementMap.canFit2x2(pos))
+                    .min(Comparator.comparing(pos -> pos.distance(finalMidPointTowardsCc)))
+                    .get();
+
+        }
+        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        turrets.add(new DefenseUnitPositions(turretPos, null));
+    }
+
+    private void addTurretPosForEach1GasSide() {
+        for (Gas gas : getGases()) {
+            //closest mineral to gas node
+            Unit closestMineral = getMineralPatchUnits().stream().min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, gas.getNodePos()))).get();
+
+            Point2d gasTowardsCC = Position.toWholePoint(Position.towards1dDistance(gas.getNodePos(), getCcPos(), 2.5f));
+            Point2d turretPos = (Math.abs(gasTowardsCC.getX() - gas.getNodePos().getX()) == 2.5f) ?
+                    Position.towardsYAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f) :
+                    Position.towardsXAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f);
+            if (!PlacementMap.canFit2x2(turretPos)) {
+                turretPos = gasTowardsCC;
+            }
+            DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+            turrets.add(new DefenseUnitPositions(turretPos, null));
+        }
+    }
+
 
     // ======= STATIC METHODS ========
+
+    public static void onGameStart() {
+        GameCache.baseList.forEach(base -> base.setTurretPositions());
+    }
 
     public static float getLibDistanceFromCC() {
         if (libDistanceFromCC == -1 || LocationConstants.opponentRace == Race.RANDOM) {
