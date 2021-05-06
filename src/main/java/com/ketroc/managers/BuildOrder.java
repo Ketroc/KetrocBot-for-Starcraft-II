@@ -60,7 +60,7 @@ public class BuildOrder {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     }
                 }
-                else if (Strategy.gamePlan == GamePlan.MASS_RAVEN_WITH_CYCLONES) {
+                else if (Strategy.gamePlan == GamePlan.RAVENS_WITH_CYCLONES) {
                     _1baseCycloneRavenOpener();
                 }
                 else {

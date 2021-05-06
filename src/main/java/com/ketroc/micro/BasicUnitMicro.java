@@ -252,8 +252,8 @@ public class BasicUnitMicro {
                 if (i > 200 && !changedDirectionRecently()) { //Position.atEdgeOfMap(detourPos) ||
                     toggleDodgeClockwise();
                 }
-                //add 15degrees more angle as buffer, to account for chasing units
-                i += 10;
+                //add 5degrees more angle as buffer, to account for chasing units
+                i += 5;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
                 return Position.towards(detourPos, unit.unit().getPosition().toPoint2d(), unit.unit().getRadius());

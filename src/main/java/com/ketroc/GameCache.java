@@ -539,8 +539,13 @@ public class GameCache {
                 UnitInPool closestTempest = UnitUtils.getClosestUnitFromUnitList(tempests, Position.midPointUnitsMedian(GameCache.vikingList));
                 if (closestTempest != null) {
                     Point2d closestTempestPos = closestTempest.unit().getPosition().toPoint2d();
-                    List<UnitInPool> nearbyVikings = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, closestTempestPos, Strategy.TEMPEST_DIVE_RANGE);
-                    if (ArmyManager.shouldDiveTempests(closestTempestPos, nearbyVikings.size())) {
+                    List<UnitInPool> nearbyAntiTempestUnits = UnitUtils.getUnitsNearbyOfType(
+                            Alliance.SELF,
+                            Set.of(Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_CYCLONE),
+                            closestTempestPos,
+                            Strategy.TEMPEST_DIVE_RANGE
+                    );
+                    if (ArmyManager.shouldDiveTempests(closestTempestPos, nearbyAntiTempestUnits.size())) {
                         Switches.vikingDiveTarget = closestTempest;
                         if (Switches.vikingDiveTarget != null) {
                             Switches.isDivingTempests = true;

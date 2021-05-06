@@ -126,8 +126,8 @@ public class Strategy {
         }
 
         //TODO: delete - turning off 2nd factory based on strategy choice
-        //if (LocationConstants.opponentRace != Race.TERRAN || gamePlan != GamePlan.MASS_RAVEN_WITH_CYCLONES) {
-        if (gamePlan != GamePlan.MASS_RAVEN_WITH_CYCLONES && gamePlan != GamePlan.BANSHEES_WITH_CYCLONES) {
+        if (LocationConstants.opponentRace != Race.TERRAN || gamePlan != GamePlan.RAVENS_WITH_CYCLONES) {
+        //if (gamePlan != GamePlan.RAVENS_WITH_CYCLONES && gamePlan != GamePlan.BANSHEES_WITH_CYCLONES) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
             }
@@ -197,8 +197,6 @@ public class Strategy {
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
                 Switches.enemyCanProduceAir = true;
-                MAX_TANKS = 1;
-                DO_DEFENSIVE_TANKS = true;
                 BUILD_EXPANDS_IN_MAIN = true;
                 DO_DIVE_RAVENS = false;
                 ENEMY_DOES_BANSHEE_HARASS = true;
@@ -216,13 +214,13 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MASS_RAVEN,
-                GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.MASS_RAVEN_WITH_CYCLONES
+                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.RAVENS,
+                GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.RAVENS_WITH_CYCLONES
         ));
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.MASS_RAVEN_WITH_CYCLONES; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
         switch (gamePlan) {
             case BANSHEES:
                 DelayedChat.add("Mass Banshee Strategy");
@@ -240,11 +238,11 @@ public class Strategy {
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case MASS_RAVEN:
+            case RAVENS:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case MASS_RAVEN_WITH_CYCLONES:
+            case RAVENS_WITH_CYCLONES:
                 DelayedChat.add("Raven & Cyclone Strategy");
                 massRavenStrategy();
                 useCyclonesAdjustments();
@@ -271,7 +269,7 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.MASS_RAVEN
+                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVENS
         ));
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
@@ -294,7 +292,7 @@ public class Strategy {
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case MASS_RAVEN:
+            case RAVENS:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
@@ -314,7 +312,7 @@ public class Strategy {
     private static void chooseTvZStrategy() {
         Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
                 GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK,
-                GamePlan.MASS_RAVEN, GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.MASS_RAVEN_WITH_CYCLONES
+                GamePlan.RAVENS, GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.RAVENS_WITH_CYCLONES
         ));
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
@@ -336,11 +334,11 @@ public class Strategy {
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case MASS_RAVEN:
+            case RAVENS:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case MASS_RAVEN_WITH_CYCLONES:
+            case RAVENS_WITH_CYCLONES:
                 DelayedChat.add("Raven & Cyclone Strategy");
                 massRavenStrategy();
                 useCyclonesAdjustments();
@@ -624,10 +622,10 @@ public class Strategy {
                 return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES};
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
             //case "b7b611bdaa2e2d1": //Spiny (LM)
-                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.MASS_RAVEN};
+                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVENS};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
-                return new GamePlan[]{GamePlan.MASS_RAVEN, GamePlan.BANSHEES, GamePlan.BUNKER_CONTAIN_STRONG};
+                return new GamePlan[]{GamePlan.RAVENS, GamePlan.BANSHEES, GamePlan.BUNKER_CONTAIN_STRONG};
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
                 return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEES, GamePlan.BANSHEES_WITH_CYCLONES};

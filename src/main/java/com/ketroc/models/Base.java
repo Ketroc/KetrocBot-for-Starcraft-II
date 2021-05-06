@@ -305,8 +305,13 @@ public class Base {
         });
     }
 
+
     private boolean shouldFlee(UnitInPool scv) {
-        if (UnitUtils.canBeOneShot(scv.unit())) {
+        //flee to any danger if distance mining
+        if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, scv.unit().getPosition().toPoint2d())) {
+            return true;
+        }
+        else if (UnitUtils.canBeOneShot(scv.unit())) {
             List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                     UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));
@@ -329,13 +334,6 @@ public class Base {
         }
 
         return false;
-    }
-
-    public List<UnitInPool> getAvailableGeysers() {
-        return Bot.OBS.getUnits(Alliance.NEUTRAL, u -> {
-            return this.ccPos.distance(u.unit().getPosition().toPoint2d()) < 10.0 &&
-                    UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType());
-        });
     }
 
     public boolean isComplete() {
