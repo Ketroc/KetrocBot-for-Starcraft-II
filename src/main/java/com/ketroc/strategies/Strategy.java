@@ -28,7 +28,6 @@ public class Strategy {
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
     public static int STEP_SIZE = 2;
-    public static boolean ANTI_NYDUS_BUILD; //TODO: temporary for Spiny
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
@@ -806,7 +805,6 @@ public class Strategy {
 
     public static void printStrategySettings() {
         Print.print("selectedStrategy = " + gamePlan);
-        Print.print("ANTI_NYDUS_BUILD = " + ANTI_NYDUS_BUILD);
         Print.print("DO_DIVE_RAVENS = " + DO_DIVE_RAVENS);
         Print.print("EARLY_BANSHEE_SPEED = " + EARLY_BANSHEE_SPEED);
         Print.print("DO_LEAVE_UP_BUNKER = " + DO_LEAVE_UP_BUNKER);

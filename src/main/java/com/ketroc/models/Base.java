@@ -183,7 +183,7 @@ public class Base {
         this.tanks = tanks;
     }
 
-    public int numScvsNeeded() {
+    public int numScvsFromSoftSaturated() {
         if (cc == null) {
             return 0;
         }
@@ -191,6 +191,29 @@ public class Base {
                 .filter(scv -> UnitUtils.getOrder(scv.unit()) == Abilities.EFFECT_REPAIR)
                 .count();
         return cc.unit().getIdealHarvesters().get() - (getNumMineralScvs() + numRepairingScvs + scvsAddedThisFrame);
+    }
+
+    public int numScvsFromHardSaturated() {
+        if (cc == null) {
+            return 0;
+        }
+        int numRepairingScvs = (int)UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, ccPos, 10).stream()
+                .filter(scv -> UnitUtils.getOrder(scv.unit()) == Abilities.EFFECT_REPAIR)
+                .count();
+        return getScvsRequiredForHardSaturation() - (getNumMineralScvs() + numRepairingScvs + scvsAddedThisFrame);
+    }
+
+    public int getScvsRequiredForHardSaturation() {
+        int numScvsRequired = 0;
+        for (MineralPatch mineral : mineralPatches) {
+            if (UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(mineral.getNode().getType())) {
+                numScvsRequired += 2;
+            }
+            else {
+                numScvsRequired += 3;
+            }
+        }
+        return numScvsRequired;
     }
 
     public int getNumMineralScvs() {
@@ -735,8 +758,9 @@ public class Base {
     }
 
     public static boolean assignScvToAMineralPatch(UnitInPool scv) {
+        //pair up scvs on mineral patches
         MineralPatch mineralToMine = GameCache.baseList.stream()
-                .filter(base -> base.isReadyForMining() && base.numScvsNeeded() > 0)
+                .filter(base -> base.isReadyForMining() && base.numScvsFromSoftSaturated() > 0)
                 .min(Comparator.comparing(base -> UnitUtils.getDistance(scv.unit(), base.getCcPos())))
                 .stream()
                 .flatMap(base -> base.getMineralPatches().stream())
@@ -747,6 +771,23 @@ public class Base {
             mineralToMine.getScvs().add(scv);
             return true;
         }
+
+        //TODO: add 3rd scv to small patches
+//        MineralPatch smallMineralToMine = GameCache.baseList.stream()
+//                .filter(base -> base.isReadyForMining() && base.numScvsFromHardSaturated() > 0)
+//                .min(Comparator.comparing(base -> UnitUtils.getDistance(scv.unit(), base.getCcPos())))
+//                .stream()
+//                .flatMap(base -> base.getMineralPatches().stream())
+//                .filter(mineral -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(mineral.getNode().getType()) &&
+//                        mineral.getScvs().size() < 3)
+//                .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
+//                .orElse(null);
+//        if (smallMineralToMine != null) {
+//            smallMineralToMine.getScvs().add(scv);
+//            return true;
+//        }
+
+        //distance mine
         return distanceMineScv(scv); //TODO: change to 'return false;' when better distance mining method is used
     }
 

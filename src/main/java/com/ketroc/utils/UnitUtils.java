@@ -920,4 +920,16 @@ public class UnitUtils {
     public static boolean isUnitPositionVisible(Unit unit) {
         return Bot.OBS.getVisibility(unit.getPosition().toPoint2d()) == Visibility.VISIBLE;
     }
+
+    public static boolean isAnyStarportIdle() {
+        return GameCache.starportList.stream().anyMatch(u -> !u.unit().getActive().get());
+    }
+
+    public static boolean isAnyFactoryIdle() {
+        return GameCache.factoryList.stream().anyMatch(u -> !u.unit().getActive().get());
+    }
+
+    public static boolean isAnyBarracksIdle() {
+        return GameCache.barracksList.stream().anyMatch(u -> !u.unit().getActive().get());
+    }
 }

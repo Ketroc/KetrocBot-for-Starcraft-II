@@ -520,55 +520,34 @@ public class BuildManager {
     }
 
     private static void buildBarracksUnitsLogic() {
-        //if first barracks is idle
-        if (!GameCache.barracksList.isEmpty() && !GameCache.barracksList.get(0).unit().getActive().get()) {
-            Unit barracks = GameCache.barracksList.get(0).unit();
+        //no idle barracks
+        if (!UnitUtils.isAnyBarracksIdle()) {
+            return;
+        }
+        //save minerals for factory/starport production
+        if (GameCache.gasBank > 75 && (UnitUtils.isAnyFactoryIdle() || UnitUtils.isAnyStarportIdle())) {
+            return;
+        }
 
-            // ============= ANTI-NYDUS MARAUDER/BARRACKS STUFF ============
-            //if barracks is still set up for marauders
-            if (Strategy.ANTI_NYDUS_BUILD && UnitUtils.getDistance(barracks, LocationConstants.MID_WALL_3x3) > 1) {
+        Unit barracks = GameCache.barracksList.stream()
+                .filter(u -> !u.unit().getActive().get())
+                .findFirst().get().unit();
 
-                //if marauders needed
-                if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARAUDER, false) < 2) {
-//                    if (UnitUtils.canAfford(Units.TERRAN_MARAUDER)) {
-//                        ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARAUDER, false);
-//                        Cost.updateBank(Units.TERRAN_MARAUDER);
-//                    }
-                }
-                //time to lift off barracks
-                else if (barracks.getType() == Units.TERRAN_BARRACKS) {
-                    LocationConstants.STARPORTS.add(0, barracks.getPosition().toPoint2d());
-                    ActionHelper.unitCommand(barracks, Abilities.LIFT, false);
-                }
-                //move flying barracks
-                else if (ActionIssued.getCurOrder(barracks).isEmpty()) {
-                    ActionHelper.unitCommand(barracks, Abilities.LAND, LocationConstants.MID_WALL_3x3, false);
-                }
+        //make marines if wall under attack
+        if (UnitUtils.isWallUnderAttack() || ArmyManager.isEnemyInMain()) {
+            if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
+                ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
+                Cost.updateBank(Units.TERRAN_MARINE);
             }
+            return;
+        }
 
-            //make marines if wall under attack TODO: don't build if starports/factories aren't all active and gas >= 75
-            else if (UnitUtils.isWallUnderAttack() || ArmyManager.isEnemyInMain()) {
+        // early safety marines
+        else if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false) < 2) {
+            if (UnitUtils.getMarineCount() < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
                 if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
                     ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                     Cost.updateBank(Units.TERRAN_MARINE);
-                }
-                return;
-            }
-            // if < 2 planetaries
-            else if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false) < 2) {
-
-                //no marines needed if early marauders were built
-                if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_MARAUDER, false) > 0) {
-                    return;
-                }
-
-                //maintain early game marine count
-                int marineCount = UnitUtils.getMarineCount();
-                if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
-                    if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
-                        ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
-                        Cost.updateBank(Units.TERRAN_MARINE);
-                    }
                 }
             }
         }
@@ -698,25 +677,28 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //maintain 1+ ravens when enemy does banshee harass
-        if (Strategy.ENEMY_DOES_BANSHEE_HARASS && numRavens < 1) {
-            return Abilities.TRAIN_RAVEN;
-        }
-
-        //maintain 2+ vikings when enemy does banshee harass
-        if (Strategy.ENEMY_DOES_BANSHEE_HARASS && numVikings < 2) {
-            return Abilities.TRAIN_VIKING_FIGHTER;
+        //when enemy does banshee harass, open viking-raven-viking
+        if (Strategy.ENEMY_DOES_BANSHEE_HARASS) {
+            if (numVikings < 1) {
+                return Abilities.TRAIN_VIKING_FIGHTER;
+            }
+            else if (numRavens < 1) {
+                return Abilities.TRAIN_RAVEN;
+            }
+            else if (numVikings == 1) {
+                return Abilities.TRAIN_VIKING_FIGHTER;
+            }
         }
 
         //maintain 1+ ravens if enemy can produce cloaked/burrowed attackers
         if (numRavens == 0 && Switches.enemyHasCloakThreat) {
             return Abilities.TRAIN_RAVEN;
         }
-
-        //maintain 1+ ravens if using cyclones
-        if (numRavens == 0 && Strategy.DO_USE_CYCLONES) {
-            return Abilities.TRAIN_RAVEN;
-        }
+//
+//        //maintain 1+ ravens if using cyclones
+//        if (numRavens == 0 && Strategy.DO_USE_CYCLONES) {
+//            return Abilities.TRAIN_RAVEN;
+//        }
 
         //maintain 1+ ravens if an expansion needs clearing
         if (numRavens == 0 && !ExpansionClearing.expoClearList.isEmpty()) {

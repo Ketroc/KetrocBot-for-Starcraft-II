@@ -389,11 +389,6 @@ public class KetrocBot extends Bot {
                                 barracksRally = LocationConstants.insideMainWall;
                             }
                             ActionHelper.unitCommand(unit, Abilities.SMART, barracksRally, false);
-
-                            //queue tech lab if marauders needed
-                            if (Strategy.ANTI_NYDUS_BUILD) {
-                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS, unit));
-                            }
                         }
 
                         //get OC
