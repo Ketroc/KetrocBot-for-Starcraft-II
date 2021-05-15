@@ -21,6 +21,7 @@ import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.purchases.PurchaseStructureMorph;
 import com.ketroc.purchases.PurchaseUpgrade;
 import com.ketroc.strategies.BunkerContain;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.utils.*;
@@ -64,15 +65,26 @@ public class BuildManager {
         //turn low health expansion command centers into macro OCs
         saveDyingCCs();
 
-        //build starport units
-        buildStarportUnitsLogic();
+        //prioritize factory production when doing tank viking strat, and viking count is fine
+        if (Strategy.gamePlan == GamePlan.TANK_VIKING &&
+                GameCache.vikingList.size() >= ArmyManager.calcNumVikingsNeeded()) {
+            //build factory units
+            buildFactoryUnitsLogic();
 
-        //build factory units
-        if (BunkerContain.proxyBunkerLevel != 2) {
-            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
-                buildFactoryUnitsLogic();
-            } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                liftFactory();
+            //build starport units
+            buildStarportUnitsLogic();
+        }
+        else { //otherwise prioritize starport production
+            //build starport units
+            buildStarportUnitsLogic();
+
+            //build factory units
+            if (BunkerContain.proxyBunkerLevel != 2) {
+                if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
+                    buildFactoryUnitsLogic();
+                } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                    liftFactory();
+                }
             }
         }
 
@@ -255,10 +267,10 @@ public class BuildManager {
             if (!engBayList.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
             }
-            if (!UpgradeManager.shipAttack.isEmpty()) {
+            if (!UpgradeManager.armoryAttackUpgrades.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
-            if (!UpgradeManager.shipArmor.isEmpty()) {
+            if (!UpgradeManager.armoryArmorUpgrades.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             Strategy.techBuilt = true;
@@ -331,15 +343,17 @@ public class BuildManager {
                                     }
                                 }
                             }
-                            //float CC from danger if it isn't my main base CC
+                            //float CC from danger if it isn't a base CC
                             else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
-                                    UnitUtils.getDistance(cc, GameCache.baseList.get(0).getCcPos()) > 2) {
+                                    GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
                                 UnitMicroList.add(new StructureFloater(cc));
                             }
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
                                 //TODO: handle logic of Strategy.PRIORITIZE_EXPANDING here
                                 //if not main cc, and if needed for expansion
-                                if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 && isCcNeededForExpansion()) {
+                                if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 &&
+                                        !Base.isABasePos(cc.getPosition().toPoint2d()) &&
+                                        isCcNeededForExpansion()) {
                                     Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
                                     if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up TODO: make OC or wait??
                                         break;
@@ -370,7 +384,7 @@ public class BuildManager {
                     case TERRAN_ORBITAL_COMMAND:
                         //float OC from danger if it isn't my main base OC
                         if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
-                                UnitUtils.getDistance(cc, GameCache.baseList.get(0).getCcPos()) > 2) {
+                                GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
                             UnitMicroList.add(new StructureFloater(cc));
                         }
                         else if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
@@ -533,7 +547,7 @@ public class BuildManager {
                 .filter(u -> !u.unit().getActive().get())
                 .findFirst().get().unit();
 
-        //make marines if wall under attack
+        // make marines if wall under attack
         if (UnitUtils.isWallUnderAttack() || ArmyManager.isEnemyInMain()) {
             if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
                 ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
@@ -561,15 +575,25 @@ public class BuildManager {
                     continue;
                 }
                 if (factory.getAddOnTag().isPresent()) {
+                    //cyclone strategy (build constantly)
                     if (Strategy.DO_USE_CYCLONES) {
                         if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
                             ActionHelper.unitCommand(factory, Abilities.TRAIN_CYCLONE, false);
                             Cost.updateBank(Units.TERRAN_CYCLONE);
-                            return;
                         }
+                        return;
                     }
 
-                    //2 tanks per expansion base
+                    //offensive tank strategy (build constantly)
+                    if (Strategy.DO_OFFENSIVE_TANKS) {
+                        if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                            ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                            Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                        }
+                        return;
+                    }
+
+                    //defensive tank strategy (build 2 per base)
                     int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
                     //if tank needed for PF
                     if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
@@ -623,7 +647,9 @@ public class BuildManager {
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starport : GameCache.starportList) {
             if (!starport.unit().getActive().get()) {
-                Abilities unitToProduce = decideStarportUnit();
+                Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING) ?
+                        tankVikingDecideStarportUnit() :
+                        decideStarportUnit();
                 Units unitType = Bot.abilityToUnitType.get(unitToProduce);
                 //get add-on if required
                 if (starport.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starport.unit()) &&
@@ -649,7 +675,62 @@ public class BuildManager {
                 .anyMatch(techLab -> UnitUtils.getOrder(techLab) == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
     }
 
-    public static Abilities decideStarportUnit() { //never max out without a raven
+    public static Abilities tankVikingDecideStarportUnit() { //never max out without a raven
+        //first build hardcoded starport units
+        if (!openingStarportUnits.isEmpty()) {
+            return openingStarportUnits.get(0);
+        }
+
+        int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
+        int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
+        int vikingsRequired = ArmyManager.calcNumVikingsNeeded() + 3;
+
+        //never max out without a raven
+        if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
+            return Abilities.TRAIN_RAVEN;
+        }
+
+        //when enemy does banshee harass, open viking-raven-viking
+        if (Strategy.ENEMY_DOES_BANSHEE_HARASS) {
+            if (numVikings < 1) {
+                return Abilities.TRAIN_VIKING_FIGHTER;
+            }
+            else if (numRavens < 1) {
+                return Abilities.TRAIN_RAVEN;
+            }
+            else if (numVikings == 1) {
+                return Abilities.TRAIN_VIKING_FIGHTER;
+            }
+        }
+
+        //maintain 1+ ravens if enemy can produce cloaked/burrowed attackers
+        if (numRavens == 0 && Switches.enemyHasCloakThreat) {
+            return Abilities.TRAIN_RAVEN;
+        }
+
+        //maintain 1+ ravens if an expansion needs clearing
+        if (numRavens == 0 && !ExpansionClearing.expoClearList.isEmpty()) {
+            return Abilities.TRAIN_RAVEN;
+        }
+
+        //get 1 raven if an enemy kill squad requires one
+        if (AirUnitKillSquad.enemyAirTargets.stream()
+                .anyMatch(killSquad -> killSquad.isRavenRequired() && killSquad.getRaven() == null)) {
+            return Abilities.TRAIN_RAVEN;
+        }
+
+        //get required vikings
+        if (numVikings < vikingsRequired) {
+            return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
+        //otherwise raven
+        return Strategy.DEFAULT_STARPORT_UNIT;
+    }
+
+
+
+        public static Abilities decideStarportUnit() { //never max out without a raven
         //first build hardcoded starport units
         if (!openingStarportUnits.isEmpty()) {
             return openingStarportUnits.get(0);
@@ -911,7 +992,7 @@ public class BuildManager {
 
     public static boolean ccToBeOC(Point2d ccPos) {
         return LocationConstants.baseLocations
-                .subList(1, LocationConstants.baseLocations.size()) //ignore main base location
+                .subList(Strategy.NUM_BASES_TO_OC, LocationConstants.baseLocations.size()) //ignore OC base locations
                 .stream()
                 .noneMatch(p -> ccPos.distance(p) < 1);
     }

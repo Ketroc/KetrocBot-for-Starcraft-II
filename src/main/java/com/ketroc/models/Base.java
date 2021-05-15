@@ -672,6 +672,10 @@ public class Base {
         turrets.add(new DefenseUnitPositions(turretPos, null));
     }
 
+    public Point2d inFrontPos() {
+        return Position.towards(ccPos, getResourceMidPoint(), -4.5f);
+    }
+
     private void addTurretPosForEach1GasSide() {
         for (Gas gas : getGases()) {
             //closest mineral to gas node
@@ -936,5 +940,8 @@ public class Base {
                 .sum();
     }
 
-
+    public static boolean isABasePos(Point2d pos) {
+        return GameCache.baseList.stream()
+                .anyMatch(base -> base.getCcPos().distance(pos) < 1);
+    }
 }

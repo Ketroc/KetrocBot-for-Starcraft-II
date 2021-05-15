@@ -267,6 +267,7 @@ public class GameCache {
                         Strategy.DO_INCLUDE_LIBS = false;
                         if (LocationConstants.opponentRace != Race.TERRAN) {
                             Strategy.DO_DEFENSIVE_TANKS = false;
+                            Strategy.DO_OFFENSIVE_TANKS = false;
                         }
                     }
 
@@ -723,7 +724,7 @@ public class GameCache {
                     if (distance <= enemy.visionRange &&
                             (enemy.isAir || Bot.OBS.terrainHeight(Point2d.of(enemy.x, enemy.y)) + 1 > Bot.OBS.terrainHeight(Point2d.of(x/2f, y/2f)))) {
                         InfluenceMaps.pointInEnemyVision[x][y] = true;
-                        //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
+                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
                     }
                     //autoturret cast range
                     if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor) {

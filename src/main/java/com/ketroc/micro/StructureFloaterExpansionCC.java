@@ -12,6 +12,7 @@ import com.ketroc.bots.KetrocBot;
 import com.ketroc.models.Base;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructureMorph;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
@@ -23,12 +24,19 @@ public class StructureFloaterExpansionCC extends StructureFloater {
     public Point2d basePos;
     public Point2d safeLandingPos;
     public long createdFrame;
+    public Units upgradeType = Units.TERRAN_PLANETARY_FORTRESS;
+    public Abilities upgradeAbility = Abilities.MORPH_PLANETARY_FORTRESS;
 
     public StructureFloaterExpansionCC(UnitInPool structure, Point2d targetPos) {
         super(structure, targetPos, true);
         basePos = targetPos;
         doDetourAroundEnemy = true;
         createdFrame = Time.nowFrames();
+        List<Base> ocBases = GameCache.baseList.subList(0, Strategy.NUM_BASES_TO_OC);
+        if (ocBases.stream().anyMatch(base -> base.getCcPos().distance(targetPos) < 1)) {
+            upgradeType = Units.TERRAN_ORBITAL_COMMAND;
+            upgradeAbility = Abilities.MORPH_ORBITAL_COMMAND;
+        }
     }
 
     public StructureFloaterExpansionCC(Unit structure, Point2d targetPos) {
@@ -49,14 +57,14 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             //if landed not on position
             if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {
                 //remove this object when PF starts morphing FIXME: sometimes PF finishes without this if being true
-                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == Abilities.MORPH_PLANETARY_FORTRESS) ||
-                        unit.unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) {
+                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == upgradeAbility) ||
+                        unit.unit().getType() == upgradeType) {
                     removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
                 }
                 //morph to PF
-                else if (!Purchase.isMorphQueued(unit.getTag(), Abilities.MORPH_PLANETARY_FORTRESS)) {
+                else if (!Purchase.isMorphQueued(unit.getTag(), upgradeAbility)) {
                     Chat.chat("Building offensive PF");
-                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, unit));
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(upgradeAbility, unit));
                 }
             }
             else {

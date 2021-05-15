@@ -132,7 +132,7 @@ public class KetrocBot extends Bot {
 
             //first step of the game
             if (Time.nowFrames() == Strategy.STEP_SIZE) {
-                ACTION.sendChat("Last updated: March 27, 2021", ActionChat.Channel.BROADCAST);
+                ACTION.sendChat("Last updated: May 11, 2021", ActionChat.Channel.BROADCAST);
             }
 
             if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||
@@ -324,7 +324,8 @@ public class KetrocBot extends Bot {
         Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
         Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
         Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_INCLUDE_LIBS);
-        Print.print("Strategy.DO_INCLUDE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
+        Print.print("Strategy.DO_DEFENSIVE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
+        Print.print("Strategy.DO_OFFENSIVE_TANKS = " + Strategy.DO_OFFENSIVE_TANKS);
         Print.print("Strategy.maxScvs = " + Strategy.maxScvs);
         Print.print("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
         Print.print("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
@@ -337,8 +338,8 @@ public class KetrocBot extends Bot {
         Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
         Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
         Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
-        Print.print("UpgradeManager.shipArmor.toString() = " + UpgradeManager.shipArmor.toString());
-        Print.print("UpgradeManager.shipAttack.toString() = " + UpgradeManager.shipAttack.toString());
+        Print.print("UpgradeManager.shipArmor.toString() = " + UpgradeManager.armoryArmorUpgrades.toString());
+        Print.print("UpgradeManager.shipAttack.toString() = " + UpgradeManager.armoryAttackUpgrades.toString());
         Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
         Print.print("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
@@ -441,7 +442,7 @@ public class KetrocBot extends Bot {
                         else {
                             //start with (1 factory + 1 starport), or start with (2 starports)
                             ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
-                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
+                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_OFFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
                                 purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
                             }
 //                            else if (UnitUtils.getNumFriendlyUnits(UnitUtils.STARPORT_TYPE, true) == 0) {
@@ -644,6 +645,7 @@ public class KetrocBot extends Bot {
                 Liberator.castRange = 8;
                 break;
             case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
+            case TERRAN_VEHICLE_WEAPONS_LEVEL1: case TERRAN_VEHICLE_WEAPONS_LEVEL2: case TERRAN_VEHICLE_WEAPONS_LEVEL3:
             case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
             case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
                 UpgradeManager.updateUpgradeList(upgrade);

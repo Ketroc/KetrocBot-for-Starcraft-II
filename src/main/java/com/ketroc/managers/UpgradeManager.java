@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 public class UpgradeManager {
     public static boolean doStarportUpgrades;
 
-    public static final List<Upgrades> shipAttack = new ArrayList<>(List.of(
+    public static final List<Upgrades> armoryAttackUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3));
 
-    public static final List<Upgrades> shipArmor = new ArrayList<>(List.of(
+    public static final List<Upgrades> armoryArmorUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3));
@@ -41,14 +41,14 @@ public class UpgradeManager {
     }
 
     public static void updateUpgradeList(Upgrade upgrade) {
-        shipAttack.remove(upgrade);
-        shipArmor.remove(upgrade);
+        armoryAttackUpgrades.remove(upgrade);
+        armoryArmorUpgrades.remove(upgrade);
         starportUpgradeList.remove(upgrade);
     }
 
     private static void checkArmories() {
         //done, if already 3-3
-        if (shipArmor.isEmpty() && shipAttack.isEmpty()) {
+        if (armoryArmorUpgrades.isEmpty() && armoryAttackUpgrades.isEmpty()) {
             return;
         }
         List<Unit> armories = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ARMORY);
@@ -70,16 +70,19 @@ public class UpgradeManager {
                 .orElse(null);
         Abilities activeAbility = (activeArmory != null) ? (Abilities)ActionIssued.getCurOrder(activeArmory).get().ability : null;
         if (activeAbility == Abilities.RESEARCH_TERRAN_SHIP_WEAPONS) {
-            if (!shipArmor.isEmpty()) return shipArmor.get(0);
+            if (!armoryArmorUpgrades.isEmpty()) return armoryArmorUpgrades.get(0);
+        }
+        else if (activeAbility == Abilities.RESEARCH_TERRAN_VEHICLE_WEAPONS) {
+            if (!armoryAttackUpgrades.isEmpty()) return armoryArmorUpgrades.get(0);
         }
         else if (activeAbility == Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING) {
-            if (!shipAttack.isEmpty()) return shipAttack.get(0);
+            if (!armoryAttackUpgrades.isEmpty()) return armoryAttackUpgrades.get(0);
         }
-        else if (shipArmor.size() >= shipAttack.size() && !shipArmor.isEmpty()) {
-            return shipArmor.get(0);
+        else if (armoryArmorUpgrades.size() >= armoryAttackUpgrades.size() && !armoryArmorUpgrades.isEmpty()) {
+            return armoryArmorUpgrades.get(0);
         }
-        else if (!shipAttack.isEmpty()) {
-            return shipAttack.get(0);
+        else if (!armoryAttackUpgrades.isEmpty()) {
+            return armoryAttackUpgrades.get(0);
         }
         return null;
     }

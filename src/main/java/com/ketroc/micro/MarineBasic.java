@@ -16,8 +16,16 @@ public class MarineBasic extends Marine {
 
     @Override
     public void onStep() {
-        priority = (CannonRushDefense.cannonRushStep == 2) ? MicroPriority.SURVIVAL : MicroPriority.DPS;
+        updateMicroPriority();
         //TODO: move target selection here??
         super.onStep();
+    }
+
+    private void updateMicroPriority() {
+        if (CannonRushDefense.cannonRushStep == 2) {
+            priority = MicroPriority.SURVIVAL;
+            return;
+        }
+        priority = MicroPriority.DPS;
     }
 }

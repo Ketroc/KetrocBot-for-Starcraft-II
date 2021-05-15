@@ -1,12 +1,14 @@
 package com.ketroc.strategies;
 
 public enum GamePlan {
-    BANSHEES_WITH_CYCLONES,
-    BANSHEES,
+    BANSHEE,
+    BANSHEE_CYCLONE,
+    BANSHEE_TANK,
+    TANK_VIKING,
     BUNKER_CONTAIN_WEAK,
     BUNKER_CONTAIN_STRONG,
-    RAVENS,
+    RAVEN,
     MARINE_RUSH,
     SCV_RUSH,
-    RAVENS_WITH_CYCLONES
+    RAVEN_CYCLONE;
 }

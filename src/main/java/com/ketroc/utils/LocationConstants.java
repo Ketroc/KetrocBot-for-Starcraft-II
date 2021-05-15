@@ -1174,7 +1174,7 @@ public class LocationConstants {
             _3x3Structures.add(Point2d.of(153.5f, 137.5f));
 
             FACTORIES.add(Point2d.of(149.5f, 134.5f));
-            FACTORIES.add(Point2d.of(153.5f, 111.5f));
+            FACTORIES.add(Point2d.of(153.5f, 109.5f));
             BUNKER_NATURAL = Point2d.of(128.5f, 117.5f);
 
             STARPORTS.add(Point2d.of(128.5f, 132.5f));
@@ -4067,6 +4067,7 @@ public class LocationConstants {
 
         //any starport spot if starport already in the factory position
         Strategy.DO_DEFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
+        Strategy.DO_OFFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
         Strategy.DO_USE_CYCLONES = false; //unreliable position for cyclone pathing so don't make cyclones
         return STARPORTS.remove(0);
     }

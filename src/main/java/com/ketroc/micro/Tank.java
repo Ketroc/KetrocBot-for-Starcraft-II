@@ -14,7 +14,7 @@ import com.ketroc.utils.*;
 import java.util.List;
 
 public class Tank extends BasicUnitMicro {
-    private long lastActiveFrame;
+    private long lastActiveFrame; //last frame that this tank was sieged with an enemy target nearby
 
     public Tank(UnitInPool unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
@@ -88,19 +88,19 @@ public class Tank extends BasicUnitMicro {
         return bestTargetUnit;
     }
 
-    protected boolean siegeUpMicro() {
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1 || !getEnemiesInRange(13).isEmpty()) {
+    protected boolean doSiegeUp() {
+        if (!getEnemiesInRange(13).isEmpty()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
             return true;
         }
         return false;
     }
 
-    protected boolean unsiegeMicro() {
+    protected boolean doUnsiege() {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
-            if (lastActiveFrame + 150 > Time.nowFrames()) {
+            if (lastActiveFrame + 72 < Time.nowFrames()) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
                 return true;
             }
@@ -110,11 +110,10 @@ public class Tank extends BasicUnitMicro {
         return false;
     }
 
-    protected List<UnitInPool> getEnemiesInRange(float range) {
+    protected List<UnitInPool> getEnemiesInRange(int range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                (!UnitUtils.canMove(enemy.unit())
-                        ? UnitUtils.getDistance(enemy.unit(), unit.unit()) <= 13 + enemy.unit().getRadius()
-                        : UnitUtils.getDistance(enemy.unit(), unit.unit()) <= range + enemy.unit().getRadius()) &&
+                UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
+                        (UnitUtils.canMove(enemy.unit()) ? range : 13) + enemy.unit().getRadius() &&
                 !enemy.unit().getFlying().orElse(true) &&
                 !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getHallucination().orElse(false) &&
@@ -127,7 +126,7 @@ public class Tank extends BasicUnitMicro {
         if (enemyTank == null || enemyTank.getDisplayType() == DisplayType.HIDDEN || UnitUtils.getDistance(enemyTank, unit.unit()) > 17) {
             return null;
         }
-        //edge of where my tank will siege (test vision here)
+        //edge of my tank where will siege (test vision here)
         Point2d enemyVisionPos = Position.towards(enemyTank.getPosition().toPoint2d(),
                 unit.unit().getPosition().toPoint2d(),
                 12.9f + enemyTank.getRadius());
@@ -136,7 +135,10 @@ public class Tank extends BasicUnitMicro {
         if (InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, enemyVisionPos)) {
             return null;
         }
-
+//        DebugHelper.boxUnit(this.unit.unit());
+//        DebugHelper.boxUnit(enemyTank);
+//        DebugHelper.draw3dBox(enemyVisionPos, Color.RED, 0.2f);
+//        Bot.DEBUG.sendDebug();
         return enemyTank;
 
     }

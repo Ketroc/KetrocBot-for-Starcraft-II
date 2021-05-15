@@ -6,14 +6,15 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.UpgradeManager;
-import com.ketroc.managers.WorkerManager;
 import com.ketroc.models.DelayedChat;
+import com.ketroc.models.EnemyUnit;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.*;
 
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
+    public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
     public static GamePlan gamePlan = null;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
@@ -34,6 +36,7 @@ public class Strategy {
     public static boolean NO_TURRETS;
 
     public static boolean DO_DEFENSIVE_TANKS;
+    public static boolean DO_OFFENSIVE_TANKS;
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
     public static int MAX_TANKS = 10;
 
@@ -122,11 +125,17 @@ public class Strategy {
             case ZERG:
                 chooseTvZStrategy();
                 break;
+            case RANDOM:
+                gamePlan = GamePlan.BANSHEE_CYCLONE;
+                useCyclonesAdjustments();
+                Switches.enemyCanProduceAir = true;
+                Switches.enemyHasCloakThreat = true;
         }
 
         //TODO: delete - turning off 2nd factory based on strategy choice
-        if (LocationConstants.opponentRace != Race.TERRAN || gamePlan != GamePlan.RAVENS_WITH_CYCLONES) {
-        //if (gamePlan != GamePlan.RAVENS_WITH_CYCLONES && gamePlan != GamePlan.BANSHEES_WITH_CYCLONES) {
+        if (LocationConstants.opponentRace != Race.TERRAN ||
+                (gamePlan != GamePlan.RAVEN_CYCLONE &&
+                        gamePlan != GamePlan.TANK_VIKING)) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
             }
@@ -213,47 +222,45 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.RAVENS,
-                GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.RAVENS_WITH_CYCLONES
+                GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.RAVEN,
+                GamePlan.BANSHEE_CYCLONE, GamePlan.RAVEN_CYCLONE
         ));
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
+        gamePlan = GamePlan.TANK_VIKING; //FIXME: hardcoded strategy
         switch (gamePlan) {
-            case BANSHEES:
-                DelayedChat.add("Mass Banshee Strategy");
+            case BANSHEE:
                 break;
-            case BANSHEES_WITH_CYCLONES:
-                DelayedChat.add("Banshee & Cyclone Strategy");
+            case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 break;
+            case BANSHEE_TANK:
+                useTanksAdjustments();
+                break;
+            case TANK_VIKING:
+                useTankVikingAdjustments();
+                break;
             case BUNKER_CONTAIN_STRONG:
-                DelayedChat.add("Strong Bunker Contain Strategy");
                 BunkerContain.proxyBunkerLevel = 2;
                 break;
             case SCV_RUSH:
-                DelayedChat.add("SCV Rush Strategy");
-                DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case RAVENS:
-                DelayedChat.add("Mass Raven Strategy");
+            case RAVEN:
                 massRavenStrategy();
                 break;
-            case RAVENS_WITH_CYCLONES:
-                DelayedChat.add("Raven & Cyclone Strategy");
+            case RAVEN_CYCLONE:
                 massRavenStrategy();
                 useCyclonesAdjustments();
                 DO_MATRIX = true;
                 Strategy.AUTOTURRET_AT_ENERGY = 125;
                 break;
             case MARINE_RUSH:
-                DelayedChat.add("7Rax Marine All in");
-                DelayedChat.add(Time.nowFrames() + 100, "... because sometimes you gotta keep those greedy bots in check");
                 marineAllinStrategy();
                 break;
         }
+        DelayedChat.add("Strategy: " + gamePlan);
     }
 
     public static GamePlan getNextGamePlan(GamePlan curPlan) {
@@ -268,17 +275,17 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVENS
+                GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN
         ));
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEE; //TODO: hardcoded strategy
         switch (gamePlan) {
-            case BANSHEES:
+            case BANSHEE:
                 DelayedChat.add("Standard Strategy");
                 break;
-            case BANSHEES_WITH_CYCLONES:
+            case BANSHEE_CYCLONE:
                 DelayedChat.add("Banshee & Cyclone Strategy");
                 useCyclonesAdjustments();
                 break;
@@ -291,7 +298,7 @@ public class Strategy {
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case RAVENS:
+            case RAVEN:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
@@ -310,18 +317,18 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEES, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK,
-                GamePlan.RAVENS, GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.RAVENS_WITH_CYCLONES
+                GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK,
+                GamePlan.RAVEN, GamePlan.BANSHEE_CYCLONE, GamePlan.RAVEN_CYCLONE
         ));
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEES_WITH_CYCLONES; //TODO: hardcoded strategy
+        gamePlan = GamePlan.BANSHEE_CYCLONE; //TODO: hardcoded strategy
         switch (gamePlan) {
-            case BANSHEES:
+            case BANSHEE:
                 DelayedChat.add("Standard Strategy");
                 break;
-            case BANSHEES_WITH_CYCLONES:
+            case BANSHEE_CYCLONE:
                 DelayedChat.add("Banshee & Cyclone Strategy");
                 useCyclonesAdjustments();
                 break;
@@ -333,11 +340,11 @@ public class Strategy {
                 DelayedChat.add(Time.nowFrames() + 100, "... because Ketroc has reached its allotted limit of long games");
                 Switches.scvRushComplete = false;
                 break;
-            case RAVENS:
+            case RAVEN:
                 DelayedChat.add("Mass Raven Strategy");
                 massRavenStrategy();
                 break;
-            case RAVENS_WITH_CYCLONES:
+            case RAVEN_CYCLONE:
                 DelayedChat.add("Raven & Cyclone Strategy");
                 massRavenStrategy();
                 useCyclonesAdjustments();
@@ -392,10 +399,10 @@ public class Strategy {
 //                return 0;
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
-                return GamePlan.BANSHEES;
+                return GamePlan.BANSHEE;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-                return GamePlan.BANSHEES;
+                return GamePlan.BANSHEE;
             default:
                 return gamePlan;
         }
@@ -406,13 +413,13 @@ public class Strategy {
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
         UpgradeManager.doStarportUpgrades = true;
 
-        UpgradeManager.shipArmor.addAll(UpgradeManager.shipAttack);
+        UpgradeManager.armoryArmorUpgrades.addAll(UpgradeManager.armoryAttackUpgrades);
         //get 2 banshees and +1attack for creep clearing and early defense
         if (LocationConstants.opponentRace == Race.ZERG) {
-            UpgradeManager.shipArmor.add(0, UpgradeManager.shipArmor.remove(3));
+            UpgradeManager.armoryArmorUpgrades.add(0, UpgradeManager.armoryArmorUpgrades.remove(3));
             BuildManager.MIN_BANSHEES = 2;
         }
-        UpgradeManager.shipAttack.clear(); //no 2nd armory
+        UpgradeManager.armoryAttackUpgrades.clear(); //no 2nd armory
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         DO_BANSHEE_HARASS = false;
@@ -560,7 +567,7 @@ public class Strategy {
         if (strategies == null) {
             if (prevResults.isEmpty() || !prevResults.get(0)[0].equals(KetrocBot.opponentId)) {
                 Print.print("using GamePlan.BANSHEES cuz no list and no history");
-                gamePlan = GamePlan.BANSHEES;
+                gamePlan = GamePlan.BANSHEE;
             }
             //no opponent specific strategy, and with history
             else {
@@ -615,19 +622,19 @@ public class Strategy {
         switch (KetrocBot.opponentId) { //0 standard, 1 proxy bunker, 2 scv rush, 3 mass raven, 4 marine all-in
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
-                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_STRONG};
+                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_STRONG};
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES};
+                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE};
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
             //case "b7b611bdaa2e2d1": //Spiny (LM)
-                return new GamePlan[]{GamePlan.BANSHEES_WITH_CYCLONES, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVENS};
+                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN};
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
-                return new GamePlan[]{GamePlan.RAVENS, GamePlan.BANSHEES, GamePlan.BUNKER_CONTAIN_STRONG};
+                return new GamePlan[]{GamePlan.RAVEN, GamePlan.BANSHEE, GamePlan.BUNKER_CONTAIN_STRONG};
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEES, GamePlan.BANSHEES_WITH_CYCLONES};
+                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEE, GamePlan.BANSHEE_CYCLONE};
 //            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
 //                return new int[]{0, 1, 2};
 //            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
@@ -678,18 +685,11 @@ public class Strategy {
             case 3:
                 //add depot and rax with first scv to the production queue
                 if (GameCache.mineralBank >= 100) {
-                    List<UnitInPool> scvNearDepot = WorkerManager.getAllScvs(LocationConstants.extraDepots.get(0), 6);
-                    if (!scvNearDepot.isEmpty()) {
-                        scv_TvtFastStart = scvNearDepot.get(0); //TODO: null check
-                        ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv_TvtFastStart.unit());
-                        ((PurchaseStructure)KetrocBot.purchaseQueue.get(1)).setScv(scv_TvtFastStart.unit());
-//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(scv_TvtFastStart.unit(), Units.TERRAN_SUPPLY_DEPOT));
-                    }
-//                    else {
-//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants._3x3Structures.remove(0)));
-//                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-//                    }
+                    scv_TvtFastStart = Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream()
+                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.extraDepots.get(0))))
+                            .get();
+                    ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv_TvtFastStart.unit());
+                    ((PurchaseStructure)KetrocBot.purchaseQueue.get(1)).setScv(scv_TvtFastStart.unit());
                     Switches.tvtFastStart = false;
                 }
                 break;
@@ -767,8 +767,29 @@ public class Strategy {
     public static void useCyclonesAdjustments() {
         NUM_MARINES = Math.min(3, NUM_MARINES);
         DO_USE_CYCLONES = true;
-        DO_INCLUDE_LIBS = false;
         DO_DEFENSIVE_TANKS = false;
+    }
+
+    public static void useTanksAdjustments() {
+        NUM_MARINES = Math.min(3, NUM_MARINES);
+        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
+        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3);
+        DO_OFFENSIVE_TANKS = true;
+        NUM_BASES_TO_OC = 3;
+    }
+
+    public static void useTankVikingAdjustments() {
+        UpgradeManager.armoryAttackUpgrades.add(0, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+        UpgradeManager.armoryAttackUpgrades.add(1, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
+        UpgradeManager.armoryAttackUpgrades.add(2, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3);
+        UpgradeManager.starportUpgradeList.clear();
+
+        EnemyUnit.CYCLONE_AIR_ATTACK_RANGE = 6f;
+        //NUM_MARINES = Math.min(3, NUM_MARINES);
+        DO_OFFENSIVE_TANKS = true;
+        NUM_BASES_TO_OC = 3;
+        DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
     }
 
     private static void setReaperBlockWall() {

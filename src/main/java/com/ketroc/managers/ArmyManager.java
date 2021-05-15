@@ -361,8 +361,9 @@ public class ArmyManager {
             }
         }
         else {
-            doOffense = Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                    GameCache.bansheeList.size() > 3 &&
+            doOffense = GameCache.bansheeList.size() +
+                    (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.67)  +
+                    (GameCache.ravenList.size() * 0.34) > 3 &&
                     GameCache.vikingList.size() * 1.34 > UnitUtils.getEnemyUnitsOfTypes(UnitUtils.VIKING_TYPE).size();
         }
     }
@@ -377,7 +378,7 @@ public class ArmyManager {
         }
     }
 
-    //set defensePos to closestEnemy to an injured PF
+    //set defensePos to closestEnemy to an injured base cc
     private static void setDefensePosition() {
         attackUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> GameCache.baseList.stream()
@@ -398,12 +399,28 @@ public class ArmyManager {
         if (attackUnit != null) {
             attackGroundPos = attackUnit.getPosition().toPoint2d();
         }
-        else if (GameCache.baseList.get(2).isMyBase()) {
-            attackGroundPos = GameCache.baseList.get(2).getResourceMidPoint();
-        }
+//        else if (GameCache.baseList.get(2).isMyBase()) {
+//            attackGroundPos = GameCache.baseList.get(2).getResourceMidPoint();
+//        }
         else {
-            attackGroundPos = LocationConstants.insideMainWall;
+            attackGroundPos = getArmyRallyPoint();
         }
+    }
+
+    private static Point2d getArmyRallyPoint() {
+        switch (Strategy.NUM_BASES_TO_OC) {
+            case 3:
+                if (GameCache.baseList.get(2).isMyBase()) {
+                    return GameCache.baseList.get(2).inFrontPos();
+                }
+                //no break
+            case 2:
+                if (!Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BUNKER &&
+                        UnitUtils.getDistance(u.unit(), LocationConstants.BUNKER_NATURAL) < 1).isEmpty()) {
+                    return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
+                }
+        }
+        return LocationConstants.insideMainWall;
     }
 
 
@@ -535,40 +552,24 @@ public class ArmyManager {
     }
 
     private static UnitInPool getClosestEnemyGroundUnit() {
-        UnitInPool closestEnemyGroundUnit = GameCache.allVisibleEnemiesList.stream()
-                .filter(u -> //(Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
+        UnitInPool closestEnemyGroundUnit = GameCache.allEnemiesList.stream()
+                .filter(u -> u.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
                         !u.unit().getFlying().orElse(false) && //ground unit
-                                (!GameCache.ravenList.isEmpty() || u.unit().getDisplayType() != DisplayType.HIDDEN) && //TODO: handle with scan?
-                                !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
-                                u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
-                                !u.unit().getHallucination().orElse(false)) //ignore hallucs
-                                //UnitUtils.isVisible(u)) //ignore units in the fog
+                        (!GameCache.ravenList.isEmpty() || u.unit().getDisplayType() != DisplayType.HIDDEN) && //TODO: handle with scan?
+                        !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
+                        u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
+                        !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u ->
                         UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), groundAttackersMidPoint) +
                         ((UnitUtils.getDistance(u.unit(), attackGroundPos) < 5) ? -3 : 0))) //preference to maintaining similar target preventing wiggling
                 .orElse(null);
-//        if (closestEnemyGroundUnit == null) {
-//            return null;
-//        }
-//
-//        //swap closest enemy base if it's closer than closest enemy unit
-//        UnitInPool closestEnemyBase = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.enemyCommandStructures.contains(enemy.unit().getType()))
-//                .stream()
-//                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myMineralPos)))
-//                .orElse(null);
-//        if (closestEnemyBase != null &&
-//                UnitUtils.getDistance(closestEnemyBase.unit(), LocationConstants.myMineralPos) <
-//                        UnitUtils.getDistance(closestEnemyGroundUnit.unit(), LocationConstants.myMineralPos)) {
-//            return closestEnemyBase;
-//        }
-
         return closestEnemyGroundUnit;
     }
 
     private static UnitInPool getClosestEnemyAirUnit() {
-        return GameCache.allVisibleEnemiesList.stream()
-                .filter(u -> (Switches.finishHim || u.unit().getDisplayType() != DisplayType.SNAPSHOT) && //ignore snapshot unless finishHim is true
+        return GameCache.allEnemiesList.stream()
+                .filter(u -> u.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
                         (!Ignored.contains(u.getTag()) || AirUnitKillSquad.containsWithNoVikings(u.getTag())) &&
                         u.unit().getFlying().orElse(false) && //air unit
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
@@ -832,8 +833,8 @@ public class ArmyManager {
         if (bunkerList.isEmpty()) {
             return;
         }
-        Unit bunker = bunkerList.get(0).unit();
-        if (UnitUtils.getHealthPercentage(bunker) < 40 || bunkerUnnecessary()) {
+        if (bunkerUnnecessary()) {
+            Unit bunker = bunkerList.get(0).unit();
             ActionHelper.unitCommand(bunker, Abilities.UNLOAD_ALL_BUNKER, false); //rally is already set to top of inside main wall
             ActionHelper.unitCommand(bunker, Abilities.EFFECT_SALVAGE, false);
         }

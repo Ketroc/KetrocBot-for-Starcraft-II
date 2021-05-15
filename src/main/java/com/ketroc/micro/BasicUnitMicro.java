@@ -134,7 +134,7 @@ public class BasicUnitMicro {
         Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
         return order.isPresent() &&
                 order.get().targetPos != null &&
-                order.get().targetPos.distance(targetPos) < 1;
+                order.get().targetPos.distance(targetPos) < 0.5;
 
     }
 
@@ -353,5 +353,18 @@ public class BasicUnitMicro {
             return true;
         }
         return false;
+    }
+
+    protected void updateTargetPos() {
+        if (ArmyManager.attackGroundPos != null) {
+            targetPos = canAttackAir ? ArmyManager.attackAirPos : ArmyManager.attackGroundPos;
+        }
+        else { //find last structures with random reachable positions
+            if (UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
+                do {
+                    targetPos = Bot.OBS.getGameInfo().findRandomLocation();
+                } while (isGround && !Bot.OBS.isPathable(targetPos));
+            }
+        }
     }
 }

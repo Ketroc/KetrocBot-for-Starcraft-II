@@ -13,6 +13,8 @@ import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
 public class EnemyUnit {
+    public static float CYCLONE_AIR_ATTACK_RANGE = 3.5f;
+    public static float CYCLONE_GROUND_ATTACK_RANGE = 4.5f;
 
     public float x;
     public float y;
@@ -95,8 +97,8 @@ public class EnemyUnit {
                 airAttackRange -= 0.5f;
                 break;
             case TERRAN_CYCLONE: //lessen attack range of cyclones assuming they will only lock on
-                airAttackRange = 3.5f;
-                groundAttackRange = 4.5f;
+                airAttackRange = CYCLONE_AIR_ATTACK_RANGE;
+                groundAttackRange = CYCLONE_GROUND_ATTACK_RANGE;
                 break;
             case PROTOSS_TEMPEST:
                 isTempest = true;

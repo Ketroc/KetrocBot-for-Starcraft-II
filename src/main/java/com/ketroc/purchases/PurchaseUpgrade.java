@@ -67,6 +67,11 @@ public class PurchaseUpgrade implements Purchase {
                     case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3_V2:
                         upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING;
                         break;
+                    case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL1:
+                    case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL2:
+                    case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL3:
+                        upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_WEAPONS;
+                        break;
                 }
             }
             else { //missing Abilities enum

@@ -14,7 +14,6 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
-import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Cost;
 import com.ketroc.models.CycloneKillTracker;
 import com.ketroc.utils.*;
@@ -115,7 +114,7 @@ public class Cyclone extends BasicUnitMicro {
         return dmgAtLockPos < 30;
     }
 
-    private void updateTargetPos() {
+    protected void updateTargetPos() {
         //locked on
         if (lockTarget != null) {
             targetPos = lockTarget.unit().getPosition().toPoint2d();
@@ -126,7 +125,7 @@ public class Cyclone extends BasicUnitMicro {
         }
         //attacking
         else {
-            targetPos = ArmyManager.attackAirPos;
+            super.updateTargetPos();
         }
     }
 

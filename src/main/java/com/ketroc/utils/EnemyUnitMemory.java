@@ -17,7 +17,7 @@ public class EnemyUnitMemory {
     private static final Set<Units> MEMORY_UNIT_TYPES = new HashSet<>(Set.of(
             Units.TERRAN_SIEGE_TANK_SIEGED, Units.ZERG_LURKER_MP_BURROWED));
 
-    private static List<UnitInPool> enemyUnitMemory = new ArrayList<>();
+    public static List<UnitInPool> enemyUnitMemory = new ArrayList<>();
 
     public static void onStep() {
         long startTime = System.currentTimeMillis();
