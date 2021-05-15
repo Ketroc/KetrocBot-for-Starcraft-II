@@ -853,7 +853,9 @@ public class ArmyManager {
     private static void raiseAndLowerDepots() {
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos)) {
+            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) ||
+                   UnitUtils.getUnitsNearbyOfType(
+                           Alliance.ENEMY, UnitUtils.WORKER_TYPE, LocationConstants.pointOnMyRamp, 5).size() > 3) {
                 ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
         }
