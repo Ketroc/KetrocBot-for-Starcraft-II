@@ -21,7 +21,7 @@ public class MineralPatch {
     private Point2d ccPos;
     private Point2d byNode;
     private float distanceToHarvest = 1.38f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
-    private float distanceToCC = 3.5f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);;
+    private float distanceToCC = 3f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);;
     private Point2d nodePos;
     private Point2d byCC;
 
@@ -29,12 +29,11 @@ public class MineralPatch {
         this.ccPos = ccPos;
         this.node = node;
         nodePos = node.getPosition().toPoint2d();
-        byNode = Position.towards(nodePos, ccPos, 1.05f);
-        byCC = Position.towards(ccPos, nodePos, 2.35f);
+        byNode = Position.towards(nodePos, ccPos, 0.2f);
+        byCC = Position.towards(ccPos, nodePos, 2.15f);
         float angle = Position.getAngle(byCC, byNode);
         if ((angle > 70 && angle < 120) || (angle > 240 && angle < 300)) { //mining angle is up or down
             byNode = nodePos;
-            byNode = Position.towards(nodePos, ccPos, 0.55f);
         }
         else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
             distanceToHarvest += 0.17f;
@@ -88,7 +87,6 @@ public class MineralPatch {
             //start speed MOVE
             if (distToNode < 3.1f && distToNode > distanceToHarvest) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byNode, false);
-                ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, true);
             }
             //fix bounce
             else if (!node.getTag().equals(UnitUtils.getTargetUnitTag(scv))) {
@@ -98,7 +96,7 @@ public class MineralPatch {
         else if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.MOVE)) {
             //end speed MOVE
             if (distToNode <= distanceToHarvest) {
-                //ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
+                ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             }
         }
         else {
@@ -117,18 +115,17 @@ public class MineralPatch {
             }
         }
         //put wayward scv back to work
-//        else if (scv.getOrders().size() < 2) {
-//            ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
-//        }
+        else if (scv.getOrders().size() < 2) {
+            ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
+        }
     }
 
     public void returnMicro(Unit scv) {
         float distToCC = UnitUtils.getDistance(scv, ccPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             //start speed MOVE
-            if (distToCC < 5.7f && distToCC > distanceToCC) {
+            if (distToCC < 4.7f && distToCC > distanceToCC) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byCC, false);
-                ActionHelper.unitCommand(scv, Abilities.MOVE, ccPos, true);
             }
         }
         else if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.MOVE)) {
@@ -138,11 +135,11 @@ public class MineralPatch {
             }
         }
         //put wayward scv back to work
-//        else {
-//            if (scv.getOrders().size() < 2) { //not being pushed away to make room
-//                ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
-//            }
-//        }
+        else {
+            if (scv.getOrders().size() < 2) { //not being pushed away to make room
+                ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+            }
+        }
     }
 
     public void distanceReturnMicro(Unit scv) {

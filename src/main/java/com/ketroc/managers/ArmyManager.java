@@ -853,17 +853,23 @@ public class ArmyManager {
     private static void raiseAndLowerDepots() {
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) ||
+            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) &&
                    UnitUtils.getUnitsNearbyOfType(
-                           Alliance.ENEMY, UnitUtils.WORKER_TYPE, LocationConstants.pointOnMyRamp, 5).size() > 3) {
+                           Alliance.ENEMY, UnitUtils.WORKER_TYPE, depotPos, 7).size() < 3) {
                 ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
         }
         for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT_LOWERED)) {
             Point2d depotPos = depot.getPosition().toPoint2d();
-            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) &&
-                    (CannonRushDefense.cannonRushStep == 0 || !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ZEALOT).isEmpty())) {
-                ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+            //if enemy army nearby or 4+ enemy workers nearby
+            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) ||
+                            UnitUtils.getUnitsNearbyOfType(
+                                    Alliance.ENEMY, UnitUtils.WORKER_TYPE, depotPos, 7).size() > 3) {
+                //keep depot lowered if zealotless cannonrush in progress
+                if (CannonRushDefense.cannonRushStep == 0 ||
+                    !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ZEALOT).isEmpty()) {
+                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                }
             }
         }
     }
