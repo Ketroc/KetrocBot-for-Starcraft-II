@@ -29,9 +29,9 @@ public class BuildOrder {
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
                 }
-                else if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
-                    _1_1_1_Opener();
-                }
+//                else if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
+//                    _1_1_1_Opener();
+//                }
                 else if (BunkerContain.proxyBunkerLevel > 0) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.proxyBarracksPos));
