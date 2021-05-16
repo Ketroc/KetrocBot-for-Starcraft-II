@@ -752,7 +752,7 @@ public class Strategy {
             case PROTOSS:
                 DIVE_RANGE = 25;
                 DO_INCLUDE_LIBS = false;
-                DO_DEFENSIVE_TANKS = true;
+                DO_DEFENSIVE_TANKS = false;
                 NUM_MARINES = 5;
                 break;
             case TERRAN:

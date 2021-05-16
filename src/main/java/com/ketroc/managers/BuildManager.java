@@ -864,7 +864,7 @@ public class BuildManager {
 
     private static void buildFactoryLogic() {
         if (UnitUtils.getNumFriendlyUnits(UnitUtils.FACTORY_TYPE, true) < 2 &&
-                Strategy.DO_USE_CYCLONES &&
+                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.RAVEN_CYCLONE) &&
                 UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
                 !LocationConstants.FACTORIES.isEmpty() &&

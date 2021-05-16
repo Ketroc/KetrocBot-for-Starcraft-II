@@ -148,7 +148,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return PurchaseResult.WAITING;
         }
 
-        //if resources available and prerequisite structure done
+        //if resources available
         if (!canAfford()) {
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
