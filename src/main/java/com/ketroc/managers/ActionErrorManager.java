@@ -72,7 +72,7 @@ public class ActionErrorManager {
                 }
                 else if (isBlockedByUnit(actionResult)) {
                     //blocked by burrowed zerg unit
-                    if (Bot.abilityToUnitType.get(ability) == null) {
+                    if (Bot.abilityToUnitType.get(ability) == null) { //TODO: this block is only here for testing
                         System.out.println("No Unit Type in map for the ability of: " + ability.toString());
                     }
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
@@ -81,6 +81,7 @@ public class ActionErrorManager {
                     }
                     else {
                         //TODO: do nothing?? check threat? (nothing = same scv keeps trying to build the structure)
+                        System.out.println("No expansion clear added for: " + ability.toString());
                         int q=0;
                     }
                 }

@@ -60,7 +60,8 @@ public class ExpansionClearing {
 
         //abandon clearing if a command structure is on location
         if (!Bot.OBS.getUnits(structure -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(structure.unit().getType()) &&
-                UnitUtils.getDistance(structure.unit(), expansionPos) < 5).isEmpty()) {
+                !structure.unit().getFlying().orElse(true) &&
+                UnitUtils.getDistance(structure.unit(), expansionPos) < 4.5).isEmpty()) {
             return true;
         }
 

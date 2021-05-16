@@ -758,7 +758,7 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        //when enemy does banshee harass, open viking-raven-viking
+        //when enemy does banshee harass, maintain viking-raven-viking
         if (Strategy.ENEMY_DOES_BANSHEE_HARASS) {
             if (numVikings < 1) {
                 return Abilities.TRAIN_VIKING_FIGHTER;

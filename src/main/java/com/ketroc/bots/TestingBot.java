@@ -25,6 +25,7 @@ public class TestingBot extends Bot {
     public static UnitInPool marine;
     public int myId;
     public int enemyId;
+    public static final int NEUTRAL_PLAYER_ID = 11;
     public Point2d mySpawnPos;
     public Point2d enemySpawnPos;
     public List<Point2d> possibleCcPosList;
@@ -82,7 +83,7 @@ public class TestingBot extends Bot {
 
         DebugHelper.onGameStart();
         debug().debugGiveAllTech();
-        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER_FLYING, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
+        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
         debug().sendDebug();
