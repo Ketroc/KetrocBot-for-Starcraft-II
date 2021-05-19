@@ -121,7 +121,7 @@ public class WorkerRushDefense {
                     break;
 
                 case 4: //attack probes or attack nexus or cluster
-                    attackingTownHall();
+                    attackingStructures();
                     break;
 
                 case 5: //land cc
@@ -139,10 +139,17 @@ public class WorkerRushDefense {
         }
     }
 
-    private static void attackingTownHall() {
+    private static void attackingStructures() {
+        //kill enemy command structure first
+        List<UnitInPool> enemyStructureList = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
+
+        //kill remaining enemy structures
+        if (enemyStructureList.isEmpty()) {
+            enemyStructureList = Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.isStructure(u.unit().getType()));
+        }
+
         //if townhall dead, head home and advance to defenseStep 5
-        List<UnitInPool> townHallList = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
-        if (townHallList.isEmpty()) {
+        if (enemyStructureList.isEmpty()) {
             //send scvs home on attack-move
             ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false);
             ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
@@ -150,7 +157,7 @@ public class WorkerRushDefense {
             return;
         }
 
-        Unit townHall = townHallList.get(0).unit();
+        Unit townHall = enemyStructureList.get(0).unit();
         int numEnemyWorkers = Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                 UnitUtils.getDistance(worker.unit(), townHall) < 10).size();
 
