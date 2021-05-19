@@ -1077,7 +1077,7 @@ public class ArmyManager {
     private static void retreatUnitFromCyclone(Unit myUnit) {
         Point2d cyclonePos = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_CYCLONE).stream()
                 .map(u -> u.unit().getPosition().toPoint2d())
-                .filter(cyclone -> UnitUtils.getDistance(myUnit, cyclone) <= 14.1)
+                .filter(cyclone -> UnitUtils.getDistance(myUnit, cyclone) <= 16.5)
                 .min(Comparator.comparing(cyclone -> UnitUtils.getDistance(myUnit, cyclone)))
                 .orElse(null);
 
