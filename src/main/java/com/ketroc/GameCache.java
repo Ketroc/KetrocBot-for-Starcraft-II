@@ -756,7 +756,8 @@ public class GameCache {
                         }
 
                         //threat to air from ground
-                        if (distance < enemy.airAttackRange) {
+                        float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 9 : enemy.airAttackRange;
+                        if (distance < airAttackRange) {
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
                         }
 

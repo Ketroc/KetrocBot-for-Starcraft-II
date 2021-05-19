@@ -16,6 +16,7 @@ public class EnemyUnit {
     public static float CYCLONE_AIR_ATTACK_RANGE = 3.5f;
     public static float CYCLONE_GROUND_ATTACK_RANGE = 4.5f;
 
+    public Units unitType;
     public float x;
     public float y;
     public float supply;
@@ -39,6 +40,7 @@ public class EnemyUnit {
     public float maxRange; //used to determine what portion of the grid to loop through
 
     public EnemyUnit(Unit enemy) {
+        unitType = (Units)enemy.getType();
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
         supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
@@ -108,6 +110,7 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(Unit friendly, boolean isParasitic) {
+        unitType = Units.INVALID;
         x = friendly.getPosition().getX();
         y = friendly.getPosition().getY();
         isPersistentDamage = true;
@@ -120,6 +123,7 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(Point2d pos, boolean isFungal) {
+        unitType = Units.INVALID;
         x = pos.getX();
         y = pos.getY();
         isDetector = true;
@@ -134,6 +138,7 @@ public class EnemyUnit {
     }
 
     public EnemyUnit(EffectLocations effect) {
+        unitType = Units.INVALID;
         isEffect = true;
         isPersistentDamage = true;
         Point2d position = effect.getPositions().iterator().next();
