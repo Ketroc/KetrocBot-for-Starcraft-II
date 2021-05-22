@@ -19,6 +19,7 @@ import com.ketroc.micro.Target;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
 import com.ketroc.strategies.BunkerContain;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.MarineAllIn;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
@@ -46,6 +47,7 @@ public class ArmyManager {
     public static Point2d vikingMidPoint;
 
     public static long prevSeekerFrame;
+    public static long prevScanFrame;
     public static int numAutoturretsAvailable;
     public static int turretsCast;
     public static int queriesMade;
@@ -97,6 +99,9 @@ public class ArmyManager {
         //repair station
         manageRepairBay();
 
+        //maintain repair scvs on offense with tanks
+        manageTankRepairScvs();
+
         //if searching for last structures
         if (attackGroundPos == null && Switches.finishHim) {
             searchForLastStructures();
@@ -130,6 +135,22 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void manageTankRepairScvs() {
+        //TODO: handle making and removing ScvRepairer object based on doOffense, gamePLan, and current ScvRepairer count
+        if (doOffense &&
+                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.BANSHEE_TANK)) {
+            int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
+            List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
+            if (!tankList.isEmpty()) {
+                for (int i=0; i<numScvsToAdd; i++) {
+                    UnitInPool closestAvailableScv = WorkerManager.getClosestAvailableScv(
+                            tankList.get(0).unit.unit().getPosition().toPoint2d());
+                    UnitMicroList.add(new ScvRepairer(closestAvailableScv));
+                }
+            }
+        }
     }
 
     private static void setIsAttackUnitRetreating() {
@@ -1192,7 +1213,12 @@ public class ArmyManager {
     }
 
     private static boolean isOutnumberedInVikings() {
-        return GameCache.vikingList.size() < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size();
+        int numVikingsOnFrontLine = (int)GameCache.vikingList.stream()
+                .filter(viking -> UnitUtils.getDistance(viking, vikingMidPoint) < 10 &&
+                        UnitUtils.getHealthPercentage(viking) > Strategy.RETREAT_HEALTH)
+                .count();
+
+        return numVikingsOnFrontLine < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size();
     }
 
     private static boolean doStayBackFromTempests() {
@@ -1293,7 +1319,7 @@ public class ArmyManager {
         if (!isAttackUnitRetreating &&
                 raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
                 !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
-            return castAutoTurret(raven, 2);
+            return castAutoTurret(raven, 0);
         }
         return false;
     }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EnemyUnitMemory {
     private static final Set<Units> MEMORY_UNIT_TYPES = new HashSet<>(Set.of(
@@ -20,12 +21,9 @@ public class EnemyUnitMemory {
     public static List<UnitInPool> enemyUnitMemory = new ArrayList<>();
 
     public static void onStep() {
-        long startTime = System.currentTimeMillis();
         updateEnemyUnitMemory();
         mapEnemyUnits();
-        if (Time.nowFrames() % 1344 == 0) { //once a minute
-            System.out.println("Time to update enemy unit memory: " + (System.currentTimeMillis() - startTime));
-        }
+        enemyUnitMemory.forEach(u -> DebugHelper.boxUnit(u.unit()));
     }
 
     private static void mapEnemyUnits() {
@@ -57,5 +55,11 @@ public class EnemyUnitMemory {
             return Bot.OBS.getVisibility(lastKnownPos) == Visibility.VISIBLE &&
                     (u.unit().getType() != Units.ZERG_LURKER_MP_BURROWED || UnitUtils.isInMyDetection(lastKnownPos));
         });
+    }
+
+    public static List<UnitInPool> getAllOfType(Units unitType) {
+        return enemyUnitMemory.stream()
+                .filter(u -> u.unit().getType() == unitType)
+                .collect(Collectors.toList());
     }
 }

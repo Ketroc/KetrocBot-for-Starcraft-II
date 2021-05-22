@@ -338,8 +338,8 @@ public class KetrocBot extends Bot {
         Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
         Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
         Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
-        Print.print("UpgradeManager.shipArmor.toString() = " + UpgradeManager.armoryArmorUpgrades.toString());
-        Print.print("UpgradeManager.shipAttack.toString() = " + UpgradeManager.armoryAttackUpgrades.toString());
+        Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());
+        Print.print("UpgradeManager.armoryAttackUpgrades.toString() = " + UpgradeManager.airAttackUpgrades.toString());
         Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
         Print.print("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {

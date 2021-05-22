@@ -11,6 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class Tank extends BasicUnitMicro {
@@ -24,8 +25,16 @@ public class Tank extends BasicUnitMicro {
         super(unit, targetPos, priority);
     }
 
+    public void siege() {
+        ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
+    }
+
+    public void unsiege() {
+        ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE,false);
+    }
+
     @Override
-    public UnitInPool selectTarget() {
+    public UnitInPool selectTarget() { //TODO: replace with version that prioritizes 1shot kills
         Unit tank = unit.unit();
 
         //use basic micro for unsieged tank
@@ -34,16 +43,27 @@ public class Tank extends BasicUnitMicro {
         }
 
         //if no targets in range
-        if (UnitUtils.getEnemyTargetsInRange(tank).isEmpty()) {
+        List<UnitInPool> enemyTargetsInRange = UnitUtils.getEnemyTargetsInRange(tank);
+        if (enemyTargetsInRange.isEmpty()) {
             return null;
         }
 
+        //prioritize enemy tanks
+        UnitInPool weakestEnemyTankInRange = enemyTargetsInRange.stream()
+                .filter(u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType()))
+                .min(Comparator.comparing(u -> u.unit().getHealth().orElse(175f)))
+                .orElse(null);
+        if (weakestEnemyTankInRange != null) {
+            return weakestEnemyTankInRange;
+        }
+
+        //find largest splash damage
         float xTank = tank.getPosition().getX();
         float yTank = tank.getPosition().getY();
 
-        int xMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getX();
+        int xMin = 0;
         int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
-        int yMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
+        int yMin = 0;
         int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
         int range = 13;
         int xStart = Math.max(Math.round(2*(xTank - range)), xMin);
@@ -90,7 +110,7 @@ public class Tank extends BasicUnitMicro {
 
     protected boolean doSiegeUp() {
         if (!getEnemiesInRange(13).isEmpty()) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
+            siege();
             return true;
         }
         return false;
@@ -101,7 +121,7 @@ public class Tank extends BasicUnitMicro {
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
             if (lastActiveFrame + 72 < Time.nowFrames()) {
-                ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE, false);
+                unsiege();
                 return true;
             }
             return false;
@@ -120,13 +140,15 @@ public class Tank extends BasicUnitMicro {
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
     }
 
-    //if enemy sieged tank nearby and it can't see
+    //if enemy sieged tank nearby and it can't see TODO: include enemy tanks from my EnemyUnitMemory
     protected Unit getEnemyTankToSiege() {
-        Unit enemyTank = UnitUtils.getClosestEnemyOfType(Units.TERRAN_SIEGE_TANK_SIEGED, unit.unit().getPosition().toPoint2d());
-        if (enemyTank == null || enemyTank.getDisplayType() == DisplayType.HIDDEN || UnitUtils.getDistance(enemyTank, unit.unit()) > 17) {
+        Unit enemyTank = getClosestEnemySiegedTank();
+        if (enemyTank == null ||
+                (enemyTank.getDisplayType() != DisplayType.VISIBLE && UnitUtils.numScansAvailable() == 0) ||
+                UnitUtils.getDistance(enemyTank, unit.unit()) > 17) {
             return null;
         }
-        //edge of my tank where will siege (test vision here)
+        //edge of my tank at pos where it will siege (test vision here)
         Point2d enemyVisionPos = Position.towards(enemyTank.getPosition().toPoint2d(),
                 unit.unit().getPosition().toPoint2d(),
                 12.9f + enemyTank.getRadius());
@@ -141,5 +163,33 @@ public class Tank extends BasicUnitMicro {
 //        Bot.DEBUG.sendDebug();
         return enemyTank;
 
+    }
+
+    protected Unit getClosestEnemySiegedTank() {
+        List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+        List<UnitInPool> enemyTankMemoryList = EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED);
+        enemyTankList.addAll(enemyTankMemoryList);
+        return enemyTankList.stream()
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
+
+    protected UnitInPool getClosestEnemySiegedTankInRange() {
+        List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+        enemyTankList.addAll(EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED));
+        return enemyTankList.stream()
+                .filter(u -> UnitUtils.getDistance(u.unit(), unit.unit()) < 13 + unit.unit().getRadius() * 2)
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
+                .orElse(null);
+    }
+
+    protected void scanEnemyTank(UnitInPool enemyTank) {
+        if (UnitUtils.isInFogOfWar(enemyTank) &&
+                UnitUtils.numScansAvailable() > 0) {
+            Point2d scanPos = Position.towards(enemyTank.unit().getPosition().toPoint2d(),
+                    unit.unit().getPosition().toPoint2d(), -5);
+            UnitUtils.scan(scanPos);
+        }
     }
 }

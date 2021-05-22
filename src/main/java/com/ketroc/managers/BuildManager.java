@@ -76,7 +76,7 @@ public class BuildManager {
         }
         else { //otherwise prioritize starport production
             //build starport units
-            buildStarportUnitsLogic();
+           buildStarportUnitsLogic();
 
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
@@ -267,10 +267,10 @@ public class BuildManager {
             if (!engBayList.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
             }
-            if (!UpgradeManager.armoryAttackUpgrades.isEmpty()) {
+            if (!UpgradeManager.airAttackUpgrades.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
-            if (!UpgradeManager.armoryArmorUpgrades.isEmpty()) {
+            if (!UpgradeManager.mechArmorUpgrades.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             Strategy.techBuilt = true;
@@ -387,14 +387,15 @@ public class BuildManager {
                                 GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
                             UnitMicroList.add(new StructureFloater(cc));
                         }
-                        else if (cc.getEnergy().get() >= Strategy.energyToMuleAt) {
+                        else if (cc.getEnergy().get() >= 50) {
                             //scan enemy main at 4:30
                             if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
                                 ActionHelper.unitCommand(cc, Abilities.EFFECT_SCAN,
                                         Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
                                 Switches.scoutScanComplete = true;
                             }
-                            else if (GameCache.mineralBank < 3000) {
+                            else if (GameCache.mineralBank < 3000 &&
+                                    UnitUtils.numScansAvailable() > Switches.numScansToSave) {
                                 //calldown mule
                                 boolean didMule = false;
                                 for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
@@ -683,7 +684,7 @@ public class BuildManager {
 
         int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int vikingsRequired = ArmyManager.calcNumVikingsNeeded() + 3;
+        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.34) + 3;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {

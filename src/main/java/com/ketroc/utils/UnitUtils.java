@@ -98,6 +98,11 @@ public class UnitUtils {
     public static final Set<Units> THOR_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
 
+    public static final Set<Units> OBSERVER_TYPE = new HashSet<>(Set.of(
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED));
+
+
+
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>(Set.of(
 //            Units.TERRAN_FUSION_CORE, Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED,
@@ -264,12 +269,12 @@ public class UnitUtils {
                 .count();
     }
 
-    public static int getHealthPercentage(Unit unit) {
-        return unit.getHealth().get().intValue() * 100 / unit.getHealthMax().get().intValue();
+    public static float getHealthPercentage(Unit unit) {
+        return unit.getHealth().get() * 100 / unit.getHealthMax().get();
     }
 
     public static int numIdealScvsToRepair(Unit unit) {
-        int structureHealth = getHealthPercentage(unit);
+        float structureHealth = getHealthPercentage(unit);
         if (structureHealth == 100) {
             return 0;
         }
@@ -931,5 +936,21 @@ public class UnitUtils {
 
     public static boolean isAnyBarracksIdle() {
         return GameCache.barracksList.stream().anyMatch(u -> !u.unit().getActive().get());
+    }
+
+    public static int numScansAvailable() {
+        return getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+        .mapToInt(oc -> (int)(oc.getEnergy().orElse(1f) / 50))
+        .sum();
+    }
+
+    public static void scan(Point2d pos) {
+        getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+                .filter(oc -> oc.getEnergy().orElse(0f) >= 50)
+                .max(Comparator.comparing(oc -> oc.getEnergy().get()))
+                .ifPresent(oc -> {
+                    ActionHelper.unitCommand(oc, Abilities.EFFECT_SCAN, pos, false);
+                    ArmyManager.prevScanFrame = Time.nowFrames();
+                });
     }
 }

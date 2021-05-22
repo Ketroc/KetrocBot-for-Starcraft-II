@@ -202,7 +202,9 @@ public class EnemyUnit {
     }
 
     private float getKitingBuffer(Unit enemy) {
-        return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ? Strategy.STATIONARY_KITING_BUFFER : Strategy.KITING_BUFFER;
+        return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ?
+                Strategy.STATIONARY_KITING_BUFFER :
+                Strategy.KITING_BUFFER;
     }
 
     private float getDetectionRange(Unit enemy) {

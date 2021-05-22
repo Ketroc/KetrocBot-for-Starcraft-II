@@ -14,7 +14,6 @@ import com.ketroc.bots.KetrocBot;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.UpgradeManager;
 import com.ketroc.models.DelayedChat;
-import com.ketroc.models.EnemyUnit;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.*;
 
@@ -24,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
+    public static final int NUM_OFFENSE_SCVS = 2;
     public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
     public static GamePlan gamePlan = null;
@@ -67,7 +67,6 @@ public class Strategy {
     public static final int TEMPEST_DIVE_RANGE = 23;
     public static final float RAVEN_DISTANCING_BUFFER = 3f;
     public static final int CAST_SEEKER_RANGE = 15;
-    public static int energyToMuleAt = 50;
     public static final float SEEKER_RADIUS = 3;
     public static final float MIN_SUPPLY_TO_SEEKER = 22;
     public static boolean techBuilt;
@@ -413,13 +412,20 @@ public class Strategy {
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
         UpgradeManager.doStarportUpgrades = true;
 
-        UpgradeManager.armoryArmorUpgrades.addAll(UpgradeManager.armoryAttackUpgrades);
         //get 2 banshees and +1attack for creep clearing and early defense
         if (LocationConstants.opponentRace == Race.ZERG) {
-            UpgradeManager.armoryArmorUpgrades.add(0, UpgradeManager.armoryArmorUpgrades.remove(3));
             BuildManager.MIN_BANSHEES = 2;
+            UpgradeManager.armoryUpgradeList = new ArrayList<>();
+            UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
+            UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
+            UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2);
+            UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3);
+
         }
-        UpgradeManager.armoryAttackUpgrades.clear(); //no 2nd armory
+        else {
+            UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechArmorUpgrades);
+            UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
+        }
 
         LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 8);
         DO_BANSHEE_HARASS = false;
@@ -771,21 +777,16 @@ public class Strategy {
     }
 
     public static void useTanksAdjustments() {
+        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
         NUM_MARINES = Math.min(3, NUM_MARINES);
-        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
-        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
-        UpgradeManager.armoryAttackUpgrades.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3);
         DO_OFFENSIVE_TANKS = true;
         NUM_BASES_TO_OC = 3;
     }
 
     public static void useTankVikingAdjustments() {
-        UpgradeManager.armoryAttackUpgrades.add(0, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
-        UpgradeManager.armoryAttackUpgrades.add(1, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
-        UpgradeManager.armoryAttackUpgrades.add(2, Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3);
+        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
         UpgradeManager.starportUpgradeList.clear();
 
-        EnemyUnit.CYCLONE_AIR_ATTACK_RANGE = 6f;
         //NUM_MARINES = Math.min(3, NUM_MARINES);
         DO_OFFENSIVE_TANKS = true;
         NUM_BASES_TO_OC = 3;

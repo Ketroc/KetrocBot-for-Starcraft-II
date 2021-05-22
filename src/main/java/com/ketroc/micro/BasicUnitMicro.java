@@ -72,6 +72,11 @@ public class BasicUnitMicro {
             onDeath();
             return;
         }
+
+        if (isMorphing()) {
+            return;
+        }
+
         DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //attack if available
@@ -366,5 +371,10 @@ public class BasicUnitMicro {
                 } while (isGround && !Bot.OBS.isPathable(targetPos));
             }
         }
+    }
+
+    protected boolean isMorphing() {
+        return ActionIssued.getCurOrder(unit.unit()).stream()
+                .anyMatch(action -> action.ability.toString().contains("MORPH"));
     }
 }

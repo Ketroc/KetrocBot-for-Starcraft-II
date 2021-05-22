@@ -431,10 +431,8 @@ public class GameCache {
 
 
             //update turret
-            if (!base.isMyMainBase()) { //skip main base
-                for (DefenseUnitPositions turret : base.getTurrets()) {
-                    turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()));
-                }
+            for (DefenseUnitPositions turret : base.getTurrets()) {
+                turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()));
             }
 
         }
@@ -756,7 +754,7 @@ public class GameCache {
                         }
 
                         //threat to air from ground
-                        float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 9 : enemy.airAttackRange;
+                        float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 10 : enemy.airAttackRange;
                         if (distance < airAttackRange) {
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
                         }
