@@ -395,6 +395,7 @@ public class BuildManager {
                                 Switches.scoutScanComplete = true;
                             }
                             else if (GameCache.mineralBank < 3000 &&
+                                    !Switches.hasCastOCSpellThisFrame &&
                                     UnitUtils.numScansAvailable() > Switches.numScansToSave) {
                                 //calldown mule
                                 boolean didMule = false;
@@ -435,6 +436,7 @@ public class BuildManager {
                                                 ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, nearestMineral, false);
                                             });
                                 }
+                                Switches.hasCastOCSpellThisFrame = true;
                             }
                         }
                         //no break

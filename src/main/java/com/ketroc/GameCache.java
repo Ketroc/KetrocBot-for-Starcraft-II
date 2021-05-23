@@ -16,6 +16,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.*;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
@@ -558,7 +559,7 @@ public class GameCache {
         if (Switches.vikingDiveTarget == null) {
             //don't dive detector if vs terran, no banshees, or if there are still voids or phoenix visible
             if (Strategy.DO_DIVE_RAVENS && //TODO: temp for vs ANIBot
-                    !Strategy.MASS_RAVENS &&
+                    (Strategy.gamePlan == GamePlan.BANSHEE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_TANK) &&
                     !GameCache.bansheeList.isEmpty() &&
                     (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {
                 for (Unit detector : GameCache.enemyDetector) {

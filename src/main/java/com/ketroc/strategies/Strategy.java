@@ -153,7 +153,7 @@ public class Strategy {
                 break;
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
-                DO_ANTIDROP_TURRETS = true;
+                //DO_ANTIDROP_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 break;
             case "9bcd0618-172f-4c70-8851-3807850b45a0": //snowbot

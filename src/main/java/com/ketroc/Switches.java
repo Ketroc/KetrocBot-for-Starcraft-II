@@ -9,6 +9,7 @@ public class Switches {
     public static UnitInPool bansheeDiveTarget; //target to snipe for banshees (spore/turret/cannon)
     public static UnitInPool vikingDiveTarget; //target to snipe for viking (overseer/raven/observer)
     public static boolean isDivingTempests; // true is vikingDiveTarget is a tempest
+    public static boolean hasCastOCSpellThisFrame;
 
     public static boolean tvtFastStart; //hardcoded start to get bunker up in time for reaper rush
     public static boolean finishHim; //after cycling his bases twice, start final mop up.
@@ -26,6 +27,8 @@ public class Switches {
     public static int numScansToSave = 0;
 
     public static void onStep() {
+        hasCastOCSpellThisFrame = false;
+
         //observer check
         if (LocationConstants.opponentRace == Race.PROTOSS &&
                 !firstObserverSpotted &&
