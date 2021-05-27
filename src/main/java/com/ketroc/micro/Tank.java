@@ -15,14 +15,18 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Tank extends BasicUnitMicro {
-    private long lastActiveFrame; //last frame that this tank was sieged with an enemy target nearby
+    public static boolean isLongDelayedUnsiege = true;
+
+    private long lastActiveFrame; //last frame that this tank was sieged with an enemy target
+    private int framesDelayToUnSiege = 0;
 
     public Tank(UnitInPool unit, Point2d targetPos) {
-        super(unit, targetPos, MicroPriority.SURVIVAL);
+        this(unit, targetPos, MicroPriority.SURVIVAL);
     }
 
     public Tank(UnitInPool unit, Point2d targetPos, MicroPriority priority) {
         super(unit, targetPos, priority);
+        framesDelayToUnSiege = getFrameDelayToUnsiege();
     }
 
     public void siege() {
@@ -116,11 +120,17 @@ public class Tank extends BasicUnitMicro {
         return false;
     }
 
+    //alternate between ~2s and ~5s for unsiege delay to stagger the tanks
+    protected int getFrameDelayToUnsiege() {
+        isLongDelayedUnsiege = !isLongDelayedUnsiege;
+        return isLongDelayedUnsiege ? 120 : 48;
+    }
+
     protected boolean doUnsiege() {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
                 getEnemiesInRange(15).isEmpty()) {
-            if (lastActiveFrame + 72 < Time.nowFrames()) {
+            if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
                 unsiege();
                 return true;
             }

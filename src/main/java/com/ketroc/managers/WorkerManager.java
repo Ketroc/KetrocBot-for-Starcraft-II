@@ -499,7 +499,10 @@ public class WorkerManager {
             }
         }
         else if (numScvsPerGas == 3) {
-            if (mins < 2750 && gas > 80*GameCache.starportList.size() && gasBankRatio() > 0.5) {
+            if (mins < 2750 &&
+                    gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
+                    gasBankRatio() > 0.5 &&
+                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) == 0) {
                 numScvsPerGas = 2;
             }
         };

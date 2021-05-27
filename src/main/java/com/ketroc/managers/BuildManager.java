@@ -65,9 +65,11 @@ public class BuildManager {
         //turn low health expansion command centers into macro OCs
         saveDyingCCs();
 
-        //prioritize factory production when doing tank viking strat, and viking count is fine
+        //prioritize factory production when doing tank viking strat, and viking/raven count is fine
         if (Strategy.gamePlan == GamePlan.TANK_VIKING &&
-                GameCache.vikingList.size() >= ArmyManager.calcNumVikingsNeeded()) {
+                openingStarportUnits.isEmpty() &&
+                GameCache.vikingList.size() >= ArmyManager.calcNumVikingsNeeded() &&
+                GameCache.ravenList.size() >= 1) {
             //build factory units
             buildFactoryUnitsLogic();
 
@@ -733,7 +735,7 @@ public class BuildManager {
 
 
 
-        public static Abilities decideStarportUnit() { //never max out without a raven
+        public static Abilities decideStarportUnit() {
         //first build hardcoded starport units
         if (!openingStarportUnits.isEmpty()) {
             return openingStarportUnits.get(0);

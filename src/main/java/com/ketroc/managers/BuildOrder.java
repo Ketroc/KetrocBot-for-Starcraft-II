@@ -97,11 +97,12 @@ public class BuildOrder {
                     if (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2) { //build eng bay now if not in the wall
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     }
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                     while (!LocationConstants.FACTORIES.isEmpty()) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                     }
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                 }
                 break;
             case PROTOSS:
@@ -118,7 +119,6 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                 }
                 else if (Strategy.EXPAND_SLOWLY) {
                     pfExpand2BaseOpener();
@@ -141,7 +141,6 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                 }
                 else if (Strategy.EXPAND_SLOWLY) {
                     pfExpand2BaseOpener();

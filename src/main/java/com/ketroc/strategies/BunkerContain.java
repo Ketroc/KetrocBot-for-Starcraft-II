@@ -169,8 +169,11 @@ public class BunkerContain {
                     buildMarines();
                     return;
                 }
-                else if (barracksSpotter == null) {
+                else if (proxyBunkerLevel == 2 && barracksSpotter == null) {
                     barracksSpotter = new StructureFloater(barracks, behindBunkerPos, false);
+                }
+                else if (!isBarracksSentHome) {
+                    sendBarracksHome();
                 }
             }
         }
