@@ -31,21 +31,20 @@ public class TankOffense extends Tank {
         updateTargetPos();
 
         //tank vs tank special case
-        Unit enemyTankToSiege = getEnemyTankToSiege();
-
-        if (enemyTankToSiege != null) {
-            if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) - enemyTankToSiege.getRadius()*2 > 12.9f) {
-                if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-                    unsiege();
+        if (UnitUtils.numScansAvailable() > 0) {
+            Unit enemyTankToSiege = getEnemyTankToSiege();
+            if (enemyTankToSiege != null) {
+                if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) - enemyTankToSiege.getRadius() * 2 > 12.9f) {
+                    if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
+                        unsiege();
+                    } else {
+                        ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege.getPosition().toPoint2d(), false);
+                    }
+                    return;
+                } else if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK) {
+                    siege();
+                    return;
                 }
-                else {
-                    ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, enemyTankToSiege.getPosition().toPoint2d(), false);
-                }
-                return;
-            }
-            else if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK) {
-                siege();
-                return;
             }
         }
 

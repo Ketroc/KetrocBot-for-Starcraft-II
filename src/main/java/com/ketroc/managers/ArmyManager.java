@@ -1150,7 +1150,8 @@ public class ArmyManager {
 
 
         //keep vikings back vs tempests or vikings until ready to engage
-        if (doStayBackFromTempests() || isOutnumberedInVikings()) {
+        if (doStayBackFromTempests() ||
+                (isOutnumberedInVikings() && Bot.OBS.getFoodUsed() <= 198)) {
             isUnsafe = InfluenceMaps.pointVikingsStayBack[x][y];
             stayBack = true;
         }
