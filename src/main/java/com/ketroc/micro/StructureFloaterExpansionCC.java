@@ -45,6 +45,12 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
     @Override
     public void onStep() {
+        //remove if dead
+        if (!isAlive()) {
+            onDeath();
+            return;
+        }
+
         //no new micro commands if landing
         if (UnitUtils.getOrder(unit.unit()) == Abilities.LAND) {
             return;
@@ -53,7 +59,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         //Post-Landed code
         if (!unit.unit().getFlying().orElse(true) &&
                 !unit.unit().getActive().get() &&
-                Time.nowFrames() > createdFrame + 120) {
+                Time.nowFrames() > createdFrame + 192) { //don't PF before floating
             //if landed not on position
             if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {
                 //remove this object when PF starts morphing FIXME: sometimes PF finishes without this if being true
@@ -68,6 +74,8 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 }
             }
             else {
+                //TODO: watch while upgrading PF
+                // -return to flying with new target (basePos) if enemy base dies
                 removeMe = true;
             }
             return;

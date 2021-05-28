@@ -74,7 +74,7 @@ public class Strategy {
 
     public static boolean MASS_RAVENS;
     public static boolean MARINE_ALLIN;
-    public static boolean DO_BANSHEE_HARASS; //FIXME: off for KotH: = true;
+    public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
     public static boolean BUILD_EXPANDS_IN_MAIN = true; //TODO: true for testing only
     public static boolean EXPAND_SLOWLY;
