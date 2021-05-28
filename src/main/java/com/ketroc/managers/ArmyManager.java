@@ -385,7 +385,7 @@ public class ArmyManager {
             doOffense = GameCache.bansheeList.size() +
                     (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.67)  +
                     (GameCache.ravenList.size() * 0.34) > 3 &&
-                    GameCache.vikingList.size() * 1.34 > UnitUtils.getEnemyUnitsOfTypes(UnitUtils.VIKING_TYPE).size();
+                    GameCache.vikingList.size() * 1.34 > UnitUtils.getEnemyUnitsOfType(UnitUtils.VIKING_TYPE).size();
         }
     }
 

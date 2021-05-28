@@ -141,7 +141,7 @@ public class WorkerRushDefense {
 
     private static void attackingStructures() {
         //kill enemy command structure first
-        List<UnitInPool> enemyStructureList = UnitUtils.getEnemyUnitsOfTypes(UnitUtils.enemyCommandStructures);
+        List<UnitInPool> enemyStructureList = UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyCommandStructures);
 
         //kill remaining enemy structures
         if (enemyStructureList.isEmpty()) {

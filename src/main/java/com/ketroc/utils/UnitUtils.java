@@ -440,7 +440,7 @@ public class UnitUtils {
         return GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList());
     }
 
-    public static List<UnitInPool> getEnemyUnitsOfTypes(Collection<Units> unitTypes) {
+    public static List<UnitInPool> getEnemyUnitsOfType(Collection<Units> unitTypes) {
         List<UnitInPool> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
             if (!GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList()).isEmpty()) {

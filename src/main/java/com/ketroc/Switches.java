@@ -1,7 +1,9 @@
 package com.ketroc;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
@@ -16,6 +18,7 @@ public class Switches {
 
     public static boolean firstObserverSpotted;
     public static boolean firstTankSpotted;
+    public static boolean firstCloakBansheeSpotted;
     public static boolean scvRushComplete = true;
     public static boolean enemyCanProduceAir;
     public static boolean enemyHasCloakThreat; //enemy can produce cloaked/burrowed attack units
@@ -29,20 +32,30 @@ public class Switches {
     public static void onStep() {
         hasCastOCSpellThisFrame = false;
 
-        //observer check
+        //+2 scans saved for observers
         if (LocationConstants.opponentRace == Race.PROTOSS &&
                 !firstObserverSpotted &&
-                !UnitUtils.getEnemyUnitsOfTypes(UnitUtils.OBSERVER_TYPE).isEmpty()) {
-            numScansToSave = 2;
+                !UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE).isEmpty()) {
+            numScansToSave += 2;
             firstObserverSpotted = true;
         }
 
-        //tank check
+        //+2 scans saved for tanks
         if (LocationConstants.opponentRace == Race.TERRAN &&
                 !firstTankSpotted &&
-                !UnitUtils.getEnemyUnitsOfTypes(UnitUtils.SIEGE_TANK_TYPE).isEmpty()) {
-            numScansToSave = 3;
+                !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty()) {
+            numScansToSave += 2;
             firstTankSpotted = true;
+        }
+
+        //+1 scans saved for cloak banshees
+        if (LocationConstants.opponentRace == Race.TERRAN &&
+                !firstCloakBansheeSpotted &&
+                UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BANSHEE).stream()
+                        .anyMatch(u -> u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) !=
+                                CloakState.NOT_CLOAKED)) {
+            numScansToSave++;
+            firstCloakBansheeSpotted = true;
         }
     }
 }

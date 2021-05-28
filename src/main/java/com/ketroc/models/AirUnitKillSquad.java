@@ -3,12 +3,15 @@ package com.ketroc.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.GameCache;
 import com.ketroc.micro.BasicUnitMicro;
 import com.ketroc.micro.MicroPriority;
 import com.ketroc.micro.VikingChaser;
 import com.ketroc.utils.InfluenceMaps;
+import com.ketroc.utils.Position;
+import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
@@ -68,6 +71,20 @@ public class AirUnitKillSquad {
             raven.onStep();
         }
         vikings.forEach(vikingChaser -> vikingChaser.onStep());
+        doScan();
+    }
+
+    private void doScan() {
+        if (targetUnit != null && targetUnit.isAlive() &&
+                targetUnit.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED &&
+                vikings.size() == 2 &&
+                vikings.stream().allMatch(v -> UnitUtils.getDistance(v.unit.unit(), targetUnit.unit()) < 3) &&
+                (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
+            Point2d scanPos = Position.towards(targetUnit.unit().getPosition().toPoint2d(),
+                    vikings.get(0).unit.unit().getPosition().toPoint2d(), -2);
+            UnitUtils.scan(scanPos);
+            System.out.println("banshee scan at " + Time.nowClock());
+        }
     }
 
     private void updateRaven() {

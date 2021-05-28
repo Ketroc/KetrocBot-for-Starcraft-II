@@ -79,7 +79,7 @@ public class EnemyUnit {
         isArmy = supply > 0 &&
                 (!UnitUtils.WORKER_TYPE.contains(enemy.getType()) || //any unit that costs supply and is not a worker
                         (Strategy.WALL_OFF_IMMEDIATELY &&
-                                UnitUtils.getEnemyUnitsOfTypes(UnitUtils.WORKER_TYPE).size() > 4 &&
+                                UnitUtils.getEnemyUnitsOfType(UnitUtils.WORKER_TYPE).size() > 4 &&
                                 Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch ((Units)enemy.getType()) {

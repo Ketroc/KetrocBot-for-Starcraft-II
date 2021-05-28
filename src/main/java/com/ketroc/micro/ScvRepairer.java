@@ -51,7 +51,7 @@ public class ScvRepairer extends Scv {
         Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(unit.unit());
         if (curOrder.isEmpty() ||
                 (curOrder.get().ability == Abilities.MOVE && UnitUtils.getHealthPercentage(targetUnit.unit()) < 99) ||
-                !curOrder.get().targetTag.equals(targetUnit.getTag())) {
+                !targetUnit.getTag().equals(curOrder.get().targetTag)) {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, targetUnit.unit(), false);
         }
     }

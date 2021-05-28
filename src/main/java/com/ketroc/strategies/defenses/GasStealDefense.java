@@ -33,7 +33,7 @@ public class GasStealDefense {
                 GameCache.baseList.get(0).getGases().stream()
                         .anyMatch(gas -> UnitUtils.getDistance(enemyGasStructure.unit(), gas.getNodePos()) < 1);
         //if gas is stolen
-        if (UnitUtils.getEnemyUnitsOfTypes(UnitUtils.GAS_STRUCTURE_TYPES).stream().anyMatch(isEnemyGasInMyMain)) {
+        if (UnitUtils.getEnemyUnitsOfType(UnitUtils.GAS_STRUCTURE_TYPES).stream().anyMatch(isEnemyGasInMyMain)) {
             isDoubleGasStealThreatOver = true;
             adjustBuildOrder();
         }
