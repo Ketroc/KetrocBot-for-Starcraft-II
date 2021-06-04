@@ -1318,11 +1318,18 @@ public class ArmyManager {
     //drop auto-turrets near enemy
     private static boolean doAutoTurret(Unit raven) {
         if (!isAttackUnitRetreating &&
+                (isAttackUnitImportant() || raven.getEnergy().orElse(0f) >= 175) &&
                 raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
                 !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return castAutoTurret(raven, 0);
         }
         return false;
+    }
+
+    private static boolean isAttackUnitImportant() {
+        return attackUnit != null &&
+                (!UnitUtils.isStructure(attackUnit.getType()) ||
+                        UnitUtils.canAttack(attackUnit.getType()));
     }
 
     private static boolean castAutoTurret(Unit raven, float towardsEnemyDistance) {

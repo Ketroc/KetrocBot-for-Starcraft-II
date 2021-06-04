@@ -69,7 +69,7 @@ public class BuildManager {
         if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
             if (openingStarportUnits.isEmpty() &&
                     UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true) >=
-                            ArmyManager.calcNumVikingsNeeded() * 1.25 + 4 &&
+                            ArmyManager.calcNumVikingsNeeded() * 1.3 + 5 &&
                     UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true) >= 1) {
                 //build factory units
                 buildFactoryUnitsLogic();
@@ -699,7 +699,7 @@ public class BuildManager {
 
         int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.25) + 4;
+        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.3) + 5;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
