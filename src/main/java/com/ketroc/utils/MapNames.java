@@ -1,9 +1,11 @@
 package com.ketroc.utils;
 
 public final class MapNames {
+    public static final String _2000_ATMOSPHERES_AIE = "2000 Atmospheres AIE";
     public static final String ACROPOLIS = "Acropolis LE";
     public static final String ASCENSION_TO_AIUR = "Ascension to Aiur LE";
     public static final String CATALYST = "Catalyst LE";
+    public static final String BLACKBURN_AIE = "Blackburn AIE";
     public static final String DEATH_AURA = "Deathaura LE";
     public static final String DEATH_AURA505 = "Deathaura 5.0.5";
     public static final String DEATH_AURA506 = "Deathaura 5.0.6";
@@ -23,13 +25,17 @@ public final class MapNames {
     public static final String ICE_AND_CHROME505 = "Ice and Chrome LE 5.0.5";
     public static final String ICE_AND_CHROME506 = "Ice and Chrome 5.0.6";
     public static final String JAGANNATHA = "Jagannatha LE";
+    public static final String JAGANNATHA_AIE = "Jagannatha AIE";
     public static final String LIGHTSHADE = "Lightshade LE";
+    public static final String LIGHTSHADE_AIE = "Lightshade AIE";
     public static final String NIGHTSHADE = "Nightshade LE";
     public static final String OXIDE = "Oxide LE";
+    public static final String OXIDE_AIE = "Oxide AIE";
     public static final String PILLARS_OF_GOLD = "Pillars of Gold LE";
     public static final String PILLARS_OF_GOLD505 = "Pillars of Gold LE 5.0.5";
     public static final String PILLARS_OF_GOLD506 = "Pillars of Gold 5.0.6";
     public static final String ROMANTICIDE = "Romanticide LE";
+    public static final String ROMANTICIDE_AIE = "Romanticide AIE";
     public static final String SIMULACRUM = "Simulacrum LE";
     public static final String SUBMARINE = "Submarine LE";
     public static final String SUBMARINE505 = "Submarine LE 5.0.5";

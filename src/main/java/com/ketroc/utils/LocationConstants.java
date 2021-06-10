@@ -68,7 +68,7 @@ public class LocationConstants {
     public static Race opponentRace;
 
     public static void onGameStart(UnitInPool mainCC) {
-        if (MAP.equals(MapNames.GOLDEN_WALL) || MAP.equals(MapNames.GOLDEN_WALL505) || MAP.equals(MapNames.GOLDEN_WALL506)) { //isTopSpawn == the left spawn for this map
+        if (MAP.contains("Golden Wall") || MAP.contains("Blackburn")) { //isTopSpawn == the left spawn for this map
             isTopSpawn = mainCC.unit().getPosition().getX() < 100;
         }
         else {
@@ -230,11 +230,17 @@ public class LocationConstants {
 
     private static void setStructureLocations() {
         switch (MAP) {
+            case MapNames._2000_ATMOSPHERES_AIE:
+                setLocationsFor2000Atmospheres(isTopSpawn);
+                break;
             case MapNames.ACROPOLIS:
                 setLocationsForAcropolis(isTopSpawn);
                 break;
             case MapNames.ASCENSION_TO_AIUR:
                 setLocationsForAscensionToAiur(isTopSpawn);
+                break;
+            case MapNames.BLACKBURN_AIE:
+                setLocationsForBlackburn(isTopSpawn);
                 break;
             case MapNames.CATALYST:
                 setLocationsForCatalyst(isTopSpawn);
@@ -272,15 +278,18 @@ public class LocationConstants {
                 setLocationsForIceAndChrome(isTopSpawn);
                 break;
             case MapNames.JAGANNATHA:
+            case MapNames.JAGANNATHA_AIE:
                 setLocationsForJagannatha(isTopSpawn);
                 break;
             case MapNames.LIGHTSHADE:
+            case MapNames.LIGHTSHADE_AIE:
                 setLocationsForLightshade(isTopSpawn);
                 break;
             case MapNames.NIGHTSHADE:
                 setLocationsForNightshade(isTopSpawn);
                 break;
             case MapNames.OXIDE:
+            case MapNames.OXIDE_AIE:
                 setLocationsForOxide(isTopSpawn);
                 break;
             case MapNames.PILLARS_OF_GOLD:
@@ -289,6 +298,7 @@ public class LocationConstants {
                 setLocationsForPillarsOfGold(isTopSpawn);
                 break;
             case MapNames.ROMANTICIDE:
+            case MapNames.ROMANTICIDE_AIE:
                 setLocationsForRomanticide(isTopSpawn);
                 break;
             case MapNames.SIMULACRUM:
@@ -316,6 +326,134 @@ public class LocationConstants {
                 break;
         }
     }
+
+    private static void setLocationsFor2000Atmospheres(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(115.5f, 96.5f));
+        muleLetterPosList.add(Point2d.of(101.5f, 114.5f));
+        if (isTopPos) {
+            proxyBarracksPos = Point2d.of(123.5f, 73.5f);
+            proxyBunkerPos = Point2d.of(87.5f, 57.5f);
+            proxyBunkerPos2 = Point2d.of(77.5f, 83.5f);
+
+            reaperBlockDepots.add(Point2d.of(156.0f, 129.0f));
+            reaperBlockDepots.add(Point2d.of(151.0f, 134.0f));
+            reaperBlockDepots.add(Point2d.of(147.0f, 138.0f));
+            reaperBlock3x3s.add(Point2d.of(149.5f, 136.5f));
+
+
+            myMineralPos = Point2d.of(174f, 144.5f);
+            enemyMineralPos = Point2d.of(50f, 59.5f);
+
+            WALL_2x2 = Point2d.of(153.0f, 144.0f);
+            WALL_3x3 = Point2d.of(150.5f, 140.5f);
+            MID_WALL_3x3 = Point2d.of(153.5f, 141.5f);
+            MID_WALL_2x2 = Point2d.of(153f, 142f);
+
+            _3x3Structures.add(MID_WALL_3x3);
+            _3x3Structures.add(WALL_3x3);
+            _3x3Structures.add(Point2d.of(172.5f, 150.5f));
+
+            BUNKER_NATURAL = Point2d.of(136.5f, 144.5f);
+            FACTORIES.add(Point2d.of(159.5f, 141.5f));
+            FACTORIES.add(Point2d.of(159.5f, 144.5f));
+
+            STARPORTS.add(Point2d.of(160.5f, 153.5f));
+            STARPORTS.add(Point2d.of(165.5f, 152.5f));
+            STARPORTS.add(Point2d.of(170.5f, 153.5f));
+            STARPORTS.add(Point2d.of(176.5f, 148.5f));
+            STARPORTS.add(Point2d.of(176.5f, 144.5f));
+            STARPORTS.add(Point2d.of(176.5f, 140.5f));
+            STARPORTS.add(Point2d.of(172.5f, 137.5f));
+            STARPORTS.add(Point2d.of(153.5f, 137.5f));
+            STARPORTS.add(Point2d.of(153.5f, 134.5f));
+            STARPORTS.add(Point2d.of(154.5f, 131.5f));
+            STARPORTS.add(Point2d.of(159.5f, 148.5f));
+            STARPORTS.add(Point2d.of(151.5f, 159.5f));
+            STARPORTS.add(Point2d.of(145.5f, 162.5f));
+
+            MACRO_OCS.add(Point2d.of(166.5f, 138.5f));
+            MACRO_OCS.add(Point2d.of(160.5f, 137.5f));
+            MACRO_OCS.add(Point2d.of(172.5f, 133.5f));
+            MACRO_OCS.add(Point2d.of(167.5f, 133.5f));
+            MACRO_OCS.add(Point2d.of(162.5f, 132.5f));
+
+            extraDepots.add(WALL_2x2);
+            extraDepots.add(MID_WALL_2x2);
+            extraDepots.add(Point2d.of(168.0f, 154.0f));
+            extraDepots.add(Point2d.of(163.0f, 155.0f));
+            extraDepots.add(Point2d.of(161.0f, 156.0f));
+            extraDepots.add(Point2d.of(160.0f, 151.0f));
+            extraDepots.add(Point2d.of(158.0f, 153.0f));
+            extraDepots.add(Point2d.of(158.0f, 151.0f));
+            extraDepots.add(Point2d.of(175.0f, 151.0f));
+            extraDepots.add(Point2d.of(177.0f, 138.0f));
+            extraDepots.add(Point2d.of(170.0f, 130.0f));
+            extraDepots.add(Point2d.of(168.0f, 130.0f));
+            extraDepots.add(Point2d.of(166.0f, 130.0f));
+            extraDepots.add(Point2d.of(164.0f, 129.0f));
+        } else {
+            proxyBarracksPos = Point2d.of(99.5f, 131.5f);
+            proxyBunkerPos = Point2d.of(136.5f, 146.5f);
+            proxyBunkerPos2 = Point2d.of(147.5f, 121.5f);
+
+            reaperBlockDepots.add(Point2d.of(68.0f, 75.0f));
+            reaperBlockDepots.add(Point2d.of(73.0f, 70.0f));
+            reaperBlockDepots.add(Point2d.of(77.0f, 66.0f));
+            reaperBlock3x3s.add(Point2d.of(74.5f, 67.5f));
+
+            myMineralPos = Point2d.of(50f, 59.5f);
+            enemyMineralPos = Point2d.of(174f, 144.5f);
+
+            WALL_2x2 = Point2d.of(71.0f, 60.0f);
+            MID_WALL_3x3 = Point2d.of(70.5f, 62.5f);
+            MID_WALL_2x2 = Point2d.of(71f, 62f);
+            WALL_3x3 = Point2d.of(73.5f, 63.5f);
+
+            _3x3Structures.add(MID_WALL_3x3);
+            _3x3Structures.add(WALL_3x3);
+            _3x3Structures.add(Point2d.of(70.5f, 65.5f));
+
+            BUNKER_NATURAL = Point2d.of(86.5f, 58.5f);
+            FACTORIES.add(Point2d.of(63.5f, 61.5f));
+            FACTORIES.add(Point2d.of(63.5f, 58.5f));
+
+            STARPORTS.add(Point2d.of(64.5f, 52.5f));
+            STARPORTS.add(Point2d.of(59.5f, 50.5f));
+            STARPORTS.add(Point2d.of(54.5f, 52.5f));
+            STARPORTS.add(Point2d.of(49.5f, 52.5f));
+            STARPORTS.add(Point2d.of(46.5f, 61.5f));
+            STARPORTS.add(Point2d.of(46.5f, 56.5f));
+            STARPORTS.add(Point2d.of(49.5f, 66.5f));
+            STARPORTS.add(Point2d.of(66.5f, 72.5f));
+            STARPORTS.add(Point2d.of(67.5f, 69.5f));
+            STARPORTS.add(Point2d.of(64.5f, 67.5f));
+            STARPORTS.add(Point2d.of(63.5f, 64.5f));
+            STARPORTS.add(Point2d.of(70.5f, 45.5f));
+            STARPORTS.add(Point2d.of(76.5f, 43.5f));
+
+            MACRO_OCS.add(Point2d.of(57.5f, 65.5f));
+            MACRO_OCS.add(Point2d.of(51.5f, 70.5f));
+            MACRO_OCS.add(Point2d.of(56.5f, 70.5f));
+            MACRO_OCS.add(Point2d.of(61.5f, 71.5f));
+
+            extraDepots.add(WALL_2x2);
+            extraDepots.add(MID_WALL_2x2);
+            extraDepots.add(Point2d.of(46.0f, 59.0f));
+            extraDepots.add(Point2d.of(47.0f, 54.0f));
+            extraDepots.add(Point2d.of(48.0f, 59.0f));
+            extraDepots.add(Point2d.of(51.0f, 50.0f));
+            extraDepots.add(Point2d.of(57.0f, 50.0f));
+            extraDepots.add(Point2d.of(61.0f, 48.0f));
+            extraDepots.add(Point2d.of(62.0f, 67.0f));
+            extraDepots.add(Point2d.of(55.0f, 50.0f));
+            extraDepots.add(Point2d.of(63.0f, 48.0f));
+            extraDepots.add(Point2d.of(48.0f, 64.0f));
+            extraDepots.add(Point2d.of(53.0f, 50.0f));
+            extraDepots.add(Point2d.of(65.0f, 50.0f));
+        }
+    }
+
+
 
     private static void setLocationsForAcropolis(boolean isTopPos) {
         if (isTopPos) {
@@ -587,6 +725,155 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(157.0f, 14.0f));
         }
     }
+
+    private static void setLocationsForBlackburn(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(100.5f, 97.5f));
+        muleLetterPosList.add(Point2d.of(108.5f, 98.5f));
+        if (isTopPos) {
+            proxyBarracksPos = Point2d.of(118.5f, 83.5f);
+            proxyBunkerPos = Point2d.of(129.5f, 48.5f);
+            proxyBunkerPos2 = Point2d.of(136.5f, 68.5f);
+
+            reaperBlockDepots.add(Point2d.of(49.0f, 130.0f));
+            reaperBlock3x3s.add(Point2d.of(46.5f, 128.5f));
+            reaperBlock3x3s.add(Point2d.of(51.5f, 131.5f));
+
+
+            myMineralPos = Point2d.of(37f, 146.5f);
+            enemyMineralPos = Point2d.of(155.0f, 41.5f);
+
+            WALL_2x2 = Point2d.of(47.0f, 140.0f);
+            WALL_3x3 = Point2d.of(49.5f, 136.5f);
+            MID_WALL_3x3 = Point2d.of(46.5f, 137.5f);
+            MID_WALL_2x2 = Point2d.of(47f, 138f);
+
+            _3x3Structures.add(MID_WALL_3x3);
+            _3x3Structures.add(WALL_3x3);
+            _3x3Structures.add(Point2d.of(38.5f, 132.5f));
+            _3x3Structures.add(Point2d.of(26.5f, 139.5f));
+
+            BUNKER_NATURAL = Point2d.of(62.5f, 138.5f);
+            FACTORIES.add(Point2d.of(41.5f, 144.5f));
+            FACTORIES.add(Point2d.of(46.5f, 152.5f));
+
+            STARPORTS.add(Point2d.of(37.5f, 135.5f));
+            STARPORTS.add(Point2d.of(40.5f, 148.5f));
+            STARPORTS.add(Point2d.of(29.5f, 146.5f));
+            STARPORTS.add(Point2d.of(32.5f, 148.5f));
+            STARPORTS.add(Point2d.of(35.5f, 150.5f));
+            STARPORTS.add(Point2d.of(26.5f, 142.5f));
+            STARPORTS.add(Point2d.of(27.5f, 134.5f));
+            STARPORTS.add(Point2d.of(28.5f, 130.5f));
+            STARPORTS.add(Point2d.of(34.5f, 129.5f));
+            //STARPORTS.add(Point2d.of(47.5f, 146.5f)); removed for FACTORY2 pathing
+            //STARPORTS.add(Point2d.of(46.5f, 152.5f)); FACTORY2
+            STARPORTS.add(Point2d.of(48.5f, 156.5f));
+            STARPORTS.add(Point2d.of(65.5f, 155.5f));
+            STARPORTS.add(Point2d.of(60.5f, 158.5f));
+            STARPORTS.add(Point2d.of(54.5f, 158.5f));
+
+            TURRETS.add(Point2d.of(38.0f, 144.0f));
+            TURRETS.add(Point2d.of(33.0f, 136.0f));
+            TURRETS.add(Point2d.of(33.0f, 139.0f));
+
+            MACRO_OCS.add(Point2d.of(30.5f, 125.5f));
+            MACRO_OCS.add(Point2d.of(35.5f, 125.5f));
+            MACRO_OCS.add(Point2d.of(35.5f, 120.5f));
+            MACRO_OCS.add(Point2d.of(40.5f, 122.5f));
+            MACRO_OCS.add(Point2d.of(41.5f, 127.5f));
+            MACRO_OCS.add(Point2d.of(45.5f, 133.5f));
+            MACRO_OCS.add(Point2d.of(42.5f, 138.5f));
+
+            extraDepots.add(WALL_2x2);
+            extraDepots.add(MID_WALL_2x2);
+            extraDepots.add(Point2d.of(51.0f, 134.0f));
+            extraDepots.add(Point2d.of(44.0f, 146.0f));
+            extraDepots.add(Point2d.of(49.0f, 134.0f));
+            extraDepots.add(Point2d.of(43.0f, 150.0f));
+            extraDepots.add(Point2d.of(49.0f, 132.0f));
+            extraDepots.add(Point2d.of(26.0f, 137.0f));
+            extraDepots.add(Point2d.of(38.0f, 152.0f));
+            extraDepots.add(Point2d.of(28.0f, 137.0f));
+            extraDepots.add(Point2d.of(29.0f, 144.0f));
+            extraDepots.add(Point2d.of(29.0f, 139.0f));
+            extraDepots.add(Point2d.of(37.0f, 148.0f));
+            extraDepots.add(Point2d.of(31.0f, 132.0f));
+            extraDepots.add(Point2d.of(30.0f, 149.0f));
+            extraDepots.add(Point2d.of(41.0f, 133.0f));
+        } else {
+            proxyBarracksPos = Point2d.of(72.5f, 105.5f);
+            proxyBunkerPos = Point2d.of(62.5f, 139.5f);
+            proxyBunkerPos2 = Point2d.of(55.5f, 119.5f);
+
+            reaperBlockDepots.add(Point2d.of(143.0f, 58.0f)); //reaperJump1
+            reaperBlock3x3s.add(Point2d.of(145.5f, 59.5f));
+            reaperBlock3x3s.add(Point2d.of(140.5f, 56.5f));
+
+            myMineralPos = Point2d.of(155.0f, 41.5f);
+            enemyMineralPos = Point2d.of(37f, 146.5f);
+
+            WALL_2x2 = Point2d.of(145.0f, 48.0f);
+            MID_WALL_3x3 = Point2d.of(145.5f, 50.5f);
+            MID_WALL_2x2 = Point2d.of(145f, 50f);
+            WALL_3x3 = Point2d.of(142.5f, 51.5f);
+
+            _3x3Structures.add(MID_WALL_3x3);
+            _3x3Structures.add(WALL_3x3);
+            _3x3Structures.add(Point2d.of(164.5f, 51.5f));
+            _3x3Structures.add(Point2d.of(162.5f, 57.5f));
+
+            BUNKER_NATURAL = Point2d.of(129.5f, 49.5f);
+            FACTORIES.add(Point2d.of(148.5f, 42.5f));
+            FACTORIES.add(Point2d.of(141.5f, 42.5f));
+
+            STARPORTS.add(Point2d.of(148.5f, 39.5f));
+            STARPORTS.add(Point2d.of(154.5f, 39.5f));
+            STARPORTS.add(Point2d.of(153.5f, 36.5f));
+            STARPORTS.add(Point2d.of(160.5f, 40.5f));
+            STARPORTS.add(Point2d.of(163.5f, 45.5f));
+            STARPORTS.add(Point2d.of(162.5f, 54.5f));
+            STARPORTS.add(Point2d.of(156.5f, 58.5f));
+            STARPORTS.add(Point2d.of(152.5f, 52.5f));
+            STARPORTS.add(Point2d.of(152.5f, 55.5f));
+            //STARPORTS.add(Point2d.of(141.5f, 42.5f)); FACTORY2
+            STARPORTS.add(Point2d.of(143.5f, 35.5f));
+            STARPORTS.add(Point2d.of(141.5f, 31.5f));
+            STARPORTS.add(Point2d.of(136.5f, 28.5f));
+            STARPORTS.add(Point2d.of(131.5f, 28.5f));
+            STARPORTS.add(Point2d.of(125.5f, 32.5f));
+
+            TURRETS.add(Point2d.of(153.0f, 44.0f));
+            TURRETS.add(Point2d.of(159.0f, 52.0f));
+            TURRETS.add(Point2d.of(159.0f, 49.0f));
+
+            MACRO_OCS.add(Point2d.of(161.5f, 62.5f));
+            MACRO_OCS.add(Point2d.of(156.5f, 62.5f));
+            MACRO_OCS.add(Point2d.of(156.5f, 67.5f));
+            MACRO_OCS.add(Point2d.of(151.5f, 65.5f));
+            MACRO_OCS.add(Point2d.of(150.5f, 60.5f));
+            MACRO_OCS.add(Point2d.of(146.5f, 54.5f));
+            MACRO_OCS.add(Point2d.of(149.5f, 48.5f));
+
+            extraDepots.add(WALL_2x2);
+            extraDepots.add(MID_WALL_2x2);
+            extraDepots.add(Point2d.of(141.0f, 54.0f));
+            extraDepots.add(Point2d.of(166.0f, 61.0f));
+            extraDepots.add(Point2d.of(143.0f, 54.0f));
+            extraDepots.add(Point2d.of(160.0f, 66.0f));
+            extraDepots.add(Point2d.of(143.0f, 56.0f));
+            extraDepots.add(Point2d.of(166.0f, 47.0f));
+            extraDepots.add(Point2d.of(157.0f, 41.0f));
+            extraDepots.add(Point2d.of(166.0f, 49.0f));
+            extraDepots.add(Point2d.of(162.0f, 43.0f));
+            extraDepots.add(Point2d.of(158.0f, 37.0f));
+            extraDepots.add(Point2d.of(164.0f, 42.0f));
+            extraDepots.add(Point2d.of(161.0f, 38.0f));
+            extraDepots.add(Point2d.of(164.0f, 48.0f));
+            extraDepots.add(Point2d.of(147.0f, 62.0f));
+        }
+    }
+
+
 
     private static void setLocationsForCatalyst(boolean isTopPos) {
         muleLetterPosList.add(Point2d.of(103.5f, 84.5f));
@@ -3563,6 +3850,25 @@ public class LocationConstants {
 
     public static void setBaseLocations() {
         switch (MAP) {
+            case MapNames._2000_ATMOSPHERES_AIE:
+                baseLocations.add(Point2d.of(166.5f, 143.5f));
+                baseLocations.add(Point2d.of(144.5f, 152.5f));
+                baseLocations.add(Point2d.of(146.5f, 123.5f));
+                baseLocations.add(Point2d.of(169.5f, 98.5f));
+                baseLocations.add(Point2d.of(111.5f, 155.5f));
+                baseLocations.add(Point2d.of(84.5f, 156.5f));
+                baseLocations.add(Point2d.of(53.5f, 154.5f));
+                baseLocations.add(Point2d.of(66.5f, 131.5f));
+                baseLocations.add(Point2d.of(157.5f, 72.5f));
+                baseLocations.add(Point2d.of(170.5f, 49.5f));
+                baseLocations.add(Point2d.of(139.5f, 47.5f));
+                baseLocations.add(Point2d.of(112.5f, 48.5f));
+                baseLocations.add(Point2d.of(54.5f, 105.5f));
+                baseLocations.add(Point2d.of(77.5f, 80.5f));
+                baseLocations.add(Point2d.of(79.5f, 51.5f));
+                baseLocations.add(Point2d.of(57.5f, 60.5f));
+                break;
+
             case MapNames.ACROPOLIS:
                 baseLocations.add(Point2d.of(33.5f, 138.5f));
                 baseLocations.add(Point2d.of(31.5f, 113.5f));
@@ -3599,6 +3905,23 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(121.5f, 40.5f));
                 baseLocations.add(Point2d.of(154.5f, 45.5f));
                 baseLocations.add(Point2d.of(149.5f, 23.5f));
+                break;
+
+            case MapNames.BLACKBURN_AIE:
+                baseLocations.add(Point2d.of(36.5f, 31.5f));
+                baseLocations.add(Point2d.of(36.5f, 54.5f));
+                baseLocations.add(Point2d.of(67.5f, 54.5f));
+                baseLocations.add(Point2d.of(39.5f, 80.5f));
+                baseLocations.add(Point2d.of(36.5f, 115.5f));
+                baseLocations.add(Point2d.of(57.5f, 99.5f));
+                baseLocations.add(Point2d.of(91.5f, 121.5f));
+                baseLocations.add(Point2d.of(92.5f, 32.5f));
+                baseLocations.add(Point2d.of(126.5f, 99.5f));
+                baseLocations.add(Point2d.of(147.5f, 115.5f));
+                baseLocations.add(Point2d.of(144.5f, 80.5f));
+                baseLocations.add(Point2d.of(116.5f, 54.5f));
+                baseLocations.add(Point2d.of(147.5f, 54.5f));
+                baseLocations.add(Point2d.of(147.5f, 31.5f));
                 break;
 
             case MapNames.CATALYST:
@@ -3759,6 +4082,7 @@ public class LocationConstants {
                 break;
 
             case MapNames.JAGANNATHA:
+            case MapNames.JAGANNATHA_AIE:
                 baseLocations.add(Point2d.of(126.5f, 151.5f));
                 baseLocations.add(Point2d.of(98.5f, 151.5f));
                 baseLocations.add(Point2d.of(104.5f, 125.5f));
@@ -3776,6 +4100,7 @@ public class LocationConstants {
                 break;
 
             case MapNames.LIGHTSHADE:
+            case MapNames.LIGHTSHADE_AIE:
                 baseLocations.add(Point2d.of(40.5f, 131.5f));
                 baseLocations.add(Point2d.of(38.5f, 102.5f));
                 baseLocations.add(Point2d.of(64.5f, 110.5f));
@@ -3812,6 +4137,7 @@ public class LocationConstants {
                 break;
 
             case MapNames.OXIDE:
+            case MapNames.OXIDE_AIE:
                 baseLocations.add(Point2d.of(147.5f, 147.5f));
                 baseLocations.add(Point2d.of(122.5f, 151.5f));
                 baseLocations.add(Point2d.of(131.5f, 123.5f));
@@ -3846,6 +4172,7 @@ public class LocationConstants {
                 break;
 
             case MapNames.ROMANTICIDE:
+            case MapNames.ROMANTICIDE_AIE:
                 baseLocations.add(Point2d.of(41.5f, 135.5f));
                 baseLocations.add(Point2d.of(46.5f, 103.5f));
                 baseLocations.add(Point2d.of(68.5f, 126.5f));

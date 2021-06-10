@@ -9,9 +9,8 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.micro.Cyclone;
 import com.ketroc.GameCache;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.micro.Cyclone;
 import com.ketroc.utils.*;
 
 import java.nio.file.Path;
@@ -81,9 +80,9 @@ public class TestingBot extends Bot {
 
         LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
-        DebugHelper.onGameStart();
-        debug().debugGiveAllTech();
-        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
+//        DebugHelper.onGameStart();
+        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
+//        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
         debug().sendDebug();
@@ -100,26 +99,26 @@ public class TestingBot extends Bot {
     @Override
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         Unit unit = unitInPool.unit();
-        Print.print(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
+        System.out.println(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
     }
 
     @Override
     public void onStep() {
-        if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
-            return;
-        }
-        super.onStep();
-        try {
-            GameCache.onStep();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<UnitInPool> enemyHatchList = OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.ZERG_HATCHERY);
-        if (!enemyHatchList.isEmpty()) {
-            Unit myFlyingCC = OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING).get(0).unit();
-            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
-            int wer = 392847;
-        }
+//        if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
+//            return;
+//        }
+//        super.onStep();
+//        try {
+//            GameCache.onStep();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        List<UnitInPool> enemyHatchList = OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.ZERG_HATCHERY);
+//        if (!enemyHatchList.isEmpty()) {
+//            Unit myFlyingCC = OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING).get(0).unit();
+//            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
+//            int wer = 392847;
+//        }
 
         ACTION.sendActions();
         DEBUG.sendDebug();

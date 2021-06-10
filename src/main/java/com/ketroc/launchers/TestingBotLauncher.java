@@ -27,23 +27,27 @@ public class TestingBotLauncher {
                         S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()
+                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
+
+
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
-        //                .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("CatalystLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("DeathAuraLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));
-                        .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
+//                        .startGame(LocalMap.of(Paths.get("EternalEmpireLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("EverDreamLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("GoldenWall506.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("IceandChromeLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("JagannathaLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("LightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("OxideLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("PillarsOfGoldLE.SC2Map")));
-        //        .startGame(LocalMap.of(Paths.get("RomanticideLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("SimulacrumLE.SC2Map")));
         //                .startGame(LocalMap.of(Paths.get("SubmarineLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ThunderbirdLE.SC2Map")));

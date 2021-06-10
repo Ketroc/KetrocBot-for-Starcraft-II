@@ -274,7 +274,7 @@ public class BuildManager {
     }
 
     private static void build2ndLayerOfTech() {
-        //build after 4th base started
+        //build after 4th base started TODO: get armories earlier and smarter
         if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
             List<Unit> engBayList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
@@ -323,10 +323,7 @@ public class BuildManager {
     }
 
     private static void buildAntiDropTurrets() {
-        if (Strategy.DO_ANTIDROP_TURRETS &&
-                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
-                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
-                !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
+        if (Strategy.DO_ANTIDROP_TURRETS && !LocationConstants.MAP.contains("Golden Wall")) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
         }

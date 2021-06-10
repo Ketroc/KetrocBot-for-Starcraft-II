@@ -360,9 +360,7 @@ public class BunkerContain {
             List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
             scoutScvs = availableScvs.subList(0, 2);
             scoutScvs.forEach(scv -> Base.releaseScv(scv.unit()));
-            if (!LocationConstants.MAP.equals(MapNames.GOLDEN_WALL) &&
-                    !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL505) &&
-                    !LocationConstants.MAP.equals(MapNames.GOLDEN_WALL506)) {
+            if (!LocationConstants.MAP.contains("Golden Wall") && !LocationConstants.MAP.contains("Blackburn")) {
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(3)), true);
