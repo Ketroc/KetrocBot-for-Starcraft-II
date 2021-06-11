@@ -33,7 +33,7 @@ public class Bot extends S2Agent {
 
     @Override
     public void onGameStart() {
-        updateIds(); //fix ids for 5.0.6 maps
+        updateIds(); //fix ids for 5.0.6 maps / AIE maps
 
         OBS = observation();
         ACTION = actions();
@@ -79,7 +79,8 @@ public class Bot extends S2Agent {
     public void updateIds() {
         int baseBuild = control().proto().getBaseBuild();
         String mapName = observation().getGameInfo().getMapName();
-        if (baseBuild >= 81009 || !mapName.matches("^.*\\d{1,2}\\.\\d{1,2}\\.\\d{1,2}$")) {
+        if (baseBuild >= 81009 ||
+                (!mapName.endsWith("AIE") && !mapName.matches("^.*\\d{1,2}\\.\\d{1,2}\\.\\d{1,2}$"))) {
             return;
         }
 
