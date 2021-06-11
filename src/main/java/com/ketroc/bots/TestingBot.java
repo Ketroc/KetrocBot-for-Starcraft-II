@@ -81,7 +81,7 @@ public class TestingBot extends Bot {
         LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
 //        DebugHelper.onGameStart();
-        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
+        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild().debugGodMode();
 //        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);

@@ -2029,6 +2029,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(93.5f, 144.5f);
             FACTORIES.add(Point2d.of(114.5f, 149.5f));
+            FACTORIES.add(Point2d.of(118.5f, 141.5f));
 
             STARPORTS.add(Point2d.of(115.5f, 160.5f));
             STARPORTS.add(Point2d.of(114.5f, 156.5f));
@@ -2041,7 +2042,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(135.5f, 154.5f));
             STARPORTS.add(Point2d.of(137.5f, 149.5f));
             STARPORTS.add(Point2d.of(135.5f, 145.5f));
-            STARPORTS.add(Point2d.of(118.5f, 141.5f));
             STARPORTS.add(Point2d.of(119.5f, 138.5f));
             STARPORTS.add(Point2d.of(116.5f, 136.5f));
             STARPORTS.add(Point2d.of(111.5f, 139.5f));
@@ -2093,6 +2093,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(73.5f, 40.5f);
             FACTORIES.add(Point2d.of(49.5f, 38.5f));
+            FACTORIES.add(Point2d.of(53.5f, 33.5f));
 
             STARPORTS.add(Point2d.of(44.5f, 24.5f));
             STARPORTS.add(Point2d.of(38.5f, 24.5f));
@@ -2103,7 +2104,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(30.5f, 32.5f));
             STARPORTS.add(Point2d.of(29.5f, 36.5f));
             STARPORTS.add(Point2d.of(31.5f, 40.5f));
-            STARPORTS.add(Point2d.of(53.5f, 33.5f));
             STARPORTS.add(Point2d.of(46.5f, 36.5f));
             STARPORTS.add(Point2d.of(46.5f, 43.5f));
             STARPORTS.add(Point2d.of(40.5f, 48.5f));
@@ -2165,6 +2165,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(45.5f, 99.5f);
             FACTORIES.add(Point2d.of(41.5f, 123.5f));
+            FACTORIES.add(Point2d.of(46.5f, 122.5f));
 
             STARPORTS.add(Point2d.of(30.5f, 126.5f));
             STARPORTS.add(Point2d.of(29.5f, 122.5f));
@@ -2180,7 +2181,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(55.5f, 123.5f));
             STARPORTS.add(Point2d.of(39.5f, 126.5f));
             STARPORTS.add(Point2d.of(44.5f, 125.5f));
-            STARPORTS.add(Point2d.of(46.5f, 122.5f));
             STARPORTS.add(Point2d.of(28.5f, 108.5f));
 
             TURRETS.add(Point2d.of(45.0f, 136.0f));
@@ -2232,6 +2232,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(138.5f, 65.5f);
             FACTORIES.add(Point2d.of(142.5f, 45.5f));
+            FACTORIES.add(Point2d.of(137.5f, 41.5f));
 
             STARPORTS.add(Point2d.of(153.5f, 35.5f));
             STARPORTS.add(Point2d.of(153.5f, 41.5f));
@@ -2247,7 +2248,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(126.5f, 36.5f));
             STARPORTS.add(Point2d.of(134.5f, 39.5f));
             STARPORTS.add(Point2d.of(129.5f, 40.5f));
-            STARPORTS.add(Point2d.of(137.5f, 41.5f));
             STARPORTS.add(Point2d.of(153.5f, 55.5f));
 
             TURRETS.add(Point2d.of(139.0f, 28.0f));
@@ -2432,7 +2432,6 @@ public class LocationConstants {
             reaperBlockDepots.add(Point2d.of(133.0f, 136.0f));
             reaperBlock3x3s.add(Point2d.of(137.5f, 134.5f));
 
-
             myMineralPos = Point2d.of(148f, 154.5f);
             enemyMineralPos = Point2d.of(44f, 49.5f);
 
@@ -2445,8 +2444,10 @@ public class LocationConstants {
             _3x3Structures.add(WALL_3x3);
             _3x3Structures.add(Point2d.of(133.5f, 138.5f));
             _3x3Structures.add(Point2d.of(130.5f, 157.5f));
+
             BUNKER_NATURAL = Point2d.of(117.5f, 143.5f);
             FACTORIES.add(Point2d.of(134.5f, 146.5f));
+            FACTORIES.add(Point2d.of(141.5f, 142.5f));
 
             STARPORTS.add(Point2d.of(137.5f, 157.5f));
             STARPORTS.add(Point2d.of(143.5f, 157.5f));
@@ -2458,7 +2459,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(156.5f, 150.5f));
             STARPORTS.add(Point2d.of(155.5f, 153.5f));
             STARPORTS.add(Point2d.of(154.5f, 141.5f));
-            STARPORTS.add(Point2d.of(141.5f, 142.5f));
             STARPORTS.add(Point2d.of(138.5f, 140.5f));
             STARPORTS.add(Point2d.of(137.5f, 137.5f));
             STARPORTS.add(Point2d.of(144.5f, 138.5f));
@@ -2512,6 +2512,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(74.5f, 60.5f);
             FACTORIES.add(Point2d.of(55.5f, 57.5f));
+            FACTORIES.add(Point2d.of(48.5f, 57.5f));
 
             STARPORTS.add(Point2d.of(55.5f, 51.5f));
             STARPORTS.add(Point2d.of(49.5f, 52.5f));
@@ -2524,10 +2525,9 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(32.5f, 53.5f));
             STARPORTS.add(Point2d.of(52.5f, 65.5f));
             STARPORTS.add(Point2d.of(49.5f, 63.5f));
-            STARPORTS.add(Point2d.of(49.5f, 60.5f));
-            STARPORTS.add(Point2d.of(48.5f, 57.5f));
             STARPORTS.add(Point2d.of(35.5f, 63.5f));
             STARPORTS.add(Point2d.of(35.5f, 66.5f));
+            //STARPORTS.add(Point2d.of(49.5f, 60.5f)); //removed to make space for 2nd factory tanks
 
             TURRETS.add(Point2d.of(40.0f, 60.0f));
             TURRETS.add(Point2d.of(40.0f, 57.0f));
