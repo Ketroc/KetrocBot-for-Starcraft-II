@@ -8,6 +8,8 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.micro.ScvAttackTarget;
+import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.StructureScv;
 import com.ketroc.models.TriangleOfNodes;
 import com.ketroc.utils.ActionHelper;
@@ -67,11 +69,14 @@ public class WorkerRushDefense {
 
             }
             switch (defenseStep) {
-                case 0: //probe rush check
-                    if (UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, LocationConstants.pointOnMyRamp, 7).size() >= 5 &&
-                            !UnitUtils.isWallComplete()) {
+                case 0: //worker rush check
+                    int numEnemyWorkersAttacking = (int)UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
+                            .filter(u -> UnitUtils.isInMyMainOrNat(u.unit()))
+                            .count();
+                    if (numEnemyWorkersAttacking >= 5 && !UnitUtils.isWallComplete()) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
+                        UnitMicroList.removeAll(ScvAttackTarget.class);
                     }
                     break;
 

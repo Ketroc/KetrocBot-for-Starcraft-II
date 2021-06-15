@@ -71,10 +71,6 @@ public class ActionErrorManager {
                     }
                 }
                 else if (isBlockedByUnit(actionResult)) {
-                    //blocked by burrowed zerg unit
-                    if (Bot.abilityToUnitType.get(ability) == null) { //TODO: this block is only here for testing
-                        System.out.println("No Unit Type in map for the ability of: " + ability.toString());
-                    }
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, Units.TERRAN_COMMAND_CENTER) == 0) {
                         ExpansionClearing.add(pos);

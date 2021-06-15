@@ -19,6 +19,7 @@ import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
+import com.ketroc.strategies.defenses.WorkerRushDefense;
 import com.ketroc.utils.*;
 
 import java.util.*;
@@ -73,8 +74,9 @@ public class WorkerManager {
     }
 
     private static void defendWorkerHarass() {
-        //only for first 3min
-        if (Strategy.WALL_OFF_IMMEDIATELY || Time.nowFrames() > Time.toFrames("3:00") || CannonRushDefense.cannonRushStep != 0) {
+        if (Strategy.WALL_OFF_IMMEDIATELY ||
+                CannonRushDefense.cannonRushStep != 0 ||
+                WorkerRushDefense.defenseStep > 0) {
             return;
         }
 

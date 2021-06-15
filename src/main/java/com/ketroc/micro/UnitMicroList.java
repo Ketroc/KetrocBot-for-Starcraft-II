@@ -43,6 +43,13 @@ public class UnitMicroList {
         }
     }
 
+    public static <T extends BasicUnitMicro> void removeAll(Class<T> cls) {
+        unitMicroList.stream()
+                .filter(basicUnitMicro -> basicUnitMicro.getClass().equals(cls))
+                .forEach(basicUnitMicro -> Ignored.remove(basicUnitMicro.unit.getTag()));
+        unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro.getClass().equals(cls));
+    }
+
     public static <T extends BasicUnitMicro> List<T> getUnitSubList(Class<T> cls) {
         return unitMicroList.stream()
                 .filter(basicUnit -> cls.isInstance(basicUnit))
