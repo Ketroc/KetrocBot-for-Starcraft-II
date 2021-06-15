@@ -76,6 +76,12 @@ public class WorkerRushDefense {
                     if (numEnemyWorkersAttacking >= 5 && !UnitUtils.isWallComplete()) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
+                        UnitMicroList.getUnitSubList(ScvAttackTarget.class)
+                                .forEach(scvAttackTarget -> {
+                                    if (scvAttackTarget.isAlive()) {
+                                        ActionHelper.unitCommand(scvAttackTarget.unit.unit(), Abilities.STOP, false);
+                                    }
+                                });
                         UnitMicroList.removeAll(ScvAttackTarget.class);
                     }
                     break;
