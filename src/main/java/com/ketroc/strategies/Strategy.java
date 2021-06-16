@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
-    public static final int NUM_OFFENSE_SCVS = 2;
+    public static final int NUM_OFFENSE_SCVS = 5;
     public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
     public static GamePlan gamePlan = null;
@@ -45,7 +45,7 @@ public class Strategy {
     public static final int MAX_LIBS = 10;
 
     public static int NUM_MARINES = 3;
-    public static int MAX_OCS = 7;
+    public static int MAX_OCS = 9;
     public static final int FUNGAL_FRAMES = 16; //# of frames for fungal to land after being cast
     public static float VIKING_BANSHEE_RATIO = 0.2f;
     public static final int MAX_VIKINGS_TO_DIVE_TEMPESTS = 20; //always dive tempests if we reach this number

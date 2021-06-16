@@ -649,7 +649,12 @@ public class BuildManager {
                 //add factory positions to available starport positions
                 Point2d factoryPos = factory.unit().getPosition().toPoint2d();
                 if (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, factoryPos)) { //if not proxied
-                    LocationConstants.STARPORTS.add(0, factoryPos);
+                    if (factory.unit().getAddOnTag().isPresent()) {
+                        LocationConstants.STARPORTS.add(0, factoryPos);
+                    }
+                    else {
+                        LocationConstants.STARPORTS.add(factoryPos);
+                    }
                 }
                 LocationConstants.STARPORTS.addAll(LocationConstants.FACTORIES);
                 LocationConstants.FACTORIES.clear();
@@ -871,7 +876,11 @@ public class BuildManager {
                 (Base.numMyBases() < LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND ||
                         !LocationConstants.MACRO_OCS.isEmpty() ||
                         !Placement.possibleCcPosList.isEmpty())) {
-            addCCToPurchaseQueue();
+            if (GameCache.mineralBank > GameCache.gasBank ||
+                    Base.numAvailableBases() > 0 ||
+                    UnitUtils.getNumFriendlyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
+                addCCToPurchaseQueue();
+            }
         }
     }
 
@@ -996,11 +1005,23 @@ public class BuildManager {
     }
 
     private static boolean purchaseMacroCC() {
-        if (!LocationConstants.MACRO_OCS.isEmpty()) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, LocationConstants.MACRO_OCS.remove(0)));
-            return true;
+        if (LocationConstants.MACRO_OCS.isEmpty()) {
+            return false;
         }
-        return false;
+
+        Point2d ccPos;
+        Point2d nextAvailableBase = Base.getNextAvailableBase();
+        if (nextAvailableBase == null) {
+            ccPos = LocationConstants.MACRO_OCS.remove(0);
+        }
+        else {
+            ccPos = LocationConstants.MACRO_OCS.stream()
+                    .min(Comparator.comparing(p -> p.distance(nextAvailableBase)))
+                    .get();
+            LocationConstants.MACRO_OCS.remove(ccPos);
+        }
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
+        return true;
     }
 
     public static boolean ccToBeOC(Point2d ccPos) {

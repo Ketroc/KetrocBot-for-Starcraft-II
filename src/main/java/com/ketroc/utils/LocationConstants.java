@@ -3898,7 +3898,7 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(36.5f, 115.5f));
                 baseLocations.add(Point2d.of(57.5f, 99.5f));
                 baseLocations.add(Point2d.of(91.5f, 121.5f));
-                baseLocations.add(Point2d.of(92.5f, 32.5f));
+                //baseLocations.add(Point2d.of(92.5f, 32.5f)); TODO: handle island base
                 baseLocations.add(Point2d.of(126.5f, 99.5f));
                 baseLocations.add(Point2d.of(147.5f, 115.5f));
                 baseLocations.add(Point2d.of(144.5f, 80.5f));

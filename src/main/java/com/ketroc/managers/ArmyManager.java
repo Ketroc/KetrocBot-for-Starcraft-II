@@ -138,7 +138,6 @@ public class ArmyManager {
     }
 
     private static void manageTankRepairScvs() {
-        //TODO: handle making and removing ScvRepairer object based on doOffense, gamePLan, and current ScvRepairer count
         if (doOffense &&
                 (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.BANSHEE_TANK)) {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();

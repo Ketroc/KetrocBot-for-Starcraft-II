@@ -16,6 +16,7 @@ import com.ketroc.utils.UnitUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /*
     This scv object will attack a target until it dies or flees the main&nat area
@@ -82,18 +83,27 @@ public class ScvRepairer extends Scv {
         }
 
         //if on defense and everything repaired, send scvs back to mining
-        if (repairTank == null && !ArmyManager.doOffense) {
+        if (!ArmyManager.doOffense) {
             remove();
             return;
         }
 
-        //stay with same target if every tank is full hp
-        if (targetUnit != null && targetUnit.isAlive()) {
+        //if every tank is repaired, repair other ScvRepairers
+        List<UnitInPool> injuredRepairScvs = UnitMicroList.getUnitSubList(ScvRepairer.class)
+                .stream()
+                .filter(scvRepairer -> !scvRepairer.equals(this) &&
+                        UnitUtils.getHealthPercentage(scvRepairer.unit.unit()) < 100)
+                .map(scvRepairer -> scvRepairer.unit)
+                .collect(Collectors.toList());
+        if (!injuredRepairScvs.isEmpty()) {
+            targetUnit = injuredRepairScvs.stream()
+                    .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), unit.unit())))
+                    .get();
             return;
         }
 
         //set target to closest tank if all tanks are full hp and no target is currently set
-        if (repairTank == null && (targetUnit == null || !targetUnit.isAlive())) {
+        if (targetUnit == null || !targetUnit.isAlive()) {
             repairTank = tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(unit.unit(), tank.unit.unit())))
                     .get(); //empty tank list already handled, so this is safe

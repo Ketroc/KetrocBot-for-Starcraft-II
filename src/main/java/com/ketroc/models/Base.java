@@ -732,6 +732,20 @@ public class Base {
         return (int) GameCache.baseList.stream().filter(base -> base.isMyBase()).count();
     }
 
+    public static int numAvailableBases() {
+        return (int) GameCache.baseList.stream()
+                .filter(base -> base.isUntakenBase() && !base.isDryedUp)
+                .count();
+    }
+
+    public static Point2d getNextAvailableBase() {
+        return GameCache.baseList.stream()
+                .filter(base -> base.isUntakenBase() && !base.isDryedUp)
+                .findFirst()
+                .map(Base::getCcPos)
+                .orElse(null);
+    }
+
     public static Base getBase(Unit cc) {
         return GameCache.baseList.stream()
                 .filter(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 1)
