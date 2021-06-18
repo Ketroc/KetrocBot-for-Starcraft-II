@@ -638,7 +638,8 @@ public class BuildManager {
         if (factory.unit().getBuildProgress() == 1f) {
             if (factory.unit().getActive().orElse(true)) {
                 ActionHelper.unitCommand(factory.unit(), Abilities.CANCEL_LAST, false);
-            } else {
+            }
+            else {
                 Point2d behindMainBase = Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 10);
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     BunkerContain.onFactoryLift();

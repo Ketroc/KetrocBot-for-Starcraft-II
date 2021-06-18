@@ -60,7 +60,11 @@ public class ArmyManager {
         setDoOffense();
 
         //set defense position
-        setAirTarget();
+        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
+        setAirTarget(closestEnemyAir);
+        sendAirKillSquad(closestEnemyAir);
+
+
         if (doOffense) {
             setGroundTarget();
         }
@@ -552,21 +556,39 @@ public class ArmyManager {
         }
     }
 
-    private static void setAirTarget() {
-        //set air attack pos
-        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
-        if (closestEnemyAir == null) {
-            attackAirPos = attackGroundPos;
+    private static void setAirTarget(UnitInPool closestEnemyAir) {
+        //attack closest enemy air unit
+        if (closestEnemyAir != null) {
+            attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }
-        attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
+
+        //cover lead siege tank
+        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
+        if (!tankList.isEmpty()) {
+            tankList.stream()
+                    .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), attackGroundPos)))
+                    .ifPresent(tank -> attackAirPos = Position.towards(
+                            tank.unit.unit().getPosition().toPoint2d(), attackGroundPos, 4));
+            return;
+        }
+
+        //attack ground target pos
+        attackAirPos = attackGroundPos;
+
+    }
+
+    private static void sendAirKillSquad(UnitInPool closestEnemyAir) {
+        if (closestEnemyAir == null) {
+            return;
+        }
+        Point2d closestEnemyAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
 
         //send kill squad if criteria met TODO: track into fog
-        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, attackAirPos) &&
+        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, closestEnemyAirPos) &&
                 UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
                 !GameCache.vikingList.isEmpty() &&
-                attackAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40) {
-            attackAirPos = attackGroundPos;
+                closestEnemyAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40) {
             AirUnitKillSquad.add(closestEnemyAir);
         }
     }
