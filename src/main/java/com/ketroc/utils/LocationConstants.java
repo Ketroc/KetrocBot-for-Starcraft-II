@@ -352,6 +352,7 @@ public class LocationConstants {
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
             _3x3Structures.add(Point2d.of(172.5f, 150.5f));
+            _3x3Structures.add(Point2d.of(153.5f, 157.5f));
 
             BUNKER_NATURAL = Point2d.of(136.5f, 144.5f);
             FACTORIES.add(Point2d.of(159.5f, 141.5f));
@@ -368,8 +369,8 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(153.5f, 134.5f));
             STARPORTS.add(Point2d.of(154.5f, 131.5f));
             STARPORTS.add(Point2d.of(159.5f, 148.5f));
-            STARPORTS.add(Point2d.of(151.5f, 159.5f));
-            STARPORTS.add(Point2d.of(145.5f, 162.5f));
+            STARPORTS.add(Point2d.of(150.5f, 160.5f));
+            STARPORTS.add(Point2d.of(145.5f, 161.5f));
 
             MACRO_OCS.add(Point2d.of(166.5f, 138.5f));
             MACRO_OCS.add(Point2d.of(160.5f, 137.5f));
@@ -412,6 +413,7 @@ public class LocationConstants {
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
             _3x3Structures.add(Point2d.of(70.5f, 65.5f));
+            _3x3Structures.add(Point2d.of(70.5f, 46.5f));
 
             BUNKER_NATURAL = Point2d.of(86.5f, 58.5f);
             FACTORIES.add(Point2d.of(63.5f, 61.5f));
@@ -428,8 +430,8 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(67.5f, 69.5f));
             STARPORTS.add(Point2d.of(64.5f, 67.5f));
             STARPORTS.add(Point2d.of(63.5f, 64.5f));
-            STARPORTS.add(Point2d.of(70.5f, 45.5f));
-            STARPORTS.add(Point2d.of(76.5f, 43.5f));
+            STARPORTS.add(Point2d.of(74.5f, 44.5f));
+            STARPORTS.add(Point2d.of(79.5f, 42.5f));
 
             MACRO_OCS.add(Point2d.of(57.5f, 65.5f));
             MACRO_OCS.add(Point2d.of(51.5f, 70.5f));
