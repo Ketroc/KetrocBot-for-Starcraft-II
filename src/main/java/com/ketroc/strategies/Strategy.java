@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
-    public static final int NUM_OFFENSE_SCVS = 5;
+    public static final int NUM_OFFENSE_SCVS = 4;
     public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
     public static GamePlan gamePlan = null;
@@ -135,7 +135,8 @@ public class Strategy {
         //TODO: delete - turning off 2nd factory based on strategy choice
         if (LocationConstants.opponentRace != Race.TERRAN ||
                 (gamePlan != GamePlan.RAVEN_CYCLONE &&
-                        gamePlan != GamePlan.TANK_VIKING)) {
+                        gamePlan != GamePlan.TANK_VIKING &&
+                        gamePlan != GamePlan.ONE_BASE_TANK_VIKING)) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
             }
@@ -232,7 +233,7 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.TANK_VIKING; //FIXME: hardcoded strategy
+        gamePlan = GamePlan.ONE_BASE_TANK_VIKING; //FIXME: hardcoded strategy
         switch (gamePlan) {
             case BANSHEE:
                 break;
@@ -243,6 +244,9 @@ public class Strategy {
                 useTanksAdjustments();
                 break;
             case TANK_VIKING:
+                useTankVikingAdjustments();
+                break;
+            case ONE_BASE_TANK_VIKING:
                 useTankVikingAdjustments();
                 break;
             case BUNKER_CONTAIN_STRONG:
@@ -704,6 +708,11 @@ public class Strategy {
         //marine all-in without an expansion
         if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
             return 18;
+        }
+
+        //if maxed out on macro OCs
+        if (LocationConstants.MACRO_OCS.isEmpty()) {
+            return 60;
         }
 
         //if maxed out on macro OCs

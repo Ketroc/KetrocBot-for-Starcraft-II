@@ -21,7 +21,7 @@ public class ProxyBunkerDefense {
         setIsProxyBunker();
         if (isProxyBunker) {
             if (!isScvsSent) {
-                GameCache.baseList.get(0).getAndReleaseAvailableScvs(4)
+                GameCache.baseList.get(0).getAndReleaseAvailableScvs(6)
                         .forEach(scv -> UnitMicroList.add(new ScvAttackTarget(scv, bunker)));
                 isScvsSent = true;
             }
@@ -33,7 +33,7 @@ public class ProxyBunkerDefense {
             if (Time.nowFrames() < Time.toFrames("3:00")) {
                 List<UnitInPool> enemyBunkerList =
                         UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_BUNKER, LocationConstants.baseLocations.get(1), 10);
-                if (!enemyBunkerList.isEmpty()) {
+                if (!enemyBunkerList.isEmpty() && enemyBunkerList.get(0).unit().getBuildProgress() < 1) {
                     bunker = enemyBunkerList.get(0);
                     isProxyBunker = true;
                 }

@@ -66,25 +66,29 @@ public class BuildManager {
         saveDyingCCs();
 
         //prioritize factory production when doing tank viking strat, and viking/raven count is fine
-        if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
-            if (openingStarportUnits.isEmpty() &&
-                    UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true) >=
-                            ArmyManager.calcNumVikingsNeeded() * 1.3 + 5 &&
-                    UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true) >= 1) {
-                //build factory units
-                buildFactoryUnitsLogic();
-
-                //build starport units
-                buildStarportUnitsLogic();
-            }
-            else {
+        if (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING) {
+            int numTanks = UnitMicroList.getUnitSubList(TankOffense.class).size();
+            boolean prioritizeStarportProduction = !openingStarportUnits.isEmpty() ||
+                    UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true) <
+                            (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 6 ||
+                    UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true) < 1;
+            if (prioritizeStarportProduction) {
                 //build starport units
                 buildStarportUnitsLogic();
 
                 //build factory units
-                if (UnitMicroList.getUnitSubList(TankOffense.class).size() < 4) {
+                if (numTanks < 4) {
                     buildFactoryUnitsLogic();
                 }
+            }
+            else {
+                //build factory units
+                if (numTanks < 12) {
+                    buildFactoryUnitsLogic();
+                }
+
+                //build starport units
+                buildStarportUnitsLogic();
             }
         }
         else { //otherwise prioritize starport production
@@ -666,7 +670,7 @@ public class BuildManager {
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starport : GameCache.starportList) {
             if (!starport.unit().getActive().get()) {
-                Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING) ?
+                Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING) ?
                         tankVikingDecideStarportUnit() :
                         decideStarportUnit();
                 Units unitType = Bot.abilityToUnitType.get(unitToProduce);
@@ -702,7 +706,7 @@ public class BuildManager {
 
         int numRavens = UnitUtils.getNumFriendlyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.getNumFriendlyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.3) + 5;
+        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 6;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
@@ -887,12 +891,14 @@ public class BuildManager {
 
     private static void buildFactoryLogic() {
         if (UnitUtils.getNumFriendlyUnits(UnitUtils.FACTORY_TYPE, true) < 2 &&
-                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.RAVEN_CYCLONE) &&
+                (Strategy.gamePlan == GamePlan.TANK_VIKING ||
+                        Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE) &&
                 UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
                 !LocationConstants.FACTORIES.isEmpty() &&
                 (!Strategy.ENEMY_DOES_BANSHEE_HARASS || !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_RAVEN).isEmpty())) {
-            if (areAllProductionStructuresBusy()) {
+            if (isAllProductionStructuresBusy()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
             }
         }
@@ -903,22 +909,30 @@ public class BuildManager {
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT)) {
             if (Bot.OBS.getFoodUsed() > 197 ||
-                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 && areAllProductionStructuresBusy())) {
+                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 &&
+                            isAllStarportsActive())) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
 
-    private static boolean areAllProductionStructuresBusy() {
+    private static boolean isAllProductionStructuresBusy() {
+        return isAllStarportsActive() && isAllFactoriesActive();
+    }
+
+    private static boolean isAllFactoriesActive() {
+        return GameCache.factoryList.stream()
+                .noneMatch(u -> u.unit().getType() == Units.TERRAN_FACTORY &&
+                        (u.unit().getOrders().isEmpty() ||
+                                u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
+                                u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f));
+    }
+
+    private static boolean isAllStarportsActive() {
         return GameCache.starportList.stream()
                 .noneMatch(u -> u.unit().getOrders().isEmpty() ||
                         u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f) &&
-                GameCache.factoryList.stream()
-                        .noneMatch(u -> u.unit().getType() == Units.TERRAN_FACTORY &&
-                                (u.unit().getOrders().isEmpty() ||
-                                        u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f));
+                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f);
     }
 
     private static void addCCToPurchaseQueue() {
@@ -1005,7 +1019,7 @@ public class BuildManager {
         return (LocationConstants.MACRO_OCS.isEmpty()) ? 2 : 5; //try to expand deeper on enemy side when macro OCs are complete
     }
 
-    private static boolean purchaseMacroCC() {
+    public static boolean purchaseMacroCC() {
         if (LocationConstants.MACRO_OCS.isEmpty()) {
             return false;
         }

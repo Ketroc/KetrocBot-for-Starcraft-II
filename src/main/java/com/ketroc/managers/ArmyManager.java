@@ -143,7 +143,9 @@ public class ArmyManager {
 
     private static void manageTankRepairScvs() {
         if (doOffense &&
-                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.BANSHEE_TANK)) {
+                (Strategy.gamePlan == GamePlan.TANK_VIKING ||
+                        Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+                        Strategy.gamePlan == GamePlan.BANSHEE_TANK)) {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
             List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
             if (!tankList.isEmpty()) {
@@ -439,8 +441,7 @@ public class ArmyManager {
                 }
                 //no break
             case 2:
-                if (!Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BUNKER &&
-                        UnitUtils.getDistance(u.unit(), LocationConstants.BUNKER_NATURAL) < 1).isEmpty()) {
+                if (GameCache.baseList.get(1).isMyBase()) {
                     return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
                 }
         }
@@ -1496,7 +1497,7 @@ public class ArmyManager {
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {
         //if not enough vikings to deal with the tempests
-        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, ArmyManager.calcNumVikingsNeeded() * 0.7)) {
+        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, (int)(ArmyManager.calcNumVikingsNeeded() * 0.7))) {
             return false;
         }
 

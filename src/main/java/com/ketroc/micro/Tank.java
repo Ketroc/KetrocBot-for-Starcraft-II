@@ -150,7 +150,7 @@ public class Tank extends BasicUnitMicro {
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
     }
 
-    //if enemy sieged tank nearby and it can't see TODO: include enemy tanks from my EnemyUnitMemory
+    //if enemy sieged tank nearby and it can't see
     protected Unit getEnemyTankToSiege() {
         Unit enemyTank = getClosestEnemySiegedTank();
         if (enemyTank == null ||
@@ -177,8 +177,10 @@ public class Tank extends BasicUnitMicro {
 
     protected Unit getClosestEnemySiegedTank() {
         List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
-        List<UnitInPool> enemyTankMemoryList = EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED);
-        enemyTankList.addAll(enemyTankMemoryList);
+        if (UnitUtils.numScansAvailable() > 0) { //only check tanks in fog of war if scan is available
+            List<UnitInPool> enemyTankMemoryList = EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED);
+            enemyTankList.addAll(enemyTankMemoryList);
+        }
         return enemyTankList.stream()
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
                 .map(UnitInPool::unit)
