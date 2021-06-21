@@ -226,9 +226,15 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
-                GamePlan.TANK_VIKING, GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.RAVEN,
-                GamePlan.BANSHEE_CYCLONE, GamePlan.RAVEN_CYCLONE
+                GamePlan.ONE_BASE_TANK_VIKING,
+                GamePlan.BANSHEE_CYCLONE,
+                GamePlan.BANSHEE,
+                GamePlan.MARINE_RUSH,
+                GamePlan.SCV_RUSH,
+                GamePlan.BUNKER_CONTAIN_STRONG,
+                GamePlan.RAVEN,
+                GamePlan.TANK_VIKING,
+                GamePlan.RAVEN_CYCLONE
         ));
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
