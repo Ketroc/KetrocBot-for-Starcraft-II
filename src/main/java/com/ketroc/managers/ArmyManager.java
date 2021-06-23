@@ -817,8 +817,9 @@ public class ArmyManager {
             return;
         }
 
-        UnitInPool natCc = GameCache.baseList.get(1).getCc();
-        if (natCc != null && natCc.unit().getType() == Units.TERRAN_ORBITAL_COMMAND) {
+        //cover natural ramp if nat is an OC base
+        if (GameCache.baseList.get(1).getCc() != null &&
+                (Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING || Strategy.gamePlan == GamePlan.TANK_VIKING)) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
