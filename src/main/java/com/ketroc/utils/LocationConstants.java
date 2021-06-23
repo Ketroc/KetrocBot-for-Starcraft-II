@@ -155,7 +155,7 @@ public class LocationConstants {
                         pointOnEnemyRamp = Point2d.of(x/2, y/2);
                     }
                 }
-                else if (thisPos.distance(natPos) < 16 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
+                else if (thisPos.distance(natPos) < 14 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
                     if (thisPos.distance(LocationConstants.BUNKER_NATURAL) > 8) {
                         InfluenceMaps.pointInNatExcludingBunkerRange[x][y] = true;

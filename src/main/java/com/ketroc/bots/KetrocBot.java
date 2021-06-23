@@ -97,9 +97,8 @@ public class KetrocBot extends Bot {
             Strategy.printStrategySettings();
 
             //initialize starting scvs
-            OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).forEach(scv -> {
-                Base.assignScvToAMineralPatch(scv);
-            });
+            OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV)
+                    .forEach(scv -> Base.assignScvToAMineralPatch(scv));
 
             DEBUG.sendDebug();
             ACTION.sendActions();
@@ -188,7 +187,6 @@ public class KetrocBot extends Bot {
             }
 
 
-            UnitMicroList.onStep(); //do individual unit micro
             CannonRushDefense.onStep();
             ProxyHatchDefense.onStep();
             ProxyBunkerDefense.onStep();
@@ -232,6 +230,7 @@ public class KetrocBot extends Bot {
             BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
             WorkerManager.onStep(); //fix workers, make refineries
             ArmyManager.onStep(); //decide army movements
+            UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads
             Harassers.onStep();
             MuleMessages.onStep(); //make minimap troll messages with mules

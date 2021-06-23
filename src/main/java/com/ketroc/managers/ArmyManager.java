@@ -36,6 +36,7 @@ public class ArmyManager {
     public static Point2d retreatPos;
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
+    public static Point2d attackEitherPos;
     public static Unit attackUnit;
     public static boolean isAttackUnitRetreating;
 
@@ -60,18 +61,17 @@ public class ArmyManager {
         setDoOffense();
 
         //set defense position
-        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
-        setAirTarget(closestEnemyAir);
-        sendAirKillSquad(closestEnemyAir);
-
-
         if (doOffense) {
             setGroundTarget();
         }
         else {
             setDefensePosition();
         }
+        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
+        setAirTarget(closestEnemyAir);
+        sendAirKillSquad(closestEnemyAir);
         setIsAttackUnitRetreating();
+        setAirOrGroundTarget();
 
         // lift & lower depot walls
         raiseAndLowerDepots();
@@ -579,6 +579,23 @@ public class ArmyManager {
 
     }
 
+    //set to whichever position is closer to my main base
+    private static void setAirOrGroundTarget() {
+        if (attackGroundPos == null) {
+            attackEitherPos = attackAirPos;
+        }
+        else if (attackAirPos == null) {
+            attackEitherPos = attackGroundPos;
+        }
+        else if (LocationConstants.mainBaseMidPos.distance(attackGroundPos) <
+                LocationConstants.mainBaseMidPos.distance(attackAirPos)) {
+            attackEitherPos = attackGroundPos;
+        }
+        else {
+            attackEitherPos = attackAirPos;
+        }
+    }
+
     private static void sendAirKillSquad(UnitInPool closestEnemyAir) {
         if (closestEnemyAir == null) {
             return;
@@ -747,7 +764,6 @@ public class ArmyManager {
         }
 
         //if main/nat under attack, empty natural bunker and target enemy
-        Unit enemyInMyBase = getEnemyInMainOrNatural();
         Optional<UnitInPool> bunkerAtNatural = Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
                 UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
                 bunker.unit().getCargoSpaceTaken().orElse(4) < 4 &&
@@ -755,6 +771,7 @@ public class ArmyManager {
                         .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
                 .stream()
                 .findFirst();
+        Unit enemyInMyBase = getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
         if (enemyInMyBase != null) {
             bunkerAtNatural.ifPresent(bunker ->
                 ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false));
@@ -769,35 +786,40 @@ public class ArmyManager {
         }
 
         //if scv is building a CC on a base location, target behindCC
-        Point2d newMarinePos = StructureScv.scvBuildingList.stream()
-                .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
-                        structureScv.getStructureUnit() != null &&
-                        Base.getBase(structureScv.structurePos) != null)
-                .findFirst()
-                .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
-                .orElse(null);
-        if (newMarinePos != null &&
-                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-            MarineBasic.setTargetPos(newMarinePos);
-            return;
-        }
-
-        //if CC is floating to a base location, target behindCC
-        newMarinePos = FlyingCC.flyingCCs.stream()
-                .filter(flyingCC -> !flyingCC.makeMacroOC)
-                .findFirst()
-                .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
-                .orElse(null);
-        if (newMarinePos != null &&
-                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-            MarineBasic.setTargetPos(newMarinePos);
-            return;
-        }
+//        Point2d newMarinePos = StructureScv.scvBuildingList.stream()
+//                .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
+//                        structureScv.getStructureUnit() != null &&
+//                        Base.getBase(structureScv.structurePos) != null)
+//                .findFirst()
+//                .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
+//                .orElse(null);
+//        if (newMarinePos != null &&
+//                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
+//            MarineBasic.setTargetPos(newMarinePos);
+//            return;
+//        }
+//
+//        //if CC is floating to a base location, target behindCC
+//        newMarinePos = FlyingCC.flyingCCs.stream()
+//                .filter(flyingCC -> !flyingCC.makeMacroOC)
+//                .findFirst()
+//                .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
+//                .orElse(null);
+//        if (newMarinePos != null &&
+//                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
+//            MarineBasic.setTargetPos(newMarinePos);
+//            return;
+//        }
 
         //try to kill off the marines as maxed supply is approaching
         if (Bot.OBS.getFoodUsed() >= 160) {
             MarineBasic.setTargetPos(ArmyManager.attackAirPos);
             return;
+        }
+
+        UnitInPool natCc = GameCache.baseList.get(1).getCc();
+        if (natCc != null && natCc.unit().getType() == Units.TERRAN_ORBITAL_COMMAND) {
+            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
         }
 
         //otherwise, go to top of ramp
@@ -1576,11 +1598,12 @@ public class ArmyManager {
         return InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, attackUnit.getPosition().toPoint2d());
     }
 
-    public static Unit getEnemyInMainOrNatural() {
+    public static Unit getEnemyInMainOrNatural(boolean isBunkerAtNat) {
+        boolean[][] pointInNat = isBunkerAtNat ? InfluenceMaps.pointInNatExcludingBunkerRange : InfluenceMaps.pointInNat;
         return Bot.OBS.getUnits(Alliance.ENEMY).stream()
                 .filter(enemy ->
                         InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()) ||
-                        InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, enemy.unit().getPosition().toPoint2d()))
+                        InfluenceMaps.getValue(pointInNat, enemy.unit().getPosition().toPoint2d()))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos())))
                 .map(UnitInPool::unit)
                 .orElse(null);
