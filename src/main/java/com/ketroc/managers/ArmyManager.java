@@ -820,6 +820,7 @@ public class ArmyManager {
         UnitInPool natCc = GameCache.baseList.get(1).getCc();
         if (natCc != null && natCc.unit().getType() == Units.TERRAN_ORBITAL_COMMAND) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
+            return;
         }
 
         //otherwise, go to top of ramp
