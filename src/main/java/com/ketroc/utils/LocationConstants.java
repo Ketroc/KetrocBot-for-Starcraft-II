@@ -736,8 +736,8 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(141.5f, 60.5f);
             proxyBunkerPos2 = Point2d.of(111.5f, 38.5f);
 
-            reaperBlockDepots.add(Point2d.of(61.0f, 26.0f));
             reaperBlockDepots.add(Point2d.of(57.0f, 30.0f));
+            reaperBlockDepots.add(Point2d.of(61.0f, 26.0f));
             reaperBlock3x3s.add(Point2d.of(58.5f, 27.5f));
 
 
@@ -798,8 +798,8 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(42.5f, 60.5f);
             proxyBunkerPos2 = Point2d.of(72.5f, 38.5f);
 
-            reaperBlockDepots.add(Point2d.of(123.0f, 26.0f));
             reaperBlockDepots.add(Point2d.of(127.0f, 30.0f));
+            reaperBlockDepots.add(Point2d.of(123.0f, 26.0f));
             reaperBlock3x3s.add(Point2d.of(125.5f, 27.5f));
 
             myMineralPos = Point2d.of(155f, 30.5f);

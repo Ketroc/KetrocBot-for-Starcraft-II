@@ -239,7 +239,7 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.ONE_BASE_TANK_VIKING; //FIXME: hardcoded strategy
+        gamePlan = GamePlan.TANK_VIKING; //FIXME: hardcoded strategy
         switch (gamePlan) {
             case BANSHEE:
                 break;

@@ -33,7 +33,7 @@ public class TankOffense extends Tank {
         //tank vs tank special case
         Unit enemyTankToSiege = getEnemyTankToSiege();
         if (enemyTankToSiege != null) {
-            if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) - enemyTankToSiege.getRadius() * 2 > 12.9f) {
+            if (UnitUtils.getDistance(unit.unit(), enemyTankToSiege) - enemyTankToSiege.getRadius() * 2 > 12.95f) {
                 if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
                     unsiege();
                 }
@@ -44,19 +44,17 @@ public class TankOffense extends Tank {
             else if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK) {
                 siege();
             }
+            else if (ArmyManager.prevScanFrame + 24 < Time.nowFrames() &&
+                    UnitUtils.isSnapshot(enemyTankToSiege) &&
+                    UnitUtils.numScansAvailable() > 0) {
+                scanEnemyTank(enemyTankToSiege);
+            }
             return;
         }
 
         //unsiege
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
-            UnitInPool enemyTank = getClosestEnemySiegedTankInRange();
-            if (enemyTank != null &&
-                    ArmyManager.prevScanFrame + 24 < Time.nowFrames() &&
-                    UnitUtils.isInFogOfWar(enemyTank) &&
-                    UnitUtils.numScansAvailable() > 0) {
-                scanEnemyTank(enemyTank);
-            }
-            else if (doUnsiege()) {
+            if (doUnsiege()) {
                 return;
             }
         }

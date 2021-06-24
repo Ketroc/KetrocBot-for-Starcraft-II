@@ -141,23 +141,35 @@ public class Tank extends BasicUnitMicro {
     }
 
     protected List<UnitInPool> getEnemiesInRange(int range) {
-        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+        List<UnitInPool> enemies = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
                         (UnitUtils.canMove(enemy.unit()) ? range : 13) + enemy.unit().getRadius() &&
-                !enemy.unit().getFlying().orElse(true) &&
-                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !enemy.unit().getHallucination().orElse(false) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
+                        !enemy.unit().getFlying().orElse(true) &&
+                        !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        !enemy.unit().getHallucination().orElse(false) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        !UnitUtils.isSnapshot(enemy.unit()));
+        return enemies;
     }
 
     //if enemy sieged tank nearby and it can't see
     protected Unit getEnemyTankToSiege() {
         Unit enemyTank = getClosestEnemySiegedTank();
+        float distanceToEnemyTank = UnitUtils.getDistance(enemyTank, unit.unit());
         if (enemyTank == null ||
-                (enemyTank.getDisplayType() != DisplayType.VISIBLE && UnitUtils.numScansAvailable() == 0) ||
-                UnitUtils.getDistance(enemyTank, unit.unit()) > 17) {
+                (UnitUtils.isSnapshot(enemyTank) && UnitUtils.numScansAvailable() == 0) ||
+                distanceToEnemyTank > 17) {
             return null;
         }
+        //don't bother trying to move in on an enemy tank with full vision
+        if (distanceToEnemyTank + unit.unit().getRadius() * 2 > 13 &&
+                canEnemyTankSeeMaxSiegeRange(enemyTank)) {
+            return null;
+        }
+        return enemyTank;
+    }
+
+    private boolean canEnemyTankSeeMaxSiegeRange(Unit enemyTank) {
         //edge of my tank at pos where it will siege (test vision here)
         Point2d enemyVisionPos = Position.towards(enemyTank.getPosition().toPoint2d(),
                 unit.unit().getPosition().toPoint2d(),
@@ -165,21 +177,15 @@ public class Tank extends BasicUnitMicro {
 
         //check if enemy can see my siege position
         if (InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, enemyVisionPos)) {
-            return null;
+            return true;
         }
-//        DebugHelper.boxUnit(this.unit.unit());
-//        DebugHelper.boxUnit(enemyTank);
-//        DebugHelper.draw3dBox(enemyVisionPos, Color.RED, 0.2f);
-//        Bot.DEBUG.sendDebug();
-        return enemyTank;
-
+        return false;
     }
 
     protected Unit getClosestEnemySiegedTank() {
         List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
         if (UnitUtils.numScansAvailable() > 0) { //only check tanks in fog of war if scan is available
-            List<UnitInPool> enemyTankMemoryList = EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED);
-            enemyTankList.addAll(enemyTankMemoryList);
+            enemyTankList.addAll(EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED));
         }
         return enemyTankList.stream()
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
@@ -196,12 +202,11 @@ public class Tank extends BasicUnitMicro {
                 .orElse(null);
     }
 
-    protected void scanEnemyTank(UnitInPool enemyTank) {
-        if (UnitUtils.isInFogOfWar(enemyTank) &&
-                UnitUtils.numScansAvailable() > 0) {
-            Point2d scanPos = Position.towards(enemyTank.unit().getPosition().toPoint2d(),
-                    unit.unit().getPosition().toPoint2d(), -5);
-            UnitUtils.scan(scanPos);
-        }
+    protected void scanEnemyTank(Unit enemyTank) {
+        Point2d scanPos = Position.towards(
+                enemyTank.getPosition().toPoint2d(),
+                unit.unit().getPosition().toPoint2d(),
+                -5);
+        UnitUtils.scan(scanPos);
     }
 }

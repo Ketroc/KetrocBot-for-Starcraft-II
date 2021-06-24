@@ -37,8 +37,9 @@ public class ScvRepairer extends Scv {
 
     @Override
     public void onStep() {
-        //no scv or low hp scv
-        if (!isAlive() || unit.unit().getHealth().orElse(0f) < 15) {
+        //scv died
+        //if (!isAlive() || unit.unit().getHealth().orElse(0f) < 15) {
+        if (!isAlive()) {
             onDeath();
             return;
         }
@@ -102,12 +103,12 @@ public class ScvRepairer extends Scv {
             return;
         }
 
-        //set target to closest tank if all tanks are full hp and no target is currently set
-        if (targetUnit == null || !targetUnit.isAlive()) {
-            repairTank = tankList.stream()
+        //set target to closest tank if all tanks are full hp and no tank target is currently set
+        if (targetUnit == null || !targetUnit.isAlive() || UnitUtils.SIEGE_TANK_TYPE.contains(targetUnit.unit().getType())) {
+            targetUnit = tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(unit.unit(), tank.unit.unit())))
-                    .get(); //empty tank list already handled, so this is safe
-            targetUnit = repairTank.unit;
+                    .get()
+                    .unit;
             return;
         }
     }

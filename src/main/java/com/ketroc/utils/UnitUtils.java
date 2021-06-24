@@ -101,6 +101,10 @@ public class UnitUtils {
     public static final Set<Units> OBSERVER_TYPE = new HashSet<>(Set.of(
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED));
 
+    public static final Set<Units> DETECTION_REQUIRED_TYPE = new HashSet<>(Set.of(
+            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.TERRAN_BANSHEE, Units.TERRAN_GHOST,
+            Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
+
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -371,6 +375,19 @@ public class UnitUtils {
 
     public static boolean isInFogOfWar(UnitInPool unitInPool) {
         return unitInPool.isAlive() && unitInPool.getLastSeenGameLoop() != Time.nowFrames();
+    }
+
+    //needed cuz high ground enemy attackers aren't snapshots
+    public static boolean isSnapshot(Unit unit) {
+        if (unit.getDisplayType() == DisplayType.SNAPSHOT) {
+            return true;
+        }
+        float unitRadius = unit.getRadius();
+        Point2d unitPos = unit.getPosition().toPoint2d();
+        return Bot.OBS.getVisibility(unitPos.add(unitRadius, 0)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(unitPos.add(unitRadius * -1, 0)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(unitPos.add(0, unitRadius)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(unitPos.add(0, unitRadius * -1)) != Visibility.VISIBLE;
     }
 
     public static boolean canMove(Unit unit) {
@@ -952,5 +969,11 @@ public class UnitUtils {
                     ActionHelper.unitCommand(oc, Abilities.EFFECT_SCAN, pos, false);
                     ArmyManager.prevScanFrame = Time.nowFrames();
                 });
+    }
+
+    public static boolean requiresDetection(Unit enemy) {
+        return enemy.getDisplayType() == DisplayType.HIDDEN ||
+                        UnitUtils.DETECTION_REQUIRED_TYPE.contains((Units)enemy.getType()) ||
+                        enemy.getType().toString().endsWith("_BURROWED");
     }
 }

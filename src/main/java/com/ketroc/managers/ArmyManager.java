@@ -34,14 +34,18 @@ import java.util.stream.Collectors;
 public class ArmyManager {
     public static boolean doOffense;
     public static Point2d retreatPos;
+
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
     public static Point2d attackEitherPos;
+    public static Point2d attackCloakedPos;
+
     public static Unit attackUnit;
     public static boolean isAttackUnitRetreating;
 
     public static List<Unit> armyGoingHome;
     public static List<Unit> armyGroundAttacking;
+    public static List<Unit> armyDetectorAttacking;
     public static List<Unit> armyAirAttacking;
 
     public static Point2d groundAttackersMidPoint;
@@ -72,6 +76,7 @@ public class ArmyManager {
         sendAirKillSquad(closestEnemyAir);
         setIsAttackUnitRetreating();
         setAirOrGroundTarget();
+        setCloakedTarget();
 
         // lift & lower depot walls
         raiseAndLowerDepots();
@@ -114,6 +119,7 @@ public class ArmyManager {
             armyGoingHome = new ArrayList<>();
             armyGroundAttacking = new ArrayList<>();
             armyAirAttacking = new ArrayList<>();
+            armyDetectorAttacking = new ArrayList<>();
 
             bansheeMicro();
             vikingMicro();
@@ -130,6 +136,10 @@ public class ArmyManager {
             if (!armyAirAttacking.isEmpty()) {
                 Point2d targetPos = attackAirPos;
                 ActionHelper.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
+            }
+            if (!armyDetectorAttacking.isEmpty()) {
+                Point2d targetPos = attackCloakedPos != null ? attackCloakedPos : attackGroundPos;
+                ActionHelper.unitCommand(armyDetectorAttacking, Abilities.ATTACK, targetPos, false);
             }
 
             pfTargetting();
@@ -594,6 +604,17 @@ public class ArmyManager {
         else {
             attackEitherPos = attackAirPos;
         }
+    }
+
+    //set the target of a unit that may require detection
+    private static void setCloakedTarget() {
+        attackCloakedPos = GameCache.allVisibleEnemiesList.stream()
+                .filter(enemy -> enemy.unit().getType() != Units.ZERG_CREEP_TUMOR_BURROWED &&
+                        UnitUtils.requiresDetection(enemy.unit()))
+                .min(Comparator.comparing(enemy ->
+                        UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(1).getCcPos())))
+                .map(enemy -> enemy.unit().getPosition().toPoint2d())
+                .orElse(null);
     }
 
     private static void sendAirKillSquad(UnitInPool closestEnemyAir) {
@@ -1346,7 +1367,15 @@ public class ArmyManager {
         }
         //go forward if not in range
         else if (lastCommand != ArmyCommands.ATTACK) {
-            armyGroundAttacking.add(raven);
+            if (attackCloakedPos != null) {
+                armyDetectorAttacking.add(raven);
+            }
+            else if (raven.getEnergy().orElse(0f) > 175) {
+                armyGroundAttacking.add(raven);
+            }
+            else {
+                armyAirAttacking.add(raven);
+            }
         }
     }
 
