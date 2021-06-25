@@ -3,7 +3,6 @@ package com.ketroc.bots;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -22,8 +21,6 @@ import java.util.stream.Collectors;
 public class TestingBot extends Bot {
     public static UnitInPool bunker;
     public static UnitInPool marine;
-    public int myId;
-    public int enemyId;
     public static final int NEUTRAL_PLAYER_ID = 11;
     public Point2d mySpawnPos;
     public Point2d enemySpawnPos;
@@ -38,12 +35,6 @@ public class TestingBot extends Bot {
     @Override
     public void onGameStart() {
         super.onGameStart();
-        myId = OBS.getPlayerId();
-        enemyId = OBS.getGameInfo().getPlayersInfo().stream()
-                .map(PlayerInfo::getPlayerId)
-                .filter(id -> id != myId)
-                .findFirst()
-                .get();
         mySpawnPos = OBS.getStartLocation().toPoint2d();
         enemySpawnPos = OBS.getGameInfo().getStartRaw().get().getStartLocations().stream()
                 .filter(pos -> mySpawnPos.distance(pos) > 10)

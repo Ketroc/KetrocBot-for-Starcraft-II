@@ -83,7 +83,7 @@ public class BuildManager {
             }
             else {
                 //build factory units
-                if (numTanks < 12) {
+                if (numTanks < 10) {
                     buildFactoryUnitsLogic();
                 }
 

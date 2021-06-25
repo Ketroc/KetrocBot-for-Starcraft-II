@@ -33,7 +33,7 @@ public class EnemyDebugTestBot extends S2Agent {
 //        debug().debugCreateUnit(Units.TERRAN_REFINERY, Position.towards(enemySpawnPos, mySpawnPos, -4), myId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_REFINERY, Position.towards(enemySpawnPos, mySpawnPos, -4), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_VOIDRAY, Position.towards(enemySpawnPos, mySpawnPos, 9), myId, 1);
-        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(2), myId, 1);
+        debug().debugCreateUnit(Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.get(2), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
         debug().sendDebug();

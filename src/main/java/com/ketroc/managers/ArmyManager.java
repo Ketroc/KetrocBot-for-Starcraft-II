@@ -1430,16 +1430,6 @@ public class ArmyManager {
         queriesMade++;
 
         if (placementList.contains(true)) {
-//            int best = 0;
-//            for (int i=0; i<posList.size(); i++) {
-//                if (placementList.get(i)) {
-//                    best++;
-//                    DebugHelper.draw3dBox(posList.get(i), Color.GREEN, 0.5f);
-//                    DebugHelper.drawText(String.valueOf(best), posList.get(i), Color.GREEN);
-//                }
-//            }
-//            Bot.DEBUG.sendDebug();
-
             Point2d placementPos = posList.get(placementList.indexOf(true));
             ActionHelper.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
             turretsCast++;

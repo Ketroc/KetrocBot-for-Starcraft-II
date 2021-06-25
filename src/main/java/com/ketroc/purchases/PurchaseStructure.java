@@ -190,13 +190,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         //position unplaceable
         Abilities buildAction = (Abilities)structureData.getAbility().get();
         if (!Bot.QUERY.placement(buildAction, position)) { //if clear of creep and enemy ground units/structures
-        //if (!BuildManager.isPlaceable(position, buildAction)) { //if clear of creep and enemy ground units/structures
             //if structure blocks location
             if ((!Bot.OBS.getUnits(u -> UnitUtils.getDistance(u.unit(), position) < UnitUtils.getStructureRadius(structureType) &&
                     !UnitUtils.canMove(u.unit())).isEmpty()) ||
                     UnitUtils.isExpansionCreepBlocked(position)) {
-                makePositionAvailableAgain(position);
-                return PurchaseResult.CANCEL;
+                if (position.equals(LocationConstants.BUNKER_NATURAL)) {
+                    position = findNearbyBunkerPos();
+                    if (position == null) {
+                        return PurchaseResult.CANCEL;
+                    }
+                    else {
+                        LocationConstants.BUNKER_NATURAL = position;
+                    }
+                }
+                else {
+                    makePositionAvailableAgain(position);
+                    return PurchaseResult.CANCEL;
+                }
             }
             else { //if movable enemy unit is blocking location
                 return PurchaseResult.WAITING;
@@ -230,6 +240,21 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
         return PurchaseResult.SUCCESS;
+    }
+
+    private Point2d findNearbyBunkerPos() {
+        Point2d behindBunkerPos = Position.toHalfPoint(
+                Position.towards(
+                        Position.towards(
+                                LocationConstants.BUNKER_NATURAL,
+                                GameCache.baseList.get(1).getCcPos(),
+                                2
+                        ),
+                        LocationConstants.pointOnMyRamp,
+                        2
+                )
+        );
+        return Position.findNearestPlacement(Abilities.BUILD_BUNKER, behindBunkerPos, 4);
     }
 
     public PurchaseResult buildRefinery() {

@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.ketroc.managers.ActionErrorManager;
 
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +25,8 @@ public class Bot extends S2Agent {
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
     public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
     public static long gameFrame = -1;
+    public int myId;
+    public int enemyId;
 
     public Bot(boolean isDebugOn, String opponentId, boolean isRealTime) {
         this.isDebugOn = isDebugOn;
@@ -40,6 +43,13 @@ public class Bot extends S2Agent {
         QUERY = query();
         DEBUG = debug();
         CONTROL = control();
+
+        myId = OBS.getPlayerId();
+        enemyId = OBS.getGameInfo().getPlayersInfo().stream()
+                .map(PlayerInfo::getPlayerId)
+                .filter(id -> id != myId)
+                .findFirst()
+                .get();
 
         //load abilityToUnitType map
         OBS.getUnitTypeData(false).forEach((unitType, unitTypeData) -> {
