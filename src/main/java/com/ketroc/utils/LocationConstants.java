@@ -420,7 +420,7 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(63.5f, 58.5f));
 
             STARPORTS.add(Point2d.of(64.5f, 52.5f));
-            STARPORTS.add(Point2d.of(59.5f, 50.5f));
+            STARPORTS.add(Point2d.of(60.5f, 49.5f));
             STARPORTS.add(Point2d.of(54.5f, 52.5f));
             STARPORTS.add(Point2d.of(49.5f, 52.5f));
             STARPORTS.add(Point2d.of(46.5f, 61.5f));
@@ -445,13 +445,13 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(48.0f, 59.0f));
             extraDepots.add(Point2d.of(51.0f, 50.0f));
             extraDepots.add(Point2d.of(57.0f, 50.0f));
-            extraDepots.add(Point2d.of(61.0f, 48.0f));
+            extraDepots.add(Point2d.of(62.0f, 47.0f));
             extraDepots.add(Point2d.of(62.0f, 67.0f));
             extraDepots.add(Point2d.of(55.0f, 50.0f));
-            extraDepots.add(Point2d.of(63.0f, 48.0f));
+            extraDepots.add(Point2d.of(65.0f, 50.0f));
             extraDepots.add(Point2d.of(48.0f, 64.0f));
             extraDepots.add(Point2d.of(53.0f, 50.0f));
-            extraDepots.add(Point2d.of(65.0f, 50.0f));
+            extraDepots.add(Point2d.of(54.0f, 67.0f));
         }
     }
 
