@@ -155,12 +155,16 @@ public class Tank extends BasicUnitMicro {
     //if enemy sieged tank nearby and it can't see
     protected Unit getEnemyTankToSiege() {
         Unit enemyTank = getClosestEnemySiegedTank();
-        float distanceToEnemyTank = UnitUtils.getDistance(enemyTank, unit.unit());
-        if (enemyTank == null ||
-                (UnitUtils.isSnapshot(enemyTank) && UnitUtils.numScansAvailable() == 0) ||
-                distanceToEnemyTank > 17) {
+        if (enemyTank == null) {
             return null;
         }
+
+        float distanceToEnemyTank = UnitUtils.getDistance(enemyTank, unit.unit());
+        if (distanceToEnemyTank > 17 ||
+                (UnitUtils.isSnapshot(enemyTank) && UnitUtils.numScansAvailable() == 0)) {
+            return null;
+        }
+
         //don't bother trying to move in on an enemy tank with full vision
         if (distanceToEnemyTank + unit.unit().getRadius() * 2 > 13 &&
                 canEnemyTankSeeMaxSiegeRange(enemyTank)) {

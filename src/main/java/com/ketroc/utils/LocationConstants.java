@@ -335,8 +335,8 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(87.5f, 57.5f);
             proxyBunkerPos2 = Point2d.of(77.5f, 83.5f);
 
-            reaperBlockDepots.add(Point2d.of(156.0f, 129.0f));
             reaperBlockDepots.add(Point2d.of(151.0f, 134.0f));
+            reaperBlockDepots.add(Point2d.of(156.0f, 129.0f));
             reaperBlockDepots.add(Point2d.of(147.0f, 138.0f));
             reaperBlock3x3s.add(Point2d.of(149.5f, 136.5f));
 
@@ -397,8 +397,8 @@ public class LocationConstants {
             proxyBunkerPos = Point2d.of(136.5f, 146.5f);
             proxyBunkerPos2 = Point2d.of(147.5f, 121.5f);
 
-            reaperBlockDepots.add(Point2d.of(68.0f, 75.0f));
             reaperBlockDepots.add(Point2d.of(73.0f, 70.0f));
+            reaperBlockDepots.add(Point2d.of(68.0f, 75.0f));
             reaperBlockDepots.add(Point2d.of(77.0f, 66.0f));
             reaperBlock3x3s.add(Point2d.of(74.5f, 67.5f));
 
