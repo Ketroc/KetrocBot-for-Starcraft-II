@@ -234,7 +234,8 @@ public class Strategy {
                 GamePlan.BUNKER_CONTAIN_STRONG,
                 GamePlan.RAVEN,
                 GamePlan.TANK_VIKING,
-                GamePlan.RAVEN_CYCLONE
+                GamePlan.RAVEN_CYCLONE,
+                GamePlan.BANSHEE_TANK
         ));
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
@@ -291,8 +292,12 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN
+                GamePlan.BANSHEE,
+                GamePlan.BANSHEE_CYCLONE,
+                GamePlan.MARINE_RUSH,
+                GamePlan.SCV_RUSH,
+                GamePlan.BUNKER_CONTAIN_WEAK,
+                GamePlan.RAVEN
         ));
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
@@ -328,8 +333,13 @@ public class Strategy {
 
     private static void chooseTvZStrategy() {
         Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEE, GamePlan.MARINE_RUSH, GamePlan.SCV_RUSH, GamePlan.BUNKER_CONTAIN_WEAK,
-                GamePlan.RAVEN, GamePlan.BANSHEE_CYCLONE, GamePlan.RAVEN_CYCLONE
+                GamePlan.BANSHEE,
+                GamePlan.MARINE_RUSH,
+                GamePlan.SCV_RUSH,
+                GamePlan.BUNKER_CONTAIN_WEAK,
+                GamePlan.RAVEN,
+                GamePlan.BANSHEE_CYCLONE,
+                GamePlan.RAVEN_CYCLONE
         ));
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
