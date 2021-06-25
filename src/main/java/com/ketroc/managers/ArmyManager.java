@@ -930,12 +930,18 @@ public class ArmyManager {
 
     //return true when bunker is no longer needed
     private static boolean bunkerUnnecessary() {
+        //dump marines when approaching max supply
+        if (Bot.OBS.getFoodUsed() >= 175) {
+            return true;
+        }
+
+        if (Strategy.DO_LEAVE_UP_BUNKER) {
+            return false;
+        }
+
+        //dump bunker if natural is a PF
         return GameCache.baseList.get(1).getCc() != null &&
-                GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS &&
-                //take down bunker when 1st defense banshee is out, or when floating to 3rd base
-                (!Strategy.DO_LEAVE_UP_BUNKER || !GameCache.bansheeList.isEmpty() ||
-                        FlyingCC.flyingCCs.stream()
-                                .anyMatch(flyingCC -> flyingCC.destination.distance(GameCache.baseList.get(2).getCcPos()) < 1));
+                GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS;
     }
 
     private static void raiseAndLowerDepots() {
