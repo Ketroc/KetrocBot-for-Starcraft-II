@@ -24,7 +24,6 @@ public class Switches {
     public static boolean enemyHasCloakThreat; //enemy can produce cloaked/burrowed attack units
     public static boolean phoenixAreReal;
 
-    public static boolean hotkey8; //begin planetary doom
     public static boolean includeTanks;
     public static boolean scoutScanComplete;
     public static int numScansToSave = 0;

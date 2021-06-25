@@ -77,7 +77,7 @@ public class MarineAllIn {
 
     private static void patrolForOverlords(List<MarineBasic> marineList) {
         marineList.stream().forEach(marine -> {
-            Chat.chatOnceOnly("Keep those ugly balloons from seeing our barracks count.");
+            Chat.chatNeverRepeat("Keep those ugly balloons from seeing our barracks count.");
             Point2d patrolPoint1 = LocationConstants.baseLocations.get(3);
             Point2d patrolPoint2 = LocationConstants.baseLocations.get(4);
             if (marine.targetPos.distance(patrolPoint1) < 1 && UnitUtils.getDistance(marine.unit.unit(), patrolPoint1) < 2.5) {

@@ -2,8 +2,8 @@ package com.ketroc.utils;
 
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
-import com.ketroc.models.DelayedChat;
 import com.ketroc.bots.Bot;
+import com.ketroc.models.DelayedChat;
 
 import java.util.*;
 
@@ -60,10 +60,14 @@ public class Chat {
         Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
     }
 
-    public static void chatOnceOnly(String message) {
+    public static void chatNeverRepeat(String message) {
+        chatNeverRepeat(message, ActionChat.Channel.BROADCAST);
+    }
+
+    private static void chatNeverRepeat(String message, ActionChat.Channel channel) {
         if (!onceMessages.keySet().contains(message)) {
             onceMessages.put(message, Time.nowSeconds());
-            Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+            Bot.ACTION.sendChat(message, channel);
         }
     }
 
@@ -73,6 +77,12 @@ public class Chat {
         if (lastChatted + secondsBetweenMessages <= now) {
             onceMessages.put(message, Time.nowSeconds());
             Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        }
+    }
+
+    public static void tag(String tag) {
+        if (tag != null && !tag.equals("")) {
+            chatNeverRepeat("tag:ket" + tag, ActionChat.Channel.TEAM);
         }
     }
 }

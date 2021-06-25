@@ -70,6 +70,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 //morph to PF
                 else if (!Purchase.isMorphQueued(unit.getTag(), upgradeAbility)) {
                     Chat.chat("Building offensive PF");
+                    Chat.tag("OFFENSIVE_PF");
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(upgradeAbility, unit));
                 }
             }

@@ -131,7 +131,7 @@ public class KetrocBot extends Bot {
 
             //first step of the game
             if (Time.nowFrames() == Strategy.STEP_SIZE) {
-                ACTION.sendChat("Last updated: May 11, 2021", ActionChat.Channel.BROADCAST);
+                ACTION.sendChat("Last updated: June 25, 2021", ActionChat.Channel.BROADCAST);
             }
 
             if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||

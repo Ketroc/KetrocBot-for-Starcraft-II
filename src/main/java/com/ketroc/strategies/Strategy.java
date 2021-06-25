@@ -131,6 +131,7 @@ public class Strategy {
                 Switches.enemyHasCloakThreat = true;
         }
         DelayedChat.add("Strategy: " + gamePlan);
+        Chat.tag(gamePlan.toString());
 
         //TODO: delete - turning off 2nd factory based on strategy choice
         if (LocationConstants.opponentRace != Race.TERRAN ||
@@ -413,12 +414,12 @@ public class Strategy {
 ////                BUILD_EXPANDS_IN_MAIN = true;
 ////                EXPAND_SLOWLY = true;
 //                return 0;
-            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-            case "10ecc3c36541ead": //RStrelok (LM)
-                return GamePlan.BANSHEE;
-            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-                return GamePlan.BANSHEE;
+//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+//            case "10ecc3c36541ead": //RStrelok (LM)
+//                return GamePlan.BANSHEE;
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+//            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+//                return GamePlan.BANSHEE;
             default:
                 return gamePlan;
         }

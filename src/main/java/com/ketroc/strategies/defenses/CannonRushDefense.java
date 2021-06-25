@@ -33,6 +33,8 @@ public class CannonRushDefense {
                         !isAnyCannonComplete()) {
                     cancelCCFirst();
                     Chat.chat("Cannon Rush Detected");
+                    Chat.tag("VS_CANNON_RUSH");
+                    Chat.tag("VS_CHEESE");
                     cannonRushStep++;
                 }
                 break;

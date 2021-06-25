@@ -291,6 +291,7 @@ public class GameCache {
                         //change base viking:banshee ratio once tempests hit the field
                         case PROTOSS_TEMPEST:
                             Strategy.VIKING_BANSHEE_RATIO = 1f;
+                            Chat.tag("VS_TEMPESTS");
                             break;
                         //ignore phoenixes until one is verify as real
                         case PROTOSS_PHOENIX:

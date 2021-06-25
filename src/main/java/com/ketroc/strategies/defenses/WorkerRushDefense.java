@@ -12,10 +12,7 @@ import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.StructureScv;
 import com.ketroc.models.TriangleOfNodes;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
-import com.ketroc.utils.Position;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +73,8 @@ public class WorkerRushDefense {
                     if (numEnemyWorkersAttacking >= 5 && !UnitUtils.isWallComplete()) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
+                        Chat.tag("VS_WORKER_RUSH");
+                        Chat.tag("VS_CHEESE");
                         UnitMicroList.getUnitSubList(ScvAttackTarget.class)
                                 .forEach(scvAttackTarget -> {
                                     if (scvAttackTarget.isAlive()) {

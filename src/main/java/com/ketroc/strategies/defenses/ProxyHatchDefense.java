@@ -5,10 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.utils.InfluenceMaps;
-import com.ketroc.utils.LocationConstants;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -42,6 +39,8 @@ public class ProxyHatchDefense {
                                 InfluenceMaps.getValue(InfluenceMaps.pointInNat, closestHatchery.unit().getPosition().toPoint2d()))) {
                     hatchery = closestHatchery;
                     isProxyHatch = true;
+                    Chat.tag("VS_PROXY_HATCH");
+                    Chat.tag("VS_CHEESE");
                 }
             }
         }
