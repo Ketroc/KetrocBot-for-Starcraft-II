@@ -239,7 +239,10 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.TANK_VIKING; //FIXME: hardcoded strategy
+        gamePlan = availableTvTGamePlans.stream()
+                .skip(new Random().nextInt(availableTvTGamePlans.size()))
+                .findFirst()
+                .get();
         switch (gamePlan) {
             case BANSHEE:
                 break;
@@ -294,7 +297,10 @@ public class Strategy {
         while (!availableTvPGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEE; //TODO: hardcoded strategy
+        gamePlan = availableTvPGamePlans.stream()
+                .skip(new Random().nextInt(availableTvPGamePlans.size()))
+                .findFirst()
+                .get();
         switch (gamePlan) {
             case BANSHEE:
                 break;
@@ -328,7 +334,10 @@ public class Strategy {
         while (!availableTvZGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = GamePlan.BANSHEE_CYCLONE; //TODO: hardcoded strategy
+        gamePlan = availableTvZGamePlans.stream()
+                .skip(new Random().nextInt(availableTvZGamePlans.size()))
+                .findFirst()
+                .get();
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
