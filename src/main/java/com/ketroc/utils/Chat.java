@@ -82,7 +82,7 @@ public class Chat {
 
     public static void tag(String tag) {
         if (tag != null && !tag.equals("")) {
-            chatNeverRepeat("tag:ket" + tag, ActionChat.Channel.TEAM);
+            chatNeverRepeat("Tag:ket" + tag, ActionChat.Channel.TEAM);
         }
     }
 }

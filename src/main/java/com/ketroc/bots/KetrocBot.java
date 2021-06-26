@@ -25,6 +25,7 @@ import com.ketroc.strategies.ScvRush;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.*;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -104,7 +105,7 @@ public class KetrocBot extends Bot {
             ACTION.sendActions();
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 
@@ -256,7 +257,7 @@ public class KetrocBot extends Bot {
         }
         catch (Exception e) {
             Print.print("Bot.onStep() error");
-            e.printStackTrace();
+            Error.onException(e);
         }
     } // end onStep()
 
@@ -500,7 +501,7 @@ public class KetrocBot extends Bot {
         }
         catch (Exception e) {
             Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 
@@ -577,6 +578,9 @@ public class KetrocBot extends Bot {
                                 break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
                                 LocationConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                if (UnitUtils.getDistance(unit, LocationConstants.WALL_2x2) < 1) {
+                                    Chat.tag("main_base_breached");
+                                }
                                 break;
                             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
                                 LocationConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
@@ -620,7 +624,7 @@ public class KetrocBot extends Bot {
         }
         catch (Exception e) {
             Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 
@@ -653,35 +657,18 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUnitEnterVision(UnitInPool unitInPool) {
-//        try {
-//            if (unitInPool.unit().getAlliance() == Alliance.ENEMY  && unitInPool.unit().getType() instanceof Units) {
-//                switch ((Units) unitInPool.unit().getType()) {
-//                    case ZERG_OVERLORD:
-//                        break;
-//                    default:
-//                        //if this unit is not significantly further away from my main base, make it the new target
-//                        if (ArmyManager.attackPos == null || GameState.baseList.get(0).getCcPos().distance(unitInPool.unit().getPosition().toPoint2d()) < GameState.baseList.get(0).getCcPos().distance(ArmyManager.attackPos)) {
-//                            ArmyManager.attackPos = unitInPool.unit().getPosition().toPoint2d();
-//                            Switches.isDefending = true;
-//                            break;
-//                        }
-//                }
-//            }
-//        }
-//        catch (Exception e) {
-//            Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
-//            e.printStackTrace();
-//        }
+
     }
 
     @Override
     public void onNydusDetected() { //called when you hear the scream
+        Chat.tag("vs_Nydus");
         GameResult.setNydusRushed(); //TODO: temp for Spiny
     }
 
     @Override
     public void onNuclearLaunchDetected() { //called when you hear "nuclear launch detected"
-
+        Chat.tag("vs_Nuke");
     }
 
     @Override
@@ -693,7 +680,7 @@ public class KetrocBot extends Bot {
         try {
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 
@@ -716,7 +703,7 @@ public class KetrocBot extends Bot {
             Print.print("New File Text = " + newFileText);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
         Print.print("==========================");
         Print.print("  Result: " + result.toString());

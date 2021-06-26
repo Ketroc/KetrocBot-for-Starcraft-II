@@ -16,6 +16,7 @@ import com.ketroc.managers.UpgradeManager;
 import com.ketroc.models.DelayedChat;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -111,9 +112,9 @@ public class Strategy {
 
     private static void getGameStrategyChoice() {
         setRaceStrategies();
-        if (!Bot.isRealTime) {
-            setStrategyNumber(); //TODO: this is off for ladder
-        }
+//        if (!Bot.isRealTime) {
+//            setStrategyNumber(); //TODO: this is off for ladder
+//        }
         switch (LocationConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
@@ -487,7 +488,7 @@ public class Strategy {
 
         }
         catch (IOException e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 

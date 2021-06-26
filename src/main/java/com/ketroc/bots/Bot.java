@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.ketroc.managers.ActionErrorManager;
+import com.ketroc.utils.Error;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -117,7 +118,7 @@ public class Bot extends S2Agent {
             Abilities.remapForBuild(Integer.MAX_VALUE);
         }
         catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 }

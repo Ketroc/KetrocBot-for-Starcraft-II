@@ -13,6 +13,7 @@ import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.StructureScv;
 import com.ketroc.models.TriangleOfNodes;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.util.Collections;
 import java.util.List;
@@ -142,7 +143,7 @@ public class WorkerRushDefense {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
         finally {
             return defenseStep != 0;

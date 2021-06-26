@@ -244,7 +244,7 @@ public class UnitUtils {
             return Bot.OBS.getUnits(alliance, unit -> unit.unit().getType() == unitType && UnitUtils.getDistance(unit.unit(), position) < distance);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
         return Collections.emptyList();
     }

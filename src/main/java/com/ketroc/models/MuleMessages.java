@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
+import com.ketroc.utils.Chat;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.Time;
 
@@ -46,6 +47,7 @@ public class MuleMessages {
                 GameCache.ccList.stream().anyMatch(cc -> cc.getEnergy().orElse(0f) > 199)) {
             setRandomMessage();
             writeMessage();
+            Chat.tag("mule_message");
         }
     }
 

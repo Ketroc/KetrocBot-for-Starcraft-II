@@ -11,6 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.micro.Cyclone;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class TestingBot extends Bot {
         try {
             GameCache.onStep();
         } catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
 
         LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
@@ -102,7 +103,7 @@ public class TestingBot extends Bot {
 //        try {
 //            GameCache.onStep();
 //        } catch (Exception e) {
-//            e.printStackTrace();
+//            Error.onException(e);
 //        }
 //        List<UnitInPool> enemyHatchList = OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.ZERG_HATCHERY);
 //        if (!enemyHatchList.isEmpty()) {
@@ -193,7 +194,7 @@ public class TestingBot extends Bot {
         try {
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 

@@ -12,6 +12,7 @@ import com.ketroc.bots.DroneDrill;
 import com.ketroc.models.DelayedAction;
 import com.ketroc.models.TriangleOfNodes;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -102,7 +103,7 @@ public class DroneRush {
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 

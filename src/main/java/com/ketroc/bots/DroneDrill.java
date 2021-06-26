@@ -17,6 +17,7 @@ import com.ketroc.strategies.DroneRush;
 import com.ketroc.strategies.ScvRush;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
+import com.ketroc.utils.Error;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class DroneDrill extends Bot {
 
         }
         catch (Exception e) {
-            e.printStackTrace();
+            Error.onException(e);
         }
     }
 
@@ -204,7 +205,7 @@ public class DroneDrill extends Bot {
         }
         catch (Exception e) {
             Print.print("Bot.onStep() error");
-            e.printStackTrace();
+            Error.onException(e);
         }
     } // end onStep()
 
