@@ -1,0 +1,62 @@
+package com.ketroc.gson;
+
+import com.google.gson.Gson;
+import com.ketroc.bots.Bot;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.utils.Chat;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class JsonUtil {
+    public static String getOpponentJsonFile() {
+        return null; //TODO:
+    }
+
+    public static void setGameResult(GamePlan gamePlan, boolean didWin) {
+        try {
+            Gson gson = new Gson();
+            Path filePath = getPath();
+            Opponent opp = getOpponentRecords(gson, filePath);
+            opp.incrementRecord(gamePlan, didWin);
+            Files.write(filePath, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Opponent getOpponentRecords(Gson gson, Path filePath) throws IOException {
+        Opponent opp;
+        if (!Files.exists(filePath)) {
+            opp = new Opponent();
+        }
+        else {
+            Reader reader = null;
+            reader = Files.newBufferedReader(filePath);
+            opp = gson.fromJson(reader, Opponent.class);
+            reader.close();
+        }
+        return opp;
+    }
+
+    public static void chatAllWinRates() {
+        try {
+            Gson gson = new Gson();
+            Path filePath = getPath();
+            Opponent opp = getOpponentRecords(gson, filePath);
+            Chat.chatNeverRepeat(opp.toString());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Path getPath() {
+        return Path.of("./data/" + (Bot.opponentId.equals("") ? "human" : Bot.opponentId) + ".json");
+    }
+
+}

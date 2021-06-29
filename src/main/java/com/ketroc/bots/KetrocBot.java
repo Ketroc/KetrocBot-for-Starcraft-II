@@ -15,14 +15,12 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
+import com.ketroc.gson.JsonUtil;
 import com.ketroc.managers.*;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
 import com.ketroc.purchases.*;
-import com.ketroc.strategies.BunkerContain;
-import com.ketroc.strategies.MarineAllIn;
-import com.ketroc.strategies.ScvRush;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.strategies.*;
 import com.ketroc.strategies.defenses.*;
 import com.ketroc.utils.*;
 import com.ketroc.utils.Error;
@@ -133,6 +131,7 @@ public class KetrocBot extends Bot {
             //first step of the game
             if (Time.nowFrames() == Strategy.STEP_SIZE) {
                 ACTION.sendChat("Last updated: June 25, 2021", ActionChat.Channel.BROADCAST);
+                JsonUtil.chatAllWinRates();
             }
 
             if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||
@@ -685,6 +684,8 @@ public class KetrocBot extends Bot {
     }
 
     private void recordGameResult() {
+        JsonUtil.setGameResult(Strategy.gamePlan, true);
+
         Result result = OBS.getResults().stream()
                 .filter(playerResult -> playerResult.getPlayerId() == OBS.getPlayerId())
                 .map(PlayerResult::getResult)
