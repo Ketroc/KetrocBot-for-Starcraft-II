@@ -2011,7 +2011,9 @@ public class LocationConstants {
 
     private static void setLocationsForJagannatha(boolean isTopPos) {
         if (isTopPos) {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+            proxyBarracksPos = Point2d.of(100.5f, 65.5f);
+            proxyBunkerPos = Point2d.of(75.5f, 42.5f);
+            proxyBunkerPos2 = Point2d.of(59.5f, 62.5f);
 
             reaperBlockDepots.add(Point2d.of(116.0f, 134.0f));
             reaperBlockDepots.add(Point2d.of(114.0f, 135.0f));
@@ -2075,7 +2077,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(126.0f, 159.0f));
         }
         else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+            proxyBarracksPos = Point2d.of(67.5f, 119.5f);
+            proxyBunkerPos = Point2d.of(92.5f, 143.5f);
+            proxyBunkerPos2 = Point2d.of(108.5f, 123.5f);
 
             reaperBlockDepots.add(Point2d.of(52.0f, 52.0f));
             reaperBlockDepots.add(Point2d.of(54.0f, 51.0f));
@@ -2146,7 +2150,9 @@ public class LocationConstants {
 
     private static void setLocationsForLightshade(boolean isTopPos) {
         if (isTopPos) {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+            proxyBarracksPos = Point2d.of(112.5f, 85.5f);
+            proxyBunkerPos = Point2d.of(136.5f, 66.5f);
+            proxyBunkerPos2 = Point2d.of(117.5f, 52.5f);
 
             reaperBlockDepots.add(Point2d.of(55.0f, 120.0f));
             reaperBlockDepots.add(Point2d.of(52.0f, 117.0f));
@@ -2213,7 +2219,9 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(47.0f, 142.0f));
         }
         else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+            proxyBarracksPos = Point2d.of(68.5f, 76.5f);
+            proxyBunkerPos = Point2d.of(46.5f, 96.5f);
+            proxyBunkerPos2 = Point2d.of(66.5f, 112.5f);
 
             reaperBlockDepots.add(Point2d.of(129.0f, 44.0f));
             reaperBlockDepots.add(Point2d.of(132.0f, 47.0f));
@@ -2428,7 +2436,9 @@ public class LocationConstants {
 
     private static void setLocationsForOxide(boolean isTopPos) {
         if (isTopPos) {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+            proxyBarracksPos = Point2d.of(92.5f, 91.5f);
+            proxyBunkerPos = Point2d.of(75.5f, 59.5f);
+            proxyBunkerPos2 = Point2d.of(57.5f, 80.5f);
 
             reaperBlockDepots.add(Point2d.of(135.0f, 136.0f));
             reaperBlockDepots.add(Point2d.of(133.0f, 136.0f));
@@ -2492,8 +2502,11 @@ public class LocationConstants {
             extraDepots.add(Point2d.of(158.0f, 143.0f));
             extraDepots.add(Point2d.of(153.0f, 154.0f));
             extraDepots.add(Point2d.of(144.0f, 144.0f));
-        } else {
-            //TODO: add proxyBarracksPos & proxyBunkerPos
+        }
+        else {
+            proxyBarracksPos = Point2d.of(98.5f, 114.5f);
+            proxyBunkerPos = Point2d.of(116.5f, 144.5f);
+            proxyBunkerPos2 = Point2d.of(134.5f, 123.5f);
 
             reaperBlockDepots.add(Point2d.of(57.0f, 68.0f));
             reaperBlockDepots.add(Point2d.of(59.0f, 68.0f));
