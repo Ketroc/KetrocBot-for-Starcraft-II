@@ -104,6 +104,7 @@ public class BuildOrder {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                 }
                 break;
