@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.GameCache;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Ignored;
@@ -376,5 +377,11 @@ public class BasicUnitMicro {
     protected boolean isMorphing() {
         return ActionIssued.getCurOrder(unit.unit()).stream()
                 .anyMatch(action -> action.ability.toString().contains("MORPH"));
+    }
+
+    //consider retreating if !doOffense and not near a friendly base
+    protected boolean isRetreating() {
+        return !ArmyManager.doOffense && GameCache.baseList.stream()
+                        .noneMatch(base -> base.isMyBase() &&UnitUtils.getDistance(unit.unit(), base.getCcPos()) < 17);
     }
 }

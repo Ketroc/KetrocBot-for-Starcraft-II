@@ -60,7 +60,7 @@ public class TankOffense extends Tank {
         }
 
         //siege up
-        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe()) {
+        if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe() && !isRetreating()) {
             if (doSiegeUp()) {
                 return;
             }
