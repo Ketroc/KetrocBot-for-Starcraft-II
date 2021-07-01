@@ -732,6 +732,10 @@ public class Base {
         return (int) GameCache.baseList.stream().filter(base -> base.isMyBase()).count();
     }
 
+    public static int numEnemyBases() {
+        return (int) GameCache.baseList.stream().filter(base -> base.isEnemyBase).count();
+    }
+
     public static int numAvailableBases() {
         return (int) GameCache.baseList.stream()
                 .filter(base -> base.isUntakenBase() && !base.isDryedUp)

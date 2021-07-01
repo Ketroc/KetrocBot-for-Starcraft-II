@@ -7,13 +7,10 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
-import com.ketroc.models.Gas;
+import com.ketroc.models.*;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.models.Base;
-import com.ketroc.models.MineralPatch;
-import com.ketroc.models.TriangleOfNodes;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -90,7 +87,7 @@ public class LocationConstants {
         myMineralTriangle = new TriangleOfNodes(myMineralPos);
     }
 
-    public static void onStep() { //TODO: rewrite this to use GameCache.baseList.isEnemyBase()
+    public static void onStep() { //TODO: rewrite this to use GameCache.baseList.isEnemyBase
         if (Time.nowFrames() % Time.toFrames("5:00") == 0 && Base.numMyBases() >= 4) { //every ~5min
             setNewEnemyBaseIndex();
         }
@@ -112,6 +109,7 @@ public class LocationConstants {
         if (baseAttackIndex >= baseLocations.size()) {
             Switches.finishHim = true;
             Chat.chatWithoutSpam("Finish Him!", 120);
+            MuleMessages.doTrollMule = true;
             return null;
         }
         return baseLocations.get(baseAttackIndex);

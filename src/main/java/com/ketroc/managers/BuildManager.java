@@ -140,6 +140,10 @@ public class BuildManager {
     }
 
     private static void spamMulesOnEnemyBase() {
+        //exit since mule spam replaced with troll muling
+        if (MuleMessages.doTrollMule && GameCache.mineralBank > 100) {
+            return;
+        }
         List<Unit> ocList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         int ocCount = (int)ocList.stream().filter(oc -> oc.getEnergy().get() >= 50f).count(); //OCs with mule energy
         int numMulesAvailable = ocList.stream()
@@ -168,7 +172,7 @@ public class BuildManager {
                 }
             }
             if (numMulesAvailable > 4) {
-                if (!scanNextBase(ocList)) {
+                if (!scanNextBase()) {
                     isMuleSpamming = muleMyBases(ocList, ocCount, numMulesAvailable);
                 }
             }
@@ -209,7 +213,11 @@ public class BuildManager {
                 base.prevMuleSpamFrame + Time.toFrames(10) < Time.nowFrames();
     }
 
-    private static boolean scanNextBase(List<Unit> ocList) {
+    private static boolean scanNextBase() {
+        //scan was cast on previous frame
+        if (Time.nowFrames() <= ArmyManager.prevScanFrame + 24) {
+            return true;
+        }
         Base nextBase = GameCache.baseList.stream()
                 .filter(base -> !base.isMyBase() &&
                         base.prevMuleSpamFrame + Time.toFrames(30) < Time.nowFrames() &&
@@ -217,10 +225,11 @@ public class BuildManager {
                         !isMineralsVisible(base.getMineralPatchUnits()))
                 .findFirst()
                 .orElse(null);
-        if (nextBase != null) {
-            ActionHelper.unitCommand(ocList, Abilities.EFFECT_SCAN, nextBase.getCcPos(), false);
+        if (nextBase == null) {
+            return false;
         }
-        return nextBase != null;
+        UnitUtils.scan(nextBase.getCcPos());
+        return true;
     }
 
     private static void noGasProduction() {

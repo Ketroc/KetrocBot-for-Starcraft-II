@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class JsonUtil {
     public static String getOpponentJsonFile() {
@@ -56,7 +57,13 @@ public class JsonUtil {
     }
 
     private static Path getPath() {
-        return Path.of("./data/" + (Bot.opponentId.equals("") ? "human" : Bot.opponentId) + ".json");
+        Optional<String> oppName = Bot.OBS.getGameInfo().getPlayersInfo().stream()
+                .filter(playerInfo -> playerInfo.getPlayerId() != Bot.OBS.getPlayerId())
+                .findFirst()
+                .get()
+                .getPlayerName();
+        String fileName = oppName.orElse(Bot.opponentId.equals("") ? "human" : Bot.opponentId);
+        return Path.of("./data/" + fileName + ".json");
     }
 
 }

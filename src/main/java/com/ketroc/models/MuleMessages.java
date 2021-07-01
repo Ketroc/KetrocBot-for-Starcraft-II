@@ -6,17 +6,15 @@ import com.github.ocraft.s2client.protocol.data.Effects;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.Chat;
-import com.ketroc.utils.LocationConstants;
-import com.ketroc.utils.Time;
+import com.ketroc.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MuleMessages {
+    private static final int MAX_MULES_REQUIRED = 47;
+
     private static final Map<Character, Set<Point2d>> muleLetterPosTable = new Hashtable<>();
     private static char[] message;
     public static boolean doTrollMule;
@@ -42,9 +40,9 @@ public class MuleMessages {
             return;
         }
 
-        //new message
-        if (lastMuleMessageFrame + Time.toFrames(90) < Time.nowFrames() &&
-                GameCache.ccList.stream().anyMatch(cc -> cc.getEnergy().orElse(0f) > 199)) {
+        //start new message
+        if (Time.nowFrames() > lastMuleMessageFrame + Time.toFrames(90) &&
+                UnitUtils.numScansAvailable() >= MAX_MULES_REQUIRED) {
             setRandomMessage();
             writeMessage();
             Chat.tag("mule_message");

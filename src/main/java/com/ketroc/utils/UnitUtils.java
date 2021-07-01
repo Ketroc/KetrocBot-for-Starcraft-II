@@ -957,8 +957,8 @@ public class UnitUtils {
 
     public static int numScansAvailable() {
         return getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
-        .mapToInt(oc -> (int)(oc.getEnergy().orElse(1f) / 50))
-        .sum();
+                .mapToInt(oc -> (int)(oc.getEnergy().orElse(1f) / 50))
+                .sum();
     }
 
     public static void scan(Point2d pos) {

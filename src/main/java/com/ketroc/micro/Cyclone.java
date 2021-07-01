@@ -70,7 +70,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //if currently trying to lock on
-        if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
+        if (lockTarget != null && UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
             if (!isSafeToAttemptLock(lockTarget)) {
                 lockTarget = null;
             }

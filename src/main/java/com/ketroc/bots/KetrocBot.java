@@ -130,7 +130,7 @@ public class KetrocBot extends Bot {
 
             //first step of the game
             if (Time.nowFrames() == Strategy.STEP_SIZE) {
-                ACTION.sendChat("Last updated: June 25, 2021", ActionChat.Channel.BROADCAST);
+                ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
                 JsonUtil.chatAllWinRates();
             }
 
@@ -618,6 +618,13 @@ public class KetrocBot extends Bot {
                                 Base.releaseScv(unit);
                         }
                         break;
+                    case ENEMY:
+                        if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
+                                UnitUtils.getDistance(unit,
+                                        GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos()) < 1 &&
+                                Base.numEnemyBases() <= 1) {
+                            MuleMessages.doTrollMule = true;
+                        }
                 }
             }
         }
@@ -684,7 +691,6 @@ public class KetrocBot extends Bot {
     }
 
     private void recordGameResult() {
-        JsonUtil.setGameResult(Strategy.gamePlan, true);
 
         Result result = OBS.getResults().stream()
                 .filter(playerResult -> playerResult.getPlayerId() == OBS.getPlayerId())
@@ -692,8 +698,10 @@ public class KetrocBot extends Bot {
                 .findFirst()
                 .orElse(Result.VICTORY);
 
+        JsonUtil.setGameResult(Strategy.gamePlan, result == Result.VICTORY);
+
         Path path = Paths.get("./data/prevResult.txt");
-        char charResult = (result == Result.DEFEAT) ? 'L' : 'W';
+        char charResult = (result == Result.VICTORY) ? 'W' : 'L';
         try {
             String newFileText = opponentId + "~" + Strategy.gamePlan + "~" + charResult;
             String prevFileText = Files.readString(Paths.get("./data/prevResult.txt"));

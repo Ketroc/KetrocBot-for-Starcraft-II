@@ -446,7 +446,6 @@ public class Strategy {
             UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
         }
 
-        LocationConstants.STARPORTS = LocationConstants.STARPORTS.subList(0, 10);
         DO_BANSHEE_HARASS = false;
         DO_INCLUDE_LIBS = false;
         DO_DEFENSIVE_TANKS = false;
