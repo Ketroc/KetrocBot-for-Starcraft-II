@@ -2008,6 +2008,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForJagannatha(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(85.5f, 110.5f));
+        muleLetterPosList.add(Point2d.of(99.5f, 100.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(100.5f, 65.5f);
             proxyBunkerPos = Point2d.of(75.5f, 42.5f);
@@ -2147,6 +2149,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForLightshade(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(91.5f, 104.5f));
+        muleLetterPosList.add(Point2d.of(101.5f, 111.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(112.5f, 85.5f);
             proxyBunkerPos = Point2d.of(136.5f, 66.5f);
@@ -2433,6 +2437,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForOxide(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(82.5f, 126.5f));
+        muleLetterPosList.add(Point2d.of(93.5f, 117.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(92.5f, 91.5f);
             proxyBunkerPos = Point2d.of(75.5f, 59.5f);
