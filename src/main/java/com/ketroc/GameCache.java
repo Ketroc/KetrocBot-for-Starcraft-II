@@ -537,7 +537,13 @@ public class GameCache {
         if (Switches.vikingDiveTarget == null && LocationConstants.opponentRace == Race.PROTOSS && !GameCache.vikingList.isEmpty()) {
             List<UnitInPool> tempests = getProtossCapitalShips();
             if (!tempests.isEmpty()) {
-                UnitInPool closestTempest = UnitUtils.getClosestUnitFromUnitList(tempests, Position.midPointUnitsMedian(GameCache.vikingList));
+                UnitInPool closestTempest = tempests.stream()
+                        .filter(u -> u.unit().getType() == Units.PROTOSS_MOTHERSHIP)
+                        .findAny()
+                        .orElse(UnitUtils.getClosestUnitFromUnitList(tempests, Position.midPointUnitsMedian(GameCache.vikingList)));
+                if (tempests.stream().anyMatch(u -> u.unit().getType() == Units.PROTOSS_MOTHERSHIP)) {
+                    Chat.tag("VS_Mothership");
+                }
                 if (closestTempest != null) {
                     Point2d closestTempestPos = closestTempest.unit().getPosition().toPoint2d();
                     List<UnitInPool> nearbyAntiTempestUnits = UnitUtils.getUnitsNearbyOfType(
