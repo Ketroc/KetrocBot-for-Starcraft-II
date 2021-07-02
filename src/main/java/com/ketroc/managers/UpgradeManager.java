@@ -123,6 +123,7 @@ public class UpgradeManager {
         if (doStarportUpgrades) { //if at least 1 banshee
             starportUpgradeList.stream()
                     .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
+                    .filter(upgrade -> upgrade != Upgrades.BANSHEE_SPEED || ArmyManager.doOffense) //don't get banshee speed until on the offense
                     .findFirst()
                     .ifPresent(upgrade -> {
                         UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()

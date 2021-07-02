@@ -288,10 +288,11 @@ public class BuildManager {
 
     private static void build2ndLayerOfTech() {
         //build after 4th base started TODO: get armories earlier and smarter
-        if (!Strategy.techBuilt && Base.numMyBases() >= 4) {
+        if (!Strategy.techBuilt && (ArmyManager.doOffense || Base.numMyBases() >= 4)) {
             List<Unit> engBayList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
-                KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
+                KetrocBot.purchaseQueue.add(
+                        new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
             }
             if (!UpgradeManager.airAttackUpgrades.isEmpty()) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
