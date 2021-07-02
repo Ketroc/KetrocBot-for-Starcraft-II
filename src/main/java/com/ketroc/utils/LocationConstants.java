@@ -356,9 +356,9 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(159.5f, 141.5f));
             FACTORIES.add(Point2d.of(159.5f, 144.5f));
 
+            STARPORTS.add(Point2d.of(170.5f, 153.5f));
             STARPORTS.add(Point2d.of(160.5f, 153.5f));
             STARPORTS.add(Point2d.of(165.5f, 152.5f));
-            STARPORTS.add(Point2d.of(170.5f, 153.5f));
             STARPORTS.add(Point2d.of(176.5f, 148.5f));
             STARPORTS.add(Point2d.of(176.5f, 144.5f));
             STARPORTS.add(Point2d.of(176.5f, 140.5f));
@@ -417,10 +417,10 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(63.5f, 61.5f));
             FACTORIES.add(Point2d.of(63.5f, 58.5f));
 
-            STARPORTS.add(Point2d.of(64.5f, 52.5f));
             STARPORTS.add(Point2d.of(60.5f, 49.5f));
-            STARPORTS.add(Point2d.of(54.5f, 52.5f));
             STARPORTS.add(Point2d.of(49.5f, 52.5f));
+            STARPORTS.add(Point2d.of(54.5f, 52.5f));
+            STARPORTS.add(Point2d.of(64.5f, 52.5f));
             STARPORTS.add(Point2d.of(46.5f, 61.5f));
             STARPORTS.add(Point2d.of(46.5f, 56.5f));
             STARPORTS.add(Point2d.of(49.5f, 66.5f));
@@ -757,6 +757,7 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(52.5f, 38.5f));
 
             STARPORTS.add(Point2d.of(26.5f, 26.5f));
+            STARPORTS.add(Point2d.of(26.5f, 38.5f));
             STARPORTS.add(Point2d.of(30.5f, 22.5f));
             STARPORTS.add(Point2d.of(35.5f, 21.5f));
             STARPORTS.add(Point2d.of(40.5f, 21.5f));
@@ -767,7 +768,6 @@ public class LocationConstants {
             STARPORTS.add(Point2d.of(38.5f, 38.5f));
             STARPORTS.add(Point2d.of(33.5f, 35.5f));
             STARPORTS.add(Point2d.of(32.5f, 38.5f));
-            STARPORTS.add(Point2d.of(26.5f, 38.5f));
             STARPORTS.add(Point2d.of(28.5f, 48.5f));
 
             MACRO_OCS.add(Point2d.of(41.5f, 31.5f));
@@ -818,12 +818,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(141.5f, 36.5f));
 
             STARPORTS.add(Point2d.of(156.5f, 26.5f));
+            STARPORTS.add(Point2d.of(156.5f, 38.5f));
+            STARPORTS.add(Point2d.of(151.5f, 22.5f));
             STARPORTS.add(Point2d.of(147.5f, 36.5f));
             STARPORTS.add(Point2d.of(147.5f, 39.5f));
-            STARPORTS.add(Point2d.of(156.5f, 38.5f));
             STARPORTS.add(Point2d.of(141.5f, 20.5f));
             STARPORTS.add(Point2d.of(146.5f, 20.5f));
-            STARPORTS.add(Point2d.of(151.5f, 22.5f));
             STARPORTS.add(Point2d.of(136.5f, 32.5f));
             STARPORTS.add(Point2d.of(131.5f, 33.5f));
             STARPORTS.add(Point2d.of(128.5f, 37.5f));
@@ -2036,12 +2036,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(118.5f, 141.5f));
 
             STARPORTS.add(Point2d.of(115.5f, 160.5f));
-            STARPORTS.add(Point2d.of(114.5f, 156.5f));
-            STARPORTS.add(Point2d.of(113.5f, 152.5f));
-            STARPORTS.add(Point2d.of(120.5f, 156.5f));
             STARPORTS.add(Point2d.of(122.5f, 161.5f));
             STARPORTS.add(Point2d.of(128.5f, 160.5f));
             STARPORTS.add(Point2d.of(133.5f, 160.5f));
+            STARPORTS.add(Point2d.of(114.5f, 156.5f));
+            STARPORTS.add(Point2d.of(113.5f, 152.5f));
+            STARPORTS.add(Point2d.of(120.5f, 156.5f));
             STARPORTS.add(Point2d.of(136.5f, 157.5f));
             STARPORTS.add(Point2d.of(135.5f, 154.5f));
             STARPORTS.add(Point2d.of(137.5f, 149.5f));
@@ -2103,9 +2103,9 @@ public class LocationConstants {
 
             STARPORTS.add(Point2d.of(44.5f, 24.5f));
             STARPORTS.add(Point2d.of(38.5f, 24.5f));
+            STARPORTS.add(Point2d.of(32.5f, 26.5f));
             STARPORTS.add(Point2d.of(46.5f, 30.5f));
             STARPORTS.add(Point2d.of(46.5f, 33.5f));
-            STARPORTS.add(Point2d.of(32.5f, 26.5f));
             STARPORTS.add(Point2d.of(29.5f, 29.5f));
             STARPORTS.add(Point2d.of(30.5f, 32.5f));
             STARPORTS.add(Point2d.of(29.5f, 36.5f));
@@ -2466,12 +2466,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(134.5f, 146.5f));
             FACTORIES.add(Point2d.of(141.5f, 142.5f));
 
-            STARPORTS.add(Point2d.of(137.5f, 157.5f));
-            STARPORTS.add(Point2d.of(143.5f, 157.5f));
-            STARPORTS.add(Point2d.of(137.5f, 154.5f));
-            STARPORTS.add(Point2d.of(136.5f, 150.5f));
             STARPORTS.add(Point2d.of(151.5f, 158.5f));
             STARPORTS.add(Point2d.of(148.5f, 156.5f));
+            STARPORTS.add(Point2d.of(143.5f, 157.5f));
+            STARPORTS.add(Point2d.of(137.5f, 157.5f));
+            STARPORTS.add(Point2d.of(137.5f, 154.5f));
+            STARPORTS.add(Point2d.of(136.5f, 150.5f));
             STARPORTS.add(Point2d.of(157.5f, 147.5f));
             STARPORTS.add(Point2d.of(156.5f, 150.5f));
             STARPORTS.add(Point2d.of(155.5f, 153.5f));
@@ -2534,12 +2534,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(55.5f, 57.5f));
             FACTORIES.add(Point2d.of(48.5f, 57.5f));
 
+            STARPORTS.add(Point2d.of(48.5f, 45.5f));
+            STARPORTS.add(Point2d.of(37.5f, 46.5f));
+            STARPORTS.add(Point2d.of(43.5f, 46.5f));
             STARPORTS.add(Point2d.of(55.5f, 51.5f));
             STARPORTS.add(Point2d.of(49.5f, 52.5f));
-            STARPORTS.add(Point2d.of(48.5f, 45.5f));
             STARPORTS.add(Point2d.of(51.5f, 47.5f));
-            STARPORTS.add(Point2d.of(43.5f, 46.5f));
-            STARPORTS.add(Point2d.of(37.5f, 46.5f));
             STARPORTS.add(Point2d.of(36.5f, 50.5f));
             STARPORTS.add(Point2d.of(32.5f, 56.5f));
             STARPORTS.add(Point2d.of(32.5f, 53.5f));
@@ -2754,12 +2754,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(40.5f, 121.5f));
 
             STARPORTS.add(Point2d.of(28.5f, 131.5f));
+            STARPORTS.add(Point2d.of(30.5f, 135.5f));
             STARPORTS.add(Point2d.of(31.5f, 127.5f));
             STARPORTS.add(Point2d.of(33.5f, 124.5f));
             STARPORTS.add(Point2d.of(32.5f, 121.5f));
             STARPORTS.add(Point2d.of(31.5f, 118.5f));
             STARPORTS.add(Point2d.of(32.5f, 115.5f));
-            STARPORTS.add(Point2d.of(30.5f, 135.5f));
             STARPORTS.add(Point2d.of(34.5f, 142.5f));
             STARPORTS.add(Point2d.of(37.5f, 144.5f));
             STARPORTS.add(Point2d.of(42.5f, 145.5f));
@@ -2825,13 +2825,12 @@ public class LocationConstants {
             FACTORIES.add(Point2d.of(161.5f, 57.5f));
             FACTORIES.add(Point2d.of(167.5f, 55.5f));
 
-            //STARPORTS.add(Point2d.of(167.5f, 55.5f)); FACTORY2
+            STARPORTS.add(Point2d.of(168.5f, 38.5f));
+            STARPORTS.add(Point2d.of(168.5f, 42.5f));
+            STARPORTS.add(Point2d.of(167.5f, 33.5f));
             STARPORTS.add(Point2d.of(167.5f, 51.5f));
             STARPORTS.add(Point2d.of(164.5f, 48.5f));
             STARPORTS.add(Point2d.of(166.5f, 45.5f));
-            STARPORTS.add(Point2d.of(168.5f, 42.5f));
-            STARPORTS.add(Point2d.of(168.5f, 38.5f));
-            STARPORTS.add(Point2d.of(167.5f, 33.5f));
             STARPORTS.add(Point2d.of(161.5f, 28.5f));
             STARPORTS.add(Point2d.of(158.5f, 26.5f));
             STARPORTS.add(Point2d.of(153.5f, 24.5f));
