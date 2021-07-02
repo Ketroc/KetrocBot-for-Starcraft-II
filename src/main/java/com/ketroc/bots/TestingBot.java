@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.micro.Cyclone;
+import com.ketroc.models.MuleMessages;
 import com.ketroc.utils.Error;
 import com.ketroc.utils.*;
 
@@ -73,7 +74,8 @@ public class TestingBot extends Bot {
         LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
 //        DebugHelper.onGameStart();
-        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild().debugGodMode();
+        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
+        //dropMuleMessageAsDrones();
 //        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
@@ -82,10 +84,31 @@ public class TestingBot extends Bot {
 
     }
 
+    private void dropMuleMessageAsDrones() {
+        for (Point2d p : MuleMessages.muleLetterPosTable.get('E')) {
+            debug().debugCreateUnit(Units.ZERG_DRONE, p.add(LocationConstants.muleLetterPosList.get(0)), myId, 1);
+        }
+        for (Point2d p : MuleMessages.muleLetterPosTable.get('Z')) {
+            debug().debugCreateUnit(Units.ZERG_DRONE, p.add(LocationConstants.muleLetterPosList.get(1)), myId, 1);
+        }
+    }
+
 
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
-        int w = 293847;
+        //printMuleMessagePointsUsingDrones();
+    }
+
+    private void printMuleMessagePointsUsingDrones() {
+        if (Bot.OBS.getGameLoop() > 10) {
+            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.ZERG_DRONE)
+                    .forEach(u -> {
+                        Point2d relativePos = u.unit().getPosition().toPoint2d().sub(LocationConstants.muleLetterPosList.get(0));
+                        System.out.print(", Point2d.of(" + relativePos.getX() + "f, " + relativePos.getY() + "f)");
+                    });
+            System.out.println("");
+            System.out.println("");
+        }
     }
 
     @Override
