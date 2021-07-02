@@ -31,8 +31,8 @@ public class TestingBotLauncher {
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
 
 
 //                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));

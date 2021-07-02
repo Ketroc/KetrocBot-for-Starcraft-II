@@ -326,8 +326,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsFor2000Atmospheres(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(101.5f, 114.5f));
-        muleLetterPosList.add(Point2d.of(115.5f, 96.5f));
+        muleLetterPosList.add(Point2d.of(100.5f, 106.5f));
+        muleLetterPosList.add(Point2d.of(115.5f, 89.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(123.5f, 73.5f);
             proxyBunkerPos = Point2d.of(87.5f, 57.5f);
@@ -727,8 +727,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForBlackburn(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(81.5f, 106.5f));
-        muleLetterPosList.add(Point2d.of(95.5f, 106.5f));
+        muleLetterPosList.add(Point2d.of(88.5f, 89.5f));
+        muleLetterPosList.add(Point2d.of(88.5f, 74.5f));
         if (isTopPos) { //left spawn
             proxyBarracksPos = Point2d.of(118.5f, 81.5f);
             proxyBunkerPos = Point2d.of(141.5f, 60.5f);
@@ -2008,8 +2008,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForJagannatha(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(85.5f, 110.5f));
-        muleLetterPosList.add(Point2d.of(99.5f, 100.5f));
+        muleLetterPosList.add(Point2d.of(63.5f, 88.5f));
+        muleLetterPosList.add(Point2d.of(76.5f, 75.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(100.5f, 65.5f);
             proxyBunkerPos = Point2d.of(75.5f, 42.5f);
@@ -2149,8 +2149,9 @@ public class LocationConstants {
     }
 
     private static void setLocationsForLightshade(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(91.5f, 104.5f));
-        muleLetterPosList.add(Point2d.of(101.5f, 111.5f));
+        muleLetterPosList.add(Point2d.of(89.5f, 93.5f));
+        muleLetterPosList.add(Point2d.of(98.5f, 101.5f));
+
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(112.5f, 85.5f);
             proxyBunkerPos = Point2d.of(136.5f, 66.5f);
@@ -2437,8 +2438,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForOxide(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(82.5f, 126.5f));
-        muleLetterPosList.add(Point2d.of(93.5f, 117.5f));
+        muleLetterPosList.add(Point2d.of(65.5f, 98.5f));
+        muleLetterPosList.add(Point2d.of(77.5f, 98.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(92.5f, 91.5f);
             proxyBunkerPos = Point2d.of(75.5f, 59.5f);
@@ -2724,8 +2725,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForRomanticide(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(78.5f, 78.5f));
-        muleLetterPosList.add(Point2d.of(89.5f, 88.5f));
+        muleLetterPosList.add(Point2d.of(90.5f, 79.5f));
+        muleLetterPosList.add(Point2d.of(102.5f, 81.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(112.5f, 87.5f);
             proxyBunkerPos = Point2d.of(144.5f, 65.5f);
