@@ -620,9 +620,8 @@ public class KetrocBot extends Bot {
                         break;
                     case ENEMY:
                         if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
-                                UnitUtils.getDistance(unit,
-                                        GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos()) < 1 &&
-                                Base.numEnemyBases() <= 1) {
+                                Bot.OBS.getFoodUsed() > 180 &&
+                                UnitUtils.getEnemySupply() < 70) {
                             MuleMessages.doTrollMule = true;
                         }
                 }

@@ -976,4 +976,10 @@ public class UnitUtils {
                         UnitUtils.DETECTION_REQUIRED_TYPE.contains((Units)enemy.getType()) ||
                         enemy.getType().toString().endsWith("_BURROWED");
     }
+
+    public static float getEnemySupply() {
+        return (float) GameCache.allEnemiesList.stream()
+                .mapToDouble(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getFoodRequired().orElse(0f))
+                .sum();
+    }
 }
