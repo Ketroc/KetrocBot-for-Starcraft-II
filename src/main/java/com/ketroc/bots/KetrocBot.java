@@ -622,7 +622,7 @@ public class KetrocBot extends Bot {
                         if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
                                 Bot.OBS.getFoodUsed() > 180 &&
                                 UnitUtils.getEnemySupply() < 50) {
-                            Chat.chatNeverRepeat("enemy supply: " + UnitUtils.getEnemySupply());
+                            Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_CHAT));
                             MuleMessages.doTrollMule = true;
                         }
                 }

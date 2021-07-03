@@ -37,6 +37,12 @@ public class Chat {
             "Let's purge some tempests", "Stalkers, please don't look up so I can kill some tempests"
     ));
 
+    public static final List<String> WINNING_CHAT = new ArrayList<>(List.of(
+            "This is where Larva would start playing with his feet",
+            "Just GG already.  I'm not going to crash. This is a bug-free codebas-- 0x6F09844E FATAL ERROR!",
+            "Ya give up, or ya thirsty for more?"
+    ));
+
     public static String getRandomMessage(List<String> messageList) {
         return messageList.get(new Random().nextInt(messageList.size()));
     }
