@@ -621,7 +621,8 @@ public class KetrocBot extends Bot {
                     case ENEMY:
                         if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
                                 Bot.OBS.getFoodUsed() > 180 &&
-                                UnitUtils.getEnemySupply() < 50) {
+                                Base.numEnemyBases() < 3 &&
+                                UnitUtils.getEnemySupply() < 40) {
                             Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_CHAT));
                             MuleMessages.doTrollMule = true;
                         }

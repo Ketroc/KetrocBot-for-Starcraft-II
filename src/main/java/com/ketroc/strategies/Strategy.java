@@ -242,10 +242,11 @@ public class Strategy {
         while (!availableTvTGamePlans.contains(gamePlan)) {
             gamePlan = getNextGamePlan(gamePlan);
         }
-        gamePlan = availableTvTGamePlans.stream()
-                .skip(new Random().nextInt(availableTvTGamePlans.size()))
-                .findFirst()
-                .get();
+        gamePlan = GamePlan.RAVEN;
+//        gamePlan = availableTvTGamePlans.stream()
+//                .skip(new Random().nextInt(availableTvTGamePlans.size()))
+//                .findFirst()
+//                .get();
         switch (gamePlan) {
             case BANSHEE:
                 break;
