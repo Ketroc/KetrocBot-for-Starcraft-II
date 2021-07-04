@@ -619,7 +619,9 @@ public class KetrocBot extends Bot {
                         }
                         break;
                     case ENEMY:
-                        if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
+                        //turn on trolling if I think I've won.
+                        if (!MuleMessages.doTrollMule &&
+                                UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
                                 Bot.OBS.getFoodUsed() > 180 &&
                                 Base.numEnemyBases() < 3 &&
                                 UnitUtils.getEnemySupply() < 40) {
