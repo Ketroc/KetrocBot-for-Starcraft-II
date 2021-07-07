@@ -229,14 +229,14 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
                 GamePlan.ONE_BASE_TANK_VIKING,
-                GamePlan.BANSHEE_CYCLONE,
-                GamePlan.BANSHEE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
+                //GamePlan.BANSHEE_CYCLONE,
+                //GamePlan.BANSHEE,
+                //GamePlan.MARINE_RUSH,
+                //GamePlan.SCV_RUSH,
                 GamePlan.BUNKER_CONTAIN_STRONG,
-                GamePlan.RAVEN,
+                //GamePlan.RAVEN,
                 GamePlan.TANK_VIKING,
-                GamePlan.RAVEN_CYCLONE,
+                //GamePlan.RAVEN_CYCLONE,
                 GamePlan.BANSHEE_TANK
         ));
         while (!availableTvTGamePlans.contains(gamePlan)) {
@@ -296,8 +296,8 @@ public class Strategy {
         Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
                 GamePlan.BANSHEE,
                 GamePlan.BANSHEE_CYCLONE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
+                //GamePlan.MARINE_RUSH,
+                //GamePlan.SCV_RUSH,
                 GamePlan.BUNKER_CONTAIN_WEAK,
                 GamePlan.RAVEN
         ));
@@ -336,8 +336,8 @@ public class Strategy {
     private static void chooseTvZStrategy() {
         Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
                 GamePlan.BANSHEE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
+                //GamePlan.MARINE_RUSH,
+                //GamePlan.SCV_RUSH,
                 GamePlan.BUNKER_CONTAIN_WEAK,
                 GamePlan.RAVEN,
                 GamePlan.BANSHEE_CYCLONE,

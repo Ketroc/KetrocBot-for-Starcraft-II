@@ -98,9 +98,15 @@ public class BuildManager {
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
-                    buildFactoryUnitsLogic();
-                } else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                    liftFactory();
+                    if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
+                        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
+                    }
+                    else {
+                        buildFactoryUnitsLogic();
+                    }
+                }
+                else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                    UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                 }
             }
         }
@@ -595,76 +601,76 @@ public class BuildManager {
     }
 
     private static void buildFactoryUnitsLogic() {
-        if (!GameCache.factoryList.isEmpty()) {
-            for (UnitInPool factoryUIP : GameCache.factoryList) {
-                Unit factory = factoryUIP.unit();
-                if (factory.getActive().get()) {
-                    continue;
+        if (GameCache.factoryList.isEmpty()) {
+            return;
+        }
+        for (UnitInPool factoryUIP : GameCache.factoryList) {
+            Unit factory = factoryUIP.unit();
+            if (factory.getActive().get()) {
+                continue;
+            }
+            if (factory.getAddOnTag().isPresent()) {
+                //cyclone strategy (build constantly)
+                if (Strategy.DO_USE_CYCLONES) {
+                    if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
+                        ActionHelper.unitCommand(factory, Abilities.TRAIN_CYCLONE, false);
+                        Cost.updateBank(Units.TERRAN_CYCLONE);
+                    }
+                    return;
                 }
-                if (factory.getAddOnTag().isPresent()) {
-                    //cyclone strategy (build constantly)
-                    if (Strategy.DO_USE_CYCLONES) {
-                        if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
-                            ActionHelper.unitCommand(factory, Abilities.TRAIN_CYCLONE, false);
-                            Cost.updateBank(Units.TERRAN_CYCLONE);
-                        }
-                        return;
-                    }
 
-                    //offensive tank strategy (build constantly)
-                    if (Strategy.DO_OFFENSIVE_TANKS) {
-                        if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                            ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                            Cost.updateBank(Units.TERRAN_SIEGE_TANK);
-                        }
-                        return;
+                //offensive tank strategy (build constantly)
+                if (Strategy.DO_OFFENSIVE_TANKS) {
+                    if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
                     }
-
-                    //defensive tank strategy (build 2 per base)
-                    int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
-                    //if tank needed for PF
-                    if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
-                        UnitInPool tankOnOffense = UnitMicroList.unitMicroList.stream()
-                                .filter(u -> u instanceof TankOffense)
-                                .findFirst()
-                                .map(u -> u.unit)
-                                .orElse(null);
-                        //take an offensive tank
-                        if (tankOnOffense != null) {
-                            UnitMicroList.remove(tankOnOffense.getTag());
-                        }
-                        //build a new tank
-                        else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                            ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                            Cost.updateBank(Units.TERRAN_SIEGE_TANK);
-                        }
-                    }
-                } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
-                    ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
+                    return;
                 }
+
+                //defensive tank strategy (build 2 per base)
+                int numTanks = UnitUtils.getNumFriendlyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
+                //if tank needed for PF
+                if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+                    UnitInPool tankOnOffense = UnitMicroList.unitMicroList.stream()
+                            .filter(u -> u instanceof TankOffense)
+                            .findFirst()
+                            .map(u -> u.unit)
+                            .orElse(null);
+                    //take an offensive tank
+                    if (tankOnOffense != null) {
+                        UnitMicroList.remove(tankOnOffense.getTag());
+                    }
+                    //build a new tank
+                    else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+                        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                    }
+                }
+            } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
             }
         }
     }
 
-    public static void liftFactory() {
-        UnitInPool factory = GameCache.factoryList.get(0);
-        if (factory.unit().getBuildProgress() == 1f) {
-            if (factory.unit().getActive().orElse(true)) {
-                ActionHelper.unitCommand(factory.unit(), Abilities.CANCEL_LAST, false);
+    public static void liftFactory(Unit factory) {
+        if (factory.getBuildProgress() == 1f) {
+            if (factory.getActive().orElse(true)) {
+                ActionHelper.unitCommand(factory, Abilities.CANCEL_LAST, false);
             }
             else {
                 Point2d behindMainBase = Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 10);
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     BunkerContain.onFactoryLift();
                 }
-                ActionHelper.unitCommand(factory.unit(), Abilities.LIFT, false);
-                DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.MOVE, factory, behindMainBase));
+                ActionHelper.unitCommand(factory, Abilities.LIFT, false);
+                DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.MOVE, Bot.OBS.getUnit(factory.getTag()), behindMainBase));
 
                 //add factory positions to available starport positions
-                Point2d factoryPos = factory.unit().getPosition().toPoint2d();
+                Point2d factoryPos = factory.getPosition().toPoint2d();
                 if (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, factoryPos)) { //if not proxied
-                    if (factory.unit().getAddOnTag().isPresent()) {
+                    if (factory.getAddOnTag().isPresent()) {
                         LocationConstants.STARPORTS.add(0, factoryPos);
                     }
                     else {
@@ -1155,6 +1161,15 @@ public class BuildManager {
 
     private static boolean isMineralsVisible(List<Unit> mineralPatches) {
         return mineralPatches.stream().allMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE);
+    }
+
+    public static void endCycloneProduction() {
+        GameCache.factoryList.forEach(factory -> {
+            if (factory.unit().getActive().orElse(false)) {
+                ActionHelper.unitCommand(factory.unit(), Abilities.CANCEL, false);
+
+            }
+        });
     }
 }
 

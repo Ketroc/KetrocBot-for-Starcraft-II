@@ -146,7 +146,7 @@ public class BunkerContain {
                     if ((tank1 == null || tank2 == null)) {
                         //buildTanks();
                     } else if (!factory.unit().getFlying().orElse(true)) {
-                        BuildManager.liftFactory();
+                        BuildManager.liftFactory(factory.unit());
                     }
                 }
             }
