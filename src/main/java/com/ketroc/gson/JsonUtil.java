@@ -30,7 +30,17 @@ public class JsonUtil {
         }
     }
 
-    private static Opponent getOpponentRecords(Gson gson, Path filePath) throws IOException {
+    public static Opponent getOpponentRecords() {
+        try {
+            return getOpponentRecords(new Gson(), getPath());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new Opponent();
+    }
+
+    public static Opponent getOpponentRecords(Gson gson, Path filePath) throws IOException {
         Opponent opp;
         if (!Files.exists(filePath)) {
             opp = new Opponent();
@@ -65,5 +75,4 @@ public class JsonUtil {
         String fileName = oppName.orElse(Bot.opponentId.equals("") ? "human" : Bot.opponentId);
         return Path.of("./data/" + fileName + ".json");
     }
-
 }

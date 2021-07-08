@@ -2,45 +2,84 @@ package com.ketroc.gson;
 
 import com.ketroc.strategies.GamePlan;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Opponent {
-    private Map<GamePlan,WinLossRecord> strategyWinRates;
+    private Set<WinLossRecord> strategyWinRates;
 
     public Opponent() {
-        this.strategyWinRates = new HashMap<>();
+        this.strategyWinRates = new HashSet<>();
     }
 
-    public Opponent(Map<GamePlan, WinLossRecord> strategyWinRates) {
+    public Opponent(Set<WinLossRecord> strategyWinRates) {
         this.strategyWinRates = strategyWinRates;
     }
 
-    public Map<GamePlan, WinLossRecord> getStrategyWinRates() {
+    public Set<WinLossRecord> getStrategyWinRates() {
         return strategyWinRates;
     }
 
-    public void setStrategyWinRates(Map<GamePlan, WinLossRecord> strategyWinRates) {
+    public void setStrategyWinRates(Set<WinLossRecord> strategyWinRates) {
         this.strategyWinRates = strategyWinRates;
     }
 
     public void incrementRecord(GamePlan gamePlan, boolean didWin) {
-        WinLossRecord winLossRecord = strategyWinRates.getOrDefault(gamePlan, new WinLossRecord());
-        winLossRecord.increment(didWin);
-        strategyWinRates.put(gamePlan, winLossRecord);
+        strategyWinRates.stream()
+                .filter(winLossRecord -> winLossRecord.getGamePlan() == gamePlan)
+                .findAny()
+                .ifPresentOrElse(
+                        winLossRecord -> winLossRecord.increment(didWin),
+                        () -> {
+                            strategyWinRates.add(new WinLossRecord(
+                                    gamePlan,
+                                    didWin ? 1 : 0,
+                                    didWin ? 0 : 1
+                            ));
+                        });
     }
 
     @Override
     public String toString() {
         StringBuffer allStrategyWinRates = new StringBuffer("Win rates:");
-        for (Map.Entry<GamePlan, WinLossRecord> entry : strategyWinRates.entrySet()) {
+        for (WinLossRecord record : strategyWinRates) {
             allStrategyWinRates.append(" ")
-                    .append(entry.getKey())
+                    .append(record.getGamePlan())
                     .append(":")
-                    .append(entry.getValue().getWins())
+                    .append(record.getWins())
                     .append("-")
-                    .append(entry.getValue().getLosses());
+                    .append(record.getLosses());
         }
         return allStrategyWinRates.toString();
+    }
+
+    public WinLossRecord getRecord(GamePlan gamePlan) {
+        return strategyWinRates.stream()
+                .filter(record -> record.getGamePlan() == gamePlan)
+                .findAny()
+                .orElse(new WinLossRecord(gamePlan));
+    }
+
+    public void filterToGamePlans(Set<GamePlan> gamePlanSet) {
+        strategyWinRates = gamePlanSet.stream()
+                .map(gamePlan -> getRecord(gamePlan))
+                .collect(Collectors.toSet());
+    }
+
+    public GamePlan getWinningestGamePlan() {
+        return strategyWinRates.stream()
+                .max(Comparator.comparing(WinLossRecord::winRate))
+                .orElse(strategyWinRates.iterator().next())
+                .getGamePlan();
+    }
+
+    public GamePlan getGamePlanNeedingMoreTests(int minTestGames) {
+        return strategyWinRates.stream()
+                .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
+                .min(Comparator.comparing(WinLossRecord::numGames))
+                .map(WinLossRecord::getGamePlan)
+                .orElse(null);
     }
 }
