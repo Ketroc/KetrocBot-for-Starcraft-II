@@ -701,6 +701,10 @@ public class KetrocBot extends Bot {
                 .findFirst()
                 .orElse(Result.VICTORY);
 
+        if (result == Result.TIE || result == Result.UNDECIDED) {
+            return;
+        }
+
         JsonUtil.setGameResult(Strategy.gamePlan, result == Result.VICTORY);
 
         Path path = Paths.get("./data/prevResult.txt");
