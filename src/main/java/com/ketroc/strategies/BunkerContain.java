@@ -555,12 +555,14 @@ public class BunkerContain {
 
     public static boolean isRepairingValidTarget(Unit scv) {
         if (ActionIssued.getCurOrder(scv).isPresent()) {
-            ActionIssued order = ActionIssued.getCurOrder(scv).get();
-            if (order.ability == Abilities.EFFECT_REPAIR) {
-                if (order.targetTag != null) {
-                    UnitInPool target = Bot.OBS.getUnit(order.targetTag);
-                    if (target != null && target.unit().getType() != Units.TERRAN_SCV ||
-                            repairScvList.stream().anyMatch(u -> u.getTag().equals(target.getTag()))) {
+            ActionIssued scvOrder = ActionIssued.getCurOrder(scv).get();
+            if (scvOrder.ability == Abilities.EFFECT_REPAIR) {
+                if (scvOrder.targetTag != null) {
+                    UnitInPool repairTarget = Bot.OBS.getUnit(scvOrder.targetTag);
+                    //valid repair targets: any non-scv or repairScvs
+                    if (repairTarget != null && (
+                            repairTarget.unit().getType() != Units.TERRAN_SCV ||
+                            repairScvList.stream().anyMatch(u -> u.getTag().equals(repairTarget.getTag())))) {
                         return true;
                     }
                 }
