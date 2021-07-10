@@ -689,7 +689,7 @@ public class KetrocBot extends Bot {
         try {
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
-            Error.onException(e);
+            e.printStackTrace();
         }
     }
 
