@@ -57,7 +57,7 @@ public class MuleMessages {
     }
 
     private static void setRandomMessage() {
-        message = messageOptions[(int)(Math.random()*3)].toCharArray();
+        message = messageOptions[(int)(Math.random()*messageOptions.length)].toCharArray();
     }
 
     public static void writeMessage() {
