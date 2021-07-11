@@ -70,7 +70,8 @@ public class Opponent {
 
     public GamePlan getWinningestGamePlan() {
         return strategyWinRates.stream()
-                .max(Comparator.comparing(WinLossRecord::winRate))
+                //find max win rate strategy with the least games played
+                .max(Comparator.comparing(record -> record.winRate() - ((float)record.numGames()) / 1000))
                 .orElse(strategyWinRates.iterator().next())
                 .getGamePlan();
     }
