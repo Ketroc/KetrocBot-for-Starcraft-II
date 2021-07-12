@@ -303,6 +303,7 @@ public class Strategy {
         Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
                 GamePlan.BANSHEE,
                 GamePlan.BANSHEE_CYCLONE,
+                GamePlan.ONE_BASE_BANSHEE_CYCLONE,
                 GamePlan.MARINE_RUSH,
                 GamePlan.SCV_RUSH,
                 GamePlan.BUNKER_CONTAIN_WEAK,
@@ -324,6 +325,9 @@ public class Strategy {
             case BANSHEE:
                 break;
             case BANSHEE_CYCLONE:
+                useCyclonesAdjustments();
+                break;
+            case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 break;
             case BUNKER_CONTAIN_WEAK:

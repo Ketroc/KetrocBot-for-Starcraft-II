@@ -37,10 +37,21 @@ public class Chat {
             "Let's purge some tempests", "Stalkers, please don't look up so I can kill some tempests"
     ));
 
-    public static final List<String> WINNING_CHAT = new ArrayList<>(List.of(
+    public static final List<String> WINNING_BM_CHAT = new ArrayList<>(List.of(
             "This is where Larva would start playing with his feet",
             "Just GG already.  I'm not going to crash. This is a bug-free codebas-- 0x6F09844E FATAL ERROR!",
-            "Ya give up, or ya thirsty for more?"
+            "Ya give up, or ya thirsty for more?",
+            "I wonder if I can convert minerals to BTC",
+            "KET REKT!"
+    ));
+
+    public static final List<String> LOSING_BM_CHAT = new ArrayList<>(List.of(
+            "Feel free to GG anytime now"
+
+    ));
+
+    public static final List<String> RANDOM_BM_CHAT = new ArrayList<>(List.of(
+            "Do you have an extra Goto 10 line or something?"
     ));
 
     public static String getRandomMessage(List<String> messageList) {

@@ -625,7 +625,7 @@ public class KetrocBot extends Bot {
                                 Bot.OBS.getFoodUsed() > 180 &&
                                 Base.numEnemyBases() < 3 &&
                                 UnitUtils.getEnemySupply() < 40) {
-                            Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_CHAT));
+                            Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
                             MuleMessages.doTrollMule = true;
                         }
                 }
