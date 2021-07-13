@@ -71,7 +71,9 @@ public class WorkerRushDefense {
                     int numEnemyWorkersAttacking = (int)UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
                             .filter(u -> UnitUtils.isInMyMainOrNat(u.unit()))
                             .count();
-                    if (numEnemyWorkersAttacking >= 7 && !UnitUtils.isWallComplete()) {
+                    if (numEnemyWorkersAttacking >= 7 &&
+                            !UnitUtils.isWallComplete() &&
+                            Time.nowFrames() < Time.toFrames("12:00")) {
                         defenseStep++;
                         Bot.ACTION.sendChat("Okay!  I can do that too.", ActionChat.Channel.BROADCAST);
                         Chat.tag("VS_WORKER_RUSH");

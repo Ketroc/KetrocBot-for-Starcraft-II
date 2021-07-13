@@ -113,7 +113,7 @@ public class BuildOrder {
                     marineAllInBuild();
                 }
                 else if (Strategy.gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE) {
-                    _1base1Factory2StarportOpener();
+                    _1base2Factory2StarportOpener();
                 }
                 else if (BunkerContain.proxyBunkerLevel != 0) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
