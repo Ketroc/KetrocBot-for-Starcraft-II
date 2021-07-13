@@ -382,7 +382,8 @@ public class ArmyManager {
     private static void setDoOffense() {
         //TODO: testing cyclones
         if (Strategy.DO_USE_CYCLONES &&
-                (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty())) {
+                (UnitMicroList.getUnitSubList(Cyclone.class).size() > 6 ||
+                        (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty()))) {
             doOffense = true;
         }
         else if (Strategy.MASS_RAVENS) {

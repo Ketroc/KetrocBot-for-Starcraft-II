@@ -931,7 +931,7 @@ public class BuildManager {
         }
     }
 
-    private static boolean isAllProductionStructuresBusy() {
+    public static boolean isAllProductionStructuresBusy() {
         return isAllProductionStructuresActive(Units.TERRAN_FACTORY) && isAllProductionStructuresActive(Units.TERRAN_STARPORT);
     }
 
