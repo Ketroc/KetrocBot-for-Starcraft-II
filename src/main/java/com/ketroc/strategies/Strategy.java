@@ -137,10 +137,10 @@ public class Strategy {
         Chat.tag(gamePlan.toString());
 
         //TODO: delete - turning off 2nd factory based on strategy choice
-        if (LocationConstants.opponentRace != Race.TERRAN ||
-                (gamePlan != GamePlan.RAVEN_CYCLONE &&
-                        gamePlan != GamePlan.TANK_VIKING &&
-                        gamePlan != GamePlan.ONE_BASE_TANK_VIKING)) {
+        if (gamePlan != GamePlan.RAVEN_CYCLONE &&
+                gamePlan != GamePlan.TANK_VIKING &&
+                gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
+                gamePlan != GamePlan.ONE_BASE_TANK_VIKING) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
             }

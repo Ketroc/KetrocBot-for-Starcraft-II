@@ -93,7 +93,7 @@ public class BuildManager {
         }
         else { //otherwise prioritize starport production
             //build starport units
-           buildStarportUnitsLogic();
+            buildStarportUnitsLogic();
 
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
@@ -925,30 +925,22 @@ public class BuildManager {
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT)) {
             if (Bot.OBS.getFoodUsed() > 197 ||
-                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 &&
-                            isAllStarportsActive())) {
+                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 && isAllProductionStructuresBusy())) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
 
     private static boolean isAllProductionStructuresBusy() {
-        return isAllStarportsActive() && isAllFactoriesActive();
+        return isAllProductionStructuresActive(Units.TERRAN_FACTORY) && isAllProductionStructuresActive(Units.TERRAN_STARPORT);
     }
 
-    private static boolean isAllFactoriesActive() {
-        return GameCache.factoryList.stream()
-                .noneMatch(u -> u.unit().getType() == Units.TERRAN_FACTORY &&
+    private static boolean isAllProductionStructuresActive(Units structureType) {
+        return Bot.OBS.getUnits(Alliance.SELF, u ->
+                u.unit().getType() == structureType &&
                         (u.unit().getOrders().isEmpty() ||
                                 u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                                u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f));
-    }
-
-    private static boolean isAllStarportsActive() {
-        return GameCache.starportList.stream()
-                .noneMatch(u -> u.unit().getOrders().isEmpty() ||
-                        u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.7f);
+                                u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.8f)).isEmpty();
     }
 
     private static void addCCToPurchaseQueue() {
