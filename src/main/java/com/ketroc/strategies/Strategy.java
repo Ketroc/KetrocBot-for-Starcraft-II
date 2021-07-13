@@ -310,7 +310,8 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        gamePlan = getStrategyForLadder(availableTvPGamePlans);
+        gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        //gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
 //        while (!availableTvPGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
@@ -855,18 +856,11 @@ public class Strategy {
         else {
             LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
             LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
-            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
-        }
-
-        //remove 2nd entry of wall/midwall (duplicate) as they are both in extraDepots and in reaperBlockDepots lists
-        if (LocationConstants.MAP.equals(MapNames.SUBMARINE) || LocationConstants.MAP.equals(MapNames.SUBMARINE505)) {
-            for (int i = LocationConstants.extraDepots.size()-1; i>=2; i--) {
-                if (LocationConstants.extraDepots.get(i).equals(LocationConstants.MID_WALL_2x2)) {
-                    LocationConstants.extraDepots.remove(i);
-                }
-                else if (LocationConstants.extraDepots.get(i).equals(LocationConstants.WALL_2x2)) {
-                    LocationConstants.extraDepots.remove(i);
-                }
+            if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE) {
+                LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
+            }
+            else {
+                LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
             }
         }
     }

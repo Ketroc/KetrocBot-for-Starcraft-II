@@ -15,6 +15,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.managers.BuildManager;
 import com.ketroc.models.*;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
@@ -292,6 +293,8 @@ public class GameCache {
                         case PROTOSS_TEMPEST:
                             Strategy.VIKING_BANSHEE_RATIO = 1f;
                             Chat.tag("VS_TEMPESTS");
+                            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_FACTORY)
+                                    .forEach(factory -> BuildManager.liftFactory(factory.unit()));
                             break;
                         //ignore phoenixes until one is verify as real
                         case PROTOSS_PHOENIX:
