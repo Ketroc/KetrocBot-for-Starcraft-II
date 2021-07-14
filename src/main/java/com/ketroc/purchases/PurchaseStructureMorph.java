@@ -168,9 +168,9 @@ public class PurchaseStructureMorph implements Purchase {
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
             }
             return true;

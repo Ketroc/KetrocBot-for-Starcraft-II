@@ -107,7 +107,7 @@ public class UpgradeManager {
 
     private static void checkStarportTechLabs() {
         //don't start cloak/speed until 1 banshee in production
-        if (!doStarportUpgrades && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        if (!doStarportUpgrades && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             doStarportUpgrades = true;
         }
 

@@ -297,9 +297,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.getNumFriendlyUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 if (techStructureNeeded == Units.TERRAN_FACTORY) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                 }
@@ -423,23 +423,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public static int countUnitType(Units unitType) {
-        int numUnitType = UnitUtils.getNumFriendlyUnits(unitType, false);
+        int numUnitType = UnitUtils.numMyUnits(unitType, false);
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_STARPORT_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_STARPORT_FLYING, false);
                 break;
             case TERRAN_FACTORY:
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_FACTORY_FLYING, false);
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_BARRACKS_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_BARRACKS_FLYING, false);
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_ORBITAL_COMMAND, false);
-                numUnitType += UnitUtils.getNumFriendlyUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_ORBITAL_COMMAND, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
                 break;
         }
         return numUnitType;

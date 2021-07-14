@@ -174,7 +174,7 @@ public class UnitUtils {
     public static Units enemyWorkerType;
 
     //includes units in Ignored List
-    public static int getNumFriendlyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int numMyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         //int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
         int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
@@ -188,7 +188,7 @@ public class UnitUtils {
         return numUnits;
     }
 
-    public static int getNumFriendlyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int numMyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = 0;
         for (Units unitType : unitTypes) {
             //numUnits += getFriendlyUnitsOfType(unitType).size();

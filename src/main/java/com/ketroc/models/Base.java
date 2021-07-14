@@ -724,7 +724,7 @@ public class Base {
                 .sum();
     }
 
-    public static int totalScvsRequiredForMyBases() {
+    public static int scvsReqForMyBases() {
         return (totalActiveRefineriesForMyBases() * 3) + (totalMineralPatchesForMyBases() * 2);
     }
 

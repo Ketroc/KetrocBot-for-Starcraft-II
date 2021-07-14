@@ -136,16 +136,21 @@ public class BunkerContain {
         // ========= FACTORY ===========
         if (BunkerContain.proxyBunkerLevel == 2) {
             if (factory == null) {
-                List<UnitInPool> allFactories = Bot.OBS.getUnits(Alliance.SELF, factory -> factory.unit().getType() == Units.TERRAN_FACTORY);
+                List<UnitInPool> allFactories = Bot.OBS.getUnits(Alliance.SELF, factory ->
+                        factory.unit().getType() == Units.TERRAN_FACTORY &&
+                        UnitUtils.getDistance(factory.unit(), LocationConstants.proxyBarracksPos) < 10);
                 if (!allFactories.isEmpty()) {
                     onFactoryStarted(allFactories.get(0));
                 }
             }
+            //if not using factory for tanks
             if (factory != null && factorySwap == null) {
                 if (!factory.unit().getActive().orElse(true)) {
                     if ((tank1 == null || tank2 == null)) {
                         //buildTanks();
-                    } else if (!factory.unit().getFlying().orElse(true)) {
+                    }
+                    //when 2 tanks are out
+                    else if (!factory.unit().getFlying().orElse(true)) {
                         BuildManager.liftFactory(factory.unit());
                     }
                 }
@@ -215,7 +220,7 @@ public class BunkerContain {
 
     private static boolean readyToBuildFactory() {
         return Bot.OBS.getVespene() > 55 &&
-                UnitUtils.getNumFriendlyUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
+                UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
                 barracks != null;
     }
 

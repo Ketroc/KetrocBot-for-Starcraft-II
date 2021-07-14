@@ -155,6 +155,7 @@ public class ArmyManager {
         if (doOffense &&
                 (Strategy.gamePlan == GamePlan.TANK_VIKING ||
                         Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+                        (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)||
                         Strategy.gamePlan == GamePlan.BANSHEE_TANK)) {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
             List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
@@ -841,8 +842,7 @@ public class ArmyManager {
         }
 
         //cover natural ramp if nat is an OC base
-        if (GameCache.baseList.get(1).getCc() != null &&
-                (Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING || Strategy.gamePlan == GamePlan.TANK_VIKING)) {
+        if (GameCache.baseList.get(1).getCc() != null && Strategy.NUM_BASES_TO_OC > 1) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
@@ -1052,7 +1052,7 @@ public class ArmyManager {
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
             answer = Math.max(2, answer);
         }
-        else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.getNumFriendlyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             answer = Math.max((LocationConstants.opponentRace == Race.PROTOSS) ? 2 : 3, answer); //minimum vikings if he has a detector
         }
         answer = Math.max(answer, GameCache.bansheeList.size() / 5); //at least 1 safety viking for every 5 banshees

@@ -76,11 +76,15 @@ public class LocationConstants {
         baseAttackIndex = LocationConstants.baseLocations.size()-2;
         setClockBaseLists();
         createBaseList(mainCC);
-        insideMainWall = Position.towards(MID_WALL_3x3, baseLocations.get(0), 2.5f);
         setEnemyTypes();
         mapMainAndNatBases();
         mainBaseMidPos = getMainBaseMidPoint(false);
         enemyMainBaseMidPos = getMainBaseMidPoint(true);
+        insideMainWall = Position.towards(
+                Position.towards(MID_WALL_3x3, pointOnMyRamp, -1f),
+                mainBaseMidPos,
+                2.5f
+        );
 
         //set probe rush mineral node
         enemyMineralTriangle = new TriangleOfNodes(enemyMineralPos);

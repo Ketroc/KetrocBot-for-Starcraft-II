@@ -398,7 +398,7 @@ public class KetrocBot extends Bot {
                         }
 
                         //put factory at top of queue
-                        if (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
+                        if (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
                             if (GameCache.gasBank > 0) {
                                 purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                             }
@@ -470,7 +470,7 @@ public class KetrocBot extends Bot {
                     case TERRAN_COMMAND_CENTER:
                         //start mining out mineral wall
                         if (LocationConstants.MAP.contains("Golden Wall") &&
-                                UnitUtils.getNumFriendlyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
+                                UnitUtils.numMyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
                                         >= (Strategy.MASS_RAVENS ? 3 : 4)) {
                             IgnoredMineralWallScv.addScv();
                         }

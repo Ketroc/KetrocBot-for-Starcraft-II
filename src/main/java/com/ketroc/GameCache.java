@@ -302,6 +302,9 @@ public class GameCache {
                                 continue;
                             }
                             break;
+                        case PROTOSS_DARK_TEMPLAR:
+                            Chat.tag("VS_DARK_TEMPLAR");
+                            break;
                     }
 
                     //map of every enemy unit

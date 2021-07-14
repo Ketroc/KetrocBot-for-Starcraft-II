@@ -128,7 +128,7 @@ public class Strategy {
                 chooseTvZStrategy();
                 break;
             case RANDOM:
-                gamePlan = GamePlan.BANSHEE_CYCLONE;
+                gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
                 useCyclonesAdjustments();
                 Switches.enemyCanProduceAir = true;
                 Switches.enemyHasCloakThreat = true;
@@ -140,7 +140,8 @@ public class Strategy {
         if (gamePlan != GamePlan.RAVEN_CYCLONE &&
                 gamePlan != GamePlan.TANK_VIKING &&
                 gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
-                gamePlan != GamePlan.ONE_BASE_TANK_VIKING) {
+                gamePlan != GamePlan.ONE_BASE_TANK_VIKING &&
+                (gamePlan != GamePlan.BUNKER_CONTAIN_STRONG || LocationConstants.opponentRace != Race.TERRAN)) {
             if (LocationConstants.FACTORIES.size() == 2) {
                 LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
             }
@@ -242,7 +243,8 @@ public class Strategy {
                 GamePlan.BANSHEE_TANK
         ));
 
-        gamePlan = getStrategyForLadder(availableTvTGamePlans);
+        gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
+        //gamePlan = getStrategyForLadder(availableTvTGamePlans);
 
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
@@ -270,6 +272,7 @@ public class Strategy {
                 break;
             case BUNKER_CONTAIN_STRONG:
                 BunkerContain.proxyBunkerLevel = 2;
+                useTanksAdjustments();
                 break;
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
@@ -310,9 +313,10 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
-        //gamePlan = getStrategyForLadder(availableTvPGamePlans);
+        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
+        //random selection
 //        while (!availableTvPGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }

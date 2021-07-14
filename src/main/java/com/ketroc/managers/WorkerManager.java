@@ -221,7 +221,7 @@ public class WorkerManager {
 //        }
         //don't make 3rd+ refinery until factory and PF are started
         if (Time.nowFrames() < Time.toFrames("5:00") &&
-                (UnitUtils.getNumFriendlyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
+                (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
             return;
         }
 
@@ -472,7 +472,7 @@ public class WorkerManager {
 
     public static void toggleWorkersInGas() {
         //skip logic until there are at least 2 refineries
-        int numRefineries = UnitUtils.getNumFriendlyUnits(UnitUtils.REFINERY_TYPE, false);
+        int numRefineries = UnitUtils.numMyUnits(UnitUtils.REFINERY_TYPE, false);
         if (numRefineries <= 1) {
             return;
         }
