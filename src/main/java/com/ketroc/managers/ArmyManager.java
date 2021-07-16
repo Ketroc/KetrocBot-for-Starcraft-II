@@ -620,6 +620,7 @@ public class ArmyManager {
                 .orElse(null);
     }
 
+    //snipe unprotected enemy air units that are wandering away from protection
     private static void sendAirKillSquad(UnitInPool closestEnemyAir) {
         if (closestEnemyAir == null) {
             return;
@@ -630,7 +631,8 @@ public class ArmyManager {
         if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, closestEnemyAirPos) &&
                 UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
                 !GameCache.vikingList.isEmpty() &&
-                closestEnemyAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40) {
+                //closestEnemyAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40 && //removed to see if nearby threat check is enough to see if it's unprotected
+                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, closestEnemyAirPos) < 2) {
             AirUnitKillSquad.add(closestEnemyAir);
         }
     }

@@ -9,10 +9,7 @@ import com.ketroc.GameCache;
 import com.ketroc.micro.BasicUnitMicro;
 import com.ketroc.micro.MicroPriority;
 import com.ketroc.micro.VikingChaser;
-import com.ketroc.utils.InfluenceMaps;
-import com.ketroc.utils.Position;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -78,12 +75,13 @@ public class AirUnitKillSquad {
         if (targetUnit != null && targetUnit.isAlive() &&
                 targetUnit.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED &&
                 vikings.size() == 2 &&
-                vikings.stream().allMatch(v -> UnitUtils.getDistance(v.unit.unit(), targetUnit.unit()) < 3) &&
+                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 3) &&
                 (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
             Point2d scanPos = Position.towards(targetUnit.unit().getPosition().toPoint2d(),
                     vikings.get(0).unit.unit().getPosition().toPoint2d(), -2);
             UnitUtils.scan(scanPos);
-            System.out.println("banshee scan at " + Time.nowClock());
+            System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
+            Chat.tag("Kill_squad_scan");
         }
     }
 
@@ -159,10 +157,17 @@ public class AirUnitKillSquad {
         vikings.forEach(vikingChaser -> Ignored.remove(vikingChaser.unit.getTag()));
     }
 
+    //cancel killsquad is target is dead, in fog, or protected
     private boolean shouldCancelKillSquad() {
+        boolean enemyIsProtected = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue,
+                targetUnit.unit().getPosition().toPoint2d()) >= 2;
+        if (enemyIsProtected) {
+            Chat.tag("Kill_Squad_Cancelled");
+            Chat.chatWithoutSpam("Kill Squad Cancelled", 60);
+        }
         return !targetUnit.isAlive() ||
                 UnitUtils.isInFogOfWar(targetUnit) ||
-                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, targetUnit.unit().getPosition().toPoint2d()) >= 2;
+                enemyIsProtected;
     }
 
 
@@ -172,7 +177,7 @@ public class AirUnitKillSquad {
 
     public static void onStep() {
         //remove targets that are dead or in fog of war
-        enemyAirTargets.forEach(killSquad -> {
+        enemyAirTargets.stream().forEach(killSquad -> {
             if (killSquad.shouldCancelKillSquad()) {
                 killSquad.removeAll();
             }
