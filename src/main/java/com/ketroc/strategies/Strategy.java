@@ -243,8 +243,8 @@ public class Strategy {
                 GamePlan.BANSHEE_TANK
         ));
 
-        gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
-        //gamePlan = getStrategyForLadder(availableTvTGamePlans);
+        //gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
+        gamePlan = getStrategyForLadder(availableTvTGamePlans);
 
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
