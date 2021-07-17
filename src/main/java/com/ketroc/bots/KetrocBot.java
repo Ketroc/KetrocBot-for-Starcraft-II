@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
+import com.github.ocraft.s2client.protocol.score.CategoryScoreDetails;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -131,7 +132,7 @@ public class KetrocBot extends Bot {
             //first step of the game
             if (Time.nowFrames() == Strategy.STEP_SIZE) {
                 ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
-                JsonUtil.chatAllWinRates();
+                JsonUtil.chatAllWinRates(true);
             }
 
             if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||
@@ -684,6 +685,12 @@ public class KetrocBot extends Bot {
     public void onGameEnd() {
         Cyclone.cycloneKillReport();
         recordGameResult();
+
+        CategoryScoreDetails lostMinerals = OBS.getScore().getDetails().getLostMinerals();
+        if (lostMinerals.getArmy() + lostMinerals.getEconomy() +
+                lostMinerals.getTechnology() + lostMinerals.getUpgrade() + lostMinerals.getNone() == 0) {
+            Chat.tag("PERFECT_GAME");
+        }
         Print.print("opponentId = " + opponentId);
         GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
         try {

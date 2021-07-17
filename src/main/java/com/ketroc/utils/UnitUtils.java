@@ -760,6 +760,21 @@ public class UnitUtils {
         return isInMyMainOrNat(unit.getPosition().toPoint2d());
     }
 
+    public static boolean isInMyMain(Unit unit) {
+        return isInMyMain(unit.getPosition().toPoint2d());
+    }
+
+    public static boolean isInMyMain(Point2d unitPos) {
+        Point2d mainPos = GameCache.baseList.get(0).getCcPos();
+
+        float unitHeight = Bot.OBS.terrainHeight(unitPos);
+        float mainHeight = Bot.OBS.terrainHeight(mainPos);
+
+        boolean isInMain = unitPos.distance(mainPos) < 30 && Math.abs(unitHeight - mainHeight) < 1.2;
+
+        return isInMain;
+    }
+
     public static boolean isInMyMainOrNat(Point2d unitPos) {
         Point2d mainPos = GameCache.baseList.get(0).getCcPos();
         Point2d natPos = GameCache.baseList.get(1).getCcPos();

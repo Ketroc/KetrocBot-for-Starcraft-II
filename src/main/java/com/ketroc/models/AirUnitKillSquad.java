@@ -75,7 +75,7 @@ public class AirUnitKillSquad {
         if (targetUnit != null && targetUnit.isAlive() &&
                 targetUnit.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED &&
                 vikings.size() == 2 &&
-                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 3) &&
+                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) &&
                 (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
             Point2d scanPos = Position.towards(targetUnit.unit().getPosition().toPoint2d(),
                     vikings.get(0).unit.unit().getPosition().toPoint2d(), -2);
@@ -160,7 +160,7 @@ public class AirUnitKillSquad {
     //cancel killsquad is target is dead, in fog, or protected
     private boolean shouldCancelKillSquad() {
         boolean enemyIsProtected = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue,
-                targetUnit.unit().getPosition().toPoint2d()) >= 2;
+                targetUnit.unit().getPosition().toPoint2d()) >= 4;
         if (enemyIsProtected) {
             Chat.tag("Kill_Squad_Cancelled");
             Chat.chatWithoutSpam("Kill Squad Cancelled", 60);

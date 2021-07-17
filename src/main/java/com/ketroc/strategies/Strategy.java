@@ -243,7 +243,7 @@ public class Strategy {
                 GamePlan.BANSHEE_TANK
         ));
 
-        //gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
+        //gamePlan = GamePlan.MARINE_RUSH;
         gamePlan = getStrategyForLadder(availableTvTGamePlans);
 
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
@@ -313,7 +313,7 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        //gamePlan = GamePlan.MARINE_RUSH;
         gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
         //random selection
@@ -758,7 +758,7 @@ public class Strategy {
 
         //marine all-in without an expansion
         if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
-            return 18;
+            return 19;
         }
 
         //if maxed out on macro OCs
@@ -845,7 +845,7 @@ public class Strategy {
     }
 
     private static void setReaperBlockWall() {
-        if (LocationConstants.opponentRace == Race.TERRAN) {
+        if (LocationConstants.opponentRace == Race.TERRAN && gamePlan != GamePlan.MARINE_RUSH) {
             LocationConstants.extraDepots.addAll(0, LocationConstants.reaperBlockDepots);
             LocationConstants._3x3Structures.addAll(0, LocationConstants.reaperBlock3x3s);
 
@@ -860,7 +860,7 @@ public class Strategy {
         else {
             LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
             LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
-            if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE) {
+            if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE || gamePlan == GamePlan.MARINE_RUSH) {
                 LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
             }
             else {

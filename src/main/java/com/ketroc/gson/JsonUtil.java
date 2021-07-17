@@ -54,12 +54,15 @@ public class JsonUtil {
         return opp;
     }
 
-    public static void chatAllWinRates() {
+    public static void chatAllWinRates(boolean doLog) {
         try {
             Gson gson = new Gson();
             Path filePath = getPath();
             Opponent opp = getOpponentRecords(gson, filePath);
             Chat.chatNeverRepeat(opp.toString());
+            if (doLog) {
+                System.out.println(opp);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

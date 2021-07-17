@@ -394,8 +394,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             case TERRAN_BARRACKS:
                 if (Strategy.MARINE_ALLIN) {
                     position = LocationConstants.STARPORTS.stream()
-                            .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.enemyMainBaseMidPos)))
+                            .filter(p -> UnitUtils.isInMyMain(p) &&
+                                    isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.pointOnMyRamp)))
                             .orElse(null);
                     if (position != null) {
                         LocationConstants.STARPORTS.remove(position);

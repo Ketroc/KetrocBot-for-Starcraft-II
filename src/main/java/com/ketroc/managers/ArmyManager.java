@@ -632,7 +632,7 @@ public class ArmyManager {
                 UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
                 !GameCache.vikingList.isEmpty() &&
                 //closestEnemyAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40 && //removed to see if nearby threat check is enough to see if it's unprotected
-                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, closestEnemyAirPos) < 2) {
+                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, closestEnemyAirPos) < 4) {
             AirUnitKillSquad.add(closestEnemyAir);
         }
     }
@@ -805,41 +805,15 @@ public class ArmyManager {
             return;
         }
 
-        //if bunker exists, head to bunker and enter
-        if (bunkerAtNatural.isPresent()) {
-            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
-            return;
-        }
-
-        //if scv is building a CC on a base location, target behindCC
-//        Point2d newMarinePos = StructureScv.scvBuildingList.stream()
-//                .filter(structureScv -> structureScv.structureType == Units.TERRAN_COMMAND_CENTER &&
-//                        structureScv.getStructureUnit() != null &&
-//                        Base.getBase(structureScv.structurePos) != null)
-//                .findFirst()
-//                .map(structureScv -> Base.getBase(structureScv.structurePos).getResourceMidPoint())
-//                .orElse(null);
-//        if (newMarinePos != null &&
-//                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-//            MarineBasic.setTargetPos(newMarinePos);
-//            return;
-//        }
-//
-//        //if CC is floating to a base location, target behindCC
-//        newMarinePos = FlyingCC.flyingCCs.stream()
-//                .filter(flyingCC -> !flyingCC.makeMacroOC)
-//                .findFirst()
-//                .map(flyingCC -> Base.getBase(flyingCC.destination).getResourceMidPoint())
-//                .orElse(null);
-//        if (newMarinePos != null &&
-//                (bunkerAtNatural.isPresent() || !isBehindMainOrNat(newMarinePos))) { //skip if this base is protected behind the bunker
-//            MarineBasic.setTargetPos(newMarinePos);
-//            return;
-//        }
-
         //try to kill off the marines as maxed supply is approaching
         if (Bot.OBS.getFoodUsed() >= 160) {
             MarineBasic.setTargetPos(ArmyManager.attackAirPos);
+            return;
+        }
+
+        //if bunker exists, head to bunker and enter
+        if (bunkerAtNatural.isPresent()) {
+            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
             return;
         }
 
