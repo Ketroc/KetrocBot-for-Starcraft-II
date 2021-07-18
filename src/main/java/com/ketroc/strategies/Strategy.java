@@ -147,7 +147,7 @@ public class Strategy {
             }
         }
 
-        applyOpponentSpecificTweaks();
+        //applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
     }
@@ -364,6 +364,8 @@ public class Strategy {
                 GamePlan.BANSHEE_CYCLONE,
                 GamePlan.RAVEN_CYCLONE
         ));
+
+        //gamePlan = GamePlan.BANSHEE;
         gamePlan = getStrategyForLadder(availableTvZGamePlans);
 
 //        while (!availableTvZGamePlans.contains(gamePlan)) {

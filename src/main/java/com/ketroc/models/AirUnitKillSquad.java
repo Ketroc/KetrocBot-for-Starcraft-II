@@ -81,7 +81,6 @@ public class AirUnitKillSquad {
                     vikings.get(0).unit.unit().getPosition().toPoint2d(), -2);
             UnitUtils.scan(scanPos);
             System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
-            Chat.tag("Kill_squad_scan");
         }
     }
 
@@ -161,10 +160,6 @@ public class AirUnitKillSquad {
     private boolean shouldCancelKillSquad() {
         boolean enemyIsProtected = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue,
                 targetUnit.unit().getPosition().toPoint2d()) >= 4;
-        if (enemyIsProtected) {
-            Chat.tag("Kill_Squad_Cancelled");
-            Chat.chatWithoutSpam("Kill Squad Cancelled", 60);
-        }
         return !targetUnit.isAlive() ||
                 UnitUtils.isInFogOfWar(targetUnit) ||
                 enemyIsProtected;

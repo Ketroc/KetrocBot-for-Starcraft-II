@@ -629,6 +629,9 @@ public class KetrocBot extends Bot {
                             Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
                             MuleMessages.doTrollMule = true;
                         }
+
+                        //attempt to count banshee kills
+                        Harassers.onEnemyUnitDeath(unit);
                 }
             }
         }

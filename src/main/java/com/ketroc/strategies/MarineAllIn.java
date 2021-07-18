@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MarineAllIn {
-    public static final int MIN_MARINES_TO_ATTACK = 14;
+    public static final int MIN_MARINES_TO_ATTACK = 18;
 
     public static boolean doAttack;
     public static List<Point2d> attackPoints;

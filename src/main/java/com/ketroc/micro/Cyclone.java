@@ -14,7 +14,6 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
-import com.ketroc.models.Cost;
 import com.ketroc.models.CycloneKillTracker;
 import com.ketroc.utils.*;
 
@@ -211,8 +210,7 @@ public class Cyclone extends BasicUnitMicro {
                 if (!lockTarget.isAlive()) {
                     CycloneKillTracker killTracker = cycloneKillTracker.get(unit.getTag());
                     killTracker.killCount++;
-                    Cost killCost = Cost.getUnitCost(lockTarget.unit().getType());
-                    killTracker.totalKillValue.add(killCost);
+                    killTracker.totalKillValue.add(lockTarget.unit().getType(), 1);
                 }
 
                 lockTarget = null;

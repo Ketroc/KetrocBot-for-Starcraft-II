@@ -9,10 +9,13 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.models.Cost;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BansheeHarasser {
     public static final float RETREAT_HEALTH = 50;
@@ -23,6 +26,7 @@ public class BansheeHarasser {
     private int baseIndex = 1;
     public boolean retreatForRepairs;
     private long prevDirectionChangeFrame;
+    private Map<UnitType, Integer> kills = new HashMap<>();
 
     public BansheeHarasser(UnitInPool banshee, boolean isBaseTravelClockwise) {
         this.banshee = banshee;
@@ -38,6 +42,18 @@ public class BansheeHarasser {
     public void toggleDodgeClockwise() {
         isDodgeClockwise = !isDodgeClockwise;
         prevDirectionChangeFrame = Time.nowFrames();
+    }
+
+    public void addKill(UnitInPool uip) {
+        addKill(uip.unit().getType());
+    }
+
+    public void addKill(Unit unit) {
+        addKill(unit.getType());
+    }
+
+    public void addKill(UnitType unitType) {
+        kills.merge(unitType, 1, (prev, one) -> prev + one);
     }
 
     //3sec delay between direction changes (so it doesn't get stuck wiggling against the edge)
@@ -78,7 +94,7 @@ public class BansheeHarasser {
                 }
             }
             //if at basePos without workers in vision, then move on to next base
-            else if (UnitUtils.getDistance(banshee.unit(), getThisBase()) < 2 &&
+            else if (UnitUtils.getDistance(banshee.unit(), getThisBase()) < 2.5f &&
                     UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
                             .noneMatch(enemyWorker -> UnitUtils.getDistance(banshee.unit(), enemyWorker) < 10)) {
                 nextBase();
@@ -112,7 +128,7 @@ public class BansheeHarasser {
             return closestWorker.getPosition().toPoint2d();
         }
 
-        //go towards next base
+        //go towards enemy base
         return getThisBase();
     }
 
@@ -257,4 +273,32 @@ public class BansheeHarasser {
         return bestTarget;
     }
 
+    public void printKillReport() {
+        Cost killCost = new Cost();
+        StringBuffer killReport = new StringBuffer("Banshee Kill Report: \r\n");
+        killReport.append("banshee ").append(banshee.isAlive() ? "survived" : "died").append("\r\n");
+        killReport.append("Kills:  ");
+        kills.forEach((unitType, numKilled) -> {
+            killReport.append(unitType).append(":(").append(numKilled).append(")  ");
+            killCost.add(unitType, numKilled);
+        });
+        killReport.append("\r\nTotal Cost: ").append(killCost);
+        System.out.println(killReport);
+        Chat.chat("Banshee Kills Value: " + killCost);
+
+        if (killCost.minerals + killCost.gas < 200) {
+            Harassers.consecutiveBadHarass++;
+        }
+        else {
+            Harassers.consecutiveBadHarass = 0;
+        }
+    }
+
+    //add to kill count if possibly killed by this banshee
+    public void onEnemyUnitDeath(Unit deadEnemyUnit) {
+        if (UnitUtils.getDistance(deadEnemyUnit, banshee.unit()) < 8 && //6 + 2range buffer for projectile time / step size
+                !deadEnemyUnit.getFlying().orElse(true)) {
+            addKill(deadEnemyUnit);
+        }
+    }
 }

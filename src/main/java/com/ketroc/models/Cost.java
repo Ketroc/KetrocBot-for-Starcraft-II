@@ -1,6 +1,8 @@
 package com.ketroc.models;
 
+import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 
@@ -29,6 +31,33 @@ public class Cost {
         minerals += addCost.minerals;
         gas += addCost.gas;
         supply += addCost.supply;
+    }
+
+    public void add(UnitInPool uip) {
+        add(uip.unit().getType(), 1);
+    }
+
+    public void add(Unit unit) {
+        add(unit.getType(), 1);
+    }
+
+    public void add(UnitType unitType) {
+        add(unitType, 1);
+    }
+
+    public void add(UnitInPool uip, int numUnits) {
+        add(uip.unit().getType(), numUnits);
+    }
+
+    public void add(Unit unit, int numUnits) {
+        add(unit.getType(), numUnits);
+    }
+
+    public void add(UnitType unitType, int numUnits) {
+        UnitTypeData unitTypeData = Bot.OBS.getUnitTypeData(false).get(unitType);
+        minerals += unitTypeData.getMineralCost().orElse(0) * numUnits;
+        gas += unitTypeData.getVespeneCost().orElse(0) * numUnits;
+        supply += unitTypeData.getFoodProvided().orElse(0f) * numUnits;
     }
 
 
@@ -66,5 +95,10 @@ public class Cost {
 
     public static boolean isMineralBroke() {
         return Bot.OBS.getMinerals() == 0 && Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0;
+    }
+
+    @Override
+    public String toString() {
+        return minerals + "mins, " + gas + "gas, " + supply + "supply";
     }
 }

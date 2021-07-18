@@ -10,18 +10,24 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.strategies.Strategy;
+import com.ketroc.utils.Chat;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
 public class Harassers {
     public static BansheeHarasser clockwiseBanshee;
     public static BansheeHarasser counterClockwiseBanshee;
+    public static int consecutiveBadHarass; //# of times in a row that banshee harass didn't get much done
 
     public static void onStep() {
         if (Strategy.DO_BANSHEE_HARASS) {
             removeHarassers();
             getNewHarassers();
             giveBansheeCommands();
+        }
+        if (doEndBansheeHarass() && clockwiseBanshee == null && counterClockwiseBanshee == null) {
+            Chat.tag("BANSHEE_HARASS_ENDED");
+            Strategy.DO_BANSHEE_HARASS = false;
         }
     }
 
@@ -38,12 +44,14 @@ public class Harassers {
     private static void removeHarassers() {
         if (clockwiseBanshee != null) {
             if (doRemoveBanshee(clockwiseBanshee)) {
+                clockwiseBanshee.printKillReport();
                 Ignored.remove(clockwiseBanshee.banshee.getTag());
                 clockwiseBanshee = null;
             }
         }
         if (counterClockwiseBanshee != null) {
             if (doRemoveBanshee(counterClockwiseBanshee)) {
+                counterClockwiseBanshee.printKillReport();
                 Ignored.remove(counterClockwiseBanshee.banshee.getTag());
                 counterClockwiseBanshee = null;
             }
@@ -52,8 +60,12 @@ public class Harassers {
 
     private static boolean doRemoveBanshee(BansheeHarasser bansheeHarasser) {
         UnitInPool banshee = bansheeHarasser.banshee;
-        return !banshee.isAlive() ||
+        return doEndBansheeHarass() || !banshee.isAlive() ||
                 (bansheeHarasser.retreatForRepairs && UnitUtils.getDistance(banshee.unit(), LocationConstants.REPAIR_BAY) < 10);
+    }
+
+    private static boolean doEndBansheeHarass() {
+        return consecutiveBadHarass >= 2;
     }
 
     private static void getNewHarassers() {
@@ -87,5 +99,14 @@ public class Harassers {
                     .orElse(null);
         }
         return bansheeTag;
+    }
+
+    public static void onEnemyUnitDeath(Unit unit) {
+        if (clockwiseBanshee != null) {
+            clockwiseBanshee.onEnemyUnitDeath(unit);
+        }
+        if (counterClockwiseBanshee != null) {
+            counterClockwiseBanshee.onEnemyUnitDeath(unit);
+        }
     }
 }
