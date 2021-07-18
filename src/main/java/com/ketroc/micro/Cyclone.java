@@ -130,36 +130,36 @@ public class Cyclone extends BasicUnitMicro {
 
     private boolean setLockTarget() {
         int rangeToCheck = Switches.isDivingTempests ? 15 : 10;
-        UnitInPool closestHardLockTarget = GameCache.allVisibleEnemiesList.stream()
+        UnitInPool closestHighPriorityTarget = GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit().getType())) && //units or attacking structures
                         UnitUtils.isUnitPositionVisible(enemy.unit()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
                         targetAcceptingMoreLocks(enemy) &&
                         isSafeToAttemptLock(enemy))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
-        if (closestHardLockTarget != null) {
-            lockOn(closestHardLockTarget);
+        if (closestHighPriorityTarget != null) {
+            lockOn(closestHighPriorityTarget);
             return true;
         }
 
-        UnitInPool closestSoftLockTarget = GameCache.allVisibleEnemiesList.stream()
+        UnitInPool closestLowPriorityTarget = GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                        UnitUtils.isUnitPositionVisible(enemy.unit()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         targetAcceptingMoreLocks(enemy) &&
                         isSafeToAttemptLock(enemy))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                 .orElse(null);
-        if (closestSoftLockTarget != null) {
-            if (UnitUtils.getDistance(closestSoftLockTarget.unit(), unit.unit()) < 7.1) {
-                lockOn(closestSoftLockTarget);
+        if (closestLowPriorityTarget != null) {
+            if (UnitUtils.getDistance(closestLowPriorityTarget.unit(), unit.unit()) < 7.1) {
+                lockOn(closestLowPriorityTarget);
             }
             else {
-                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, closestSoftLockTarget.unit(), false);
+                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, closestLowPriorityTarget.unit(), false);
             }
             return true;
         }
@@ -169,11 +169,15 @@ public class Cyclone extends BasicUnitMicro {
 
     //nothing locked on yet, or armored attack unit with > 100hp, or armored structure with > 300hp
     private boolean targetAcceptingMoreLocks(UnitInPool enemy) {
-        return !Cyclone.containsTarget(enemy.getTag()) ||
-                (UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) &&
-                        (UnitUtils.getTotalHealth(enemy.unit()) > 300 ||
-                                (UnitUtils.canAttack(enemy.unit().getType()) &&
-                                        UnitUtils.getTotalHealth(enemy.unit()) > 100)));
+        int numLocks = Cyclone.numLocks(enemy.getTag());
+        return numLocks == 0 || (
+                UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) && (
+                        UnitUtils.getTotalHealth(enemy.unit())/numLocks > 900 || ( //1:pylon/extractor, 2:gateway/barracks/cc, 3:nexus/lair/hive
+                                UnitUtils.canAttack(enemy.unit().getType()) &&
+                                UnitUtils.getTotalHealth(enemy.unit())/numLocks > 160 //1:stalker/ravager, 2:tempest/tank, 3:BC/thor
+                        )
+                )
+        );
 
     }
 
@@ -237,8 +241,14 @@ public class Cyclone extends BasicUnitMicro {
     //TODO: move this???
     public static boolean containsTarget(Tag targetTag) {
         return UnitMicroList.getUnitSubList(Cyclone.class).stream()
-                .anyMatch(cyclone -> cyclone.lockTarget != null &&
-                        cyclone.lockTarget.getTag().equals(targetTag));
+                .anyMatch(cyclone -> cyclone.lockTarget != null && cyclone.lockTarget.getTag().equals(targetTag));
+    }
+
+    //TODO: move this???
+    public static int numLocks(Tag targetTag) {
+        return (int)UnitMicroList.getUnitSubList(Cyclone.class).stream()
+                .filter(cyclone -> cyclone.lockTarget != null && cyclone.lockTarget.getTag().equals(targetTag))
+                .count();
     }
 
     //TODO: move this???
