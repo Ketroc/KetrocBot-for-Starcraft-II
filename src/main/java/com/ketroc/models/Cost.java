@@ -57,7 +57,7 @@ public class Cost {
         UnitTypeData unitTypeData = Bot.OBS.getUnitTypeData(false).get(unitType);
         minerals += unitTypeData.getMineralCost().orElse(0) * numUnits;
         gas += unitTypeData.getVespeneCost().orElse(0) * numUnits;
-        supply += unitTypeData.getFoodProvided().orElse(0f) * numUnits;
+        supply += unitTypeData.getFoodRequired().orElse(0f) * numUnits;
     }
 
 
