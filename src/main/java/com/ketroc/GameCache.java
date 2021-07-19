@@ -686,7 +686,9 @@ public class GameCache {
                     float distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
                     //depot raising
                     if (!enemy.isAir &&
-                            enemy.isArmy &&
+                            (enemy.isArmy ||
+                                    Strategy.gamePlan == GamePlan.MARINE_RUSH || //block out scout workers when doing marine rush
+                                    Strategy.WALL_OFF_IMMEDIATELY) && //block out workers during worker rush defense
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
                         InfluenceMaps.pointRaiseDepots[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);

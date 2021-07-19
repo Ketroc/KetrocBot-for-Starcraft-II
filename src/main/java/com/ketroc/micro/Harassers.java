@@ -22,12 +22,13 @@ public class Harassers {
     public static void onStep() {
         if (Strategy.DO_BANSHEE_HARASS) {
             removeHarassers();
+            if (doEndBansheeHarass() && clockwiseBanshee == null && counterClockwiseBanshee == null) {
+                Chat.tag("BANSHEE_HARASS_ENDED");
+                Strategy.DO_BANSHEE_HARASS = false;
+                return;
+            }
             getNewHarassers();
             giveBansheeCommands();
-        }
-        if (doEndBansheeHarass() && clockwiseBanshee == null && counterClockwiseBanshee == null) {
-            Chat.tag("BANSHEE_HARASS_ENDED");
-            Strategy.DO_BANSHEE_HARASS = false;
         }
     }
 

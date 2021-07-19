@@ -286,11 +286,11 @@ public class BansheeHarasser {
         System.out.println(killReport);
         Chat.chat("Banshee Kills Value: " + killCost);
 
-        if (killCost.minerals + killCost.gas < 200) {
-            Harassers.consecutiveBadHarass++;
-        }
-        else {
+        if (killCost.minerals + killCost.gas >= 200) {
             Harassers.consecutiveBadHarass = 0;
+        }
+        else if (!banshee.isAlive()) {
+            Harassers.consecutiveBadHarass++;
         }
     }
 
