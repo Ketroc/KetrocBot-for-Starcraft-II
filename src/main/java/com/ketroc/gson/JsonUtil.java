@@ -31,6 +31,9 @@ public class JsonUtil {
             if (!didWin) {
                 opp.setPrevGameResult(new GameResult(Strategy.gamePlan, didWin, Time.nowClock()));
             }
+            else if (opp.getPrevGameResult() == null) {
+                opp.setPrevGameResult(new GameResult());
+            }
 
             Files.write(filePath, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
         }
