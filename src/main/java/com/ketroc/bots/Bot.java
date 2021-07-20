@@ -1,5 +1,6 @@
 package com.ketroc.bots;
 
+import com.github.ocraft.s2client.bot.ClientError;
 import com.github.ocraft.s2client.bot.S2Agent;
 import com.github.ocraft.s2client.bot.gateway.*;
 import com.github.ocraft.s2client.protocol.data.Abilities;
@@ -12,6 +13,7 @@ import com.ketroc.utils.Error;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Bot extends S2Agent {
@@ -120,5 +122,13 @@ public class Bot extends S2Agent {
         catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             Error.onException(e);
         }
+    }
+
+    @Override
+    public void onError(List<ClientError> clientErrors, List<String> protocolErrors) {
+        super.onError(clientErrors, protocolErrors);
+        System.out.println("onError Override:");
+        clientErrors.forEach(System.out::println);
+        protocolErrors.forEach(System.out::println);
     }
 }

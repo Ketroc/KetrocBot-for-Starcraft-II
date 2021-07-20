@@ -949,7 +949,9 @@ public class BuildManager {
     }
 
     public static boolean isAllProductionStructuresBusy() {
-        return isAllProductionStructuresActive(Units.TERRAN_FACTORY) && isAllProductionStructuresActive(Units.TERRAN_STARPORT);
+        return (isAllProductionStructuresActive(Units.TERRAN_FACTORY) ||
+                        UnitMicroList.getUnitSubList(TankOffense.class).size() >= 10) && //factories are purposely idle when 10 tanks on the field
+                isAllProductionStructuresActive(Units.TERRAN_STARPORT);
     }
 
     private static boolean isAllProductionStructuresActive(Units structureType) {

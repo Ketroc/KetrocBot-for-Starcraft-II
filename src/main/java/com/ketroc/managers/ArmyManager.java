@@ -1303,7 +1303,7 @@ public class ArmyManager {
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
 
         //if maxed on mass raven, let them turret more aggressively
-        if (GameCache.ravenList.size() > 10 &&
+        if (GameCache.ravenList.size() > 15 &&
                 (Bot.OBS.getFoodUsed() > 190 || GameCache.gasBank > 3000) &&
                 //raven.getEnergy().orElse(0f) > 195) {
                 raven.getEnergy().orElse(0f) > Strategy.AUTOTURRET_AT_ENERGY) {
