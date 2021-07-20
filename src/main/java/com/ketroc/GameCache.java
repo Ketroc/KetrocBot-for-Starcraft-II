@@ -247,6 +247,7 @@ public class GameCache {
                     //update enemy race vs random player
                     if (LocationConstants.opponentRace == Race.RANDOM) {
                         LocationConstants.opponentRace = Bot.OBS.getUnitTypeData(false).get(unitType).getRace().get();
+                        Chat.tag("VS_" + LocationConstants.opponentRace);
                         LocationConstants.setEnemyTypes();
                         Strategy.setRaceStrategies();
                     }
@@ -552,13 +553,12 @@ public class GameCache {
                 }
                 if (closestTempest != null) {
                     Point2d closestTempestPos = closestTempest.unit().getPosition().toPoint2d();
-                    List<UnitInPool> nearbyAntiTempestUnits = UnitUtils.getUnitsNearbyOfType(
-                            Alliance.SELF,
-                            Set.of(Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_CYCLONE),
-                            closestTempestPos,
-                            Strategy.TEMPEST_DIVE_RANGE
-                    );
-                    if (ArmyManager.shouldDiveTempests(closestTempestPos, nearbyAntiTempestUnits.size())) {
+                    List<UnitInPool> nearbyVikings = UnitUtils.getUnitsNearbyOfType(
+                            Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, closestTempestPos, Strategy.TEMPEST_DIVE_RANGE);
+                    List<UnitInPool> nearbyCyclones = UnitUtils.getUnitsNearbyOfType(
+                            Alliance.SELF, Units.TERRAN_CYCLONE, closestTempestPos, Strategy.TEMPEST_DIVE_RANGE);
+                    int numVikingsNearby = nearbyVikings.size() + nearbyCyclones.size() / 2; //include cyclones at half value in calculation
+                    if (ArmyManager.shouldDiveTempests(closestTempestPos, numVikingsNearby)) {
                         Switches.vikingDiveTarget = closestTempest;
                         if (Switches.vikingDiveTarget != null) {
                             Switches.isDivingTempests = true;

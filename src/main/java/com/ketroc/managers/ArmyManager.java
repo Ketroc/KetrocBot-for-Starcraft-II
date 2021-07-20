@@ -1532,7 +1532,7 @@ public class ArmyManager {
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {
         //if not enough vikings to deal with the tempests
-        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, (int)(ArmyManager.calcNumVikingsNeeded() * 0.7))) {
+        if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, (int)(ArmyManager.calcNumVikingsNeeded() * 0.75))) {
             return false;
         }
 
