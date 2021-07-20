@@ -241,7 +241,9 @@ public class UnitUtils {
 
     public static List<UnitInPool> getUnitsNearbyOfType(Alliance alliance, Units unitType, Point2d position, float distance) {
         try {
-            return Bot.OBS.getUnits(alliance, unit -> unit.unit().getType() == unitType && UnitUtils.getDistance(unit.unit(), position) < distance);
+            return Bot.OBS.getUnits(alliance, unit ->
+                    unit.unit().getType() == unitType &&
+                    UnitUtils.getDistance(unit.unit(), position) < distance);
         }
         catch (Exception e) {
             Error.onException(e);
@@ -843,7 +845,7 @@ public class UnitUtils {
                 UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
     }
 
-    public static int getNumScvs(boolean includeProducing) {
+    public static int numScvs(boolean includeProducing) {
         return Bot.OBS.getFoodWorkers() + (includeProducing ? numInProductionOfType(Units.TERRAN_SCV) : 0);
     }
 
@@ -996,5 +998,9 @@ public class UnitUtils {
         return (float) GameCache.allEnemiesList.stream()
                 .mapToDouble(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getFoodRequired().orElse(0f))
                 .sum();
+    }
+
+    public static Optional<UnitInPool> getAddOn(Unit structure) {
+        return structure.getAddOnTag().map(tag -> Bot.OBS.getUnit(tag));
     }
 }

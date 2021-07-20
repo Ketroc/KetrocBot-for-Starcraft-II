@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.*;
@@ -300,5 +301,10 @@ public class BansheeHarasser {
                 !deadEnemyUnit.getFlying().orElse(true)) {
             addKill(deadEnemyUnit);
         }
+    }
+
+    public boolean isWithinPhoenixRange() {
+        return Switches.phoenixAreReal &&
+                !Bot.OBS.getUnits(Alliance.ENEMY, phoenix -> UnitUtils.getDistance(phoenix.unit(), banshee.unit()) < 7).isEmpty();
     }
 }

@@ -12,5 +12,6 @@ public enum GamePlan {
     RAVEN,
     MARINE_RUSH,
     SCV_RUSH,
-    RAVEN_CYCLONE;
+    RAVEN_CYCLONE,
+    NONE;
 }

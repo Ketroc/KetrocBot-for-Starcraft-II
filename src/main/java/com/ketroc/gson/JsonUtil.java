@@ -3,7 +3,9 @@ package com.ketroc.gson;
 import com.google.gson.Gson;
 import com.ketroc.bots.Bot;
 import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.Chat;
+import com.ketroc.utils.Time;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,8 +23,15 @@ public class JsonUtil {
         try {
             Gson gson = new Gson();
             Path filePath = getPath();
+
             Opponent opp = getOpponentRecords(gson, filePath);
             opp.incrementRecord(gamePlan, didWin);
+
+            //maintain a record of the most recent loss
+            if (!didWin) {
+                opp.setPrevGameResult(new GameResult(Strategy.gamePlan, didWin, Time.nowClock()));
+            }
+
             Files.write(filePath, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
         }
         catch (IOException e) {
@@ -41,18 +50,34 @@ public class JsonUtil {
     }
 
     public static Opponent getOpponentRecords(Gson gson, Path filePath) throws IOException {
-        Opponent opp;
         if (!Files.exists(filePath)) {
-            opp = new Opponent();
+            return new Opponent();
         }
-        else {
-            Reader reader = null;
-            reader = Files.newBufferedReader(filePath);
-            opp = gson.fromJson(reader, Opponent.class);
-            reader.close();
-        }
+        Reader reader = Files.newBufferedReader(filePath);
+        Opponent opp = gson.fromJson(reader, Opponent.class);
+        reader.close();
         return opp;
     }
+
+//    public static GameResult getGameResult() {
+//        try {
+//            return getGameResult(new Gson(), getPath());
+//        }
+//        catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+//
+//    public static GameResult getGameResult(Gson gson, Path filePath) throws IOException {
+//        if (!Files.exists(filePath)) {
+//            return null;
+//        }
+//        Reader reader = Files.newBufferedReader(filePath);
+//        GameResult gameResult = gson.fromJson(reader, GameResult.class);
+//        reader.close();
+//        return gameResult;
+//    }
 
     public static void chatAllWinRates(boolean doLog) {
         try {

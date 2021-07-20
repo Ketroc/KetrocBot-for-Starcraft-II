@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class Opponent {
     private Set<WinLossRecord> strategyWinRates;
+    private GameResult prevGameResult;
 
     public Opponent() {
         this.strategyWinRates = new HashSet<>();
@@ -24,6 +25,14 @@ public class Opponent {
 
     public void setStrategyWinRates(Set<WinLossRecord> strategyWinRates) {
         this.strategyWinRates = strategyWinRates;
+    }
+
+    public GameResult getPrevGameResult() {
+        return prevGameResult;
+    }
+
+    public void setPrevGameResult(GameResult prevGameResult) {
+        this.prevGameResult = prevGameResult;
     }
 
     public void incrementRecord(GamePlan gamePlan, boolean didWin) {
@@ -69,8 +78,10 @@ public class Opponent {
     }
 
     public GamePlan getWinningestGamePlan() {
+        GamePlan prevLossPlan = prevGameResult == null ? GamePlan.NONE : prevGameResult.getGamePlan();
         return strategyWinRates.stream()
                 //find max win rate strategy with the least games played
+                .filter(winLossRecord -> winLossRecord.getGamePlan() != prevLossPlan)
                 .max(Comparator.comparing(record -> record.winRate() - ((float)record.numGames()) / 1000))
                 .orElse(strategyWinRates.iterator().next())
                 .getGamePlan();

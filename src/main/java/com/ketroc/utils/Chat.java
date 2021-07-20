@@ -30,6 +30,7 @@ public class Chat {
 
         //MicroMachine responses
         botResponses.put("range upgrade on your missile turrets", "Did you know if you zoom in, there is guy manning the cockpit of that turret?");
+        botResponses.put("rudimentary database is telling me that", "...and my rude database is telling me that you smell");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(

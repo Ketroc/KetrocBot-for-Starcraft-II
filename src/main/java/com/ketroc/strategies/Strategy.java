@@ -130,6 +130,7 @@ public class Strategy {
             case RANDOM:
                 gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
                 useCyclonesAdjustments();
+                NUM_MARINES = 4;
                 Switches.enemyCanProduceAir = true;
                 Switches.enemyHasCloakThreat = true;
         }
@@ -243,7 +244,7 @@ public class Strategy {
                 GamePlan.BANSHEE_TANK
         ));
 
-        //gamePlan = GamePlan.MARINE_RUSH;
+        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
         gamePlan = getStrategyForLadder(availableTvTGamePlans);
 
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
@@ -313,7 +314,7 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        //gamePlan = GamePlan.MARINE_RUSH;
+        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
         gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
         //random selection
@@ -334,6 +335,7 @@ public class Strategy {
                 break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                NUM_MARINES = 4;
                 break;
             case BUNKER_CONTAIN_WEAK:
                 BunkerContain.proxyBunkerLevel = 1;
@@ -898,8 +900,8 @@ public class Strategy {
         Opponent opponentRecords = JsonUtil.getOpponentRecords();
         opponentRecords.filterToGamePlans(gamePlans);
 
-        //play 5 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(5);
+        //play 4 games of each strategy first
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
 
         //pick the winningest strategy
         if (gamePlan == null) {

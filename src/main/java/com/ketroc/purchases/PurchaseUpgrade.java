@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.ActionHelper;
@@ -125,4 +126,15 @@ public class PurchaseUpgrade implements Purchase {
         return upgrade.toString();
     }
 
+
+    //******************************************
+    //************ STATIC METHODS **************
+    //******************************************
+
+    public static void add(Upgrades newUpgrade, UnitInPool structure) {
+        if (!Purchase.isUpgradeQueued(newUpgrade)
+                && !Bot.OBS.getUpgrades().contains(newUpgrade)) {
+            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(newUpgrade, structure));
+        }
+    }
 }

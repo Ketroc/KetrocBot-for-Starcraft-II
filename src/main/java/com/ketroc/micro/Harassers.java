@@ -45,6 +45,9 @@ public class Harassers {
     private static void removeHarassers() {
         if (clockwiseBanshee != null) {
             if (doRemoveBanshee(clockwiseBanshee)) {
+                if (!clockwiseBanshee.banshee.isAlive() && clockwiseBanshee.isWithinPhoenixRange()) {
+                    consecutiveBadHarass = 2;
+                }
                 clockwiseBanshee.printKillReport();
                 Ignored.remove(clockwiseBanshee.banshee.getTag());
                 clockwiseBanshee = null;

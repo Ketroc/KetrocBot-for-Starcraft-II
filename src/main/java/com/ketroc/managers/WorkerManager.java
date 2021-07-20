@@ -398,7 +398,7 @@ public class WorkerManager {
     private static void freeUpExtraScvs() {
         int numGasScvsNeeded = Base.numGasScvsFromMaxSaturation();
         int numMineralScvsNeeded = Base.numMineralScvsFromMaxSaturation();
-        int totalScvsNeeded = numGasScvsNeeded + numGasScvsNeeded;
+        int totalScvsNeeded = numMineralScvsNeeded + numGasScvsNeeded;
         if (totalScvsNeeded == 0) {
             return;
         }
@@ -434,7 +434,7 @@ public class WorkerManager {
                     ActionHelper.unitCommand(gasScv.unit(), Abilities.STOP, false);
                     gas.getScvs().remove(gasScv);
                     numMineralScvsNeeded--;
-                    if (numGasScvsNeeded == 0) {
+                    if (numMineralScvsNeeded == 0) {
                         break;
                     }
                 }

@@ -408,7 +408,7 @@ public class BuildManager {
                         }
                         //build scv
                         if (Bot.OBS.getMinerals() >= 50 &&
-                                UnitUtils.getNumScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
+                                UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
                             ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
                             Cost.updateBank(Units.TERRAN_SCV);
                         }
@@ -474,7 +474,7 @@ public class BuildManager {
                         //no break
                     case TERRAN_PLANETARY_FORTRESS:
                         //build scv
-                        if (UnitUtils.getNumScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
+                        if (UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
                             ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
                             Cost.updateBank(Units.TERRAN_SCV);
                         }
@@ -512,7 +512,7 @@ public class BuildManager {
         //if safe and oversaturated
         return !UnitUtils.isWallUnderAttack() &&
                 CannonRushDefense.isSafe &&
-                Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.getNumScvs(true) + 5);
+                Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.numScvs(true) + 5);
     }
 
     private static void saveDyingCCs() {
@@ -904,7 +904,7 @@ public class BuildManager {
         //purchase new CCs at 500minerals unless nearing full saturation (in which case 400mins)
         int mineralsRequired = 500;
         if (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_COMMAND_CENTER) == 0 &&
-                UnitUtils.getNumScvs(true) >= Math.min(Strategy.maxScvs,
+                UnitUtils.numScvs(true) >= Math.min(Strategy.maxScvs,
                         Base.scvsReqForMyBases() - (4 * UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
             mineralsRequired = 400;
         }
@@ -977,7 +977,7 @@ public class BuildManager {
         }
         else {
             int scvsForMaxSaturation = Base.scvsReqForMyBases();
-            int numScvs = UnitUtils.getNumScvs(true);
+            int numScvs = UnitUtils.numScvs(true);
             if (UnitUtils.isWallUnderAttack() || !CannonRushDefense.isSafe) {
                 purchaseMacroCC();
             } else if (Math.min(numScvs + 25, Strategy.maxScvs) <= scvsForMaxSaturation) {
@@ -1090,7 +1090,7 @@ public class BuildManager {
 
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
-        return (int)(Math.min(Strategy.maxScvs - UnitUtils.getNumScvs(true), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
+        return (int)(Math.min(Strategy.maxScvs - UnitUtils.numScvs(true), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
                 GameCache.starportList.size() * 2.34 +
                 GameCache.factoryList.stream()
                         .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)

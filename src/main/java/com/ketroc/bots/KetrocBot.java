@@ -456,10 +456,7 @@ public class KetrocBot extends Bot {
                         }
                         //TODO: testing cyclones
                         else if (Strategy.DO_USE_CYCLONES) {
-                            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE, unitInPool));
-                        }
-                        else if (Time.nowFrames() < Time.toFrames("5:00")) {
-                            KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, GameCache.factoryList.get(0)));
+                            PurchaseUpgrade.add(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE, unitInPool);
                         }
                         break;
                     case TERRAN_STARPORT:

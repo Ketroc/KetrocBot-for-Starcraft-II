@@ -457,6 +457,10 @@ public class ArmyManager {
                 if (GameCache.baseList.get(1).isMyBase()) {
                     return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
                 }
+                //no break
+        }
+        if (UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 1)) {
+            return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
         }
         return LocationConstants.insideMainWall;
     }
