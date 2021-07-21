@@ -1033,7 +1033,7 @@ public class ArmyManager {
             answer = Math.max(2, answer);
         }
         else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
-            answer = Math.max((LocationConstants.opponentRace == Race.PROTOSS) ? 2 : 3, answer); //minimum vikings if he has a detector
+            answer = Math.max(3, answer); //minimum vikings if he has a detector
         }
         answer = Math.max(answer, GameCache.bansheeList.size() / 5); //at least 1 safety viking for every 5 banshees
         return (int)answer;

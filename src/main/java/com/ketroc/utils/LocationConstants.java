@@ -2732,7 +2732,7 @@ public class LocationConstants {
         muleLetterPosList.add(Point2d.of(90.5f, 79.5f));
         muleLetterPosList.add(Point2d.of(102.5f, 81.5f));
         if (isTopPos) {
-            proxyBarracksPos = Point2d.of(112.5f, 87.5f);
+            proxyBarracksPos = Point2d.of(110.5f, 87.5f);
             proxyBunkerPos = Point2d.of(144.5f, 65.5f);
             proxyBunkerPos2 = Point2d.of(131.5f, 52.5f);
 
