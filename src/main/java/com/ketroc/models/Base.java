@@ -274,8 +274,15 @@ public class Base {
                     DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
                     DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
+                    return;
                 }
-                else if (UnitUtils.isCarryingResources(scv.unit())) {
+
+                //don't give scv command if it is getting auto-pushed out of the way of a new structure
+                if (scv.unit().getOrders().size() >= 2) {
+                    return;
+                }
+
+                if (UnitUtils.isCarryingResources(scv.unit())) { //return micro
                     if (isReadyForMining()) {
                         mineralPatch.returnMicro(scv.unit());
                     }
@@ -283,7 +290,7 @@ public class Base {
                         mineralPatch.distanceReturnMicro(scv.unit());
                     }
                 }
-                else {
+                else { //harvest micro
                     if (isReadyForMining()) {
                         mineralPatch.harvestMicro(scv.unit());
                     }

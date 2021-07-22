@@ -161,7 +161,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return buildOther();
         }
         else {
-            Cost.updateBank(cost);
+            //Cost.updateBank(cost); //removed to allow resources to spend elsewhere as required tech gets built
             return PurchaseResult.WAITING;
         }
     }

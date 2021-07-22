@@ -148,6 +148,7 @@ public class Cyclone extends BasicUnitMicro {
 
         UnitInPool closestLowPriorityTarget = GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         UnitUtils.isUnitPositionVisible(enemy.unit()) &&
                         UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
                         targetAcceptingMoreLocks(enemy) &&

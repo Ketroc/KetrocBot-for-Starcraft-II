@@ -304,8 +304,10 @@ public class UnitUtils {
                 return (InfluenceMaps.getThreatToStructure(unit) != 0 ||
                         InfluenceMaps.getValue(InfluenceMaps.enemyInMissileTurretRange, unit.getPosition().toPoint2d()))
                         ? 6 : 0;
-            case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_BUNKER:
+            case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED:
                 return 2;
+            case TERRAN_BUNKER:
+                return 3;
             default: //other burning structures
                 return InfluenceMaps.getThreatToStructure(unit) == 0 ? 1 : 0;
         }

@@ -100,11 +100,8 @@ public class MineralPatch {
             }
         }
         else {
-            //put wayward scv back to work (if not floating cc nearby -- avoid landing conflict)
-            if (scv.getOrders().size() < 2) {
-                ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
-            }
-
+            //put wayward scv back to work
+            ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
         }
     }
 
@@ -115,7 +112,7 @@ public class MineralPatch {
             }
         }
         //put wayward scv back to work
-        else if (scv.getOrders().size() < 2) {
+        else {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
         }
     }
@@ -136,15 +133,12 @@ public class MineralPatch {
         }
         //put wayward scv back to work
         else {
-            if (scv.getOrders().size() < 2) { //not being pushed away to make room
-                ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
-            }
+            ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }
 
     public void distanceReturnMicro(Unit scv) {
-        if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability != Abilities.HARVEST_RETURN) &&
-                scv.getOrders().size() < 2) {
+        if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability != Abilities.HARVEST_RETURN)) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }
