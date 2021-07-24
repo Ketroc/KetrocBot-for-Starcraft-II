@@ -12,10 +12,10 @@ import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.StructureScv;
 import com.ketroc.models.TriangleOfNodes;
-import com.ketroc.utils.*;
 import com.ketroc.utils.Error;
+import com.ketroc.utils.*;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WorkerRushDefense {
@@ -138,7 +138,7 @@ public class WorkerRushDefense {
                     break;
 
                 case 5: //land cc
-                    if (GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, Collections.emptyList()).isEmpty()) {
+                    if (GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, new ArrayList<>()).isEmpty()) {
                         defenseStep = 0;
                     }
                     break;

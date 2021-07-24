@@ -1,15 +1,11 @@
 package com.ketroc.models;
 
-import com.github.ocraft.s2client.protocol.data.Buffs;
-import com.github.ocraft.s2client.protocol.data.Effects;
-import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.data.Weapon;
+import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.strategies.Strategy;
-import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
 public class EnemyUnit {
@@ -24,6 +20,7 @@ public class EnemyUnit {
     public boolean isDetector;
     public boolean isEffect;
     public boolean isArmy;
+    public boolean canMove;
     public boolean isSeekered;
     public boolean isTempest;
     public boolean isTumor;
@@ -43,9 +40,11 @@ public class EnemyUnit {
         unitType = (Units)enemy.getType();
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
-        supply = Bot.OBS.getUnitTypeData(false).get(enemy.getType()).getFoodRequired().orElse(0f);
+        UnitTypeData unitTypeData = Bot.OBS.getUnitTypeData(false).get(enemy.getType());
+        supply = unitTypeData.getFoodRequired().orElse(0f);
+        canMove = unitTypeData.getMovementSpeed().orElse(0f) > 0;
         isAir = enemy.getFlying().orElse(false);
-        isTumor = UnitUtils.CREEP_TUMOR.contains(enemy.getType());
+        isTumor = UnitUtils.CREEP_TUMOR_TYPES.contains(enemy.getType());
         isInProgress = enemy.getBuildProgress() > 0 && enemy.getBuildProgress() < 0.95f;
         if (isInProgress) {
             threatLevel = 0;
@@ -76,11 +75,11 @@ public class EnemyUnit {
         }
         pfTargetLevel = getPFTargetValue(enemy);
         isDetector = detectRange > 0f;
-        isArmy = supply > 0 &&
-                (!UnitUtils.WORKER_TYPE.contains(enemy.getType()) || //any unit that costs supply and is not a worker
-                        (Strategy.WALL_OFF_IMMEDIATELY &&
-                                UnitUtils.getEnemyUnitsOfType(UnitUtils.WORKER_TYPE).size() > 4 &&
-                                Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
+        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
+//        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()) || //any unit that costs supply and is not a worker
+//                        (Strategy.WALL_OFF_IMMEDIATELY &&
+//                                UnitUtils.getEnemyUnitsOfType(UnitUtils.WORKER_TYPE).size() > 5 &&
+//                                Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch ((Units)enemy.getType()) {
             case PROTOSS_PHOENIX: case PROTOSS_COLOSSUS:

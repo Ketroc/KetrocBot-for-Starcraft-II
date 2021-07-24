@@ -16,8 +16,11 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
+import com.ketroc.micro.MarineBasic;
+import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
 import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.MarineAllIn;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
@@ -583,7 +586,7 @@ public class GameCache {
                             if (Switches.vikingDiveTarget.unit().getType() == Units.PROTOSS_OBSERVER &&
                                     Switches.vikingDiveTarget.unit().getCloakState().orElse(CloakState.CLOAKED_DETECTED) == CloakState.CLOAKED) {
                                 if (UnitUtils.canScan()) {
-                                    List<Unit> orbitals = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+                                    List<Unit> orbitals = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
                                     ActionHelper.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2), false);
                                 }
                                 //cancel dive if I can't scan
@@ -685,10 +688,8 @@ public class GameCache {
                 for (int y = yStart; y <= yEnd; y++) {
                     float distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
                     //depot raising
-                    if (!enemy.isAir &&
-                            (enemy.isArmy ||
-                                    Strategy.gamePlan == GamePlan.MARINE_RUSH || //block out scout workers when doing marine rush
-                                    Strategy.WALL_OFF_IMMEDIATELY) && //block out workers during worker rush defense
+                    if (!enemy.isAir && enemy.canMove &&
+                            (enemy.isArmy || doCloseWallToAllUnits()) &&
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
                         InfluenceMaps.pointRaiseDepots[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);
@@ -830,6 +831,11 @@ public class GameCache {
 
     }
 
+    private static boolean doCloseWallToAllUnits() {
+        return Strategy.WALL_OFF_IMMEDIATELY || (Strategy.gamePlan == GamePlan.MARINE_RUSH &&
+                UnitMicroList.getUnitSubList(MarineBasic.class).size() < MarineAllIn.MIN_MARINES_TO_ATTACK);
+    }
+
     public static boolean inDetectionRange(int x1, int y1, Unit enemy) throws Exception {
         return inRange(x1, y1, enemy.getPosition().getX(), enemy.getPosition().getY(), enemy.getDetectRange().orElse(0f));
     }
@@ -879,7 +885,7 @@ public class GameCache {
         }
 
 //        //set missile turrets  UNNEEDED IF I ONLY BUILD THE TURRETS ONCE
-//        for (UnitInPool turret : allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, Collections.emptyList())) {
+//        for (UnitInPool turret : allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, new ArrayList<>())) {
 //            if (cc.unit().getPosition().toPoint2d().distance(turret.unit().getPosition().toPoint2d()) < 5) {
 //                base.getTurrets().add(turret);
 //            }

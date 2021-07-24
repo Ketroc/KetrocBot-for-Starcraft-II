@@ -101,14 +101,14 @@ public class BuildManager {
             if (BunkerContain.proxyBunkerLevel != 2) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
                     if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
-                        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
+                        UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                     }
                     else {
                         buildFactoryUnitsLogic();
                     }
                 }
-                else if (!Cost.isGasBroke() && !UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                    UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
+                else if (!UnitUtils.isOutOfGas() && !UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                    UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                 }
             }
         }
@@ -152,7 +152,7 @@ public class BuildManager {
         if (MuleMessages.doTrollMule && GameCache.mineralBank > 100) {
             return;
         }
-        List<Unit> ocList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        List<Unit> ocList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         int ocCount = (int)ocList.stream().filter(oc -> oc.getEnergy().get() >= 50f).count(); //OCs with mule energy
         int numMulesAvailable = ocList.stream()
                 .mapToInt(oc -> oc.getEnergy().orElse(0f).intValue() / 50)
@@ -241,30 +241,28 @@ public class BuildManager {
     }
 
     private static void noGasProduction() {
-        if (Cost.isGasBroke() && !Strategy.MARINE_ALLIN && Bot.OBS.getGameLoop() > Time.toFrames("10:00")) {
+        if (UnitUtils.isOutOfGas()) {
             //land factory
-            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
+            UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
                     .filter(factory -> ActionIssued.getCurOrder(factory).isEmpty()) //if idle
-                    .findFirst()
-                    .ifPresent(factory -> {
-                        landFactory(factory);
-                    });
+                    .findFirst() //one factory only each step to ensure same position isn't given to multiple factories
+                    .ifPresent(factory -> landFactories(factory));
 
             //produce marines & hellbats
             GameCache.barracksList.stream()
                     .filter(barracks -> ActionIssued.getCurOrder(barracks.unit()).isEmpty()) //if idle
                     .forEach(barracks -> ActionHelper.unitCommand(barracks.unit(), Abilities.TRAIN_MARINE, false));
-            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_FACTORY).stream()
+            UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).stream()
                     .filter(factory -> ActionIssued.getCurOrder(factory).isEmpty()) //if idle
                     .forEach(factory -> ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLBAT, false));
         }
 
     }
 
-    private static void landFactory(Unit factory) {
+    private static void landFactories(Unit factory) {
         for (Base base : GameCache.baseList) {
             if (base.isMyBase() && !base.isMyMainBase()) {
-                Point2d landingPos = getFactoryLandingPos(base.getCcPos());
+                Point2d landingPos = getFactoryLandingPos(base.getResourceMidPoint());
                 if (landingPos != null) {
                     ActionHelper.unitCommand(factory, Abilities.LAND_FACTORY, landingPos, false);
                     return;
@@ -273,13 +271,10 @@ public class BuildManager {
         }
     }
 
-    private static Point2d getFactoryLandingPos(Point2d expansionPos) {
-        List<Point2d> landingPosList = Position.getSpiralList(
-                Position.toWholePoint(
-                        Position.towards(expansionPos, LocationConstants.enemyMainBaseMidPos, 8)
-                )
-                , 4).stream()
-                .sorted(Comparator.comparing(landPos -> landPos.distance(expansionPos)))
+    private static Point2d getFactoryLandingPos(Point2d landingPos) {
+        List<Point2d> landingPosList = Position.getSpiralList(Position.toWholePoint(landingPos),4)
+                .stream()
+                .sorted(Comparator.comparing(landPos -> landPos.distance(landingPos)))
                 .collect(Collectors.toList());
 
         List<QueryBuildingPlacement> queryList = landingPosList.stream()
@@ -297,7 +292,7 @@ public class BuildManager {
     private static void build2ndLayerOfTech() {
         //build after 4th base started TODO: get armories earlier and smarter
         if (!Strategy.techBuilt && (ArmyManager.doOffense || Base.numMyBases() >= 4)) {
-            List<Unit> engBayList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
+            List<Unit> engBayList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
                 KetrocBot.purchaseQueue.add(
                         new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
@@ -558,7 +553,7 @@ public class BuildManager {
             }
         }
 //        //send flying CCs to macro OC location
-//        List<Unit> flyingCCs = GameState.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, Collections.emptyList());
+//        List<Unit> flyingCCs = GameState.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, new ArrayList<>());
 //        for (Unit cc : flyingCCs) {
 //            //if not on the way to land already
 //            if (ActionIssued.getCurOrder(cc).isEmpty()) {
@@ -718,7 +713,7 @@ public class BuildManager {
     }
 
     private static boolean isCloakInProduction() {
-        return UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+        return UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                 .anyMatch(techLab -> UnitUtils.getOrder(techLab) == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
     }
 

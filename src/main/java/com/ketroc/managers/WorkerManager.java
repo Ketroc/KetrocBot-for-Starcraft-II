@@ -31,12 +31,7 @@ public class WorkerManager {
 
     public static void onStep() {
         repairLogic();
-//        if (Time.nowFrames()/Strategy.STEP_SIZE % 2 == 0) {
-            fixOverSaturation();
-//        }
-//        else {
-//            putIdleScvsToWork();
-//        }
+        fixOverSaturation();
         toggleWorkersInGas();
         buildRefineryLogic();
         defendWorkerHarass(); //TODO: this method break scvrush micro
@@ -61,7 +56,7 @@ public class WorkerManager {
 
     //any mule in one of my bases that can't complete another mining round, will a-move + autorepair instead
     private static void preventMulesFromDyingWithMineralsInHand() {
-        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MULE).stream()
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_MULE).stream()
                 .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
                         mule.getBuffDurationRemain().orElse(0) < 144 &&
                         UnitUtils.getDistance(mule,
@@ -143,7 +138,7 @@ public class WorkerManager {
                     .collect(Collectors.toSet()));
 
         //add missile turrets
-        unitsToRepair.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
+        unitsToRepair.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
 
         //add liberators if TvZ/TvT
         if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair

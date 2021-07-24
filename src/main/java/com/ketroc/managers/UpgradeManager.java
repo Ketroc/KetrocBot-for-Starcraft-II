@@ -81,7 +81,7 @@ public class UpgradeManager {
         if (armoryUpgradeList.isEmpty()) {
             return;
         }
-        List<Unit> armories = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ARMORY);
+        List<Unit> armories = UnitUtils.getMyUnitsOfType(Units.TERRAN_ARMORY);
         Unit idleArmory = armories.stream().filter(unit -> ActionIssued.getCurOrder(unit).isEmpty()).findFirst().orElse(null);
 
         //if an armory is idle and not already in purchase queue for a new upgrade
@@ -115,7 +115,7 @@ public class UpgradeManager {
         if (starportUpgradeList.isEmpty()) {
             return;
         }
-        List<Upgrades> starportUpgradesInProgress = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+        List<Upgrades> starportUpgradesInProgress = UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                 .filter(unit -> ActionIssued.getCurOrder(unit).isPresent())
                 .map(unit -> Bot.abilityToUpgrade.get(ActionIssued.getCurOrder(unit).get().ability))
                 .collect(Collectors.toList());
@@ -126,7 +126,7 @@ public class UpgradeManager {
                     .filter(upgrade -> upgrade != Upgrades.BANSHEE_SPEED || ArmyManager.doOffense) //don't get banshee speed until on the offense
                     .findFirst()
                     .ifPresent(upgrade -> {
-                        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                        UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                                 .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
                                 .findFirst()
                                 .ifPresent(techLab -> {
@@ -140,7 +140,7 @@ public class UpgradeManager {
 
     private static void getStarportUpgrades() { //TODO: don't start if making vikings
         if (!starportUpgradeList.isEmpty() && !Purchase.containsUpgrade()) {
-            UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+            UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                     .filter(techLab -> ActionIssued.getCurOrder(techLab).isEmpty())
                     .findFirst()
                     .map(techLab -> Bot.OBS.getUnit(techLab.getTag()))

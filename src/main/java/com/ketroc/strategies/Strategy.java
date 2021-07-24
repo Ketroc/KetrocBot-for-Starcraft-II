@@ -52,7 +52,7 @@ public class Strategy {
     public static final int FUNGAL_FRAMES = 16; //# of frames for fungal to land after being cast
     public static float VIKING_BANSHEE_RATIO = 0.2f;
     public static final int MAX_VIKINGS_TO_DIVE_TEMPESTS = 19; //always dive tempests if we reach this number
-    public static final float DISTANCE_RAISE_DEPOT = 10;
+    public static final float DISTANCE_RAISE_DEPOT = 4f;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.4f + (STEP_SIZE > 2 ? 0.2f : 0);
@@ -244,7 +244,7 @@ public class Strategy {
                 GamePlan.BANSHEE_TANK
         ));
 
-        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        //gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
         gamePlan = getStrategyForLadder(availableTvTGamePlans);
 
 //        while (!availableTvTGamePlans.contains(gamePlan)) {

@@ -22,7 +22,6 @@ import com.ketroc.strategies.BunkerContain;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.MarineAllIn;
 import com.ketroc.strategies.Strategy;
-import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.utils.*;
 
 import java.util.ArrayList;
@@ -101,7 +100,7 @@ public class ArmyManager {
         }
 
         //TODO: this is a temporary test
-        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
             UnitMicroList.add(new Cyclone(cyclone, LocationConstants.insideMainWall));
         });
 
@@ -253,10 +252,10 @@ public class ArmyManager {
     }
 
     private static void sendMarinesHellbats() {
-        if (Cost.isGasBroke()) {
-            List<Unit> army = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-            army.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_HELLION_TANK));
-            if (army.size() >= 20 || Bot.OBS.getFoodUsed() >= 199 || Cost.isMineralBroke()) {
+        if (UnitUtils.isOutOfGas()) {
+            List<Unit> army = UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE);
+            army.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION_TANK));
+            if (Bot.OBS.getFoodUsed() >= 198 || Cost.isMineralBroke(50)) {
                 if (army.stream().anyMatch(unit -> ActionIssued.getCurOrder(unit).isPresent())) {
                     ActionHelper.unitCommand(army, Abilities.ATTACK, attackGroundPos, false);
                 }
@@ -265,7 +264,7 @@ public class ArmyManager {
     }
 
     private static void autoturretTargetting() {
-        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
                 .filter(turret -> UnitUtils.isWeaponAvailable(turret))
                 .forEach(turret -> {
                     selectTarget(turret).ifPresent(target ->
@@ -278,7 +277,7 @@ public class ArmyManager {
 
         com.ketroc.micro.Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
-            if (UnitUtils.CREEP_TUMOR.contains(enemy.unit().getType())) { //shoot creep tumors first
+            if (UnitUtils.CREEP_TUMOR_TYPES.contains(enemy.unit().getType())) { //shoot creep tumors first
                 return Optional.of(enemy.unit());
             }
             float enemyHP = enemy.unit().getHealth().orElse(0f) +
@@ -359,7 +358,7 @@ public class ArmyManager {
                     if (Switches.vikingDiveTarget.unit().getCloakState().get() == CloakState.CLOAKED) {
                         //scan behind the tempest
                         if (UnitUtils.canScan()) {
-                            List<Unit> orbitals = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+                            List<Unit> orbitals = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
                             ActionHelper.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -5), false);
                         }
                         ActionHelper.unitCommand(attackVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
@@ -676,9 +675,9 @@ public class ArmyManager {
         if (nydusWorm.isPresent()) {
             GameResult.setNydusRushed(); //TODO: temp for Spiny
             List<Unit> nydusDivers = new ArrayList<>();
-            nydusDivers.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE));
-            nydusDivers.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARAUDER));
-            nydusDivers.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK));
+            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE));
+            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARAUDER));
+            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_SIEGE_TANK));
             //add 10 close scvs
             List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, scv ->
                     scv.unit().getType() == Units.TERRAN_SCV &&
@@ -707,7 +706,7 @@ public class ArmyManager {
     }
 
     public static void pfTargetting() {
-        List<Unit> pfList = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
+        List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
                         UnitUtils.isWeaponAvailable(unit) &&
                         InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, unit.getPosition().toPoint2d()))
@@ -783,8 +782,14 @@ public class ArmyManager {
     }
 
     private static void positionMarines() {
+        //save marines for hellbat/marine a-move when gas-broke end game
+        if (UnitUtils.isOutOfGas()) {
+            UnitMicroList.getUnitSubList(MarineBasic.class).forEach(marineBasic -> marineBasic.removeMe = true);
+            return;
+        }
+
         //new marines get a marine object
-        UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
             UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
         });
 
@@ -837,7 +842,7 @@ public class ArmyManager {
     }
 
     private static void positionLiberators() { //positions only 1 liberator per game loop
-        Unit idleLib = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
+        Unit idleLib = UnitUtils.getMyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
                 .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
                 .findFirst().orElse(null);
 
@@ -927,29 +932,30 @@ public class ArmyManager {
     }
 
     private static void raiseAndLowerDepots() {
-        for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT)) {
-            Point2d depotPos = depot.getPosition().toPoint2d();
-            int raiseDistance = 8;
-            if (LocationConstants.reaperBlockDepots.stream().anyMatch(p -> p.distance(depotPos) < 1)) {
-                raiseDistance = 12;
-            }
-            if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) &&
-                   UnitUtils.getUnitsNearbyOfType(
-                           Alliance.ENEMY, UnitUtils.WORKER_TYPE, depotPos, raiseDistance).size() < 3) {
-                ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
-            }
-        }
-        for(Unit depot : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SUPPLY_DEPOT_LOWERED)) {
-            Point2d depotPos = depot.getPosition().toPoint2d();
-            //if enemy army nearby or 4+ enemy workers nearby
-            if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depotPos) ||
-                            UnitUtils.getUnitsNearbyOfType(
-                                    Alliance.ENEMY, UnitUtils.WORKER_TYPE, depotPos, 7).size() > 3) {
-                //keep depot lowered if zealotless cannonrush in progress
-                if (CannonRushDefense.cannonRushStep == 0 ||
-                    !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ZEALOT).isEmpty()) {
+        List<Unit> depots = UnitUtils.getMyUnitsOfType(UnitUtils.SUPPLY_DEPOT_TYPE);
+
+        for (Unit depot : depots) {
+            //RAISE WALL DEPOTS
+            if (UnitUtils.isWallStructure(depot) &&
+                    InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {
+                if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
                     ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
                 }
+            }
+
+            //RAISE REAPER WALL DEPOTS
+            else if (LocationConstants.opponentRace == Race.TERRAN &&
+                    UnitUtils.isReaperWallStructure(depot) &&
+                    !UnitUtils.getUnitsNearbyOfType(
+                            Alliance.ENEMY, Units.TERRAN_REAPER, depot.getPosition().toPoint2d(), 12).isEmpty()) {
+                if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
+                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                }
+            }
+
+            //LOWER DEPOTS
+            else if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT) {
+                ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
         }
     }
@@ -1592,8 +1598,8 @@ public class ArmyManager {
     }
 
     public static void sendBioProtection(Point2d expansionPos) {
-        List<Unit> bio = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-        bio.addAll(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARAUDER));
+        List<Unit> bio = UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE);
+        bio.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARAUDER));
         if (!bio.isEmpty()) {
             ActionHelper.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
         }
@@ -1627,6 +1633,15 @@ public class ArmyManager {
                         InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()) ||
                         InfluenceMaps.getValue(pointInNat, enemy.unit().getPosition().toPoint2d()))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos())))
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
+
+    public static Unit getEnemyInMain() {
+        return Bot.OBS.getUnits(Alliance.ENEMY).stream()
+                .filter(enemy -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()))
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos()) +
+                        (!UnitUtils.canAttack(enemy.unit().getType()) ? 1000 : 0)))
                 .map(UnitInPool::unit)
                 .orElse(null);
     }

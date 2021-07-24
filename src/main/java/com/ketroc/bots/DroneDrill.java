@@ -136,7 +136,7 @@ public class DroneDrill extends Bot {
 
                 curMinerals = OBS.getMinerals();
                 curGas = OBS.getVespene();
-                larvaList = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_LARVA);
+                larvaList = UnitUtils.getMyUnitsOfType(Units.ZERG_LARVA);
                 if (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD505)) { //no cluster available
                     droneRushBuildStep = -1;
                     mutaRushBuild();
@@ -183,7 +183,7 @@ public class DroneDrill extends Bot {
                     //start dronerush code & rally eggs
                     case 4:
                         if (!eggRallyComplete && OBS.getFoodUsed() == 16) {
-                            List<Unit> eggs = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EGG);
+                            List<Unit> eggs = UnitUtils.getMyUnitsOfType(Units.ZERG_EGG);
                             if (!eggs.isEmpty()) {
                                 ActionHelper.unitCommand(eggs, Abilities.SMART, LocationConstants.enemyMineralTriangle.getInner().unit(), false);
                             }
@@ -218,7 +218,7 @@ public class DroneDrill extends Bot {
         }
         if (OBS.getFoodWorkers() > 6) {
             if (!availableDrones.isEmpty()) {
-                for (Unit extractor : UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EXTRACTOR)) {
+                for (Unit extractor : UnitUtils.getMyUnitsOfType(Units.ZERG_EXTRACTOR)) {
                     if (extractor.getBuildProgress() == 1f && extractor.getAssignedHarvesters().orElse(3) < 3) {
                         UnitInPool closestDrone = getClosest(availableDrones, extractor.getPosition().toPoint2d());
                         ActionHelper.unitCommand(closestDrone.unit(), Abilities.SMART, extractor, false);
@@ -259,7 +259,7 @@ public class DroneDrill extends Bot {
                 break;
             //lair
             case 3:
-                if (curMinerals >= 150 && curGas >= 100 && !UnitUtils.getFriendlyUnitsOfType(Units.ZERG_SPAWNING_POOL).isEmpty()) {
+                if (curMinerals >= 150 && curGas >= 100 && !UnitUtils.getMyUnitsOfType(Units.ZERG_SPAWNING_POOL).isEmpty()) {
                     ActionHelper.unitCommand(mainHatch.unit(), Abilities.MORPH_LAIR, false);
                     mutaRushBuildStep++;
                 }
@@ -269,7 +269,7 @@ public class DroneDrill extends Bot {
                 break;
             //spire
             case 4:
-                List<Unit> lair = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_LAIR);
+                List<Unit> lair = UnitUtils.getMyUnitsOfType(Units.ZERG_LAIR);
                 if (!lair.isEmpty()) {
                     if (curMinerals >= 200 && curGas >= 200) {
                         Point2d spirePos = Position.rotate(
@@ -308,7 +308,7 @@ public class DroneDrill extends Bot {
                         ActionHelper.unitCommand(larvaList.remove(0), Abilities.TRAIN_MUTALISK, false);
                     }
                 }
-                List<Unit> mutas = UnitUtils.getFriendlyUnitsOfType(Units.ZERG_MUTALISK);
+                List<Unit> mutas = UnitUtils.getMyUnitsOfType(Units.ZERG_MUTALISK);
                 List<UnitInPool> enemyAA = OBS.getUnits(Alliance.ENEMY, enemy ->
                         OBS.getUnitTypeData(false).get(enemy.unit().getType()).getWeapons().stream()
                                 .anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY));
@@ -483,7 +483,7 @@ public class DroneDrill extends Bot {
     }
 
     public static boolean isProducing(Abilities training) {
-        for (Unit egg : UnitUtils.getFriendlyUnitsOfType(Units.ZERG_EGG)) {
+        for (Unit egg : UnitUtils.getMyUnitsOfType(Units.ZERG_EGG)) {
             if (UnitUtils.getOrder(egg) == training) {
                 return true;
             }

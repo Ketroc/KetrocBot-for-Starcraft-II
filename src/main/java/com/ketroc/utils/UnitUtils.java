@@ -157,12 +157,13 @@ public class UnitUtils {
             Units.PROTOSS_WARP_PRISM, Units.PROTOSS_WARP_PRISM_PHASING, Units.TERRAN_MEDIVAC,
             Units.TERRAN_BANSHEE, Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
 
-    public static final Set<Units> CREEP_TUMOR = new HashSet<>(Set.of(
+    public static final Set<Units> CREEP_TUMOR_TYPES = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN));
 
     public static final Set<Units> BASE_BLOCKERS = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
-            Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP));
+            Units.PROTOSS_DARK_TEMPLAR, Units.TERRAN_WIDOWMINE_BURROWED, Units.PROTOSS_ORACLE_STASIS_TRAP,
+            Units.ZERG_ZERGLING_BURROWED));
 
     public static final Set<Units> DESTRUCTIBLES = new HashSet<>(Set.of(
             Units.NEUTRAL_UNBUILDABLE_BRICKS_DESTRUCTIBLE, Units.NEUTRAL_UNBUILDABLE_PLATES_DESTRUCTIBLE,
@@ -248,7 +249,7 @@ public class UnitUtils {
         catch (Exception e) {
             Error.onException(e);
         }
-        return Collections.emptyList();
+        return new ArrayList<>();
     }
 
     public static boolean isUnitTypesNearby(Alliance alliance, Set<Units> unitTypes, Point2d position, float distance) {
@@ -264,7 +265,7 @@ public class UnitUtils {
     }
 
     public static int numRepairingScvs(Unit repairTarget) {
-        return (int)getFriendlyUnitsOfType(Units.TERRAN_SCV).stream()
+        return (int) getMyUnitsOfType(Units.TERRAN_SCV).stream()
                 .filter(scv ->
                         ActionIssued.getCurOrder(scv).stream()
                                 .anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
@@ -453,19 +454,19 @@ public class UnitUtils {
     }
 
     public static boolean canScan() {
-        List<Unit> orbitals = getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        List<Unit> orbitals = getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         return orbitals.stream().anyMatch(unit -> unit.getEnergy().orElse(0f) >= 50);
     }
 
     public static List<UnitInPool> getEnemyUnitsOfType(Units unitType) {
-        return GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList());
+        return GameCache.allEnemiesMap.getOrDefault(unitType, new ArrayList<>());
     }
 
     public static List<UnitInPool> getEnemyUnitsOfType(Collection<Units> unitTypes) {
         List<UnitInPool> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
-            if (!GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList()).isEmpty()) {
-                result.addAll(GameCache.allEnemiesMap.getOrDefault(unitType, Collections.emptyList()));
+            if (!GameCache.allEnemiesMap.getOrDefault(unitType, new ArrayList<>()).isEmpty()) {
+                result.addAll(GameCache.allEnemiesMap.getOrDefault(unitType, new ArrayList<>()));
             }
         }
         return result;
@@ -473,13 +474,13 @@ public class UnitUtils {
 
 
     public static List<Unit> getVisibleEnemyUnitsOfType(Units unitType) {
-        return GameCache.allVisibleEnemiesMap.getOrDefault(unitType, Collections.emptyList());
+        return GameCache.allVisibleEnemiesMap.getOrDefault(unitType, new ArrayList<>());
     }
 
     public static List<Unit> getVisibleEnemyUnitsOfType(Set<Units> unitTypes) {
         List<Unit> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
-            List<Unit> enemyOfTypeList = GameCache.allVisibleEnemiesMap.getOrDefault(unitType, Collections.emptyList());
+            List<Unit> enemyOfTypeList = GameCache.allVisibleEnemiesMap.getOrDefault(unitType, new ArrayList<>());
             if (!enemyOfTypeList.isEmpty()) {
                 result.addAll(enemyOfTypeList);
             }
@@ -487,8 +488,19 @@ public class UnitUtils {
         return result;
     }
 
-    public static List<Unit> getFriendlyUnitsOfType(Units unitType) {
-        return GameCache.allFriendliesMap.getOrDefault(unitType, Collections.emptyList());
+    public static List<Unit> getMyUnitsOfType(Units unitType) {
+        return GameCache.allFriendliesMap.getOrDefault(unitType, new ArrayList<>());
+    }
+
+    public static List<Unit> getMyUnitsOfType(Set<Units> unitTypes) {
+        List<Unit> result = new ArrayList<>();
+        for (Units unitType : unitTypes) {
+            List<Unit> myUnitsOfType = GameCache.allFriendliesMap.getOrDefault(unitType, new ArrayList<>());
+            if (!myUnitsOfType.isEmpty()) {
+                result.addAll(myUnitsOfType);
+            }
+        }
+        return result;
     }
 
     public static int numInProductionOfType(Units unitType) {
@@ -807,7 +819,7 @@ public class UnitUtils {
 
     public static int getMarineCount() {
         int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
-        marineCount += getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
+        marineCount += getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
                 .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
                 .sum();
         return marineCount;
@@ -975,13 +987,13 @@ public class UnitUtils {
     }
 
     public static int numScansAvailable() {
-        return getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+        return getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
                 .mapToInt(oc -> (int)(oc.getEnergy().orElse(1f) / 50))
                 .sum();
     }
 
     public static void scan(Point2d pos) {
-        getFriendlyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+        getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
                 .filter(oc -> oc.getEnergy().orElse(0f) >= 50)
                 .max(Comparator.comparing(oc -> oc.getEnergy().get()))
                 .ifPresent(oc -> {
@@ -1004,5 +1016,14 @@ public class UnitUtils {
 
     public static Optional<UnitInPool> getAddOn(Unit structure) {
         return structure.getAddOnTag().map(tag -> Bot.OBS.getUnit(tag));
+    }
+
+    public static boolean isOutOfGas() {
+        return Cost.isGasBroke(25) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
+    }
+
+    public static boolean isReaperWallStructure(Unit structure) {
+        return LocationConstants.reaperBlock3x3s.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1) ||
+                LocationConstants.reaperBlockDepots.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1);
     }
 }

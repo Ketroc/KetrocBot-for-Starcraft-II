@@ -90,11 +90,19 @@ public class Cost {
     }
 
     public static boolean isGasBroke() {
-        return Bot.OBS.getVespene() == 0 && Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0;
+        return isGasBroke(1);
+    }
+
+    public static boolean isGasBroke(int gasBankBelow) {
+        return Bot.OBS.getVespene() < gasBankBelow && Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0;
     }
 
     public static boolean isMineralBroke() {
-        return Bot.OBS.getMinerals() == 0 && Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0;
+        return isMineralBroke(1);
+    }
+
+    public static boolean isMineralBroke(int mineralBankBelow) {
+        return Bot.OBS.getMinerals() < mineralBankBelow && Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0;
     }
 
     @Override

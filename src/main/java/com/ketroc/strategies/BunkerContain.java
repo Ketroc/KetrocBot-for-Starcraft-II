@@ -281,7 +281,7 @@ public class BunkerContain {
     }
 
     private static void siegeTankTargetting() {
-        for (Unit tank : UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)) {
+        for (Unit tank : UnitUtils.getMyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)) {
             //only find a target if tank is about to fire
             if (tank.getWeaponCooldown().orElse(1f) > 0.05f) {
                 continue;
@@ -493,7 +493,7 @@ public class BunkerContain {
     }
     private static int getMarineCount() {
         int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
-        marineCount += UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BUNKER).stream()
+        marineCount += UnitUtils.getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
                 .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
                 .sum();
         return marineCount;
@@ -624,7 +624,7 @@ public class BunkerContain {
         if (!isContainBroken()) {
             if (bunkerDied) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
-                UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE).stream()
+                UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).stream()
                         .forEach(marine -> UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos)));
             }
             return false;
@@ -888,7 +888,7 @@ public class BunkerContain {
 
     public static void onFactoryLift() {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(UnitUtils.getMyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
     }
 
     public static void onEngineeringBayComplete(UnitInPool engBay) {

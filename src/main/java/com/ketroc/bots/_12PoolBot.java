@@ -67,7 +67,7 @@ public class _12PoolBot extends S2Agent {
 
         //build drones to 13
         if (obs.getFoodWorkers() < 13) {
-            List<Unit> larvaList = myUnits.getOrDefault(Units.ZERG_LARVA, Collections.emptyList());
+            List<Unit> larvaList = myUnits.getOrDefault(Units.ZERG_LARVA, new ArrayList<>());
             if (!larvaList.isEmpty() && obs.getMinerals() >= 50) {
                 action.unitCommand(larvaList.get(0), Abilities.TRAIN_DRONE, false)
                         .unitCommand(larvaList.get(0), Abilities.SMART, mineralNode.unit(), true);
@@ -78,7 +78,7 @@ public class _12PoolBot extends S2Agent {
         //build overlord
         if (myUnitCounts.get(Units.ZERG_OVERLORD) < 2) {
             if (obs.getMinerals() >= 100 && !isUnitInEgg(Abilities.TRAIN_OVERLORD)) {
-                List<Unit> larvaList = myUnits.getOrDefault(Units.ZERG_LARVA, Collections.emptyList());
+                List<Unit> larvaList = myUnits.getOrDefault(Units.ZERG_LARVA, new ArrayList<>());
                 action.unitCommand(larvaList.get(0), Abilities.TRAIN_OVERLORD, false);
             }
             return;
@@ -90,7 +90,7 @@ public class _12PoolBot extends S2Agent {
         }
 
         //build lings
-        for (Unit larva : myUnits.getOrDefault(Units.ZERG_LARVA, Collections.emptyList())) {
+        for (Unit larva : myUnits.getOrDefault(Units.ZERG_LARVA, new ArrayList<>())) {
             if (obs.getMinerals() >= 50) {
                 action.unitCommand(larva, Abilities.TRAIN_ZERGLING, false);
             }
@@ -100,7 +100,7 @@ public class _12PoolBot extends S2Agent {
         }
 
         //send lings
-        for (Unit zergling : myUnits.getOrDefault(Units.ZERG_ZERGLING, Collections.emptyList())) {
+        for (Unit zergling : myUnits.getOrDefault(Units.ZERG_ZERGLING, new ArrayList<>())) {
             if (zergling.getOrders().isEmpty()) {
                 action.unitCommand(zergling, Abilities.ATTACK, enemyMainPos,false);
             }
@@ -111,7 +111,7 @@ public class _12PoolBot extends S2Agent {
     }
 
     private boolean isUnitInEgg(Abilities trainUnitType) {
-        List<Unit> eggs = myUnits.getOrDefault(Units.ZERG_EGG, Collections.emptyList());
+        List<Unit> eggs = myUnits.getOrDefault(Units.ZERG_EGG, new ArrayList<>());
         for (Unit egg : eggs) {
             if (UnitUtils.getOrder(egg) == trainUnitType) {
                 return true;
