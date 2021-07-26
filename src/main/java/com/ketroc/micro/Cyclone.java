@@ -32,6 +32,11 @@ public class Cyclone extends BasicUnitMicro {
             Units.ZERG_ZERGLING, Units.ZERG_CHANGELING_MARINE, Units.ZERG_CHANGELING_MARINE_SHIELD,
             Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE));
 
+    public static final Set<Units> AUTOATTACK_WHEN_UNSAFE = new HashSet<>(Set.of(
+            Units.ZERG_ZERGLING, Units.TERRAN_REAPER, Units.TERRAN_HELLION,
+            Units.ZERG_MUTALISK, Units.PROTOSS_PHOENIX, //Units.PROTOSS_INTERCEPTOR,
+            Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE));
+
     public static Map<Tag, CycloneKillTracker> cycloneKillTracker = new HashMap<>();
     private UnitInPool lockTarget;
     private long cooldownStartFrame;
@@ -90,6 +95,15 @@ public class Cyclone extends BasicUnitMicro {
             }
         }
 
+        //use basic attack
+        if (lockTarget == null && unit.unit().getWeaponCooldown().orElse(1f) == 0f) {
+            Optional<Unit> autoAttackTarget = getAutoAttackTarget();
+            if (autoAttackTarget.isPresent()) {
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, autoAttackTarget.get(), false);
+                return;
+            }
+        }
+
         //detour if unsafe
         if (!isSafe()) {
             detour();
@@ -102,6 +116,26 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //super.onStep();
+    }
+
+    //choose targets to auto-attack
+    private Optional<Unit> getAutoAttackTarget() {
+        //if unsafe, attack fast units like zerglings/workers/hellions/reapers/etc, or 1shot kills
+        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsInRange(unit.unit());
+        if (!isSafe()) {
+            return enemiesInRange.stream()
+                    .filter(enemyInRange -> AUTOATTACK_WHEN_UNSAFE.contains(enemyInRange.unit().getType()) ||
+                            UnitUtils.canOneShotEnemy(unit.unit(), enemyInRange.unit()))
+                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
+                    .map(UnitInPool::unit);
+        }
+        //if safe, attack any unit within range TODO: include destructible neutral units??
+        else {
+            return enemiesInRange.stream()
+                    .filter(enemyInRange -> !UnitUtils.IGNORED_TARGETS.contains(enemyInRange.unit().getType()))
+                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
+                    .map(UnitInPool::unit);
+        }
     }
 
     private boolean isSafeToAttemptLock(UnitInPool lockTarget) {

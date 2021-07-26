@@ -29,7 +29,7 @@ public class Strategy {
     public static final int NUM_OFFENSE_SCVS = 4;
     public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
-    public static GamePlan gamePlan = null;
+    public static GamePlan gamePlan = GamePlan.NONE;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
     public static int STEP_SIZE = 2;
@@ -130,7 +130,6 @@ public class Strategy {
             case RANDOM:
                 gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
                 useCyclonesAdjustments();
-                NUM_MARINES = 4;
                 Switches.enemyCanProduceAir = true;
                 Switches.enemyHasCloakThreat = true;
         }
@@ -231,30 +230,22 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
-        Set<GamePlan> availableTvTGamePlans = new HashSet<>(Set.of(
-                GamePlan.ONE_BASE_TANK_VIKING,
-                GamePlan.BANSHEE_CYCLONE,
-                GamePlan.BANSHEE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_STRONG,
-                GamePlan.RAVEN,
-                GamePlan.TANK_VIKING,
-                GamePlan.RAVEN_CYCLONE,
-                GamePlan.BANSHEE_TANK
-        ));
+        Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
 
-        //gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
         gamePlan = getStrategyForLadder(availableTvTGamePlans);
-
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }
 
+        //select random game plan
 //        gamePlan = availableTvTGamePlans.stream()
 //                .skip(new Random().nextInt(availableTvTGamePlans.size()))
 //                .findFirst()
 //                .get();
+
+        if (gamePlan == GamePlan.NONE) {
+            gamePlan = GamePlan.TANK_VIKING;
+        }
 
         switch (gamePlan) {
             case BANSHEE:
@@ -293,6 +284,35 @@ public class Strategy {
         }
     }
 
+    private static HashSet<GamePlan> getAvailableTvTGamePlans() {
+        switch (Bot.opponentId) {
+            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+            case "f50a7f8d4d49792": //RStrelok (LM)
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING,
+                        GamePlan.ONE_BASE_TANK_VIKING
+                ));
+            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE_TANK,
+                        GamePlan.RAVEN
+                ));
+        }
+
+        return new HashSet<>(Set.of(
+                GamePlan.ONE_BASE_TANK_VIKING,
+                GamePlan.BANSHEE_CYCLONE,
+                GamePlan.BANSHEE,
+                GamePlan.MARINE_RUSH,
+                GamePlan.SCV_RUSH,
+                GamePlan.BUNKER_CONTAIN_STRONG,
+                GamePlan.RAVEN,
+                GamePlan.TANK_VIKING,
+                GamePlan.RAVEN_CYCLONE,
+                GamePlan.BANSHEE_TANK
+        ));
+    }
+
     public static GamePlan getNextGamePlan(GamePlan curPlan) {
         int nextIndex = (availableGamePlans.indexOf(curPlan) + 1) % availableGamePlans.size();
         return availableGamePlans.get(nextIndex);
@@ -314,7 +334,6 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        //gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
         gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
         //random selection
@@ -326,6 +345,10 @@ public class Strategy {
 //                .skip(new Random().nextInt(availableTvPGamePlans.size()))
 //                .findFirst()
 //                .get();
+
+        if (gamePlan == GamePlan.NONE) {
+            gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        }
 
         switch (gamePlan) {
             case BANSHEE:
@@ -367,7 +390,6 @@ public class Strategy {
                 GamePlan.RAVEN_CYCLONE
         ));
 
-        //gamePlan = GamePlan.BANSHEE;
         gamePlan = getStrategyForLadder(availableTvZGamePlans);
 
 //        while (!availableTvZGamePlans.contains(gamePlan)) {
@@ -378,6 +400,10 @@ public class Strategy {
 //                .skip(new Random().nextInt(availableTvZGamePlans.size()))
 //                .findFirst()
 //                .get();
+
+        if (gamePlan == GamePlan.NONE) {
+            gamePlan = GamePlan.BANSHEE;
+        }
 
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
@@ -743,7 +769,7 @@ public class Strategy {
                             .get();
                     ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv_TvtFastStart.unit());
                     ((PurchaseStructure)KetrocBot.purchaseQueue.get(1)).setScv(scv_TvtFastStart.unit());
-                    Switches.tvtFastStart = false;
+                    Switches.fastDepotBarracksOpener = false;
                 }
                 break;
         }
@@ -903,8 +929,8 @@ public class Strategy {
         //play 4 games of each strategy first
         GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
 
-        //pick the winningest strategy
-        if (gamePlan == null) {
+        //pick the winningest strategy (exclude most recent loss strategy)
+        if (gamePlan == GamePlan.NONE) {
             gamePlan = opponentRecords.getWinningestGamePlan();
         }
         return gamePlan;

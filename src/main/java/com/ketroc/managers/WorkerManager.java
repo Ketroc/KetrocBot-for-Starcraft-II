@@ -61,7 +61,7 @@ public class WorkerManager {
                         mule.getBuffDurationRemain().orElse(0) < 144 &&
                         UnitUtils.getDistance(mule,
                                 UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN,
-                                        mule.getPosition().toPoint2d())) < 3)
+                                        mule.getPosition().toPoint2d())) < 3) //FIXME: throws exception when OC dies but mule is alive (not a big deal??)
                 .forEach(mule -> {
                     ActionHelper.unitCommand(mule, Abilities.ATTACK, ArmyManager.attackGroundPos, false);
                     Bot.ACTION.toggleAutocast(mule.getTag(), Abilities.EFFECT_REPAIR_MULE);

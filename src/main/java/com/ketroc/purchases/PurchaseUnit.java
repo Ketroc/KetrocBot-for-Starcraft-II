@@ -6,9 +6,12 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.UnitUtils;
+
+import java.util.Comparator;
 
 public class PurchaseUnit implements Purchase {
     private Cost cost;
@@ -64,35 +67,37 @@ public class PurchaseUnit implements Purchase {
     @Override
     public PurchaseResult build() {
         //TODO: handle finding the first available production structure
-        if (productionStructure == null) {
-            setProductionStructure();
-        }
-        if (productionStructure == null) {
-            Cost.updateBank(cost);
-            return PurchaseResult.WAITING;
-        }
-        if (!productionStructure.isAlive()) {
+        if (productionStructure != null && !productionStructure.isAlive()) {
             return PurchaseResult.CANCEL;
         }
-        if (canAfford() &&
-                !productionStructure.unit().getActive().orElse(true) &&
-                (!requiresTechLab() || isAddOnComplete())) {
-            ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
-            Cost.updateBank(cost);
-            return PurchaseResult.SUCCESS;
+        if (canAfford()) {
+            if (productionStructure == null) {
+                selectProductionStructure();
+            }
+            if (productionStructure == null) {
+                Cost.updateBank(cost);
+                return PurchaseResult.WAITING;
+            }
+            if (!productionStructure.unit().getActive().orElse(true) &&
+                    (!requiresTechLab() || isAddOnComplete())) {
+                ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
+                Cost.updateBank(cost);
+                return PurchaseResult.SUCCESS;
+            }
         }
         Cost.updateBank(cost);
         return PurchaseResult.WAITING;
     }
 
     private boolean isAddOnComplete() {
-        return UnitUtils.getAddOn(productionStructure.unit()).stream()
-                .anyMatch(addOn -> addOn.unit().getBuildProgress() == 1);
+        return productionStructure.unit().getAddOnTag().isPresent();
     }
 
-    private void setProductionStructure() {
+    private void selectProductionStructure() { //TODO: fix this to find next available structure
         Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == structureType).stream()
-                .findFirst()
+                .filter(u -> !requiresTechLab() || UnitUtils.getAddOn(u.unit()).isPresent())
+                .filter(u -> !PurchaseUnit.contains(u))
+                .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
     }
 
@@ -133,5 +138,13 @@ public class PurchaseUnit implements Purchase {
             default:
                 return false;
         }
+    }
+
+
+    public static boolean contains(UnitInPool structure) {
+        return KetrocBot.purchaseQueue.stream()
+                .anyMatch(purchase -> purchase instanceof PurchaseUnit &&
+                        ((PurchaseUnit) purchase).getProductionStructure() != null &&
+                        ((PurchaseUnit) purchase).getProductionStructure().getTag().equals(structure.getTag()));
     }
 }

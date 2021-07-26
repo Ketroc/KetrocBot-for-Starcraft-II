@@ -161,7 +161,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return buildOther();
         }
         else {
-            //Cost.updateBank(cost); //removed to allow resources to spend elsewhere as required tech gets built
+            if (UnitUtils.withinOpeningBuildOrder() || isTechAlmostReady(structureType, 0.8f)) { //save resources for structure if tech is almost done
+                Cost.updateBank(cost);
+            }
             return PurchaseResult.WAITING;
         }
     }
@@ -310,6 +312,17 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return true;
         }
         return false;
+    }
+
+    public static boolean isTechAlmostReady(Units unitType, float minBuildProgress) {
+        Units techStructureNeeded = (Units)Bot.OBS.getUnitTypeData(false).get(unitType).getTechRequirement().orElse(null);
+        if (techStructureNeeded == null) {
+            return false;
+        }
+        return StructureScv.scvBuildingList.stream()
+                .anyMatch(structureScv -> structureScv.structureType == techStructureNeeded &&
+                        structureScv.getStructureUnit() != null &&
+                        structureScv.getStructureUnit().unit().getBuildProgress() > minBuildProgress);
     }
 
     private void selectARallyUnit() {

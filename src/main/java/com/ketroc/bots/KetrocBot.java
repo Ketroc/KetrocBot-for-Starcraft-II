@@ -202,7 +202,7 @@ public class KetrocBot extends Bot {
             //purchase from queue
             Purchase toRemove = null;
             Strategy.onStep();
-            if (Switches.tvtFastStart) {
+            if (Switches.fastDepotBarracksOpener) {
                 Strategy.onStep_TvtFaststart();
             }
             else {
@@ -620,9 +620,9 @@ public class KetrocBot extends Bot {
                         //turn on trolling if I think I've won.
                         if (!MuleMessages.doTrollMule &&
                                 UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
-                                Bot.OBS.getFoodUsed() > 180 &&
+                                Bot.OBS.getFoodUsed() > 175 &&
                                 Base.numEnemyBases() < 3 &&
-                                UnitUtils.getEnemySupply() < 40) {
+                                UnitUtils.getEnemySupply() < 45) {
                             Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
                             MuleMessages.doTrollMule = true;
                         }

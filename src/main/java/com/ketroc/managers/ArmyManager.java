@@ -651,7 +651,7 @@ public class ArmyManager {
                 .min(Comparator.comparing(u ->
                         UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), groundAttackersMidPoint) +
-                        ((UnitUtils.getDistance(u.unit(), attackGroundPos) < 5) ? -3 : 0))) //preference to maintaining similar target preventing wiggling
+                        ((attackGroundPos != null && UnitUtils.getDistance(u.unit(), attackGroundPos) < 5) ? -3 : 0))) //preference to maintaining similar target preventing wiggling
                 .orElse(null);
         return closestEnemyGroundUnit;
     }

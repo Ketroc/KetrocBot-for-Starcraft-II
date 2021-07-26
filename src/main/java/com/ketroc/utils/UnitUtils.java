@@ -958,16 +958,48 @@ public class UnitUtils {
                 structurePos.distance(LocationConstants.MID_WALL_3x3) < 1;
     }
 
-    public static boolean canBeOneShot(Unit myUnit) {
-        return canBeOneShotAtPos(myUnit, myUnit.getPosition().toPoint2d());
+    public static boolean myUnitWithinOneShotThreat(Unit myUnit) {
+        return myUnitWithinOneShotThreat(myUnit, myUnit.getPosition().toPoint2d());
     }
 
-    public static boolean canBeOneShotAtPos(Unit myUnit, Point2d pos) {
+    public static boolean myUnitWithinOneShotThreat(Unit myUnit, Point2d pos) {
         boolean isGround = !myUnit.getFlying().orElse(true);
         int[][] threatMap = isGround ? InfluenceMaps.pointDamageToGroundValue : InfluenceMaps.pointDamageToAirValue;
         return myUnit.getHealth().orElse(0f) < InfluenceMaps.getValue(threatMap, pos);
     }
 
+    public static boolean canOneShotEnemy(Unit myUnit, Unit enemyUnit) {
+        Weapon myWeapon = getWeapon(myUnit, enemyUnit).orElse(null);
+        if (myWeapon == null) {
+            return false;
+        }
+        UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemyUnit.getType());
+        Set<UnitAttribute> enemyAttributes = enemyData.getAttributes();
+        float enemyArmor = enemyData.getArmor().orElse(0f);
+        int enemyArmorUpgradeLevel = enemyUnit.getArmorUpgradeLevel().orElse(0);
+
+        int myAttackUpgradeLevel = myUnit.getAttackUpgradeLevel().orElse(0);
+        float myDamage = myWeapon.getDamage() + myAttackUpgradeLevel;
+        myDamage += myWeapon.getDamageBonuses().stream()
+                .filter(damageBonus -> enemyAttributes.contains(damageBonus.getAttribute()))
+                .mapToDouble(damageBonus -> damageBonus.getBonus() + myAttackUpgradeLevel)
+                .sum();
+        myDamage -= enemyArmor + enemyArmorUpgradeLevel;
+        myDamage *= myWeapon.getAttacks();
+
+        return myDamage >= enemyUnit.getHealth().orElse(9999f);
+    }
+
+    public static Optional<Weapon> getWeapon(Unit attackingUnit, Unit targetUnit) {
+        return getWeapon(attackingUnit, targetUnit.getFlying().orElse(false));
+    }
+
+    public static Optional<Weapon> getWeapon(Unit attackingUnit, boolean isEnemyFlying) {
+        return Bot.OBS.getUnitTypeData(false).get(attackingUnit.getType()).getWeapons().stream()
+                .filter(weapon -> weapon.getTargetType() !=
+                        (isEnemyFlying ? Weapon.TargetType.GROUND : Weapon.TargetType.AIR))
+                .findAny();
+    }
 
     //enemy units shooting from high ground are DisplayType of VISIBLE (not SNAPSHOT)
     public static boolean isUnitPositionVisible(Unit unit) {
@@ -1015,7 +1047,26 @@ public class UnitUtils {
     }
 
     public static Optional<UnitInPool> getAddOn(Unit structure) {
-        return structure.getAddOnTag().map(tag -> Bot.OBS.getUnit(tag));
+        //return complete add-on
+        if (structure.getAddOnTag().isPresent()) {
+            return structure.getAddOnTag().map(tag -> Bot.OBS.getUnit(tag));
+        }
+
+        //find add-on in progress
+        if (structure.getOrders().stream().anyMatch(unitOrder -> unitOrder.getAbility().toString().contains("BUILD"))) {
+            UnitOrder curOrder = structure.getOrders().get(0);
+            String addOnType = curOrder.getAbility() == Abilities.BUILD_TECHLAB ? "TECHLAB" : "REACTOR";
+            return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType().toString().contains(addOnType) &&
+                    UnitUtils.getDistance(u.unit(), getAddonPos(structure)) < 1)
+                    .stream()
+                    .findFirst();
+        }
+
+        return Optional.empty();
+    }
+
+    public static Point2d getAddonPos(Unit structure) {
+        return structure.getPosition().toPoint2d().add(2.5f, -0.5f);
     }
 
     public static boolean isOutOfGas() {
@@ -1025,5 +1076,44 @@ public class UnitUtils {
     public static boolean isReaperWallStructure(Unit structure) {
         return LocationConstants.reaperBlock3x3s.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1) ||
                 LocationConstants.reaperBlockDepots.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1);
+    }
+
+    //TODO: correctly identify this, rather than using time
+    public static boolean withinOpeningBuildOrder() {
+        return Time.nowFrames() < Time.toFrames("3:00");
+    }
+
+    //time (s) until a production structure is available (barracks/factory/starport)
+    public static int secondsUntilAvailable(Unit structure) {
+        if (!structure.getActive().orElse(true)) {
+            return 0;
+        }
+        if (!structure.getOrders().isEmpty()) {
+            UnitOrder curOrder = structure.getOrders().get(0);
+            if (curOrder.getProgress().isPresent() && curOrder.getAbility().toString().contains("TRAIN")) {
+                Units unitTypeInProduction = Bot.abilityToUnitType.get(curOrder.getAbility());
+                return (int)(secondsToProduceUnit(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
+            }
+            else if (curOrder.getAbility().toString().contains("BUILD")) {
+                UnitInPool addOn = getAddOn(structure).orElse(null);
+                if (addOn == null) {
+                    return secondsToProduceUnit(addOn.unit().getType());
+                }
+                else {
+                    return (int)(secondsToProduceUnit(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
+                }
+            }
+        }
+        return 0;
+    }
+
+    public static int secondsToProduceUnit(UnitType unitType) {
+        return Time.toSeconds(
+                Bot.OBS.getUnitTypeData(false).get(unitType).getBuildTime().orElse(0f).intValue()
+        );
+    }
+
+    public static int secondsToProduceUnit(Abilities buildAbility) {
+        return secondsToProduceUnit(Bot.abilityToUnitType.get(buildAbility));
     }
 }

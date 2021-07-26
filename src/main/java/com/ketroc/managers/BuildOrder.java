@@ -70,7 +70,7 @@ public class BuildOrder {
                     _1base2Factory2StarportOpener();
                 }
                 else {
-                    Switches.tvtFastStart = true;
+                    Switches.fastDepotBarracksOpener = true;
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
@@ -202,6 +202,7 @@ public class BuildOrder {
     }
 
     private static void _1base2Factory1StarportOpener() {
+        Switches.fastDepotBarracksOpener = true;
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
@@ -211,6 +212,7 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_CYCLONE));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_CYCLONE));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
 //        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
@@ -265,6 +267,7 @@ public class BuildOrder {
     }
 
     private static void marineAllInBuild() {
+        Switches.fastDepotBarracksOpener = true;
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, LocationConstants.WALL_3x3));
         LocationConstants._3x3Structures.remove(LocationConstants.WALL_3x3);

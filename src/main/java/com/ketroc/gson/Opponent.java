@@ -92,6 +92,6 @@ public class Opponent {
                 .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
                 .min(Comparator.comparing(WinLossRecord::numGames))
                 .map(WinLossRecord::getGamePlan)
-                .orElse(null);
+                .orElse(GamePlan.NONE);
     }
 }
