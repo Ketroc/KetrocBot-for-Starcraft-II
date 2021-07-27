@@ -516,12 +516,17 @@ public class UnitUtils {
     }
 
     public static boolean canAttackGround(Unit unit) {
+        switch ((Units)unit.getType()) {
+            case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: //TODO: add PROTOSS DISRUPTOR BALL:
+                return true;
+        }
         return Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.GROUND || weapon.getTargetType() == Weapon.TargetType.ANY);
     }
 
     public static boolean canAttackAir(Unit unit) {
-        return Bot.OBS.getUnitTypeData(false).get(unit.getType())
+        return unit.getType() == WIDOW_MINE_TYPE ||
+                Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY);
     }
 
@@ -684,11 +689,15 @@ public class UnitUtils {
     }
 
     public static Unit getClosestEnemyThreat(Unit myUnit) {
+        return getClosestEnemyThreat(myUnit.getPosition().toPoint2d(), myUnit.getFlying().orElse(false));
+    }
+
+    public static Unit getClosestEnemyThreat(Point2d pos, boolean isThreatToAir) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 !enemy.unit().getHallucination().orElse(false) &&
-                        myUnit.getFlying().orElse(false) ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
+                        isThreatToAir ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
                 .stream()
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), myUnit)))
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), pos)))
                 .map(UnitInPool::unit)
                 .orElse(null);
     }
@@ -729,6 +738,11 @@ public class UnitUtils {
     public static boolean isWeaponAvailable(Unit unit) {
         //if matrixed
         if (unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
+            return false;
+        }
+
+        //if under blinding cloud TODO: change to do melee range attacks?
+        if (!unit.getFlying().orElse(false) && unit.getBuffs().contains(Buffs.BLINDING_CLOUD)) {
             return false;
         }
 
@@ -1083,37 +1097,66 @@ public class UnitUtils {
         return Time.nowFrames() < Time.toFrames("3:00");
     }
 
-    //time (s) until a production structure is available (barracks/factory/starport)
+    //time (s) until a structure is available
     public static int secondsUntilAvailable(Unit structure) {
+        //if available now
         if (!structure.getActive().orElse(true)) {
             return 0;
         }
-        if (!structure.getOrders().isEmpty()) {
+
+        // if under construction
+        if (structure.getBuildProgress() != 1) {
+            return (int)(secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
+        }
+        //TODO: include structure morphs (command centers)
+
+        else if (!structure.getOrders().isEmpty()) {
             UnitOrder curOrder = structure.getOrders().get(0);
+
+            // if currently training a unit
             if (curOrder.getProgress().isPresent() && curOrder.getAbility().toString().contains("TRAIN")) {
                 Units unitTypeInProduction = Bot.abilityToUnitType.get(curOrder.getAbility());
-                return (int)(secondsToProduceUnit(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
+                return (int)(secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
             }
+
+            // if currently building an add-on
             else if (curOrder.getAbility().toString().contains("BUILD")) {
                 UnitInPool addOn = getAddOn(structure).orElse(null);
                 if (addOn == null) {
-                    return secondsToProduceUnit(addOn.unit().getType());
+                    return secondsToProduce(addOn.unit().getType());
                 }
                 else {
-                    return (int)(secondsToProduceUnit(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
+                    return (int)(secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
                 }
+            }
+
+            // if currently researching an upgrade
+            else if (curOrder.getAbility().toString().contains("RESEARCH")) {
+                Upgrades upgradeInProduction = Bot.abilityToUpgrade.get(curOrder.getAbility());
+                return (int)(secondsToProduce(upgradeInProduction) * (1 - curOrder.getProgress().get()));
             }
         }
         return 0;
     }
 
-    public static int secondsToProduceUnit(UnitType unitType) {
+    public static int secondsToProduce(UnitType unitType) {
         return Time.toSeconds(
                 Bot.OBS.getUnitTypeData(false).get(unitType).getBuildTime().orElse(0f).intValue()
         );
     }
 
-    public static int secondsToProduceUnit(Abilities buildAbility) {
-        return secondsToProduceUnit(Bot.abilityToUnitType.get(buildAbility));
+    public static int secondsToProduce(Upgrade upgrade) {
+        return Time.toSeconds(
+                Bot.OBS.getUpgradeData(false).get(upgrade).getResearchTime().orElse(0f).intValue()
+        );
+    }
+
+    public static int secondsToProduce(Abilities ability) {
+        if (ability.toString().startsWith("BUILD")) {
+            return secondsToProduce(Bot.abilityToUnitType.get(ability));
+        }
+        else {
+            return secondsToProduce(Bot.abilityToUpgrade.get(ability));
+        }
     }
 }

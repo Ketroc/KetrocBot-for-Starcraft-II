@@ -12,10 +12,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.models.StructureScv;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.Position;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -72,13 +69,25 @@ public class ExpansionClearing {
         //raven is travelling to expansion
         else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
             //TODO: if raven can't reach position, turret now
-            if (false) { //destinationUnreachable()) {
-                Point2d turretPos = Position.towards(raven.unit.unit().getPosition().toPoint2d(), raven.targetPos, 1);
-                ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+            if (destinationUnreachable()) {
+                Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit().getPosition().toPoint2d(), 2.9f);
+                Unit closestEnemyThreat = UnitUtils.getClosestEnemyThreat(destinationPos, true);
+                if (closestEnemyThreat != null) {
+                    Point2d turretPos = Position.towards(
+                            closestEnemyThreat.getPosition().toPoint2d(),
+                            raven.unit.unit().getPosition().toPoint2d(),
+                            Math.min(5, UnitUtils.getDistance(closestEnemyThreat, raven.unit.unit()) - 1));
+                    turretPos = getTurretPos(turretPos); //find nearest placeable pos
+                    //cast autoturret
+                    if (turretPos != null) {
+                        raven.targetPos = turretPos;
+                        ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+                        isTurretActive = true;
+                        return false;
+                    }
+                }
             }
-            else {
-                raven.onStep();
-            }
+            raven.onStep();
         }
         else if (turret == null) {
 
@@ -122,6 +131,14 @@ public class ExpansionClearing {
             raven.onStep();
         }
         return false;
+    }
+
+    private boolean destinationUnreachable() {
+        if (UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 10) {
+            return false;
+        }
+        Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit().getPosition().toPoint2d(), 2.9f);
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, destinationPos);
     }
 
     private void turretMicro() {

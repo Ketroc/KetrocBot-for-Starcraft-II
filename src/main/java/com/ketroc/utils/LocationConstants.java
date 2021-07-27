@@ -83,7 +83,7 @@ public class LocationConstants {
         insideMainWall = Position.towards(
                 Position.towards(MID_WALL_3x3, pointOnMyRamp, -1f),
                 mainBaseMidPos,
-                2.5f
+                2f
         );
 
         //set probe rush mineral node

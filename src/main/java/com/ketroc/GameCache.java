@@ -654,6 +654,7 @@ public class GameCache {
         int yMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_Y);
 
         InfluenceMaps.pointDetected = new boolean[800][800];
+        InfluenceMaps.pointInHellionRange = new boolean[800][800];
         InfluenceMaps.pointInBansheeRange = new boolean[800][800];
         InfluenceMaps.pointInRavenCastRange = new boolean[800][800];
         InfluenceMaps.pointInMarineRange = new boolean[800][800];
@@ -764,6 +765,11 @@ public class GameCache {
                         }
                     }
                     else { //ground unit or effect
+
+                        //hellion range
+                        if (distance < Strategy.HELLION_RANGE && !enemy.isEffect) {
+                            InfluenceMaps.pointInHellionRange[x][y] = true;
+                        }
 
                         //banshee range
                         if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect) {

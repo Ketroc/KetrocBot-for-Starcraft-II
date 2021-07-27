@@ -451,12 +451,12 @@ public class KetrocBot extends Bot {
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:
-                        if (BunkerContain.proxyBunkerLevel == 2) {
+                        if (BunkerContain.proxyBunkerLevel == 2 && UnitUtils.getDistance(unit, LocationConstants.proxyBarracksPos) < 5) {
                             BunkerContain.onFactoryTechLabComplete();
                         }
                         //TODO: testing cyclones
                         else if (Strategy.DO_USE_CYCLONES) {
-                            PurchaseUpgrade.add(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE, unitInPool);
+                            PurchaseUpgrade.add(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE);
                         }
                         break;
                     case TERRAN_STARPORT:

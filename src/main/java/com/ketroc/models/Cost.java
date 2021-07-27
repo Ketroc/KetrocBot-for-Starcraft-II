@@ -68,7 +68,11 @@ public class Cost {
             return null;
         }
         UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unitType);
-        Cost unitCost = new Cost(unitData.getMineralCost().orElse(0), unitData.getVespeneCost().orElse(0), unitData.getFoodRequired().orElse(0f).intValue());
+        Cost unitCost = new Cost(
+                unitData.getMineralCost().orElse(0),
+                unitData.getVespeneCost().orElse(0),
+                unitData.getFoodRequired().orElse(0f).intValue()
+        );
         if (unitType == Units.TERRAN_ORBITAL_COMMAND || unitType == Units.TERRAN_PLANETARY_FORTRESS) {
             unitCost.minerals -= 400;
         }
@@ -76,6 +80,9 @@ public class Cost {
     }
 
     public static Cost getUpgradeCost(Upgrades upgrade) {
+        if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
+            return new Cost(100, 100);
+        }
         UpgradeData upgradeData = Bot.OBS.getUpgradeData(false).get(upgrade);
         return new Cost(upgradeData.getMineralCost().orElse(0), upgradeData.getVespeneCost().orElse(0));
     }

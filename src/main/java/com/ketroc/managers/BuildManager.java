@@ -132,11 +132,11 @@ public class BuildManager {
             buildBarracksUnitsLogic();
         }
 
-        //build starport logic
-        buildStarportLogic();
-
         //build factory logic
         buildFactoryLogic();
+
+        //build starport logic
+        buildStarportLogic();
 
         //build command center logic
         if (!Strategy.EXPAND_SLOWLY || Time.nowFrames() > Time.toFrames("5:00")) {
@@ -606,6 +606,20 @@ public class BuildManager {
             if (factory.getActive().get()) {
                 continue;
             }
+            //1 hellion for every 4 zerglings
+            if (UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                    UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4) {
+                if (!Strategy.DO_USE_HELLIONS) {
+                    Strategy.DO_USE_HELLIONS = true;
+                    PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
+                    if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1)) {
+                        UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+                    }
+                }
+                ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
+                Cost.updateBank(Units.TERRAN_HELLION);
+                return;
+            }
             if (factory.getAddOnTag().isPresent()) {
                 //cyclone strategy (build constantly)
                 if (Strategy.DO_USE_CYCLONES) {
@@ -642,6 +656,7 @@ public class BuildManager {
                     else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
                         ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
                         Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                        return;
                     }
                 }
             } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
@@ -918,9 +933,8 @@ public class BuildManager {
 
     private static void buildFactoryLogic() {
         if (UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 2 &&
-                (Strategy.gamePlan == GamePlan.TANK_VIKING ||
-                        Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
-                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE ||
+                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE ||
                         (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) &&
                 UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&

@@ -120,6 +120,7 @@ public class ArmyManager {
             armyAirAttacking = new ArrayList<>();
             armyDetectorAttacking = new ArrayList<>();
 
+            hellionMicro();
             bansheeMicro();
             vikingMicro();
             ravenMicro();
@@ -170,7 +171,7 @@ public class ArmyManager {
 
     private static void setIsAttackUnitRetreating() {
         isAttackUnitRetreating = false;
-        if (attackUnit != null && UnitUtils.canMove(attackUnit)) {
+        if (attackUnit != null && UnitUtils.canMove(attackUnit) && !attackUnit.getType().toString().endsWith("_BURROWED")) {
             float facing = (float)Math.toDegrees(attackUnit.getFacing());
             float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
             float angleDiff = Position.getAngleDifference(facing, attackAngle);
@@ -249,6 +250,7 @@ public class ArmyManager {
     private static void searchForLastStructures() {
         spreadArmy(GameCache.bansheeList);
         spreadArmy(GameCache.vikingList);
+        spreadArmy(UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE));
     }
 
     private static void sendMarinesHellbats() {
@@ -311,6 +313,12 @@ public class ArmyManager {
                 return 1.5f;
         }
         return 1;
+    }
+
+    private static void hellionMicro() {
+        for (Unit hellion : UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION)) {
+            giveHellionCommand(hellion);
+        }
     }
 
     private static void bansheeMicro() {
@@ -1045,6 +1053,38 @@ public class ArmyManager {
         return (int)answer;
     }
 
+    public static void giveHellionCommand(Unit hellion) {
+        ArmyCommands lastCommand = getCurrentCommand(hellion);
+        boolean isUnsafe = InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d());
+        boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointInHellionRange, hellion.getPosition().toPoint2d());
+        boolean canAttack = UnitUtils.isWeaponAvailable(hellion) &&
+                InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, hellion.getPosition().toPoint2d()) < 200;
+
+        //always flee if locked on by cyclone
+        if (hellion.getBuffs().contains(Buffs.LOCK_ON)) {
+            retreatUnitFromCyclone(hellion);
+        }
+        //shoot when available
+        else if (canAttack && isInHellionRange) {
+            //attack
+            if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
+        }
+        else if (isUnsafe) {
+            //retreat
+            new BasicUnitMicro(hellion, retreatPos, MicroPriority.SURVIVAL).onStep();
+        }
+        else {
+            if (isInHellionRange) {
+                //retreat
+                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(hellion);
+            }
+            else {
+                //attack
+                if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
+            }
+        }
+    }
+
     public static void giveBansheeCommand(Unit banshee) {
         ArmyCommands lastCommand = getCurrentCommand(banshee);
         int x = InfluenceMaps.toMapCoord(banshee.getPosition().getX());
@@ -1173,7 +1213,7 @@ public class ArmyManager {
         }
         else {
             //retreat command away from nearest cyclone position
-            ActionHelper.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -4f), false);
+            ActionHelper.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -3f), false);
         }
     }
 

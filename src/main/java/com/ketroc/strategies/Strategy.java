@@ -62,7 +62,8 @@ public class Strategy {
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
     public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
-    public static final float MARINE_RANGE = 5.1f; //range in which banshee will be given the command to attack
+    public static final float MARINE_RANGE = 5.1f; //range in which marine will be given the command to attack
+    public static final float HELLION_RANGE = 5.1f; //range in which hellion will be given the command to attack
     public static float RAVEN_CAST_RANGE = 7f;
     public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
@@ -87,6 +88,7 @@ public class Strategy {
     public static int AUTOTURRET_AT_ENERGY = 50;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
     public static boolean DO_USE_CYCLONES;
+    public static boolean DO_USE_HELLIONS;
     public static boolean ENEMY_DOES_BANSHEE_HARASS;
 
 
@@ -138,6 +140,7 @@ public class Strategy {
 
         //TODO: delete - turning off 2nd factory based on strategy choice
         if (gamePlan != GamePlan.RAVEN_CYCLONE &&
+                gamePlan != GamePlan.BANSHEE_CYCLONE &&
                 gamePlan != GamePlan.TANK_VIKING &&
                 gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
                 gamePlan != GamePlan.ONE_BASE_TANK_VIKING &&
@@ -390,7 +393,7 @@ public class Strategy {
                 GamePlan.RAVEN_CYCLONE
         ));
 
-        gamePlan = getStrategyForLadder(availableTvZGamePlans);
+        //gamePlan = getStrategyForLadder(availableTvZGamePlans);
 
 //        while (!availableTvZGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
@@ -402,7 +405,7 @@ public class Strategy {
 //                .get();
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {

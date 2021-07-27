@@ -17,25 +17,21 @@ public class PurchaseUnit implements Purchase {
     private Cost cost;
     private Units unitType;
     private UnitInPool productionStructure;
-    private Units structureType;
 
     public PurchaseUnit(Units unitType) {
         this.unitType = unitType;
-        structureType = requiredStructureType();
         setCost();
     }
 
     public PurchaseUnit(Units unitType, Unit productionStructure) {
         this.unitType = unitType;
         this.productionStructure = Bot.OBS.getUnit(productionStructure.getTag());
-        structureType = (Units)productionStructure.getType();
         setCost();
     }
 
     public PurchaseUnit(Units unitType, UnitInPool productionStructure) {
         this.unitType = unitType;
         this.productionStructure = productionStructure;
-        structureType = (Units)productionStructure.unit().getType();
         setCost();
     }
 
@@ -66,26 +62,23 @@ public class PurchaseUnit implements Purchase {
 
     @Override
     public PurchaseResult build() {
-        //TODO: handle finding the first available production structure
         if (productionStructure != null && !productionStructure.isAlive()) {
-            return PurchaseResult.CANCEL;
+            productionStructure = null;
         }
         if (canAfford()) {
             if (productionStructure == null) {
                 selectProductionStructure();
             }
-            if (productionStructure == null) {
-                Cost.updateBank(cost);
-                return PurchaseResult.WAITING;
-            }
-            if (!productionStructure.unit().getActive().orElse(true) &&
+            if (productionStructure != null && !productionStructure.unit().getActive().orElse(true) &&
                     (!requiresTechLab() || isAddOnComplete())) {
                 ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);
                 return PurchaseResult.SUCCESS;
             }
         }
-        Cost.updateBank(cost);
+        if (productionStructure != null) {
+            Cost.updateBank(cost);
+        }
         return PurchaseResult.WAITING;
     }
 
@@ -93,8 +86,8 @@ public class PurchaseUnit implements Purchase {
         return productionStructure.unit().getAddOnTag().isPresent();
     }
 
-    private void selectProductionStructure() { //TODO: fix this to find next available structure
-        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == structureType).stream()
+    private void selectProductionStructure() {
+        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == getRequiredStructureType()).stream()
                 .filter(u -> !requiresTechLab() || UnitUtils.getAddOn(u.unit()).isPresent())
                 .filter(u -> !PurchaseUnit.contains(u))
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
@@ -116,7 +109,7 @@ public class PurchaseUnit implements Purchase {
         return unitType.toString();
     }
 
-    private Units requiredStructureType() {
+    private Units getRequiredStructureType() {
         switch(unitType) {
             case TERRAN_SCV:
                 return Units.TERRAN_COMMAND_CENTER;
@@ -140,6 +133,9 @@ public class PurchaseUnit implements Purchase {
         }
     }
 
+    // ***************************************
+    // ********** STATIC METHODS *************
+    // ***************************************
 
     public static boolean contains(UnitInPool structure) {
         return KetrocBot.purchaseQueue.stream()

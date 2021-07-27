@@ -51,7 +51,9 @@ public interface Purchase {
 
     static boolean isUpgradeQueued(Tag structureTag) {
         for (Purchase p : KetrocBot.purchaseQueue) {
-            if (p instanceof PurchaseUpgrade && ((PurchaseUpgrade) p).getStructure().unit().getTag() == structureTag) {
+            if (p instanceof PurchaseUpgrade &&
+                    ((PurchaseUpgrade) p).getProductionStructure() != null &&
+                    ((PurchaseUpgrade) p).getProductionStructure().unit().getTag() == structureTag) {
                 return true;
             }
         }

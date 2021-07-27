@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 public class InfluenceMaps {
 
     public static boolean[][] pointDetected;
+    public static boolean[][] pointInHellionRange;
     public static boolean[][] pointInBansheeRange;
     public static boolean[][] pointInRavenCastRange;
     public static boolean[][] enemyInVikingRange;
