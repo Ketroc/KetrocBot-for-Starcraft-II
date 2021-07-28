@@ -612,8 +612,13 @@ public class BuildManager {
                 if (!Strategy.DO_USE_HELLIONS) {
                     Strategy.DO_USE_HELLIONS = true;
                     PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
+
+                    //get +2attack to 2shot +3armor lings
                     if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1)) {
                         UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+                    }
+                    if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2)) {
+                        UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
                     }
                 }
                 ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
