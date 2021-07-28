@@ -56,6 +56,8 @@ public class ArmyManager {
     public static int turretsCast;
     public static int queriesMade;
 
+    public static final int[] BASE_DEFENSE_INDEX_ORDER = {2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12};
+
     public static void onStep() {
         //set midpoints
         setArmyMidpoints();
@@ -860,7 +862,9 @@ public class ArmyManager {
         }
 
         //send available liberator to siege an expansion
-        for (Base base : GameCache.baseList) {
+        //for (Base base : GameCache.baseList) {
+        for (int i=0; i<BASE_DEFENSE_INDEX_ORDER.length && i<GameCache.baseList.size(); i++) {
+            Base base = GameCache.baseList.get(BASE_DEFENSE_INDEX_ORDER[i]);
             if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                 for (DefenseUnitPositions libPos : base.getLiberators()) {
                     if (libPos.getUnit() == null) {

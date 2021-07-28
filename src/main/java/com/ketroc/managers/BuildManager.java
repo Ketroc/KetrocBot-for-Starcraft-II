@@ -872,7 +872,7 @@ public class BuildManager {
         }
 
         //get defensive liberators for each expansion up to 6
-        if (Strategy.DO_INCLUDE_LIBS &&
+        if (Strategy.DO_DEFENSIVE_LIBS &&
                 numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
                 !freeUpOffensiveLib()) {
             return Abilities.TRAIN_LIBERATOR;

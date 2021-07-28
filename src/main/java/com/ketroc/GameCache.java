@@ -270,7 +270,7 @@ public class GameCache {
                             UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
                         Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
-                        Strategy.DO_INCLUDE_LIBS = false;
+                        Strategy.DO_DEFENSIVE_LIBS = false;
                         if (LocationConstants.opponentRace != Race.TERRAN) {
                             Strategy.DO_DEFENSIVE_TANKS = false;
                             Strategy.DO_OFFENSIVE_TANKS = false;

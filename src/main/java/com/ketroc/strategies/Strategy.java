@@ -43,7 +43,7 @@ public class Strategy {
     public static final int NUM_TANKS_PER_EXPANSION = 2; //only works for 2 atm
     public static int MAX_TANKS = 10;
 
-    public static boolean DO_INCLUDE_LIBS;
+    public static boolean DO_DEFENSIVE_LIBS;
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_LIBS = 10;
 
@@ -181,7 +181,7 @@ public class Strategy {
                 break;
             case "c8ed3d8b-3607-40e3-b7fe-075d9c08a5fd": //QueenBot
                 DO_DEFENSIVE_TANKS = false;
-                DO_INCLUDE_LIBS = false;
+                DO_DEFENSIVE_LIBS = false;
                 break;
             case "1574858b-d54f-47a4-b06a-0a6431a61ce9": //sproutch
                 break;
@@ -411,6 +411,7 @@ public class Strategy {
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                DO_DEFENSIVE_LIBS = true;
                 break;
             case BANSHEE:
                 break;
@@ -505,7 +506,7 @@ public class Strategy {
         }
 
         DO_BANSHEE_HARASS = false;
-        DO_INCLUDE_LIBS = false;
+        DO_DEFENSIVE_LIBS = false;
         DO_DEFENSIVE_TANKS = false;
         EXPAND_SLOWLY = false;
         PRIORITIZE_EXPANDING = true;
@@ -832,19 +833,19 @@ public class Strategy {
     public static void setRaceStrategies() {
         switch (LocationConstants.opponentRace) {
             case ZERG:
-                DO_INCLUDE_LIBS = false;
+                DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
                 MAX_OCS = 25;
                 break;
             case PROTOSS:
                 DIVE_RANGE = 25;
-                DO_INCLUDE_LIBS = false;
+                DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
                 NUM_MARINES = 5;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;
-                DO_INCLUDE_LIBS = false;
+                DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
                 NUM_MARINES = 4;
                 break;
@@ -912,7 +913,7 @@ public class Strategy {
         Print.print("DO_INCLUDE_TANKS = " + DO_DEFENSIVE_TANKS);
         Print.print("MAX_TANKS = " + MAX_TANKS);
 
-        Print.print("DO_INCLUDE_LIBS = " + DO_INCLUDE_LIBS);
+        Print.print("DO_INCLUDE_LIBS = " + DO_DEFENSIVE_LIBS);
         Print.print("MAX_LIBS = " + MAX_LIBS);
 
         Print.print("DO_BANSHEE_HARASS = " + DO_BANSHEE_HARASS);

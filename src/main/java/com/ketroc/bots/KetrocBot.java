@@ -116,6 +116,9 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
+//            Bot.OBS.getUnits(Alliance.NEUTRAL).forEach(uip -> DebugHelper.boxUnit(uip.unit()));
+//            DEBUG.sendDebug();
+
             //prevent multiple runs on the same frame
             if (OBS.getGameLoop() == gameFrame) {
                 Print.print("gameFrame repeated = " + gameFrame);
@@ -241,15 +244,6 @@ public class KetrocBot extends Bot {
 
             PlacementMap.setColumn();
 
-            //TODO: DELETE - FOR TESTING
-//            if (Bot.OBS.getEffects().stream()
-//                    .anyMatch(effectLocations -> effectLocations.getEffect() == Effects.NUKE_PERSISTENT)) {
-//                EffectLocations nukeDot = Bot.OBS.getEffects().stream()
-//                        .filter(effectLocations -> effectLocations.getEffect() == Effects.NUKE_PERSISTENT)
-//                        .findFirst()
-//                        .orElse(null);
-//            }
-
             if (isDebugOn) {
                 displayGameInfo();
             }
@@ -323,7 +317,7 @@ public class KetrocBot extends Bot {
         Print.print("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
         Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
         Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
-        Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_INCLUDE_LIBS);
+        Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_DEFENSIVE_LIBS);
         Print.print("Strategy.DO_DEFENSIVE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
         Print.print("Strategy.DO_OFFENSIVE_TANKS = " + Strategy.DO_OFFENSIVE_TANKS);
         Print.print("Strategy.maxScvs = " + Strategy.maxScvs);

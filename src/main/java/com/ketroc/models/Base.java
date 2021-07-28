@@ -154,7 +154,9 @@ public class Base {
     public List<DefenseUnitPositions> getLiberators() {
         if (liberators.isEmpty()) {
             if (resourceMidPoint != null) {
-                Point2d midPoint = Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
+                Point2d midPoint = isMyNatBase() ?
+                        Position.towards(ccPos, LocationConstants.BUNKER_NATURAL, getLibDistanceFromCC() * -1) :
+                        Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -32.5), null));
             }
@@ -510,6 +512,10 @@ public class Base {
 
     public boolean isMyMainBase() {
         return this.equals(GameCache.baseList.get(0));
+    }
+
+    public boolean isMyNatBase() {
+        return this.equals(GameCache.baseList.get(1));
     }
 
     public void unsiegeBase() {
