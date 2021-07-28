@@ -517,7 +517,7 @@ public class UnitUtils {
 
     public static boolean canAttackGround(Unit unit) {
         switch ((Units)unit.getType()) {
-            case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: //TODO: add PROTOSS DISRUPTOR BALL:
+            case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: case PROTOSS_DISRUPTOR_PHASED:
                 return true;
         }
         return Bot.OBS.getUnitTypeData(false).get(unit.getType())

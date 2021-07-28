@@ -93,10 +93,7 @@ public class BuildManager {
                 buildStarportUnitsLogic();
             }
         }
-        else { //otherwise prioritize starport production
-            //build starport units
-            buildStarportUnitsLogic();
-
+        else {
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
@@ -111,6 +108,9 @@ public class BuildManager {
                     UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                 }
             }
+
+            //build starport units
+            buildStarportUnitsLogic();
         }
 
         //build barracks units
@@ -893,7 +893,9 @@ public class BuildManager {
         }
 
         //otherwise banshee
-        return Strategy.DEFAULT_STARPORT_UNIT;
+        return (Strategy.DEFAULT_STARPORT_UNIT == Abilities.TRAIN_BANSHEE && GameCache.bansheeList.size() >= 20) ?
+            Abilities.TRAIN_RAVEN :
+            Strategy.DEFAULT_STARPORT_UNIT;
     }
 
     private static boolean freeUpOffensiveLib() {

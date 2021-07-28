@@ -677,10 +677,11 @@ public class ArmyManager {
                 .orElse(null);
     }
 
+    //send scvs, unsieged tanks, and bio to kill nydus in my main base
     private static void nydusResponse() {
-        //send scvs, unsieged tanks, and bio to kill nydus
         Optional<UnitInPool> nydusWorm = UnitUtils.getEnemyUnitsOfType(Units.ZERG_NYDUS_CANAL).stream().findFirst();
-        if (nydusWorm.isPresent()) {
+        if (nydusWorm.stream()
+                .anyMatch(nydusUIP -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, nydusUIP.unit().getPosition().toPoint2d()))) {
             GameResult.setNydusRushed(); //TODO: temp for Spiny
             List<Unit> nydusDivers = new ArrayList<>();
             nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE));
