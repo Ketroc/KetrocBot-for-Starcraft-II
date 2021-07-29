@@ -854,6 +854,7 @@ public class Strategy {
 
     public static void useCyclonesAdjustments() {
         NUM_MARINES = Math.min(3, NUM_MARINES);
+        BuildManager.MIN_BANSHEES = 0;
         DO_USE_CYCLONES = true;
         DO_DEFENSIVE_TANKS = false;
     }
@@ -861,6 +862,7 @@ public class Strategy {
     public static void useTanksAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
         NUM_MARINES = Math.min(3, NUM_MARINES);
+        BuildManager.MIN_BANSHEES = 0;
         DO_OFFENSIVE_TANKS = true;
         NUM_BASES_TO_OC = 3;
     }
@@ -871,6 +873,7 @@ public class Strategy {
 
         //NUM_MARINES = Math.min(3, NUM_MARINES);
         DO_OFFENSIVE_TANKS = true;
+        BuildManager.MIN_BANSHEES = 0;
         NUM_BASES_TO_OC = 3;
         DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);

@@ -132,7 +132,10 @@ public class Liberator extends BasicUnitMicro {
     protected boolean isMorphing() {
         return ActionIssued.getCurOrder(unit.unit()).stream()
                 .anyMatch(unitOrder -> unitOrder.ability == Abilities.MORPH_LIBERATOR_AG_MODE ||
-                        unitOrder.ability == Abilities.MORPH_LIBERATOR_AA_MODE);
+                        unitOrder.ability == Abilities.MORPH_LIBERATOR_AA_MODE) ||
+                unit.unit().getOrders().stream()
+                        .anyMatch(unitOrder -> unitOrder.getAbility() == Abilities.MORPH_LIBERATOR_AG_MODE ||
+                                unitOrder.getAbility() == Abilities.MORPH_LIBERATOR_AA_MODE);
     }
 
 

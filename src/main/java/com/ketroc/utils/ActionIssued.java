@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class ActionIssued {
+public class ActionIssued { //TODO: handle queued commands
     public static Map<Tag, ActionIssued> lastActionIssued = new HashMap<>();
 
     public Ability ability;
