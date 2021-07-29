@@ -26,7 +26,8 @@ public class Cyclone extends BasicUnitMicro {
             Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_MULE,
             Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_DISRUPTOR_PHASED, Units.TERRAN_KD8CHARGE,
             Units.ZERG_PARASITIC_BOMB_DUMMY, Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED,
-            Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING_MARINE, Units.ZERG_CHANGELING_MARINE_SHIELD));
+            Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
+            Units.ZERG_CHANGELING_MARINE_SHIELD));
     //list of units to soft-lock-on (keep reassessing)
     public static final Set<Units> SOFT_LOCK_TYPES = new HashSet<>(Set.of(
             Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.TERRAN_MARINE,
@@ -84,7 +85,7 @@ public class Cyclone extends BasicUnitMicro {
             }
         }
 
-        //done if unit is immobile
+        //if cyclone is immobile
         if (!UnitUtils.canMove(unit.unit())) {
             return;
         }
@@ -97,7 +98,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //use basic attack
-        if (lockTarget == null && unit.unit().getWeaponCooldown().orElse(1f) == 0f) {
+        if (lockTarget == null && UnitUtils.isWeaponAvailable(unit.unit())) {
             Optional<Unit> autoAttackTarget = getAutoAttackTarget();
             if (autoAttackTarget.isPresent()) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, autoAttackTarget.get(), false);

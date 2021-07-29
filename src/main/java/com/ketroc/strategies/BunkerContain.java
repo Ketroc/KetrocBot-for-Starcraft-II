@@ -283,7 +283,7 @@ public class BunkerContain {
     private static void siegeTankTargetting() {
         for (Unit tank : UnitUtils.getMyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)) {
             //only find a target if tank is about to fire
-            if (tank.getWeaponCooldown().orElse(1f) > 0.05f) {
+            if (!UnitUtils.isWeaponAvailable(tank)) {
                 continue;
             }
 

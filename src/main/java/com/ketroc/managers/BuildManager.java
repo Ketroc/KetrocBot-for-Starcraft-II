@@ -607,41 +607,27 @@ public class BuildManager {
                 continue;
             }
             //1 hellion for every 4 zerglings
-            if (UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
-                    UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4) {
-                if (!Strategy.DO_USE_HELLIONS) {
-                    Strategy.DO_USE_HELLIONS = true;
-                    PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
-
-                    //get +2attack to 2shot +3armor lings
-                    if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1)) {
-                        UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
-                    }
-                    if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2)) {
-                        UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
-                    }
+            if (isHellionsNeeded()) {
+                if (UnitUtils.canAfford(Units.TERRAN_HELLION)) {
+                    produceHellion(factory);
                 }
-                ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
-                Cost.updateBank(Units.TERRAN_HELLION);
                 return;
             }
             if (factory.getAddOnTag().isPresent()) {
                 //cyclone strategy (build constantly)
                 if (Strategy.DO_USE_CYCLONES) {
                     if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
-                        ActionHelper.unitCommand(factory, Abilities.TRAIN_CYCLONE, false);
-                        Cost.updateBank(Units.TERRAN_CYCLONE);
+                        produceCyclone(factory);
+                        return;
                     }
-                    return;
                 }
 
                 //offensive tank strategy (build constantly)
                 if (Strategy.DO_OFFENSIVE_TANKS) {
                     if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                        produceTank(factory);
+                        return;
                     }
-                    return;
                 }
 
                 //defensive tank strategy (build 2 per base)
@@ -659,16 +645,54 @@ public class BuildManager {
                     }
                     //build a new tank
                     else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
-                        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+                        produceTank(factory);
                         return;
                     }
                 }
-            } else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
+
+                //build hellion if too gas starved for other factory units
+                if (GameCache.gasBank < 75 && UnitUtils.canAfford(Units.TERRAN_HELLION)) {
+                    produceHellion(factory);
+                    return;
+                }
+            }
+            else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                 ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
             }
         }
+    }
+
+    private static void produceTank(Unit factory) {
+        ActionHelper.unitCommand(factory, Abilities.TRAIN_SIEGE_TANK, false);
+        Cost.updateBank(Units.TERRAN_SIEGE_TANK);
+    }
+
+    private static void produceCyclone(Unit factory) {
+        ActionHelper.unitCommand(factory, Abilities.TRAIN_CYCLONE, false);
+        Cost.updateBank(Units.TERRAN_CYCLONE);
+    }
+
+    private static void produceHellion(Unit factory) {
+        if (!Strategy.DO_USE_HELLIONS) {
+            Strategy.DO_USE_HELLIONS = true;
+            PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
+
+            //get +2attack to 2shot +3armor lings
+            if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1)) {
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+            }
+            if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2)) {
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
+            }
+        }
+        ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
+        Cost.updateBank(Units.TERRAN_HELLION);
+    }
+
+    private static boolean isHellionsNeeded() {
+        return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4;
     }
 
     public static void liftFactory(Unit factory) {

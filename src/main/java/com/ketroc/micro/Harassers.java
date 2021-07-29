@@ -1,6 +1,7 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -14,52 +15,65 @@ import com.ketroc.utils.Chat;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 public class Harassers {
     public static BansheeHarasser clockwiseBanshee;
     public static BansheeHarasser counterClockwiseBanshee;
+    public static List<HellionHarasser> clockwiseHellions = new ArrayList<>();
+    public static List<HellionHarasser> counterClockwiseHellions = new ArrayList<>();
     public static int consecutiveBadHarass; //# of times in a row that banshee harass didn't get much done
 
     public static void onStep() {
+        removeHarassers();
         if (Strategy.DO_BANSHEE_HARASS) {
-            removeHarassers();
             if (doEndBansheeHarass() && clockwiseBanshee == null && counterClockwiseBanshee == null) {
                 Chat.tag("BANSHEE_HARASS_ENDED");
                 Strategy.DO_BANSHEE_HARASS = false;
                 return;
             }
-            getNewHarassers();
-            giveBansheeCommands();
         }
+        getNewHarassers();
+        giveHarassersCommands();
     }
 
-    private static void giveBansheeCommands() {
-        if (clockwiseBanshee != null) {
-            clockwiseBanshee.bansheeMicro();
+    private static void giveHarassersCommands() {
+        if (Strategy.DO_BANSHEE_HARASS) {
+            if (clockwiseBanshee != null) {
+                clockwiseBanshee.bansheeMicro();
+            }
+            if (counterClockwiseBanshee != null) {
+                counterClockwiseBanshee.bansheeMicro();
+            }
         }
-        if (counterClockwiseBanshee != null) {
-            counterClockwiseBanshee.bansheeMicro();
-        }
-
+        clockwiseHellions.forEach(hellionHarasser -> hellionHarasser.onStep());
+        counterClockwiseHellions.forEach(hellionHarasser -> hellionHarasser.onStep());
     }
 
     private static void removeHarassers() {
-        if (clockwiseBanshee != null) {
-            if (doRemoveBanshee(clockwiseBanshee)) {
-                if (!clockwiseBanshee.banshee.isAlive() && clockwiseBanshee.isWithinPhoenixRange()) {
-                    consecutiveBadHarass = 2;
+        if (Strategy.DO_BANSHEE_HARASS) {
+            if (clockwiseBanshee != null) {
+                if (doRemoveBanshee(clockwiseBanshee)) {
+                    if (!clockwiseBanshee.banshee.isAlive() && clockwiseBanshee.isWithinPhoenixRange()) {
+                        consecutiveBadHarass = 2;
+                    }
+                    clockwiseBanshee.printKillReport();
+                    Ignored.remove(clockwiseBanshee.banshee.getTag());
+                    clockwiseBanshee = null;
                 }
-                clockwiseBanshee.printKillReport();
-                Ignored.remove(clockwiseBanshee.banshee.getTag());
-                clockwiseBanshee = null;
+            }
+            if (counterClockwiseBanshee != null) {
+                if (doRemoveBanshee(counterClockwiseBanshee)) {
+                    counterClockwiseBanshee.printKillReport();
+                    Ignored.remove(counterClockwiseBanshee.banshee.getTag());
+                    counterClockwiseBanshee = null;
+                }
             }
         }
-        if (counterClockwiseBanshee != null) {
-            if (doRemoveBanshee(counterClockwiseBanshee)) {
-                counterClockwiseBanshee.printKillReport();
-                Ignored.remove(counterClockwiseBanshee.banshee.getTag());
-                counterClockwiseBanshee = null;
-            }
-        }
+        clockwiseHellions.removeIf(hellionHarasser -> hellionHarasser.removeMe);
+        counterClockwiseHellions.removeIf(hellionHarasser -> hellionHarasser.removeMe);
     }
 
     private static boolean doRemoveBanshee(BansheeHarasser bansheeHarasser) {
@@ -73,21 +87,27 @@ public class Harassers {
     }
 
     private static void getNewHarassers() {
-        if (clockwiseBanshee == null) {
-            Tag newBansheeTag = getNewBanshee();
-            if (newBansheeTag != null) {
-                clockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), true);
-                Ignored.add(new IgnoredUnit(newBansheeTag));
-                GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
+        if (Strategy.DO_BANSHEE_HARASS) {
+            if (clockwiseBanshee == null) {
+                Tag newBansheeTag = getNewBanshee();
+                if (newBansheeTag != null) {
+                    clockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), true);
+                    Ignored.add(new IgnoredUnit(newBansheeTag));
+                    GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
+                }
+            }
+            else if (counterClockwiseBanshee == null) {
+                Tag newBansheeTag = getNewBanshee();
+                if (newBansheeTag != null) {
+                    counterClockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), false);
+                    Ignored.add(new IgnoredUnit(newBansheeTag));
+                    GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
+                }
             }
         }
-        else if (counterClockwiseBanshee == null) {
-            Tag newBansheeTag = getNewBanshee();
-            if (newBansheeTag != null) {
-                counterClockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), false);
-                Ignored.add(new IgnoredUnit(newBansheeTag));
-                GameCache.bansheeList.removeIf(banshee -> banshee.getTag().equals(newBansheeTag));
-            }
+        if (UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() >
+                UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4) {
+            addHellion();
         }
     }
 
@@ -112,5 +132,18 @@ public class Harassers {
         if (counterClockwiseBanshee != null) {
             counterClockwiseBanshee.onEnemyUnitDeath(unit);
         }
+    }
+
+    public static void addHellion() {
+        Optional<Unit> availableHellion = UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION).stream().findAny();
+        availableHellion.ifPresent(hellion -> {
+                if (clockwiseHellions.size() > counterClockwiseHellions.size()) {
+                    counterClockwiseHellions.add(new HellionHarasser(hellion, false));
+                }
+                else {
+                    clockwiseHellions.add(new HellionHarasser(hellion, true));
+                }
+                Ignored.add(new IgnoredUnit(hellion.getTag()));
+        });
     }
 }

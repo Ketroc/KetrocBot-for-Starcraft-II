@@ -89,7 +89,7 @@ public class BansheeHarasser {
             Target target = selectHarassTarget();
             //attack when safe, or when there's a good value target and not headed home
             if (target.unit != null) {
-                if (isSafe() || (!retreatForRepairs && target.hp <= 24)){
+                if (isSafe() || (!retreatForRepairs && UnitUtils.canOneShotEnemy(banshee.unit(), target.unit.unit()))){
                     ActionHelper.unitCommand(banshee.unit(), Abilities.ATTACK, target.unit.unit(), false);
                     return;
                 }

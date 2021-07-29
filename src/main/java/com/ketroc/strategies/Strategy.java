@@ -405,13 +405,12 @@ public class Strategy {
 //                .get();
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.RAVEN_CYCLONE;
         }
 
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
-                DO_DEFENSIVE_LIBS = true;
                 break;
             case BANSHEE:
                 break;
@@ -491,14 +490,13 @@ public class Strategy {
         UpgradeManager.doStarportUpgrades = true;
 
         //get 2 banshees and +1attack for creep clearing and early defense
-        if (LocationConstants.opponentRace == Race.ZERG) {
+        if (LocationConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {
             BuildManager.MIN_BANSHEES = 2;
             UpgradeManager.armoryUpgradeList = new ArrayList<>();
             UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
             UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
             UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2);
             UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3);
-
         }
         else {
             UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechArmorUpgrades);

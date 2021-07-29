@@ -983,9 +983,13 @@ public class UnitUtils {
     }
 
     public static boolean canOneShotEnemy(Unit myUnit, Unit enemyUnit) {
+        return numShotsToKill(myUnit, enemyUnit) <= 1;
+    }
+
+    public static int numShotsToKill(Unit myUnit, Unit enemyUnit) {
         Weapon myWeapon = getWeapon(myUnit, enemyUnit).orElse(null);
         if (myWeapon == null) {
-            return false;
+            return 9999;
         }
         UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemyUnit.getType());
         Set<UnitAttribute> enemyAttributes = enemyData.getAttributes();
@@ -1001,7 +1005,7 @@ public class UnitUtils {
         myDamage -= enemyArmor + enemyArmorUpgradeLevel;
         myDamage *= myWeapon.getAttacks();
 
-        return myDamage >= enemyUnit.getHealth().orElse(9999f);
+        return (int)Math.ceil(enemyUnit.getHealth().orElse(9999f) / myDamage);
     }
 
     public static Optional<Weapon> getWeapon(Unit attackingUnit, Unit targetUnit) {

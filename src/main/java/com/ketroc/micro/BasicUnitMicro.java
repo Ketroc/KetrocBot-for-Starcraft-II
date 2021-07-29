@@ -237,7 +237,7 @@ public class BasicUnitMicro {
         return isSafe(unit.unit().getPosition().toPoint2d());
     }
 
-    private boolean isSafe(Point2d pos) {
+    protected boolean isSafe(Point2d pos) {
         return !InfluenceMaps.getValue(getThreatMap(), pos);
     }
 
@@ -255,7 +255,7 @@ public class BasicUnitMicro {
                 continue;
             }
             if (isSafe(detourPos)) {
-                if (i > 200 && !changedDirectionRecently()) { //Position.atEdgeOfMap(detourPos) ||
+                if (i > 200 && !changedDirectionRecently()) {
                     toggleDodgeClockwise();
                 }
                 //add 5degrees more angle as buffer, to account for chasing units
