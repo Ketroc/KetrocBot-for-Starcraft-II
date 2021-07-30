@@ -105,10 +105,21 @@ public class Harassers {
                 }
             }
         }
-        if (UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() >
-                UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4) {
-            addHellion();
+        if (ArmyManager.doOffense) {
+            int extraHellions = UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() -
+                    UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4;
+            for (int i=0; i<extraHellions; i++) {
+                addHellion();
+            }
         }
+        else {
+            releaseAllHellions();
+        }
+    }
+
+    private static void releaseAllHellions() {
+        clockwiseHellions.forEach(hellionHarasser -> hellionHarasser.removeMe = true);
+        counterClockwiseHellions.forEach(hellionHarasser -> hellionHarasser.removeMe = true);
     }
 
     private static Tag getNewBanshee() {
