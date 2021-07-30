@@ -327,6 +327,9 @@ public class UnitUtils {
         if (unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return 0;
         }
+        if (unit.getType().toString().contains("CHANGELING")) {
+            return 0;
+        }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
                 attackRange = 6;
@@ -516,6 +519,9 @@ public class UnitUtils {
     }
 
     public static boolean canAttackGround(Unit unit) {
+        if (unit.getType().toString().contains("CHANGELING")) {
+            return false;
+        }
         switch ((Units)unit.getType()) {
             case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: case PROTOSS_DISRUPTOR_PHASED:
                 return true;
@@ -525,6 +531,9 @@ public class UnitUtils {
     }
 
     public static boolean canAttackAir(Unit unit) {
+        if (unit.getType().toString().contains("CHANGELING")) {
+            return false;
+        }
         return unit.getType() == WIDOW_MINE_TYPE ||
                 Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY);
@@ -739,26 +748,26 @@ public class UnitUtils {
         return Set.of(unitType);
     }
 
-    public static boolean isWeaponAvailable(Unit unit) {
+    public static boolean isWeaponAvailable(Unit myUnit) {
         //if matrixed
-        if (unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
+        if (myUnit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return false;
         }
 
         //if under blinding cloud TODO: change to do melee range attacks?
-        if (!unit.getFlying().orElse(false) && unit.getBuffs().contains(Buffs.BLINDING_CLOUD)) {
+        if (!myUnit.getFlying().orElse(false) && myUnit.getBuffs().contains(Buffs.BLINDING_CLOUD)) {
             return false;
         }
 
         //if unit has no weapon
-        Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons();
+        Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(myUnit.getType()).getWeapons();
         if (weapons.isEmpty()) {
             return false;
         }
 
         //if weapon will be ready to fire next step
         float weaponSpeed = weapons.iterator().next().getSpeed() / 1.4f;
-        float curCooldown = unit.getWeaponCooldown().orElse(0f);
+        float curCooldown = myUnit.getWeaponCooldown().orElse(0f);
         float stepTime = Strategy.STEP_SIZE / 22.4f;
         return curCooldown * weaponSpeed < stepTime*2;
     }
@@ -914,6 +923,9 @@ public class UnitUtils {
     }
 
     public static boolean canAttack(UnitType unitType) {
+        if (unitType.toString().contains("CHANGELING")) {
+            return false;
+        }
         return !Bot.OBS.getUnitTypeData(false).get(unitType)
                 .getWeapons().isEmpty();
     }
@@ -1017,6 +1029,9 @@ public class UnitUtils {
     }
 
     public static Optional<Weapon> getWeapon(Unit attackingUnit, boolean isEnemyFlying) {
+        if (attackingUnit.getType().toString().contains("CHANGELING")) {
+            return Optional.empty();
+        }
         return Bot.OBS.getUnitTypeData(false).get(attackingUnit.getType()).getWeapons().stream()
                 .filter(weapon -> weapon.getTargetType() !=
                         (isEnemyFlying ? Weapon.TargetType.GROUND : Weapon.TargetType.AIR))

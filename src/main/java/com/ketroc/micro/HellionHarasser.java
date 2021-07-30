@@ -29,8 +29,9 @@ public class HellionHarasser extends Hellion {
             Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
             Units.ZERG_CHANGELING_MARINE_SHIELD, Units.PROTOSS_PROBE, Units.PROTOSS_HIGH_TEMPLAR,
             Units.PROTOSS_SENTRY, Units.TERRAN_SCV, Units.TERRAN_MULE);
-
     public static final float HELLION_MOVEMENT_SIZE = (Bot.isRealTime) ? 4f : 2.5f;
+
+    private boolean isBaseTravelClockwise;
     private List<Point2d> baseList;
     private boolean isDodgeClockwise;
     private int baseIndex = 1;
@@ -42,14 +43,51 @@ public class HellionHarasser extends Hellion {
 
     public HellionHarasser(UnitInPool hellion, boolean isBaseTravelClockwise) {
         super(hellion, ArmyManager.attackGroundPos, MicroPriority.SURVIVAL);
+        this.isBaseTravelClockwise = isBaseTravelClockwise;
         baseList = (isBaseTravelClockwise) ? LocationConstants.clockBasePositions : LocationConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
         this.isDodgeClockwise = isBaseTravelClockwise;
         doDetourAroundEnemy = true;
     }
 
+    public boolean isBaseTravelClockwise() {
+        return isBaseTravelClockwise;
+    }
+
+    public void setBaseTravelClockwise(boolean baseTravelClockwise) {
+        isBaseTravelClockwise = baseTravelClockwise;
+    }
+
+    public List<Point2d> getBaseList() {
+        return baseList;
+    }
+
+    public void setBaseList(List<Point2d> baseList) {
+        this.baseList = baseList;
+    }
+
     public boolean isDodgeClockwise() {
         return isDodgeClockwise;
+    }
+
+    public void setDodgeClockwise(boolean dodgeClockwise) {
+        isDodgeClockwise = dodgeClockwise;
+    }
+
+    public int getBaseIndex() {
+        return baseIndex;
+    }
+
+    public void setBaseIndex(int baseIndex) {
+        this.baseIndex = baseIndex;
+    }
+
+    public long getPrevDirectionChangeFrame() {
+        return prevDirectionChangeFrame;
+    }
+
+    public void setPrevDirectionChangeFrame(long prevDirectionChangeFrame) {
+        this.prevDirectionChangeFrame = prevDirectionChangeFrame;
     }
 
     public void toggleDodgeClockwise() {

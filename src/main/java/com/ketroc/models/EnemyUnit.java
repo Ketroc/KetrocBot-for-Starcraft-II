@@ -192,6 +192,9 @@ public class EnemyUnit {
     }
 
     private int getDamage(Units unitType, Weapon.TargetType excludeTargetType) {
+        if (unitType.toString().contains("CHANGELING")) {
+            return 0;
+        }
         return Bot.OBS.getUnitTypeData(false).get(unitType).getWeapons().stream()
                 .filter(weapon -> weapon.getTargetType() != excludeTargetType)
                 .findFirst()
