@@ -272,7 +272,7 @@ public class EnemyUnit {
             case TERRAN_MISSILE_TURRET:
                 return 7;
             case TERRAN_BUNKER: //assume 4 marines
-                return 12;
+                return Strategy.DO_IGNORE_BUNKERS ? 0 : 12;
             case TERRAN_VIKING_FIGHTER:
                 return 3;
             case TERRAN_LIBERATOR:

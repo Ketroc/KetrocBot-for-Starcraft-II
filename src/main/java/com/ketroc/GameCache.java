@@ -493,7 +493,10 @@ public class GameCache {
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemy -> enemy.getLastSeenGameLoop() +
-                        ((UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType())) ? Strategy.MAP_ENEMIES_IN_FOG_DURATION : 24) >= Time.nowFrames())
+                        (UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType()) ?
+                                Strategy.MAP_ENEMIES_IN_FOG_DURATION :
+                                24
+                        ) >= Time.nowFrames())
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
 
         //add siege tanks and lurkers that are no longer visible

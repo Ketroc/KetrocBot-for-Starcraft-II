@@ -89,6 +89,7 @@ public class Strategy {
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
     public static boolean DO_USE_CYCLONES;
     public static boolean DO_USE_HELLIONS;
+    public static boolean DO_IGNORE_BUNKERS;
     public static boolean ENEMY_DOES_BANSHEE_HARASS;
 
 
@@ -150,7 +151,7 @@ public class Strategy {
             }
         }
 
-        //applyOpponentSpecificTweaks();
+        applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
     }
@@ -187,21 +188,21 @@ public class Strategy {
                 break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                DO_DEFENSIVE_TANKS = false;
-                DO_BANSHEE_HARASS = false;
-                //EXPAND_SLOWLY = true;
-                BUILD_EXPANDS_IN_MAIN = true;
-                NO_RAMP_WALL = true;
-                NO_TURRETS = true;
-                NUM_MARINES = 1;
-                ENEMY_DOES_BANSHEE_HARASS = true;
+//                DO_DEFENSIVE_TANKS = false;
+//                DO_BANSHEE_HARASS = false;
+//                //EXPAND_SLOWLY = true;
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                NO_RAMP_WALL = true;
+//                NO_TURRETS = true;
+//                NUM_MARINES = 1;
+//                ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
-                NUM_MARINES = 7;
-                Switches.enemyCanProduceAir = true;
-                BUILD_EXPANDS_IN_MAIN = true;
-                DO_BANSHEE_HARASS = false;
+//                NUM_MARINES = 7;
+//                Switches.enemyCanProduceAir = true;
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                DO_BANSHEE_HARASS = false;
                 break;
             case "12c39b76-7830-4c1f-9faa-37c68183396b": //WorthlessBot
                 BUILD_EXPANDS_IN_MAIN = true;
@@ -216,10 +217,11 @@ public class Strategy {
                 break;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-                Switches.enemyCanProduceAir = true;
-                BUILD_EXPANDS_IN_MAIN = true;
-                DO_DIVE_RAVENS = false;
-                ENEMY_DOES_BANSHEE_HARASS = true;
+                DO_IGNORE_BUNKERS = true;
+//                Switches.enemyCanProduceAir = true;
+//                BUILD_EXPANDS_IN_MAIN = true;
+//                DO_DIVE_RAVENS = false;
+//                ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
         }
     }
@@ -235,7 +237,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
 
-        gamePlan = getStrategyForLadder(availableTvTGamePlans);
+        //gamePlan = getStrategyForLadder(availableTvTGamePlans);
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }

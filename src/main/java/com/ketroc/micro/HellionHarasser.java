@@ -24,7 +24,11 @@ public class HellionHarasser extends Hellion {
             Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE, Units.ZERG_CHANGELING_MARINE_SHIELD, Units.ZERG_LOCUS_TMP,
             Units.PROTOSS_PROBE, Units.PROTOSS_ZEALOT, Units.PROTOSS_DARK_TEMPLAR, Units.PROTOSS_HIGH_TEMPLAR,
             Units.PROTOSS_SENTRY, Units.TERRAN_SCV, Units.TERRAN_MULE, Units.TERRAN_HELLION_TANK);
-
+    public static final Set<Units> CHASE_TARGETS = Set.of(
+            Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR,
+            Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
+            Units.ZERG_CHANGELING_MARINE_SHIELD, Units.PROTOSS_PROBE, Units.PROTOSS_HIGH_TEMPLAR,
+            Units.PROTOSS_SENTRY, Units.TERRAN_SCV, Units.TERRAN_MULE);
 
     public static final float HELLION_MOVEMENT_SIZE = (Bot.isRealTime) ? 4f : 2.5f;
     private List<Point2d> baseList;
@@ -41,6 +45,7 @@ public class HellionHarasser extends Hellion {
         baseList = (isBaseTravelClockwise) ? LocationConstants.clockBasePositions : LocationConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
         this.isDodgeClockwise = isBaseTravelClockwise;
+        doDetourAroundEnemy = true;
     }
 
     public boolean isDodgeClockwise() {
@@ -79,6 +84,9 @@ public class HellionHarasser extends Hellion {
 
         //if can attack, find target
         if (UnitUtils.isWeaponAvailable(unit.unit())) {
+            if (UnitUtils.isAttacking(unit.unit())) { //allow attack animation to complete
+                return;
+            }
             Optional<Unit> targetUnit = selectHarassTarget();
 
             //attack target
@@ -113,15 +121,17 @@ public class HellionHarasser extends Hellion {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, unit.unit().getPosition().toPoint2d());
             if (nearestCyclone != null) {
                 targetPos = Position.towards(unit.unit().getPosition().toPoint2d(), nearestCyclone.getPosition().toPoint2d(), -4);
+                return;
             }
         }
 
-        //go towards nearest enemy worker
-        Unit closestWorker = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
-                .min(Comparator.comparing(worker -> UnitUtils.getDistance(unit.unit(), worker)))
+        //go towards nearest high priority enemy target (eg workers)
+        Unit closestChaseTarget = UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy)))
                 .orElse(null);
-        if (closestWorker != null && UnitUtils.getDistance(unit.unit(), closestWorker) < 10) {
-            targetPos = closestWorker.getPosition().toPoint2d();
+        if (closestChaseTarget != null && UnitUtils.getDistance(unit.unit(), closestChaseTarget) < 10) {
+            targetPos = closestChaseTarget.getPosition().toPoint2d();
+            return;
         }
 
         //go towards enemy base

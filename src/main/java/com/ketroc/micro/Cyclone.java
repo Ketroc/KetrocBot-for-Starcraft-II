@@ -99,6 +99,9 @@ public class Cyclone extends BasicUnitMicro {
 
         //use basic attack
         if (lockTarget == null && UnitUtils.isWeaponAvailable(unit.unit())) {
+            if (UnitUtils.isAttacking(unit.unit())) { //allow attack animation to complete
+                return;
+            }
             Optional<Unit> autoAttackTarget = getAutoAttackTarget();
             if (autoAttackTarget.isPresent()) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, autoAttackTarget.get(), false);

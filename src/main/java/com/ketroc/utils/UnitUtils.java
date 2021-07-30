@@ -555,6 +555,10 @@ public class UnitUtils {
                 .anyMatch(order -> order.ability == Abilities.ATTACK && target.getTag().equals(order.targetTag));
     }
 
+    public static boolean isAttacking(Unit unit) {
+        return ActionIssued.getCurOrder(unit).stream().anyMatch(order -> order.ability == Abilities.ATTACK);
+    }
+
     public static boolean hasOrderTarget(Unit unit) {
         return ActionIssued.getCurOrder(unit).stream()
                 .anyMatch(order -> order.targetTag != null);
