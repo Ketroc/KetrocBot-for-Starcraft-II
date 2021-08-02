@@ -2,7 +2,6 @@ package com.ketroc.managers;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
@@ -72,9 +71,8 @@ public class ArmyManager {
         else {
             setDefensePosition();
         }
-        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
-        setAirTarget(closestEnemyAir);
-        sendAirKillSquad(closestEnemyAir);
+        setAirTarget();
+        sendAirKillSquad();
         setIsAttackUnitRetreating();
         setAirOrGroundTarget();
         setCloakedTarget();
@@ -98,7 +96,15 @@ public class ArmyManager {
 
         //position marines
         if (BunkerContain.proxyBunkerLevel == 0) {
-            positionMarines();
+            //save marines for hellbat/marine a-move when gas-broke end game TODO: move
+            if (UnitUtils.isOutOfGas()) {
+                UnitMicroList.getUnitSubList(MarineBasic.class).forEach(marineBasic -> marineBasic.removeMe = true);
+                return;
+            }
+            else {
+                addMarines();
+                positionMarines();
+            }
         }
 
         //TODO: this is a temporary test
@@ -151,6 +157,13 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void addMarines() {
+        //new marines get a marine object TODO: move
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
+            UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
+        });
     }
 
     private static void manageTankRepairScvs() {
@@ -456,21 +469,16 @@ public class ArmyManager {
     }
 
     private static Point2d getArmyRallyPoint() {
-        switch (Strategy.NUM_BASES_TO_OC) {
-            case 3:
-                if (GameCache.baseList.get(2).isMyBase()) {
-                    return GameCache.baseList.get(2).inFrontPos();
-                }
-                //no break
-            case 2:
-                if (GameCache.baseList.get(1).isMyBase()) {
-                    return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
-                }
-                //no break
+        //protect 3rd if OC
+        if (Strategy.NUM_BASES_TO_OC >= 3 && GameCache.baseList.get(2).isMyBase()) {
+            return GameCache.baseList.get(2).inFrontPos();
         }
-        if (UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 1)) {
+        //protect nat if OC or if no base but bunker is up there
+        if ((Strategy.NUM_BASES_TO_OC >= 2 && GameCache.baseList.get(1).isMyBase()) ||
+                UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 1)) {
             return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
         }
+        //protect main ramp
         return LocationConstants.insideMainWall;
     }
 
@@ -558,6 +566,7 @@ public class ArmyManager {
             if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
                     !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
+                Chat.tag("PHANTOM_UNIT");
                 Print.print("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
                 Print.print("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
                 Print.print("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
@@ -583,15 +592,19 @@ public class ArmyManager {
         }
     }
 
-    private static void setAirTarget(UnitInPool closestEnemyAir) {
-        //attack closest enemy air unit
-        if (closestEnemyAir != null) {
+    private static void setAirTarget() {
+        UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
+        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
+
+        //attack closest enemy air unit, but stay close to tanks if TankOffense units are in use
+        if (closestEnemyAir != null && (Base.nearOneOfMyBases(closestEnemyAir.unit(), 25) ||
+                tankList.stream().allMatch(tankOffense ->
+                        UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) > 20))) {
             attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }
 
         //cover lead siege tank
-        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
         if (!tankList.isEmpty()) {
             tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), attackGroundPos)))
@@ -633,21 +646,22 @@ public class ArmyManager {
                 .orElse(null);
     }
 
-    //snipe unprotected enemy air units that are wandering away from protection
-    private static void sendAirKillSquad(UnitInPool closestEnemyAir) {
-        if (closestEnemyAir == null) {
+    //snipe unprotected enemy air units that are wandering away from protection TODO: check all enemy air units, not just closest
+    private static void sendAirKillSquad() {
+        if (GameCache.vikingList.isEmpty()) {
             return;
         }
-        Point2d closestEnemyAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
 
-        //send kill squad if criteria met TODO: track into fog
-        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, closestEnemyAirPos) &&
-                UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(closestEnemyAir.unit().getType()) &&
-                !GameCache.vikingList.isEmpty() &&
-                //closestEnemyAirPos.distance(LocationConstants.pointOnEnemyRamp) > 40 && //removed to see if nearby threat check is enough to see if it's unprotected
-                InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, closestEnemyAirPos) < 4) {
-            AirUnitKillSquad.add(closestEnemyAir);
-        }
+        GameCache.allEnemiesList.stream()
+                .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
+                        !enemyAirUip.unit().getHallucination().orElse(false) &&
+                        enemyAirUip.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
+                        !Ignored.contains(enemyAirUip.getTag()) &&
+                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, enemyAirUip.unit().getPosition().toPoint2d())
+                                < AirUnitKillSquad.MAX_THREAT)
+                .min(Comparator.comparing(enemyAirUip ->
+                        UnitUtils.getDistance(enemyAirUip.unit(), LocationConstants.baseLocations.get(0))))
+                .ifPresent(enemyAirUip -> AirUnitKillSquad.add(enemyAirUip));
     }
 
     private static UnitInPool getClosestEnemyGroundUnit() {
@@ -673,7 +687,7 @@ public class ArmyManager {
                         u.unit().getFlying().orElse(false) && //air unit
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
-                        !u.unit().getHallucination().orElse(false) && !UnitUtils.isInFogOfWar(u)) //ignore hallucs and units in the fog
+                        !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), vikingMidPoint)))
                 .orElse(null);
@@ -768,7 +782,7 @@ public class ArmyManager {
                 }
             } else {
                 Point2d bestTargetPos = Point2d.of(bestValueX / 2f, bestValueY / 2f);
-                DebugHelper.draw3dBox(bestTargetPos, Color.YELLOW, 0.5f);
+                //DebugHelper.draw3dBox(bestTargetPos, Color.YELLOW, 0.5f);
                 //get enemy Unit near bestTargetPos
                 UnitInPool enemyTarget = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
@@ -779,7 +793,7 @@ public class ArmyManager {
 
                 if (enemyTarget != null) {
                     bestTargetUnit = enemyTarget.unit();
-                    DebugHelper.draw3dBox(bestTargetUnit.getPosition().toPoint2d(), Color.RED, 0.4f);
+                    //DebugHelper.draw3dBox(bestTargetUnit.getPosition().toPoint2d(), Color.RED, 0.4f);
                 }
                 Bot.DEBUG.sendDebug();
                 int w = 234;
@@ -793,34 +807,26 @@ public class ArmyManager {
     }
 
     private static void positionMarines() {
-        //save marines for hellbat/marine a-move when gas-broke end game
-        if (UnitUtils.isOutOfGas()) {
-            UnitMicroList.getUnitSubList(MarineBasic.class).forEach(marineBasic -> marineBasic.removeMe = true);
-            return;
-        }
-
-        //new marines get a marine object
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
-            UnitMicroList.add(new MarineBasic(unit, LocationConstants.insideMainWall));
-        });
-
         //don't set target if Marine All-in code is handling it
         if (Strategy.MARINE_ALLIN && (MarineAllIn.doAttack || MarineAllIn.isInitialBuildUp)) {
             return;
         }
 
         //if main/nat under attack, empty natural bunker and target enemy
-        Optional<UnitInPool> bunkerAtNatural = Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
-                UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
-                bunker.unit().getCargoSpaceTaken().orElse(4) < 4 &&
-                ActionIssued.getCurOrder(bunker.unit()).stream()
-                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
+        Optional<UnitInPool> bunkerAtNatural =
+                Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
+                        UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
+                        bunker.unit().getCargoSpaceTaken().orElse(4) >= 1 &&
+                        ActionIssued.getCurOrder(bunker.unit()).stream()
+                                .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
                 .stream()
                 .findFirst();
-        Unit enemyInMyBase = getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
+        Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && bunkerAtNatural.isEmpty()) ?
+                getEnemyInMain() :
+                getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
         if (enemyInMyBase != null) {
             bunkerAtNatural.ifPresent(bunker ->
-                ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false));
+                    ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false));
             MarineBasic.setTargetPos(enemyInMyBase.getPosition().toPoint2d());
             return;
         }
@@ -948,25 +954,37 @@ public class ArmyManager {
         List<Unit> depots = UnitUtils.getMyUnitsOfType(UnitUtils.SUPPLY_DEPOT_TYPE);
 
         for (Unit depot : depots) {
-            //RAISE WALL DEPOTS
-            if (UnitUtils.isWallStructure(depot) &&
-                    InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {
+            //WALL DEPOTS
+            if (UnitUtils.isWallStructure(depot)) {
+                //Raise
                 if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
-                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                    if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {
+                        ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                    }
+                }
+                //Lower - if any enemy near depot or on the ramp
+                else {
+                    if (!InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d()) &&
+                            !InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, LocationConstants.myRampPos)) {
+                        ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
+                    }
                 }
             }
 
-            //RAISE REAPER WALL DEPOTS
-            else if (LocationConstants.opponentRace == Race.TERRAN &&
-                    UnitUtils.isReaperWallStructure(depot) &&
-                    !UnitUtils.getUnitsNearbyOfType(
-                            Alliance.ENEMY, Units.TERRAN_REAPER, depot.getPosition().toPoint2d(), 12).isEmpty()) {
+            //REAPER WALL DEPOTS
+            else if (LocationConstants.opponentRace == Race.TERRAN && UnitUtils.isReaperWallStructure(depot)) {
                 if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
-                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                    if (!UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_REAPER,
+                            depot.getPosition().toPoint2d(), 12).isEmpty()) {
+                        ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
+                    }
+                }
+                else {
+                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
                 }
             }
 
-            //LOWER DEPOTS
+            //OTHER DEPOTS
             else if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT) {
                 ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
             }
@@ -1325,11 +1343,13 @@ public class ArmyManager {
 
     private static boolean isOutnumberedInVikings() {
         int numVikingsOnFrontLine = (int)GameCache.vikingList.stream()
-                .filter(viking -> UnitUtils.getDistance(viking, vikingMidPoint) < 10 &&
+                .filter(viking -> UnitUtils.getDistance(viking, attackAirPos) < 20 &&
                         UnitUtils.getHealthPercentage(viking) > Strategy.RETREAT_HEALTH)
                 .count();
 
-        return numVikingsOnFrontLine < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).size();
+        return numVikingsOnFrontLine < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).stream()
+                .filter(enemyViking -> enemyViking.getLastSeenGameLoop() + Time.toFrames(5) > Time.nowFrames())
+                .count();
     }
 
     private static boolean doStayBackFromTempests() {
@@ -1671,8 +1691,8 @@ public class ArmyManager {
         return InfluenceMaps.getValue(InfluenceMaps.pointInNatExcludingBunkerRange, attackUnit.getPosition().toPoint2d());
     }
 
-    public static Unit getEnemyInMainOrNatural(boolean isBunkerAtNat) {
-        boolean[][] pointInNat = isBunkerAtNat ? InfluenceMaps.pointInNatExcludingBunkerRange : InfluenceMaps.pointInNat;
+    public static Unit getEnemyInMainOrNatural(boolean doExcludeBunkerRange) {
+        boolean[][] pointInNat = doExcludeBunkerRange ? InfluenceMaps.pointInNatExcludingBunkerRange : InfluenceMaps.pointInNat;
         return Bot.OBS.getUnits(Alliance.ENEMY).stream()
                 .filter(enemy ->
                         InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()) ||

@@ -407,12 +407,15 @@ public class Strategy {
 //                .get();
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.RAVEN_CYCLONE;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                NUM_BASES_TO_OC = LocationConstants.baseLocations.size();
+                BUILD_EXPANDS_IN_MAIN = false;
+                PRIORITIZE_EXPANDING = true;
                 break;
             case BANSHEE:
                 break;
@@ -745,7 +748,7 @@ public class Strategy {
 //        return Math.min(maxScvs, Math.max(idealScvs, 44));
 //    }
 
-    public static void onStep_TvtFaststart() {
+    public static void onStep_Faststart() {
         switch (step_TvtFastStart) {
             case 1:
                 //remove depot and rax from production queue (temporarily)
@@ -853,7 +856,7 @@ public class Strategy {
     }
 
     public static void useCyclonesAdjustments() {
-        NUM_MARINES = Math.min(3, NUM_MARINES);
+        NUM_MARINES = Math.min(2, NUM_MARINES);
         BuildManager.MIN_BANSHEES = 0;
         DO_USE_CYCLONES = true;
         DO_DEFENSIVE_TANKS = false;
@@ -897,7 +900,9 @@ public class Strategy {
         else {
             LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
             LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
-            if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE || gamePlan == GamePlan.MARINE_RUSH) {
+            if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE ||
+                    gamePlan == GamePlan.MARINE_RUSH ||
+                    Strategy.NUM_BASES_TO_OC > 1) {
                 LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
             }
             else {

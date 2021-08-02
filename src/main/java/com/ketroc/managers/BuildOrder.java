@@ -74,6 +74,7 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     if (Strategy.NUM_MARINES > 0) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
                     }
@@ -96,16 +97,16 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    if (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2) { //build eng bay now if not in the wall
+                    if (Strategy.NUM_BASES_TO_OC < 2 &&
+                            (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2)) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     }
                     while (!LocationConstants.FACTORIES.isEmpty()) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
                 }
                 break;
             case PROTOSS:
@@ -148,6 +149,9 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                 }
+                else if (Strategy.NUM_BASES_TO_OC > 1) {
+                    orbitalExpandOpener();
+                }
                 else if (Strategy.EXPAND_SLOWLY) {
                     pfExpand2BaseOpener();
                 }
@@ -169,9 +173,23 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-        //KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+    }
+
+    private static void orbitalExpandOpener() {
+        Switches.fastDepotBarracksOpener = true;
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        while (!LocationConstants.FACTORIES.isEmpty()) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+        }
     }
 
     private static void pfExpand2BaseOpener() {

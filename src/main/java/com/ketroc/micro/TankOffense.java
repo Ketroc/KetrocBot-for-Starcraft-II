@@ -27,7 +27,7 @@ public class TankOffense extends Tank {
             return;
         }
 
-        DebugHelper.boxUnit(unit.unit());
+        //DebugHelper.boxUnit(unit.unit());
         updateTargetPos();
 
         //tank vs tank special case

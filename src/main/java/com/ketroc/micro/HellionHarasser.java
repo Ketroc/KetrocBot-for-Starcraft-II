@@ -44,6 +44,7 @@ public class HellionHarasser extends Hellion {
     public HellionHarasser(UnitInPool hellion, boolean isBaseTravelClockwise) {
         super(hellion, ArmyManager.attackGroundPos, MicroPriority.SURVIVAL);
         this.isBaseTravelClockwise = isBaseTravelClockwise;
+        isDodgeClockwise = isBaseTravelClockwise; //more likely to get behind the mineral line
         baseList = (isBaseTravelClockwise) ? LocationConstants.clockBasePositions : LocationConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
         this.isDodgeClockwise = isBaseTravelClockwise;
@@ -133,9 +134,9 @@ public class HellionHarasser extends Hellion {
                 return;
             }
 
-            //if at basePos without workers in vision, set target to next base
+            //if at basePos without any key targets in vision (eg workers), set target to next base
             else if (UnitUtils.getDistance(unit.unit(), getThisBase()) < 4f &&
-                    UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
+                    UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
                             .noneMatch(enemyWorker -> UnitUtils.getDistance(unit.unit(), enemyWorker) < 10)) {
                 nextBase();
             }

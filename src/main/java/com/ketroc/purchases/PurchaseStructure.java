@@ -252,7 +252,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                                 GameCache.baseList.get(1).getCcPos(),
                                 2
                         ),
-                        LocationConstants.pointOnMyRamp,
+                        LocationConstants.myRampPos,
                         2
                 )
         );
@@ -409,7 +409,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     position = LocationConstants.STARPORTS.stream()
                             .filter(p -> UnitUtils.isInMyMain(p) &&
                                     isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.pointOnMyRamp)))
+                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.myRampPos)))
                             .orElse(null);
                     if (position != null) {
                         LocationConstants.STARPORTS.remove(position);
@@ -417,12 +417,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     }
                     return false;
                 }
-            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
+            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
                 position = LocationConstants._3x3Structures.stream()
                         .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
                         .findFirst().orElse(null);
                 if (position != null) {
                     LocationConstants._3x3Structures.remove(position);
+                    return true;
+                }
+                else if (!LocationConstants.STARPORTS.isEmpty()) { //use starport position if none remain
+                    position = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size()-1);
                     return true;
                 }
                 return false;

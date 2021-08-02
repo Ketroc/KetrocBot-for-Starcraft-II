@@ -478,6 +478,12 @@ public class WorkerManager {
             return;
         }
 
+//        //max gas during double OC opening
+//        if (Strategy.NUM_BASES_TO_OC > 1 && Time.nowFrames() < Time.toFrames("3:00")) {
+//            numScvsPerGas = 3;
+//            return;
+//        }
+
         int mins = GameCache.mineralBank;
         int gas = GameCache.gasBank;
         if (numScvsPerGas == 1) {

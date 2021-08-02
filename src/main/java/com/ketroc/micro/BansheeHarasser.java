@@ -2,7 +2,6 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
@@ -136,9 +135,9 @@ public class BansheeHarasser {
     private void giveMovementCommand(Point2d targetPos) {
         Point2d safePos = getSafePos(targetPos);
         ActionHelper.unitCommand(banshee.unit(), Abilities.MOVE, safePos, false);
-        DebugHelper.drawBox(safePos, Color.GREEN, 0.22f);
-        DebugHelper.drawBox(safePos, Color.GREEN, 0.20f);
-        DebugHelper.drawBox(safePos, Color.GREEN, 0.18f);
+//        DebugHelper.drawBox(safePos, Color.GREEN, 0.22f);
+//        DebugHelper.drawBox(safePos, Color.GREEN, 0.20f);
+//        DebugHelper.drawBox(safePos, Color.GREEN, 0.18f);
     }
 
     private Point2d getSafePos(Point2d targetPos) {

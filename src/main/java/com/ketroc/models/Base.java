@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -54,6 +53,7 @@ public class Base {
         this.ccPos = ccPos;
         setResourceMidPoint();
     }
+
 
     // =========== GETTERS AND SETTERS =============
 
@@ -175,7 +175,7 @@ public class Base {
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle), null));
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle*-1), null));
-                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(LocationConstants.pointOnMyRamp)));
+                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(LocationConstants.myRampPos)));
             }
         }
         return tanks;
@@ -273,8 +273,8 @@ public class Base {
             mineralPatch.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
-                    DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
-                    DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
                     return;
                 }
@@ -307,8 +307,8 @@ public class Base {
             gas.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
-                    DebugHelper.drawBox(gas.getByNode(), Color.RED, 0.2f);
-                    DebugHelper.drawBox(gas.getByCC(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(gas.getByNode(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(gas.getByCC(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, gas.getNodePos(), MicroPriority.SURVIVAL).onStep();
                 }
 
@@ -664,7 +664,7 @@ public class Base {
         if (!PlacementMap.canFit2x2(turretPos)) {
             turretPos = ccTowardsMineral;
         }
-        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
         turrets.add(new DefenseUnitPositions(turretPos, null));
 
     }
@@ -681,7 +681,7 @@ public class Base {
                     .get();
 
         }
-        DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+        //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
         turrets.add(new DefenseUnitPositions(turretPos, null));
     }
 
@@ -701,7 +701,7 @@ public class Base {
             if (!PlacementMap.canFit2x2(turretPos)) {
                 turretPos = gasTowardsCC;
             }
-            DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+            //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
             turrets.add(new DefenseUnitPositions(turretPos, null));
         }
     }
@@ -974,5 +974,14 @@ public class Base {
     public static boolean isABasePos(Point2d pos) {
         return GameCache.baseList.stream()
                 .anyMatch(base -> base.getCcPos().distance(pos) < 1);
+    }
+
+    public static List<Base> getMyBases() {
+        return GameCache.baseList.stream().filter(base -> base.isMyBase()).collect(Collectors.toList());
+    }
+
+    public static boolean nearOneOfMyBases(Unit unit, float distance) {
+        return GameCache.baseList.stream()
+                .anyMatch(base -> base.isMyBase() && UnitUtils.getDistance(unit, base.ccPos) < distance);
     }
 }

@@ -1,7 +1,6 @@
 package com.ketroc.utils;
 
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -49,7 +48,7 @@ public class PlacementMap {
         for (float x=LocationConstants.MIN_X + 0.5f; x<LocationConstants.MAX_X; x++) {
             for (float y=LocationConstants.MIN_Y + 0.5f; y<LocationConstants.MAX_Y; y++) {
                 if (placementMap[(int)x][(int)y]) {
-                    DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
+                    //DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
                 }
             }
         }
@@ -271,8 +270,8 @@ public class PlacementMap {
     }
 
     public static void visualizeFactoryAndAddOn(Point2d factoryPos) {
-        DebugHelper.drawBox(factoryPos, Color.GREEN, 1.5f);
-        DebugHelper.drawBox(getAddOnPos(factoryPos), Color.GREEN, 1f);
+        //DebugHelper.drawBox(factoryPos, Color.GREEN, 1.5f);
+        //DebugHelper.drawBox(getAddOnPos(factoryPos), Color.GREEN, 1f);
     }
 
     //TODO: delete - for testing

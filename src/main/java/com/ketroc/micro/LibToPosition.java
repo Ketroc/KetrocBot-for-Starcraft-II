@@ -3,7 +3,6 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.ketroc.utils.DebugHelper;
 
 public class LibToPosition extends Liberator {
 
@@ -18,7 +17,7 @@ public class LibToPosition extends Liberator {
 
     @Override
     public void onStep() {
-        DebugHelper.boxUnit(unit.unit());
+        //DebugHelper.boxUnit(unit.unit());
 
         //no lib
         if (unit == null || !isAlive()) {

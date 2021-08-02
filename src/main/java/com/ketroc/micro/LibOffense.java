@@ -4,7 +4,6 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.utils.DebugHelper;
 
 //TODO: complete (this is currently just a copy of TankOffense
 public class LibOffense extends Liberator {
@@ -15,7 +14,7 @@ public class LibOffense extends Liberator {
 
     @Override
     public void onStep() {
-        DebugHelper.boxUnit(unit.unit());
+        //DebugHelper.boxUnit(unit.unit());
         targetPos = ArmyManager.attackGroundPos;
 
         //no liberator

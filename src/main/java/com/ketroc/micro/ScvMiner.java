@@ -2,10 +2,8 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.UnitUtils;
 
 public class ScvMiner extends Scv {
@@ -24,7 +22,7 @@ public class ScvMiner extends Scv {
 
     @Override
     public void onStep() {
-        DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //avoid splash / lib zones
         if (!isSafe()) {

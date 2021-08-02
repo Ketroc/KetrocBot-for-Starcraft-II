@@ -71,7 +71,7 @@ public class WorkerRushDefense {
                     int numEnemyWorkersAttacking = (int)UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
                             .filter(u -> UnitUtils.isInMyMainOrNat(u.unit()))
                             .count();
-                    if (numEnemyWorkersAttacking >= 7 &&
+                    if (numEnemyWorkersAttacking >= 8 &&
                             !UnitUtils.isWallComplete() &&
                             Time.nowFrames() < Time.toFrames("12:00")) {
                         defenseStep++;

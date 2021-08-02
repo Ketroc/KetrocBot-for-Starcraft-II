@@ -26,7 +26,7 @@ public class BasicAttacker {
     public float groundAttackRange;
     public float airAttackRange;
     public float movementSpeed;
-    public float weaponCooldown = Float.MAX_VALUE; //default for units without weapons
+    public float weaponCooldown = 9999; //default for units without weapons
 
     public BasicAttacker(UnitInPool attacker, Point2d targetPos) {
         this.attacker = attacker;
@@ -87,7 +87,7 @@ public class BasicAttacker {
     }
 
     private boolean doMoveInToEngage(float distanceBuffer) {
-        return attacker.unit().getWeaponCooldown().orElse(1f) <= getCooldownToAttack(distanceBuffer);
+        return attacker.unit().getWeaponCooldown().orElse(1f)/22.4 <= getCooldownToAttack(distanceBuffer);
     }
 
     //returns weapon cooldown value where that the unit has to move a certain distance before weapon becomes ready

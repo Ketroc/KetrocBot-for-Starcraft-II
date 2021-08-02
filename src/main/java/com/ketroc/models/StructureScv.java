@@ -204,7 +204,7 @@ public class StructureScv {
             if (!structureScv.scv.isAlive()) {
                 if (BunkerContain.proxyBunkerLevel > 0 &&
                         Time.nowFrames() < Time.toFrames("5:00") &&
-                        structureScv.structurePos.distance(LocationConstants.pointOnMyRamp) > 50) {
+                        structureScv.structurePos.distance(LocationConstants.myRampPos) > 50) {
                     BunkerContain.repairScvList.stream()
                             .filter(u -> !StructureScv.isScvProducing(u.unit()))
                             .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))

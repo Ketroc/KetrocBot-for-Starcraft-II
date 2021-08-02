@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -754,7 +753,7 @@ public class BunkerContain {
                         -3.5f
                 )
         );
-        DebugHelper.draw3dBox(turretPos, Color.GREEN, 1f);
+        //DebugHelper.draw3dBox(turretPos, Color.GREEN, 1f);
         Point2d bestPlacementPos = Position.findNearestPlacement(Units.TERRAN_MISSILE_TURRET, turretPos, 2);
         if (bestPlacementPos == null) {
             turretPos = Position.toWholePoint(
@@ -800,7 +799,7 @@ public class BunkerContain {
 
         //set barracks rally
         Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null)
-                ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.pointOnMyRamp, 2)
+                ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.myRampPos, 2)
                 : behindBunkerPos;
         ActionHelper.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
     }

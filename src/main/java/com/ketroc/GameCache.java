@@ -705,7 +705,8 @@ public class GameCache {
                     }
 
                     //threat level to ground
-                    if (distance < enemy.groundAttackRange) {
+                    if (distance < enemy.groundAttackRange &&
+                            (distance > 2.5 || enemy.unitType != Units.TERRAN_SIEGE_TANK_SIEGED)) { //siege tank min range = 2 (+ unit radius)
                         InfluenceMaps.pointThreatToGroundValue[x][y] += enemy.threatLevel;
                         InfluenceMaps.pointDamageToGroundValue[x][y] += enemy.groundDamage;
                         InfluenceMaps.pointThreatToGround[x][y] = true;
@@ -743,7 +744,7 @@ public class GameCache {
                     if (distance <= enemy.visionRange &&
                             (enemy.isAir || Bot.OBS.terrainHeight(Point2d.of(enemy.x, enemy.y)) + 1 > Bot.OBS.terrainHeight(Point2d.of(x/2f, y/2f)))) {
                         InfluenceMaps.pointInEnemyVision[x][y] = true;
-                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
+                        //DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
                     }
                     //autoturret cast range
                     if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor) {

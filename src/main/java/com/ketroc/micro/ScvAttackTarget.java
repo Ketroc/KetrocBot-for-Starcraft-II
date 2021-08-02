@@ -36,7 +36,7 @@ public class ScvAttackTarget extends Scv {
 
     @Override
     public void onStep() {
-        DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
         Point2d targetPos = targetUnit.unit().getPosition().toPoint2d();
 
         //remove this object if enemy is dead or left the base

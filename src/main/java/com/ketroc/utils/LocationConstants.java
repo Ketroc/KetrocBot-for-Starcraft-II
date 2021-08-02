@@ -26,7 +26,7 @@ public class LocationConstants {
     public static Point2d mainBaseMidPos;
     public static Point2d enemyMainBaseMidPos;
     public static final List<Point2d> muleLetterPosList = new ArrayList<>();  //TODO: confirm top-left corner of letter
-    public static Point2d pointOnMyRamp;
+    public static Point2d myRampPos;
     public static Point2d pointOnEnemyRamp;
 
 
@@ -81,7 +81,7 @@ public class LocationConstants {
         mainBaseMidPos = getMainBaseMidPoint(false);
         enemyMainBaseMidPos = getMainBaseMidPoint(true);
         insideMainWall = Position.towards(
-                Position.towards(MID_WALL_3x3, pointOnMyRamp, -1f),
+                Position.towards(MID_WALL_3x3, myRampPos, -1f),
                 mainBaseMidPos,
                 2f
         );
@@ -148,7 +148,7 @@ public class LocationConstants {
                 if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInMainBase[x][y] = true;
                     if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(natPos) < 15) {
-                        pointOnMyRamp = Point2d.of(x/2, y/2);
+                        myRampPos = Point2d.of(x/2, y/2);
                     }
                 }
                 else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && isPathable(thisPos)) {

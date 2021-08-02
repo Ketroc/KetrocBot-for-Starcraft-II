@@ -2,17 +2,16 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
-import com.ketroc.models.IgnoredUnit;
+import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Ignored;
-import com.ketroc.bots.Bot;
+import com.ketroc.models.IgnoredUnit;
 import com.ketroc.utils.*;
 
 import java.util.List;
@@ -78,7 +77,7 @@ public class BasicUnitMicro {
             return;
         }
 
-        DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //attack if available
         if (attackIfAvailable()) {
@@ -265,10 +264,10 @@ public class BasicUnitMicro {
                 return Position.towards(detourPos, unit.unit().getPosition().toPoint2d(), unit.unit().getRadius());
             }
         }
-        if (rangeCheck > 20) {
+        if (rangeCheck > 18) {
             return ArmyManager.retreatPos;
         }
-        return findDetourPos(rangeCheck+2);
+        return findDetourPos(rangeCheck+1.5f);
     }
 
     //retreats as straight back as possible from the threat

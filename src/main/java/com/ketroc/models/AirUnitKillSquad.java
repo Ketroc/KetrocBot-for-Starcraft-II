@@ -17,6 +17,8 @@ import java.util.List;
 
 //banshee, overlord/seer, observer,
 public class AirUnitKillSquad {
+    public static final int MAX_THREAT = 4;
+
     public static List<AirUnitKillSquad> enemyAirTargets = new ArrayList<>();
 
     private BasicUnitMicro raven;
@@ -159,7 +161,7 @@ public class AirUnitKillSquad {
     //cancel killsquad is target is dead, in fog, or protected
     private boolean shouldCancelKillSquad() {
         boolean enemyIsProtected = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue,
-                targetUnit.unit().getPosition().toPoint2d()) >= 4;
+                targetUnit.unit().getPosition().toPoint2d()) >= MAX_THREAT;
         return !targetUnit.isAlive() ||
                 UnitUtils.isInFogOfWar(targetUnit) ||
                 enemyIsProtected;

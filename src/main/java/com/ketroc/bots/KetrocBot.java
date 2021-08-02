@@ -206,7 +206,7 @@ public class KetrocBot extends Bot {
             Purchase toRemove = null;
             Strategy.onStep();
             if (Switches.fastDepotBarracksOpener) {
-                Strategy.onStep_TvtFaststart();
+                Strategy.onStep_Faststart();
             }
             else {
                 purchaseLoop:
@@ -304,9 +304,9 @@ public class KetrocBot extends Bot {
             DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
         }
 
-        DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
-        DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
-        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
+//        DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
+//        DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
+//        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
         DEBUG.sendDebug();
     }
 
@@ -614,8 +614,8 @@ public class KetrocBot extends Bot {
                         //turn on trolling if I think I've won.
                         if (!MuleMessages.doTrollMule &&
                                 UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
-                                Bot.OBS.getFoodUsed() > 175 &&
-                                Base.numEnemyBases() < 3 &&
+                                Bot.OBS.getFoodUsed() > 170 &&
+                                Base.numEnemyBases() <= 4 &&
                                 UnitUtils.getEnemySupply() < 45) {
                             Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
                             MuleMessages.doTrollMule = true;

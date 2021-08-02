@@ -2,7 +2,6 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
@@ -10,7 +9,6 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -44,7 +42,7 @@ public class ScvRepairer extends Scv {
             return;
         }
 
-        DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
 
         //set repair target
         selectTargetUnit();

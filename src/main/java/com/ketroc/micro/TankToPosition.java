@@ -7,7 +7,6 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 //TODO: can this be removed or something??? It looks very similar to TankOffense
@@ -23,7 +22,7 @@ public class TankToPosition extends Tank {
             return;
         }
 
-        DebugHelper.boxUnit(unit.unit());
+        //DebugHelper.boxUnit(unit.unit());
 
         //no tank
         if (unit == null || !unit.isAlive()) {

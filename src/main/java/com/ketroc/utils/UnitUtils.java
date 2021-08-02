@@ -354,9 +354,9 @@ public class UnitUtils {
                         .orElse(0f);
                 break;
         }
-        //make melee units 1 range
+        //make melee units 1.5 range
         if (attackRange > 0 && attackRange < 1.5) {
-            attackRange = 1;
+            attackRange = 1.5f;
         }
         if (attackRange > 0) {
             attackRange += unit.getRadius();
@@ -766,10 +766,8 @@ public class UnitUtils {
         }
 
         //if weapon will be ready to fire next step
-        float weaponSpeed = weapons.iterator().next().getSpeed() / 1.4f;
-        float curCooldown = myUnit.getWeaponCooldown().orElse(0f);
-        float stepTime = Strategy.STEP_SIZE / 22.4f;
-        return curCooldown * weaponSpeed < stepTime*2;
+        float curCooldownInFrames = myUnit.getWeaponCooldown().orElse(0f);
+        return curCooldownInFrames <= Strategy.STEP_SIZE;
     }
 
     public static UnitInPool getClosestUnit(List<UnitInPool> unitList, Unit targetUnit) {
