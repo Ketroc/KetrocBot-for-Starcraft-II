@@ -178,6 +178,9 @@ public class ArmyManager {
                 for (int i=0; i<numScvsToAdd; i++) {
                     UnitInPool closestAvailableScv = WorkerManager.getClosestAvailableScv(
                             tankList.get(0).unit.unit().getPosition().toPoint2d());
+                    if (closestAvailableScv == null) {
+                        return;
+                    }
                     UnitMicroList.add(new ScvRepairer(closestAvailableScv));
                 }
             }
@@ -609,7 +612,7 @@ public class ArmyManager {
             tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), attackGroundPos)))
                     .ifPresent(tank -> attackAirPos = Position.towards(
-                            tank.unit.unit().getPosition().toPoint2d(), attackGroundPos, 4));
+                            tank.unit.unit().getPosition().toPoint2d(), attackGroundPos, 5.5f));
             return;
         }
 
@@ -954,10 +957,12 @@ public class ArmyManager {
         List<Unit> depots = UnitUtils.getMyUnitsOfType(UnitUtils.SUPPLY_DEPOT_TYPE);
 
         for (Unit depot : depots) {
+            boolean isDepotLowered = depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED;
+
             //WALL DEPOTS
             if (UnitUtils.isWallStructure(depot)) {
                 //Raise
-                if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
+                if (isDepotLowered) {
                     if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {
                         ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
                     }
@@ -973,13 +978,14 @@ public class ArmyManager {
 
             //REAPER WALL DEPOTS
             else if (LocationConstants.opponentRace == Race.TERRAN && UnitUtils.isReaperWallStructure(depot)) {
-                if (depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED) {
-                    if (!UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_REAPER,
-                            depot.getPosition().toPoint2d(), 12).isEmpty()) {
-                        ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
-                    }
+                boolean isReaperNearby = !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.TERRAN_REAPER,
+                        depot.getPosition().toPoint2d(), 12).isEmpty();
+                //Raise
+                if (isDepotLowered && isReaperNearby) {
+                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_RAISE, false);
                 }
-                else {
+                //Lower
+                else if (!isDepotLowered && !isReaperNearby) {
                     ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
                 }
             }

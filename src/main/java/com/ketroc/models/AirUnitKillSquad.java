@@ -80,7 +80,7 @@ public class AirUnitKillSquad {
                 vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) &&
                 (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
             Point2d scanPos = Position.towards(targetUnit.unit().getPosition().toPoint2d(),
-                    vikings.get(0).unit.unit().getPosition().toPoint2d(), -2);
+                    vikings.get(0).unit.unit().getPosition().toPoint2d(), -3.5f);
             UnitUtils.scan(scanPos);
             System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
         }

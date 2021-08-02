@@ -332,7 +332,7 @@ public class UnitUtils {
         }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
-                attackRange = 6;
+                attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
                 break;
             case TERRAN_BATTLECRUISER: case PROTOSS_HIGH_TEMPLAR: case PROTOSS_VOIDRAY:
                 attackRange = 6;

@@ -882,6 +882,7 @@ public class Strategy {
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+        BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
     }
 
     private static void setReaperBlockWall() {

@@ -25,6 +25,7 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class GameCache {
 
@@ -278,18 +279,19 @@ public class GameCache {
                     }
 
                     //set enemy cloaked variable
-                    switch (unitType) {
-                        case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
-                        case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG: case ZERG_LURKER_MP_BURROWED:
-                        case TERRAN_BANSHEE: case TERRAN_WIDOWMINE: case TERRAN_WIDOWMINE_BURROWED: case TERRAN_GHOST: case TERRAN_GHOST_ACADEMY:
-                        case ZERG_INFESTOR_BURROWED: case ZERG_BANELING_BURROWED: case ZERG_DRONE_BURROWED: case ZERG_HYDRALISK_BURROWED:
-                        case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP: case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED:
-                        case ZERG_RAVAGER_BURROWED: case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
-                            if (!Switches.enemyHasCloakThreat) {
-                                Bot.ACTION.sendChat("Sneaky boy. Looks like detection is needed.", ActionChat.Channel.BROADCAST);
-                            }
-                            Switches.enemyHasCloakThreat = true;
-                            break;
+                    if (!Switches.enemyHasCloakThreat) {
+                        switch (unitType) {
+                            case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
+                            case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG:
+                            case ZERG_LURKER_MP_BURROWED: case TERRAN_BANSHEE: case TERRAN_WIDOWMINE:
+                            case TERRAN_WIDOWMINE_BURROWED: case TERRAN_GHOST: case TERRAN_GHOST_ACADEMY:
+                            case ZERG_INFESTOR_BURROWED: case ZERG_BANELING_BURROWED: case ZERG_DRONE_BURROWED:
+                            case ZERG_HYDRALISK_BURROWED: case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP:
+                            case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED: case ZERG_RAVAGER_BURROWED:
+                            case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
+                                Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
+                                Switches.enemyHasCloakThreat = true;
+                        }
                     }
 
                     switch (unitType) {
@@ -490,13 +492,19 @@ public class GameCache {
         //TODO: include snapshot units like cannons and high ground marines
         //TODO: remember unit positions for units that can't move like siege tanks / burrowed_lurkers
         //      but forget the unit when its position becomes visible, or the unit is seen again elsewhere (this may be auto-done)
+        Predicate<UnitInPool> enemyMappingPredicate = enemy -> enemy.getLastSeenGameLoop() +
+                (UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType()) ?
+                        Strategy.MAP_ENEMIES_IN_FOG_DURATION :
+                        24
+                ) >= Time.nowFrames();
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
-                .filter(enemy -> enemy.getLastSeenGameLoop() +
-                        (UnitUtils.LONG_RANGE_ENEMIES.contains(enemy.unit().getType()) ?
-                                Strategy.MAP_ENEMIES_IN_FOG_DURATION :
-                                24
-                        ) >= Time.nowFrames())
+                .filter(enemyMappingPredicate)
+                .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
+        Ignored.ignoredUnits.stream()
+                .map(ignored -> Bot.OBS.getUnit(ignored.unitTag))
+                .filter(u -> u != null && u.isAlive() && u.unit().getAlliance() == Alliance.ENEMY)
+                .filter(enemyMappingPredicate)
                 .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
 
         //add siege tanks and lurkers that are no longer visible

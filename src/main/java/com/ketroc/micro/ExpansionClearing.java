@@ -80,9 +80,7 @@ public class ExpansionClearing {
                     turretPos = getTurretPos(turretPos); //find nearest placeable pos
                     //cast autoturret
                     if (turretPos != null) {
-                        raven.targetPos = turretPos;
-                        ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
-                        isTurretActive = true;
+                        castAutoturret(turretPos);
                         return false;
                     }
                 }
@@ -105,9 +103,7 @@ public class ExpansionClearing {
 
                     //cast autoturret
                     if (turretPos != null) {
-                        raven.targetPos = turretPos;
-                        ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
-                        isTurretActive = true;
+                        castAutoturret(turretPos);
                     }
                 }
                 //check if base is cleared of obstructions
@@ -131,6 +127,12 @@ public class ExpansionClearing {
             raven.onStep();
         }
         return false;
+    }
+
+    private void castAutoturret(Point2d turretPos) {
+        raven.targetPos = turretPos;
+        ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+        isTurretActive = true;
     }
 
     private boolean destinationUnreachable() {
@@ -182,12 +184,19 @@ public class ExpansionClearing {
     }
 
     private void setTurret() {
+        //find turret after cast
         turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.unit.unit().getPosition().toPoint2d(), 5f)
                 .stream()
                 .findFirst()
                 .orElse(null);
         if (turret != null) {
             Ignored.add(new IgnoredUnit(turret.getTag()));
+        }
+
+        //cancel turret if it didn't place
+        else if (!raven.unit.unit().getActive().orElse(true) &&
+                ActionIssued.getCurOrder(raven.unit.unit()).isEmpty()) {
+            isTurretActive = false;
         }
     }
 

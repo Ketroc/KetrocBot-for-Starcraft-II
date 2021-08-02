@@ -811,6 +811,11 @@ public class BuildManager {
             return Abilities.TRAIN_VIKING_FIGHTER;
         }
 
+        //get a solid base viking count if tank count is large
+        if (numRavens >= 2 && numVikings < UnitMicroList.getUnitSubList(TankOffense.class).size()) {
+            return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
         //otherwise raven
         return Strategy.DEFAULT_STARPORT_UNIT;
     }
