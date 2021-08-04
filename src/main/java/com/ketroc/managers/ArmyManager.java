@@ -426,7 +426,7 @@ public class ArmyManager {
         else {
             doOffense = GameCache.bansheeList.size() +
                     (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.67)  +
-                    (GameCache.ravenList.size() * 0.34) > 3 &&
+                    (GameCache.ravenList.size() * 0.34) > 8 &&
                     (GameCache.vikingList.size() * 1.2 > UnitUtils.getEnemyUnitsOfType(UnitUtils.VIKING_TYPE).size() ||
                             !isOutnumberedInVikings());
         }
@@ -600,9 +600,11 @@ public class ArmyManager {
         List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
 
         //attack closest enemy air unit, but stay close to tanks if TankOffense units are in use
-        if (closestEnemyAir != null && (Base.nearOneOfMyBases(closestEnemyAir.unit(), 25) ||
-                tankList.stream().allMatch(tankOffense ->
-                        UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) > 20))) {
+        if (closestEnemyAir != null &&
+                (Base.nearOneOfMyBases(closestEnemyAir.unit(), 25) ||
+                        tankList.isEmpty() ||
+                        tankList.stream().anyMatch(tankOffense ->
+                                UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) < 20))) {
             attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }

@@ -686,7 +686,7 @@ public class Base {
     }
 
     public Point2d inFrontPos() {
-        return Position.towards(ccPos, getResourceMidPoint(), -4.5f);
+        return Position.towards(ccPos, getResourceMidPoint(), -5f);
     }
 
     private void addTurretPosForEach1GasSide() {

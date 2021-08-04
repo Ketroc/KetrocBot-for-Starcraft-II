@@ -126,9 +126,9 @@ public class Tank extends BasicUnitMicro {
         return isLongDelayedUnsiege ? 120 : 48;
     }
 
-    protected boolean doUnsiege() {
+    protected boolean doUnsiege() { //TODO: unsiege more if retreating
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
-                UnitUtils.getDistance(unit.unit(), targetPos) > 1 &&
+                UnitUtils.getDistance(unit.unit(), targetPos) > 1.5f &&
                 getEnemiesInRange(15).isEmpty()) {
             if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
                 unsiege();

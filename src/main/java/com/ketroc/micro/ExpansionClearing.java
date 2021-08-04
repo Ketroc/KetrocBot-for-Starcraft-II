@@ -25,7 +25,7 @@ public class ExpansionClearing {
     public Point2d expansionPos;
     private int defenseStep;
     public BasicUnitMicro raven;
-    public List<UnitInPool> blockers;
+    public List<UnitInPool> blockers = new ArrayList<>();
     public UnitInPool turret;
     public boolean isTurretActive;
 

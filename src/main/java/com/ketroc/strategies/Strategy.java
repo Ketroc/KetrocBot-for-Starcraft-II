@@ -97,6 +97,8 @@ public class Strategy {
     public static UnitInPool scv_TvtFastStart;
     public static int floatBaseAt = 50; //health% to float base away at
     public static boolean NO_RAMP_WALL;
+    public static int MIN_BANSHEES = 1;
+    public static int MAX_BANSHEES = 20;
 
     public static void onGameStart() {
         STEP_SIZE = (KetrocBot.isRealTime) ? 4 : 2;
@@ -218,10 +220,10 @@ public class Strategy {
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
                 DO_IGNORE_BUNKERS = true;
-//                Switches.enemyCanProduceAir = true;
+                Switches.enemyCanProduceAir = true;
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                DO_DIVE_RAVENS = false;
-//                ENEMY_DOES_BANSHEE_HARASS = true;
+                ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
         }
     }
@@ -496,7 +498,7 @@ public class Strategy {
 
         //get 2 banshees and +1attack for creep clearing and early defense
         if (LocationConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {
-            BuildManager.MIN_BANSHEES = 2;
+            MIN_BANSHEES = 2;
             UpgradeManager.armoryUpgradeList = new ArrayList<>();
             UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
             UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
@@ -857,7 +859,7 @@ public class Strategy {
 
     public static void useCyclonesAdjustments() {
         NUM_MARINES = Math.min(2, NUM_MARINES);
-        BuildManager.MIN_BANSHEES = 0;
+        MIN_BANSHEES = 0;
         DO_USE_CYCLONES = true;
         DO_DEFENSIVE_TANKS = false;
     }
@@ -865,21 +867,19 @@ public class Strategy {
     public static void useTanksAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
         NUM_MARINES = Math.min(3, NUM_MARINES);
-        BuildManager.MIN_BANSHEES = 0;
+        MIN_BANSHEES = 0;
         DO_OFFENSIVE_TANKS = true;
         NUM_BASES_TO_OC = 3;
     }
 
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
-        UpgradeManager.starportUpgradeList.clear();
+        //UpgradeManager.starportUpgradeList.clear();
 
         //NUM_MARINES = Math.min(3, NUM_MARINES);
         DO_OFFENSIVE_TANKS = true;
-        BuildManager.MIN_BANSHEES = 0;
+        MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
-        DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);

@@ -1115,7 +1115,7 @@ public class UnitUtils {
 
     //TODO: correctly identify this, rather than using time
     public static boolean withinOpeningBuildOrder() {
-        return Time.nowFrames() < Time.toFrames("3:00");
+        return Time.nowFrames() < Time.toFrames("3:30");
     }
 
     //time (s) until a structure is available

@@ -72,7 +72,7 @@ public class TankOffense extends Tank {
 
     @Override
     public void onArrival() {
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 0.5) {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1.5f) {
             //keep one siege tanked at position while waiting for enemies to arrive
             //NOTE: probably only 1 tank will get within 1 range of targetPos
             siege();
