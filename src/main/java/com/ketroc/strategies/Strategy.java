@@ -341,7 +341,7 @@ public class Strategy {
                 GamePlan.RAVEN
         ));
 
-        gamePlan = getStrategyForLadder(availableTvPGamePlans);
+        //gamePlan = getStrategyForLadder(availableTvPGamePlans);
 
         //random selection
 //        while (!availableTvPGamePlans.contains(gamePlan)) {
@@ -397,7 +397,7 @@ public class Strategy {
                 GamePlan.RAVEN_CYCLONE
         ));
 
-        //gamePlan = getStrategyForLadder(availableTvZGamePlans);
+        gamePlan = getStrategyForLadder(availableTvZGamePlans);
 
 //        while (!availableTvZGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);

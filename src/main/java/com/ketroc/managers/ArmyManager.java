@@ -425,8 +425,8 @@ public class ArmyManager {
         }
         else {
             doOffense = GameCache.bansheeList.size() +
-                    (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.67)  +
-                    (GameCache.ravenList.size() * 0.34) > 8 &&
+                    (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.75)  +
+                    (GameCache.ravenList.size() * 0.34) > 6 &&
                     (GameCache.vikingList.size() * 1.2 > UnitUtils.getEnemyUnitsOfType(UnitUtils.VIKING_TYPE).size() ||
                             !isOutnumberedInVikings());
         }

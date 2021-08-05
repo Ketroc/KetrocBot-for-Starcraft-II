@@ -210,8 +210,11 @@ public class ExpansionClearing {
         List<Boolean> placementList = Bot.QUERY.placement(queryList);
         float turretRange = (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) ? 8 : 7;
         for (int i=0; i<placementList.size(); i++) {
-            if (placementList.get(i) && UnitUtils.getDistance(blockers.get(0).unit(), turretPosList.get(i)) < turretRange) {
-                return turretPosList.get(i);
+            Point2d turretPos = turretPosList.get(i);
+            if (placementList.get(i) && (blockers.isEmpty() ||
+                    blockers.stream().anyMatch(blocker ->
+                            UnitUtils.getDistance(blocker.unit(), turretPos) < turretRange))) {
+                return turretPos;
             }
         }
         return null;
