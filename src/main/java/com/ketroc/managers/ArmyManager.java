@@ -614,7 +614,9 @@ public class ArmyManager {
             tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), attackGroundPos)))
                     .ifPresent(tank -> attackAirPos = Position.towards(
-                            tank.unit.unit().getPosition().toPoint2d(), attackGroundPos, 5.5f));
+                            tank.unit.unit().getPosition().toPoint2d(),
+                            attackGroundPos,
+                            tank.unit.unit().getType() == Units.TERRAN_SIEGE_TANK ? 8f : 4.5f));
             return;
         }
 
@@ -1349,13 +1351,14 @@ public class ArmyManager {
         }
     }
 
+    //is outnumbered if enemy has 20% more vikings in total, than I have in nearby vikings
     private static boolean isOutnumberedInVikings() {
         int numVikingsOnFrontLine = (int)GameCache.vikingList.stream()
                 .filter(viking -> UnitUtils.getDistance(viking, attackAirPos) < 20 &&
                         UnitUtils.getHealthPercentage(viking) > Strategy.RETREAT_HEALTH)
                 .count();
 
-        return numVikingsOnFrontLine < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).stream()
+        return numVikingsOnFrontLine * 1.2f < UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).stream()
                 .filter(enemyViking -> enemyViking.getLastSeenGameLoop() + Time.toFrames(5) > Time.nowFrames())
                 .count();
     }
@@ -1522,8 +1525,8 @@ public class ArmyManager {
     }
 
     private static boolean castSeeker(Unit raven) {
-        //cast seeker only once every 3sec
-        if (Time.nowFrames() < prevSeekerFrame + 70) {
+        //cast seeker only once every 4sec
+        if (Time.nowFrames() < prevSeekerFrame + 96) {
             return false;
         }
         float ravenEnergy = raven.getEnergy().orElse(0f);

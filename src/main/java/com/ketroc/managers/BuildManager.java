@@ -420,7 +420,8 @@ public class BuildManager {
                                         Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
                                 Switches.scoutScanComplete = true;
                             }
-                            else if (GameCache.mineralBank < 3000 &&
+                            else if (!MuleMessages.doTrollMule &&
+                                    GameCache.mineralBank < 3000 &&
                                     !Switches.hasCastOCSpellThisFrame &&
                                     UnitUtils.numScansAvailable() > Switches.numScansToSave) {
                                 //calldown mule

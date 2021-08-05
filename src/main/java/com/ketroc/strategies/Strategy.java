@@ -72,7 +72,7 @@ public class Strategy {
     public static final float RAVEN_DISTANCING_BUFFER = 3f;
     public static final int CAST_SEEKER_RANGE = 15;
     public static final float SEEKER_RADIUS = 3;
-    public static final float MIN_SUPPLY_TO_SEEKER = 22;
+    public static final float MIN_SUPPLY_TO_SEEKER = 25;
     public static boolean techBuilt;
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
 
@@ -878,6 +878,7 @@ public class Strategy {
 
         //NUM_MARINES = Math.min(3, NUM_MARINES);
         DO_OFFENSIVE_TANKS = true;
+        DO_SEEKER_MISSILE = true;
         MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);

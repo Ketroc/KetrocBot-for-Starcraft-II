@@ -273,18 +273,16 @@ public class BansheeHarasser {
         return bestTarget;
     }
 
+    //Banshee report (died): 6kills (200m/50g/3.0s)
     public void printKillReport() {
         Cost killCost = new Cost();
-        StringBuffer killReport = new StringBuffer("Banshee Kill Report: \r\n");
-        killReport.append("banshee ").append(banshee.isAlive() ? "survived" : "died").append("\r\n");
-        killReport.append("Kills:  ");
-        kills.forEach((unitType, numKilled) -> {
-            killReport.append(unitType).append(":(").append(numKilled).append(")  ");
-            killCost.add(unitType, numKilled);
-        });
-        killReport.append("\r\nTotal Cost: ").append(killCost);
+        kills.forEach((unitType, numKilled) -> killCost.add(unitType, numKilled));
+
+        StringBuffer killReport = new StringBuffer("Banshee Report (");
+        killReport.append(banshee.isAlive() ? "survived" : "died").append("): ");
+        killReport.append(kills.size()).append("kills (").append(killCost).append(")");
         System.out.println(killReport);
-        Chat.chat("Banshee Kills Value: " + killCost);
+        Chat.chat(killReport.toString());
 
         if (killCost.minerals + killCost.gas >= 200) {
             Harassers.consecutiveBadHarass = 0;

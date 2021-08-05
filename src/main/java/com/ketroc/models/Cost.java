@@ -6,10 +6,13 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 
+import java.text.DecimalFormat;
+
 public class Cost {
     public int minerals;
     public int gas;
     public float supply;
+    public static final DecimalFormat supplyFormat = new DecimalFormat("0.#");
 
     public Cost() {
 
@@ -114,6 +117,6 @@ public class Cost {
 
     @Override
     public String toString() {
-        return minerals + "mins, " + gas + "gas, " + supply + "supply";
+        return minerals + "m/" + gas + "g/" + supplyFormat.format(supply) + "s";
     }
 }

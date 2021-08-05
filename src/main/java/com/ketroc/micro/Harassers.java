@@ -57,14 +57,18 @@ public class Harassers {
                     if (!clockwiseBanshee.banshee.isAlive() && clockwiseBanshee.isWithinPhoenixRange()) {
                         consecutiveBadHarass = 2;
                     }
-                    clockwiseBanshee.printKillReport();
+                    if (!doEndBansheeHarass()) {
+                        clockwiseBanshee.printKillReport();
+                    }
                     Ignored.remove(clockwiseBanshee.banshee.getTag());
                     clockwiseBanshee = null;
                 }
             }
             if (counterClockwiseBanshee != null) {
                 if (doRemoveBanshee(counterClockwiseBanshee)) {
-                    counterClockwiseBanshee.printKillReport();
+                    if (!doEndBansheeHarass()) {
+                        counterClockwiseBanshee.printKillReport();
+                    }
                     Ignored.remove(counterClockwiseBanshee.banshee.getTag());
                     counterClockwiseBanshee = null;
                 }

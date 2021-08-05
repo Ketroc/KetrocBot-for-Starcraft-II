@@ -119,8 +119,6 @@ public class ExpansionClearing {
         //turret has expired
         else if (!turret.isAlive()) {
             removeTurret();
-            raven.targetPos = expansionPos;
-            isTurretActive = false;
         }
         //move raven on turret and wait for it to expire
         else {
@@ -176,6 +174,8 @@ public class ExpansionClearing {
             Ignored.remove(turret.getTag());
             turret = null;
         }
+        raven.targetPos = expansionPos;
+        isTurretActive = false;
     }
 
     private boolean testExpansionPos() {
@@ -196,7 +196,7 @@ public class ExpansionClearing {
         //cancel turret if it didn't place
         else if (!raven.unit.unit().getActive().orElse(true) &&
                 ActionIssued.getCurOrder(raven.unit.unit()).isEmpty()) {
-            isTurretActive = false;
+            removeTurret();
         }
     }
 
@@ -262,8 +262,8 @@ public class ExpansionClearing {
     public static void remove(ExpansionClearing expo) {
         //Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
         expoClearList.remove(expo);
-        expo.removeRaven();
         expo.removeTurret();
+        expo.removeRaven();
     }
 
     public static boolean contains(Point2d expansionPos) {
