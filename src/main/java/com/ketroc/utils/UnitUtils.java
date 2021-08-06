@@ -186,6 +186,11 @@ public class UnitUtils {
                 numUnits += numInProductionOfType(unitType);
             }
         }
+        if (unitType == Units.TERRAN_MARINE) { //FIXME: assuming bunkers only contain marines
+            numUnits += UnitUtils.getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
+                    .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
+                    .sum();
+        }
         return numUnits;
     }
 
@@ -574,7 +579,9 @@ public class UnitUtils {
     }
 
     public static boolean isWallUnderAttack() { //TODO: make more accurate
-        return GameCache.wallStructures.stream().anyMatch(unit -> unit.getType() == Units.TERRAN_SUPPLY_DEPOT); //if depot is raised then unsafe to expand
+        //if depot is raised then unsafe
+        return !GameCache.wallStructures.isEmpty() && GameCache.wallStructures.stream().allMatch(structure ->
+                InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, structure.getPosition().toPoint2d()));
     }
 
     public static float getStructureRadius(Units structureType) {
@@ -840,14 +847,6 @@ public class UnitUtils {
 
     public static Cost getCost(Unit unit) {
         return Cost.getUnitCost(unit.getType());
-    }
-
-    public static int getMarineCount() {
-        int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
-        marineCount += getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
-                .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
-                .sum();
-        return marineCount;
     }
 
     public static float getVisionRange(Unit unit) {

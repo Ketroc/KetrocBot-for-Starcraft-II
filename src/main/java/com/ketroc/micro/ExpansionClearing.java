@@ -119,6 +119,7 @@ public class ExpansionClearing {
         //turret has expired
         else if (!turret.isAlive()) {
             removeTurret();
+            raven.targetPos = expansionPos;
         }
         //move raven on turret and wait for it to expire
         else {
@@ -174,7 +175,6 @@ public class ExpansionClearing {
             Ignored.remove(turret.getTag());
             turret = null;
         }
-        raven.targetPos = expansionPos;
         isTurretActive = false;
     }
 
@@ -197,6 +197,7 @@ public class ExpansionClearing {
         else if (!raven.unit.unit().getActive().orElse(true) &&
                 ActionIssued.getCurOrder(raven.unit.unit()).isEmpty()) {
             removeTurret();
+            raven.targetPos = expansionPos;
         }
     }
 

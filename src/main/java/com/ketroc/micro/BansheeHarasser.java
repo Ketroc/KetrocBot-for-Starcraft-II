@@ -280,7 +280,7 @@ public class BansheeHarasser {
 
         StringBuffer killReport = new StringBuffer("Banshee Report (");
         killReport.append(banshee.isAlive() ? "survived" : "died").append("): ");
-        killReport.append(kills.size()).append("kills (").append(killCost).append(")");
+        killReport.append(kills.values().stream().mapToInt(v -> v).sum()).append("kills (").append(killCost).append(")");
         System.out.println(killReport);
         Chat.chat(killReport.toString());
 

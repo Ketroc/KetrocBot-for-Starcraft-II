@@ -40,9 +40,8 @@ public class Chat {
 
     public static final List<String> WINNING_BM_CHAT = new ArrayList<>(List.of(
             "This is where Larva would start playing with his feet",
-            "Just GG already.  I'm not going to crash-- 0x6F09844E FATAL ERROR!",
+            "Just GG out.  I'm not going to crash-- 0x6F09844E FATAL ERROR!",
             "Ya give up, or ya thirsty for more?",
-            "I wonder if I can convert minerals to BTC",
             "KET REKT!"
     ));
 

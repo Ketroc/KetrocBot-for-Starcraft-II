@@ -8,6 +8,7 @@ import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.purchases.PurchaseStructureMorph;
 import com.ketroc.purchases.PurchaseUnit;
@@ -16,6 +17,8 @@ import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.Position;
+
+import java.util.Comparator;
 
 public class BuildOrder {
     public static UnitInPool proxyScv;
@@ -72,13 +75,17 @@ public class BuildOrder {
                 else {
                     Switches.fastDepotBarracksOpener = true;
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                    //KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SCV, GameCache.baseList.get(0).getCc()));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+                    if (!LocationConstants.FACTORIES.isEmpty()) {
+                        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                        LocationConstants.FACTORIES.clear();
+                    }
+                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                     if (Strategy.NUM_MARINES > 0) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
                     }
-                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
 
                     //finish reaper wall first
@@ -93,21 +100,21 @@ public class BuildOrder {
                             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                         }
                     }
-
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
                     if (Strategy.NUM_BASES_TO_OC < 2 &&
                             (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2)) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     }
-                    while (!LocationConstants.FACTORIES.isEmpty()) {
-                        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-                    }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-
-//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-//                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                    if (Purchase.numStructuresQueuedOfType(Units.TERRAN_SUPPLY_DEPOT) < 3) {
+                        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                    }
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+                    //KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                    KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SIEGE_TANK));
+                    build3rdCC();
                 }
                 break;
             case PROTOSS:
@@ -343,6 +350,20 @@ public class BuildOrder {
                 }
             }
             return natCCPos;
+        }
+    }
+
+    public static void build3rdCC() {
+        if (Strategy.BUILD_EXPANDS_IN_MAIN) {
+            Point2d thirdCcPos = LocationConstants.MACRO_OCS.stream()
+                    .min(Comparator.comparing(p -> p.distance(LocationConstants.baseLocations.get(2))))
+                    .get();
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, thirdCcPos));
+            LocationConstants.MACRO_OCS.remove(thirdCcPos);
+        }
+        else {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(
+                    Units.TERRAN_COMMAND_CENTER, LocationConstants.baseLocations.remove(2)));
         }
     }
 }

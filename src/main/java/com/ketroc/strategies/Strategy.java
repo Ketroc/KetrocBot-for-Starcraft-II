@@ -776,8 +776,10 @@ public class Strategy {
                     scv_TvtFastStart = Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream()
                             .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.extraDepots.get(0))))
                             .get();
-                    ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv_TvtFastStart.unit());
-                    ((PurchaseStructure)KetrocBot.purchaseQueue.get(1)).setScv(scv_TvtFastStart.unit());
+                    PurchaseStructure.getPurchase(Units.TERRAN_SUPPLY_DEPOT)
+                            .ifPresent(purchase -> purchase.setScv(scv_TvtFastStart.unit()));
+                    PurchaseStructure.getPurchase(Units.TERRAN_BARRACKS)
+                            .ifPresent(purchase -> purchase.setScv(scv_TvtFastStart.unit()));
                     Switches.fastDepotBarracksOpener = false;
                 }
                 break;
@@ -881,6 +883,7 @@ public class Strategy {
         DO_SEEKER_MISSILE = true;
         MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
+        BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);

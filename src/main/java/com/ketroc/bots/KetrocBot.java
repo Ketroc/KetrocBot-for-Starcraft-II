@@ -611,17 +611,6 @@ public class KetrocBot extends Bot {
                         }
                         break;
                     case ENEMY:
-                        //turn on trolling if I think I've won.
-                        if (UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()) &&
-                                Bot.OBS.getFoodUsed() > 160 &&
-                                Base.numEnemyBases() <= 4 &&
-                                UnitUtils.getEnemySupply() < 45) {
-                            Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
-                            MuleMessages.doTrollMule = true;
-                        }
-                        else {
-                            MuleMessages.doTrollMule = false;
-                        }
 
                         //attempt to count banshee kills
                         Harassers.onEnemyUnitDeath(unit);

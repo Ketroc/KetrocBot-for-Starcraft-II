@@ -118,7 +118,7 @@ public class BuildManager {
             GameCache.barracksList.stream()
                     .filter(rax -> !rax.unit().getActive().orElse(true))
                     .forEach(rax -> {
-                        int marineCount = UnitUtils.getMarineCount();
+                        int marineCount = UnitUtils.numMyUnits(Units.TERRAN_MARINE, true);
                         if (marineCount < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
                             if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                                 ActionHelper.unitCommand(rax.unit(), Abilities.TRAIN_MARINE, false);
@@ -588,11 +588,10 @@ public class BuildManager {
 
         // early safety marines
         else if (UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, false) < 2) {
-            if (UnitUtils.getMarineCount() < Strategy.NUM_MARINES && Bot.OBS.getMinerals() >= 50) {
-                if (UnitUtils.canAfford(Units.TERRAN_MARINE, true)) {
-                    ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
-                    Cost.updateBank(Units.TERRAN_MARINE);
-                }
+            if (UnitUtils.canAfford(Units.TERRAN_MARINE, true) &&
+                    UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) < Strategy.NUM_MARINES) {
+                ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
+                Cost.updateBank(Units.TERRAN_MARINE);
             }
         }
     }
@@ -770,7 +769,7 @@ public class BuildManager {
 
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 6;
+        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 5;
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {

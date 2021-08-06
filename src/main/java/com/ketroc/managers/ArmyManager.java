@@ -823,7 +823,6 @@ public class ArmyManager {
         Optional<UnitInPool> bunkerAtNatural =
                 Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
                         UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
-                        bunker.unit().getCargoSpaceTaken().orElse(4) >= 1 &&
                         ActionIssued.getCurOrder(bunker.unit()).stream()
                                 .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
                 .stream()
@@ -832,8 +831,11 @@ public class ArmyManager {
                 getEnemyInMain() :
                 getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
         if (enemyInMyBase != null) {
-            bunkerAtNatural.ifPresent(bunker ->
-                    ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false));
+            bunkerAtNatural.ifPresent(bunker -> {
+                if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
+                    ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
+                }
+            });
             MarineBasic.setTargetPos(enemyInMyBase.getPosition().toPoint2d());
             return;
         }

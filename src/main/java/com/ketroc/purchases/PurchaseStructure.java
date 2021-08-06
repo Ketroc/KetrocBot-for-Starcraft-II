@@ -89,6 +89,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         Print.print("Added to queue: " + this.structureType);
     }
 
+
     //===== Getters/Setters =====
     public Unit getScv() {
         return scv;
@@ -467,6 +468,15 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         return Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType()) && u.unit().getPosition().toPoint2d().distance(location) < 1)
                 .get(0).unit();
     }
+
+    public static Optional<PurchaseStructure> getPurchase(Units structureType) {
+        return KetrocBot.purchaseQueue.stream()
+                .filter(purchase -> purchase instanceof PurchaseStructure &&
+                        ((PurchaseStructure) purchase).structureType == structureType)
+                .findFirst()
+                .map(purchase -> (PurchaseStructure)purchase);
+    }
+
 
     @Override
     public void setCost() {

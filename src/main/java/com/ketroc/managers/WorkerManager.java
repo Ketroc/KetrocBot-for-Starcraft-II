@@ -467,10 +467,10 @@ public class WorkerManager {
 
     public static void toggleWorkersInGas() {
         //skip logic until there are at least 2 refineries
-        int numRefineries = UnitUtils.numMyUnits(UnitUtils.REFINERY_TYPE, false);
-        if (numRefineries <= 1) {
-            return;
-        }
+//        int numRefineries = UnitUtils.numMyUnits(UnitUtils.REFINERY_TYPE, false);
+//        if (numRefineries <= 1) {
+//            return;
+//        }
 
         //max gas during slow 3rd base build order
         if (Strategy.EXPAND_SLOWLY && Time.nowFrames() < Time.toFrames("5:00")) {

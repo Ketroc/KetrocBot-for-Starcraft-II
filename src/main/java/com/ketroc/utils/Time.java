@@ -46,5 +46,7 @@ public class Time {
     }
 
 
-
+    public static boolean isFrameSkip(int i) {
+        return nowFrames() % i == 0;
+    }
 }

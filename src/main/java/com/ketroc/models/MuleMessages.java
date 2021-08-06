@@ -37,6 +37,23 @@ public class MuleMessages {
     public static List<Point2d> remainingMulePositions = new ArrayList<>();
 
     public static void onStep() {
+        //turn on trolling if I think I've won.
+        if (Time.isFrameSkip(480) &&
+                Bot.OBS.getFoodUsed() > 160 &&
+                Base.numEnemyBases() <= 4 &&
+                UnitUtils.getEnemySupply() < 45) {
+            if (Bot.OBS.getMinerals() + Bot.OBS.getVespene() > 4000) {
+                Chat.chatNeverRepeat("I wonder if I can convert minerals to Bitcoin");
+            }
+            else {
+                Chat.chatNeverRepeat(Chat.getRandomMessage(Chat.WINNING_BM_CHAT));
+            }
+            MuleMessages.doTrollMule = true;
+        }
+        else {
+            MuleMessages.doTrollMule = false;
+        }
+
         if (!doTrollMule || LocationConstants.muleLetterPosList.isEmpty()) {
             return;
         }
