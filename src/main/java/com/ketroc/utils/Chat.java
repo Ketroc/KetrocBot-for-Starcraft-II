@@ -8,7 +8,7 @@ import com.ketroc.models.DelayedChat;
 import java.util.*;
 
 public class Chat {
-    public static Map<String, Integer> onceMessages = new HashMap<>();
+    public static Map<String, Integer> usedMessages = new HashMap<>();
     public static Map<String, String> botResponses = new HashMap<>();
     static {
         //ANIBot responses
@@ -82,18 +82,44 @@ public class Chat {
     }
 
     private static void chatNeverRepeat(String message, ActionChat.Channel channel) {
-        if (!onceMessages.keySet().contains(message)) {
-            onceMessages.put(message, Time.nowSeconds());
+        if (!usedMessages.keySet().contains(message)) {
+            usedMessages.put(message, Time.nowSeconds());
             Bot.ACTION.sendChat(message, channel);
         }
     }
 
+    public static void chatNeverRepeat(List<String> chatOptions) {
+        chatNeverRepeat(chatOptions, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatNeverRepeat(List<String> chatOptions, ActionChat.Channel channel) {
+        String randomMessage = getRandomMessage(chatOptions);
+        Bot.ACTION.sendChat(randomMessage, channel);
+        chatOptions.forEach(message -> {
+            if (!usedMessages.keySet().contains(message)) {
+                usedMessages.put(message, Time.nowSeconds());
+            }
+        });
+    }
+
     public static void chatWithoutSpam(String message, int secondsBetweenMessages) {
-        int lastChatted = onceMessages.getOrDefault(message, Integer.MIN_VALUE);
-        int now = Time.nowSeconds();
-        if (lastChatted + secondsBetweenMessages <= now) {
-            onceMessages.put(message, Time.nowSeconds());
+        int lastChatted = usedMessages.getOrDefault(message, Integer.MIN_VALUE);
+        if (lastChatted + secondsBetweenMessages <= Time.nowSeconds()) {
+            usedMessages.put(message, Time.nowSeconds());
             Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+        }
+    }
+
+    public static void chatWithoutSpam(List<String> chatOptions, int secondsBetweenMessages) {
+        String randomMessage = getRandomMessage(chatOptions);
+        int lastChatted = usedMessages.getOrDefault(randomMessage, Integer.MIN_VALUE);
+        if (lastChatted + secondsBetweenMessages <= Time.nowSeconds()) {
+            Bot.ACTION.sendChat(randomMessage, ActionChat.Channel.BROADCAST);
+            chatOptions.forEach(message -> {
+                if (!usedMessages.keySet().contains(message)) {
+                    usedMessages.put(message, Time.nowSeconds());
+                }
+            });
         }
     }
 
