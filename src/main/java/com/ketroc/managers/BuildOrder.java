@@ -80,7 +80,7 @@ public class BuildOrder {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
                     if (!LocationConstants.FACTORIES.isEmpty()) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-                        LocationConstants.FACTORIES.clear();
+                        //LocationConstants.FACTORIES.clear();
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                     if (Strategy.NUM_MARINES > 0) {
@@ -101,12 +101,12 @@ public class BuildOrder {
                         }
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
                     if (Strategy.NUM_BASES_TO_OC < 2 &&
                             (Strategy.NO_RAMP_WALL || LocationConstants.reaperBlock3x3s.size() < 2)) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                     }
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
                     if (Purchase.numStructuresQueuedOfType(Units.TERRAN_SUPPLY_DEPOT) < 3) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     }

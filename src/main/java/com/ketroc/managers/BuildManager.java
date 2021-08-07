@@ -69,11 +69,7 @@ public class BuildManager {
                 Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
                 (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) {
             int numTanks = UnitMicroList.getUnitSubList(TankOffense.class).size();
-            boolean prioritizeStarportProduction = !openingStarportUnits.isEmpty() ||
-                    UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true) <
-                            (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 6 ||
-                    UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) < 1;
-            if (prioritizeStarportProduction) {
+            if (doPrioritizeStarportUnits()) {
                 //build starport units
                 buildStarportUnitsLogic();
 
@@ -132,7 +128,9 @@ public class BuildManager {
         }
 
         //build factory logic
-        buildFactoryLogic();
+        if (!doPrioritizeStarportUnits()) {
+            buildFactoryLogic();
+        }
 
         //build starport logic
         buildStarportLogic();
@@ -146,9 +144,20 @@ public class BuildManager {
         noGasProduction();
     }
 
+    private static boolean doPrioritizeStarportUnits() {
+        return UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true) <
+                        numVikingsInTvT() ||
+                UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) < 1;
+    }
+
+    private static int numVikingsInTvT() {
+        int numVikingsNeeded = ArmyManager.calcNumVikingsNeeded();
+        return numVikingsNeeded + Math.min(6, (int)(numVikingsNeeded*0.34));
+    }
+
     private static void spamMulesOnEnemyBase() {
         //exit since mule spam replaced with troll muling
-        if (MuleMessages.doTrollMule && GameCache.mineralBank > 100) {
+        if (MuleMessages.doTrollMule) {
             return;
         }
         List<Unit> ocList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
@@ -769,7 +778,7 @@ public class BuildManager {
 
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int vikingsRequired = (int)(ArmyManager.calcNumVikingsNeeded() * 1.2) + 5;
+        int vikingsRequired = numVikingsInTvT();
 
         //never max out without a raven
         if (Bot.OBS.getFoodUsed() >= 196 && numRavens == 0) {
@@ -994,9 +1003,8 @@ public class BuildManager {
     }
 
     public static boolean isAllProductionStructuresBusy() {
-        return (isAllProductionStructuresActive(Units.TERRAN_FACTORY) ||
-                        UnitMicroList.getUnitSubList(TankOffense.class).size() >= 10) && //factories are purposely idle when 10 tanks on the field
-                isAllProductionStructuresActive(Units.TERRAN_STARPORT);
+        return isAllProductionStructuresActive(Units.TERRAN_STARPORT) &&
+                (isAllProductionStructuresActive(Units.TERRAN_FACTORY) || doPrioritizeStarportUnits());
     }
 
     private static boolean isAllProductionStructuresActive(Units structureType) {

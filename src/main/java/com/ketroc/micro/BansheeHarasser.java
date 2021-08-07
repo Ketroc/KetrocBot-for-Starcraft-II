@@ -2,6 +2,7 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
@@ -85,11 +86,11 @@ public class BansheeHarasser {
 
         //if can attack, find target
         if (UnitUtils.isWeaponAvailable(banshee.unit())) {
-            Target target = selectHarassTarget();
+            UnitInPool target = selectHarassTarget();
             //attack when safe, or when there's a good value target and not headed home
-            if (target.unit != null) {
-                if (isSafe() || (!retreatForRepairs && UnitUtils.canOneShotEnemy(banshee.unit(), target.unit.unit()))){
-                    ActionHelper.unitCommand(banshee.unit(), Abilities.ATTACK, target.unit.unit(), false);
+            if (target != null) {
+                if (isSafe() || (!retreatForRepairs && UnitUtils.canOneShotEnemy(banshee.unit(), target.unit()))){
+                    ActionHelper.unitCommand(banshee.unit(), Abilities.ATTACK, target.unit(), false);
                     return;
                 }
             }
@@ -248,7 +249,26 @@ public class BansheeHarasser {
     }
 
     //selects target based on cost:health ratio
-    public Target selectHarassTarget() {
+    public UnitInPool selectHarassTarget() {
+        //TODO: target missile turret constructing scv
+        if (LocationConstants.opponentRace == Race.TERRAN) {
+            List<UnitInPool> enemyTurretsInProduction = Bot.OBS.getUnits(Alliance.ENEMY, enemyTurret -> enemyTurret.unit().getType() == Units.TERRAN_MISSILE_TURRET &&
+                    enemyTurret.unit().getBuildProgress() < 1 &&
+                    UnitUtils.getDistance(enemyTurret.unit(), banshee.unit()) < 9); //TODO: consider ranges for keeping banshee near turret
+
+            if (!enemyTurretsInProduction.isEmpty()) {
+                UnitInPool scvProducingTurret = Bot.OBS.getUnits(Alliance.ENEMY, enemyScv -> enemyScv.unit().getType() == Units.TERRAN_SCV &&
+                                enemyTurretsInProduction.stream().anyMatch(enemyTurret ->
+                                        UnitUtils.getDistance(enemyScv.unit(), enemyTurret.unit()) < 2.5))
+                        .stream()
+                        .min(Comparator.comparing(enemyScv -> UnitUtils.getDistance(enemyScv.unit(), banshee.unit())))
+                        .orElse(null);
+                if (scvProducingTurret != null) {
+                    return scvProducingTurret;
+                }
+            }
+        }
+
         List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY,
                 enemy -> !enemy.unit().getFlying().orElse(true) &&
                         UnitUtils.getDistance(enemy.unit(), banshee.unit()) <= 5.9 &&
@@ -270,7 +290,7 @@ public class BansheeHarasser {
                 bestTarget.update(enemy, enemyValue, enemyHP);
             }
         }
-        return bestTarget;
+        return bestTarget.unit;
     }
 
     //Banshee report (died): 6kills (200m/50g/3.0s)

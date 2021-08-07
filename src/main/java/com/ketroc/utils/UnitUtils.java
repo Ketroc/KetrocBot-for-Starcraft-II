@@ -1179,4 +1179,8 @@ public class UnitUtils {
             return secondsToProduce(Bot.abilityToUpgrade.get(ability));
         }
     }
+
+    public static int numMySiegedTanks() {
+        return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED).size();
+    }
 }

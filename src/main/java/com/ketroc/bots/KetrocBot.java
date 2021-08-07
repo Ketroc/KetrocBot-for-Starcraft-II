@@ -610,10 +610,15 @@ public class KetrocBot extends Bot {
                                 Base.releaseScv(unit);
                         }
                         break;
-                    case ENEMY:
 
+                    case ENEMY:
                         //attempt to count banshee kills
                         Harassers.onEnemyUnitDeath(unit);
+
+                        //turn on trolling if game is all but over
+                        if (ArmyManager.doOffense) {
+                            MuleMessages.checkIfGameIsWon();
+                        }
                 }
             }
         }

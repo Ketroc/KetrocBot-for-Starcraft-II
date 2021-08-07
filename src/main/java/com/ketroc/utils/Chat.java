@@ -40,7 +40,7 @@ public class Chat {
 
     public static final List<String> WINNING_BM_CHAT = new ArrayList<>(List.of(
             "This is where Larva would start playing with his feet",
-            "Just GG out.  I'm not going to crash-- 0x6F09844E FATAL ERROR!",
+            "Just GG out.  I'm not going to crash--         0x6F09844E FATAL ERROR!",
             "Ya give up, or ya thirsty for more?",
             "KET REKT!"
     ));
@@ -94,12 +94,11 @@ public class Chat {
 
     public static void chatNeverRepeat(List<String> chatOptions, ActionChat.Channel channel) {
         String randomMessage = getRandomMessage(chatOptions);
+        if (usedMessages.keySet().contains(randomMessage)) {
+            return;
+        }
         Bot.ACTION.sendChat(randomMessage, channel);
-        chatOptions.forEach(message -> {
-            if (!usedMessages.keySet().contains(message)) {
-                usedMessages.put(message, Time.nowSeconds());
-            }
-        });
+        chatOptions.forEach(message -> usedMessages.put(message, Time.nowSeconds()));
     }
 
     public static void chatWithoutSpam(String message, int secondsBetweenMessages) {
@@ -113,14 +112,11 @@ public class Chat {
     public static void chatWithoutSpam(List<String> chatOptions, int secondsBetweenMessages) {
         String randomMessage = getRandomMessage(chatOptions);
         int lastChatted = usedMessages.getOrDefault(randomMessage, Integer.MIN_VALUE);
-        if (lastChatted + secondsBetweenMessages <= Time.nowSeconds()) {
-            Bot.ACTION.sendChat(randomMessage, ActionChat.Channel.BROADCAST);
-            chatOptions.forEach(message -> {
-                if (!usedMessages.keySet().contains(message)) {
-                    usedMessages.put(message, Time.nowSeconds());
-                }
-            });
+        if (lastChatted + secondsBetweenMessages > Time.nowSeconds()) {
+            return;
         }
+        Bot.ACTION.sendChat(randomMessage, ActionChat.Channel.BROADCAST);
+        chatOptions.forEach(message -> usedMessages.put(message, Time.nowSeconds()));
     }
 
     public static void tag(String tag) {

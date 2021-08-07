@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
@@ -113,7 +114,13 @@ public class Tank extends BasicUnitMicro {
     }
 
     protected boolean doSiegeUp() {
-        if (!getEnemiesInRange(13).isEmpty()) {
+        //don't siege if retreating
+        if (!ArmyManager.doOffense && UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15) { //attackGroundPos is home pos or enemy units near my bases
+            return false;
+        }
+
+        int rangeToSiege = (ArmyManager.doOffense && UnitUtils.numMySiegedTanks() < 2) ? 18 : 13;
+        if (!getEnemyTargetsInRange(rangeToSiege).isEmpty()) {
             siege();
             return true;
         }
@@ -126,10 +133,26 @@ public class Tank extends BasicUnitMicro {
         return isLongDelayedUnsiege ? 120 : 48;
     }
 
-    protected boolean doUnsiege() { //TODO: unsiege more if retreating
+    protected boolean doUnsiege() {
+        //unsiege immediately if retreating
+        if (!ArmyManager.doOffense &&
+                UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
+                getEnemyTargetsInRange(11).isEmpty()) {
+            unsiege();
+            return true;
+        }
+
+        //unsiege immediately if no targets but under threat
+        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) &&
+                getEnemyTargetsInRange(13).isEmpty()) {
+            unsiege();
+            return true;
+        }
+
+        //unsiege when no enemy targets for awhile
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 1.5f &&
-                getEnemiesInRange(15).isEmpty()) {
+                getEnemyTargetsInRange(15).isEmpty()) {
             if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
                 unsiege();
                 return true;
@@ -140,15 +163,15 @@ public class Tank extends BasicUnitMicro {
         return false;
     }
 
-    protected List<UnitInPool> getEnemiesInRange(int range) {
+    protected List<UnitInPool> getEnemyTargetsInRange(int range) {
         List<UnitInPool> enemies = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
-                        (UnitUtils.canMove(enemy.unit()) ? range : 13) + enemy.unit().getRadius() &&
-                        !enemy.unit().getFlying().orElse(true) &&
-                        !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                        !enemy.unit().getHallucination().orElse(false) &&
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        !UnitUtils.isSnapshot(enemy.unit()));
+                        (UnitUtils.canMove(enemy.unit()) ? range : Math.min(range, 13)) + enemy.unit().getRadius() &&
+                !enemy.unit().getFlying().orElse(true) &&
+                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                !enemy.unit().getHallucination().orElse(false) &&
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                !UnitUtils.isSnapshot(enemy.unit()));
         return enemies;
     }
 
@@ -212,5 +235,14 @@ public class Tank extends BasicUnitMicro {
                 unit.unit().getPosition().toPoint2d(),
                 -5);
         UnitUtils.scan(scanPos);
+    }
+
+    @Override
+    protected void detour() {
+        if (!UnitUtils.isInMyMain(unit.unit())) {
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, ArmyManager.retreatPos, false);
+            return;
+        }
+        super.detour();
     }
 }

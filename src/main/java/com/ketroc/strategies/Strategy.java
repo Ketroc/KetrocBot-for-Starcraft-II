@@ -354,7 +354,7 @@ public class Strategy {
 //                .get();
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+            gamePlan = GamePlan.BANSHEE;
         }
 
         switch (gamePlan) {

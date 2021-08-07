@@ -426,7 +426,7 @@ public class ArmyManager {
         else {
             doOffense = GameCache.bansheeList.size() +
                     (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.75)  +
-                    (GameCache.ravenList.size() * 0.34) > 6 &&
+                    (GameCache.ravenList.size() * 0.34) >= 4.5 &&
                     (GameCache.vikingList.size() * 1.2 > UnitUtils.getEnemyUnitsOfType(UnitUtils.VIKING_TYPE).size() ||
                             !isOutnumberedInVikings());
         }
@@ -1051,10 +1051,7 @@ public class ArmyManager {
                 case PROTOSS_ORACLE:
                     answer += 0.5;
                     break;
-                case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT:
-                    answer += 1.67;
-                    break;
-                case ZERG_CORRUPTOR:
+                case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT: case ZERG_CORRUPTOR:
                     answer += 1.3;
                     break;
                 case PROTOSS_PHOENIX:
@@ -1160,7 +1157,7 @@ public class ArmyManager {
             if (isInDetectionRange) {
                 //retreat
                 //retreatMyUnit(banshee);
-                kiteBackAirUnit(banshee);
+                kiteBackAirUnit(banshee, lastCommand);
                 //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(banshee);
             }
             else if (cloakState != CloakState.NOT_CLOAKED &&
@@ -1320,7 +1317,7 @@ public class ArmyManager {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
             }
             else {
-                kiteBackAirUnit(viking);
+                kiteBackAirUnit(viking, lastCommand);
             }
         }
         //Under 100% health and at repair bay
@@ -1332,7 +1329,7 @@ public class ArmyManager {
         //in range then back up
         else if (isInVikingRange) {
             //if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(viking);
-            kiteBackAirUnit(viking);
+            kiteBackAirUnit(viking, lastCommand);
         }
         //go home if low health
         else if (canRepair && UnitUtils.getHealthPercentage(viking) < healthToRepair) {
@@ -1344,13 +1341,23 @@ public class ArmyManager {
         }
     }
 
-    private static void kiteBackAirUnit(Unit viking) {
-        Point2d kiteBackPos = getKiteBackPos(viking);
-        if (kiteBackPos != null && !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
-            ActionHelper.unitCommand(viking, Abilities.MOVE, kiteBackPos, false);
-        } else {
-            new BasicUnitMicro(viking, retreatPos, MicroPriority.SURVIVAL).onStep();
+    private static void kiteBackAirUnit(Unit myAirUnit, ArmyCommands lastCommand) {
+        //try going home direction to save apm
+        Point2d retreatingPos = Position.towards(myAirUnit.getPosition().toPoint2d(), retreatPos, 2);
+        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, retreatingPos)) {
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(myAirUnit);
+            return;
         }
+
+        //try kiting straight back from nearest enemy threat
+        Point2d kiteBackPos = getKiteBackPos(myAirUnit);
+        if (kiteBackPos != null && !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, kiteBackPos)) {
+            ActionHelper.unitCommand(myAirUnit, Abilities.MOVE, kiteBackPos, false);
+            return;
+        }
+
+        //otherwise pathfind to safety
+        new BasicUnitMicro(myAirUnit, retreatPos, MicroPriority.SURVIVAL).onStep();
     }
 
     //is outnumbered if enemy has 20% more vikings in total, than I have in nearby vikings
@@ -1434,17 +1441,7 @@ public class ArmyManager {
                 if (!Strategy.DO_MATRIX || !castMatrix(raven)) {
                     if (!doCastTurrets || !doAutoTurret(raven)) {
                         if (isUnsafe) {
-                            Point2d kiteBackPos = getKiteBackPos(raven);
-                            if (kiteBackPos == null) {
-                                kiteBackPos = Position.towards(raven.getPosition().toPoint2d(), retreatPos, -4);
-                            }
-                            if (!InfluenceMaps.getValue(threatMap, kiteBackPos)) {
-                                ActionHelper.unitCommand(raven, Abilities.MOVE, kiteBackPos, false);
-                            } else {
-                                new BasicUnitMicro(raven, retreatPos, MicroPriority.SURVIVAL).onStep();
-                            }
-                        } else if (lastCommand != ArmyCommands.HOME) {
-                            armyGoingHome.add(raven);
+                            kiteBackAirUnit(raven, lastCommand);
                         }
                     }
                 }
