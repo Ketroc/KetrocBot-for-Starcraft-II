@@ -23,7 +23,7 @@ public class TestingBotLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
 //                .setDataVersion("B89B5D6FA7CBF6452E721311BFBC6CB2")
                 .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(true, null,false)),
+                        S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(true, null)),
                         S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
 //                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
                 .launchStarcraft()

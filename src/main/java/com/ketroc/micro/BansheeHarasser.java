@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.*;
 
@@ -20,7 +21,7 @@ import java.util.Map;
 
 public class BansheeHarasser {
     public static final float RETREAT_HEALTH = 50;
-    public static final float BANSHEE_MOVEMENT_SIZE = (Bot.isRealTime) ? 4f : 2.5f;
+    public static final float BANSHEE_MOVEMENT_SIZE = (Launcher.STEP_SIZE > 2) ? 4f : 2.5f;
     public UnitInPool banshee;
     private List<Point2d> baseList;
     private boolean isDodgeClockwise;
@@ -102,6 +103,19 @@ public class BansheeHarasser {
             }
         }
 
+        //flee from closest cyclone, if locked on
+        if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
+            Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(
+                    Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());
+            if (nearestCyclone != null) {
+                ActionHelper.unitCommand(banshee.unit(), Abilities.MOVE,
+                        Position.towards(banshee.unit().getPosition().toPoint2d(),
+                                nearestCyclone.getPosition().toPoint2d(), -3),
+                        false);
+                return;
+            }
+        }
+
         //find a path
         Point2d headedTo = getTargetLocation();
         giveMovementCommand(headedTo);
@@ -113,12 +127,12 @@ public class BansheeHarasser {
             return LocationConstants.REPAIR_BAY;
         }
 
-        //flee from closest cyclone, if locked on
-        if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
-            Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());
-            if (nearestCyclone != null) {
-                return Position.towards(banshee.unit().getPosition().toPoint2d(), nearestCyclone.getPosition().toPoint2d(), -4);
-            }
+        //go towards nearest missile turret in production
+        UnitInPool closestIncompleteTurret = getNearbyIncompleteTurrets().stream()
+                .min(Comparator.comparing(turret -> UnitUtils.getDistance(banshee.unit(), turret.unit())))
+                .orElse(null);
+        if (closestIncompleteTurret != null) {
+            return closestIncompleteTurret.unit().getPosition().toPoint2d();
         }
 
         //go towards nearest enemy worker
@@ -216,6 +230,10 @@ public class BansheeHarasser {
     }
 
     private boolean isSafe(Point2d p) {
+        if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
+            return false;
+        }
+
         //avoid high damage areas even if cloaked
         float threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, p);
         if (threatValue >= 50) {
@@ -250,15 +268,13 @@ public class BansheeHarasser {
 
     //selects target based on cost:health ratio
     public UnitInPool selectHarassTarget() {
-        //TODO: target missile turret constructing scv
+        //target missile turret constructing scv
         if (LocationConstants.opponentRace == Race.TERRAN) {
-            List<UnitInPool> enemyTurretsInProduction = Bot.OBS.getUnits(Alliance.ENEMY, enemyTurret -> enemyTurret.unit().getType() == Units.TERRAN_MISSILE_TURRET &&
-                    enemyTurret.unit().getBuildProgress() < 1 &&
-                    UnitUtils.getDistance(enemyTurret.unit(), banshee.unit()) < 9); //TODO: consider ranges for keeping banshee near turret
+            List<UnitInPool> enemyIncompleteTurrets = getNearbyIncompleteTurrets();
 
-            if (!enemyTurretsInProduction.isEmpty()) {
+            if (!enemyIncompleteTurrets.isEmpty()) {
                 UnitInPool scvProducingTurret = Bot.OBS.getUnits(Alliance.ENEMY, enemyScv -> enemyScv.unit().getType() == Units.TERRAN_SCV &&
-                                enemyTurretsInProduction.stream().anyMatch(enemyTurret ->
+                                enemyIncompleteTurrets.stream().anyMatch(enemyTurret ->
                                         UnitUtils.getDistance(enemyScv.unit(), enemyTurret.unit()) < 2.5))
                         .stream()
                         .min(Comparator.comparing(enemyScv -> UnitUtils.getDistance(enemyScv.unit(), banshee.unit())))
@@ -291,6 +307,12 @@ public class BansheeHarasser {
             }
         }
         return bestTarget.unit;
+    }
+
+    private List<UnitInPool> getNearbyIncompleteTurrets() { //TODO: consider ranges for keeping banshee near turret
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemyTurret -> enemyTurret.unit().getType() == Units.TERRAN_MISSILE_TURRET &&
+                enemyTurret.unit().getBuildProgress() < 1 &&
+                UnitUtils.getDistance(enemyTurret.unit(), banshee.unit()) < 9);
     }
 
     //Banshee report (died): 6kills (200m/50g/3.0s)

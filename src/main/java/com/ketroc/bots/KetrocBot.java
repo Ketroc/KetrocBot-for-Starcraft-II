@@ -1,8 +1,10 @@
 package com.ketroc.bots;
 
-import com.github.ocraft.s2client.bot.gateway.*;
-import com.github.ocraft.s2client.protocol.action.ActionChat;
-import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrade;
+import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
@@ -17,26 +19,28 @@ import com.ketroc.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
 import com.ketroc.gson.JsonUtil;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.*;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
 import com.ketroc.purchases.*;
 import com.ketroc.strategies.*;
 import com.ketroc.strategies.defenses.*;
-import com.ketroc.utils.*;
 import com.ketroc.utils.Error;
+import com.ketroc.utils.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class KetrocBot extends Bot {
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
 
-    public KetrocBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
-        super(isDebugOn, opponentId, isRealTime);
+    public KetrocBot(boolean isDebugOn, String opponentId) {
+        super(isDebugOn, opponentId);
     }
 
     @Override
@@ -47,10 +51,6 @@ public class KetrocBot extends Bot {
     @Override
     public void onGameStart() {
         try {
-            //end date for bot functioning
-//            if (LocalDate.now().isAfter(LocalDate.parse("2021-05-01"))) {
-//                return;
-//            }
             super.onGameStart();
             Print.print("opponentId = " + opponentId);
 
@@ -65,10 +65,7 @@ public class KetrocBot extends Bot {
                     .get()
                     .getRequestedRace();
 
-            //start first scv
             UnitInPool mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
-//            ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
-//            Bot.ACTION.sendActions();
 
             //get map, get hardcoded map locations
             LocationConstants.onGameStart(mainCC);
@@ -119,12 +116,6 @@ public class KetrocBot extends Bot {
 //            Bot.OBS.getUnits(Alliance.NEUTRAL).forEach(uip -> DebugHelper.boxUnit(uip.unit()));
 //            DEBUG.sendDebug();
 
-            //prevent multiple runs on the same frame
-            if (OBS.getGameLoop() == gameFrame) {
-                Print.print("gameFrame repeated = " + gameFrame);
-                return;
-            }
-            gameFrame = OBS.getGameLoop();
 
             for (ChatReceived chat : OBS.getChatMessages()) {
                 if (chat.getPlayerId() != OBS.getPlayerId()) {
@@ -133,33 +124,34 @@ public class KetrocBot extends Bot {
             }
 
             //first step of the game
-            if (Time.nowFrames() == Strategy.STEP_SIZE) {
-                ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
+            if (Time.nowFrames() <= Launcher.STEP_SIZE) {
+                //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
                 JsonUtil.chatAllWinRates(true);
             }
 
-            if (Time.nowFrames() % Strategy.STEP_SIZE != 0 ||
-                    (isRealTime && Time.nowFrames() < 24)) {
-                return;
-            }
+//            if (Time.nowFrames() % Launcher.STEP_SIZE != 0 ||
+//                    (Launcher.isRealTime && Time.nowFrames() < 24)) {
+//                return;
+//            }
 
             //************************************
             //***** DO EVERY STEPSIZE FRAME ******
             //************************************
 
             //TODO: delete - for testing
-            if (Time.nowFrames() == Time.toFrames(60)) {
-                GameCache.baseList.get(0).scvReport();
-            }
+//            if (Time.at(Time.toFrames(170))) {
+//                //GameCache.baseList.get(0).scvReport();
+//                DEBUG.debugCreateUnit(Units.PROTOSS_ADEPT_PHASE_SHIFT, LocationConstants.mainBaseMidPos, enemyId, 1);
+//            }
 
             DebugHelper.onStep(); //reset debug status for printing info
-            ActionIssued.onStep(); //remove saved actions that are >12 frames old
-//            PlacementMap.visualizePlacementMap();
-//            PlacementMap.setColumn();
+            //PlacementMap.visualizePlacementMap();
 
             Ignored.onStep(); //free up ignored units
             EnemyScan.onStep(); //remove expired enemy scans
             GameCache.onStep(); //rebuild unit cache every frame
+            ActionIssued.onStep(); //remove saved actions that are >12 frames old
+//            StructureScv.updateBank(); //update bank for build commands which haven't been given yet
             GasStealDefense.onStep(); //check for early-game gas steal and respond
             ActionErrorManager.onStep(); //handle action errors like "cannot place building"
             ExpansionClearing.onStep(); //micro to clear expansion positions
@@ -173,8 +165,6 @@ public class KetrocBot extends Bot {
 //                    printCurrentGameInfo();
 //                }
 
-
-
             //update status of scvs building structures
             StructureScv.checkScvsActivelyBuilding();
 
@@ -184,23 +174,25 @@ public class KetrocBot extends Bot {
                     return;
                 }
             }
+            else {
+                WorkerRushDefense2.onStep();
+            }
 
             //scv rush opener
             if (!Switches.scvRushComplete) {
                 Switches.scvRushComplete = ScvRush.onStep();
             }
 
-
             CannonRushDefense.onStep();
             ProxyHatchDefense.onStep();
+            ScvTarget.onStep();
             ProxyBunkerDefense.onStep();
             BunkerContain.onStep();
             MarineAllIn.onStep();
             EnemyManager.onStep();
 
-            //clearing bases that have just dried up or died
-            GameCache.baseList.forEach(Base::onStep);
-            GameCache.baseList.forEach(base -> base.onStepEnd());
+            GameCache.baseList.forEach(Base::onStep); //clearing bases that have just dried up or died
+            GameCache.baseList.forEach(base -> base.onStepEnd()); //speed mining
 
             //purchase from queue
             Purchase toRemove = null;
@@ -242,8 +234,6 @@ public class KetrocBot extends Bot {
 
             purchaseQueue.remove(toRemove);
 
-            PlacementMap.setColumn();
-
             if (isDebugOn) {
                 displayGameInfo();
             }
@@ -256,7 +246,7 @@ public class KetrocBot extends Bot {
     } // end onStep()
 
     private void displayGameInfo() {
-        //                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
+//                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 
         DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
@@ -279,6 +269,7 @@ public class KetrocBot extends Bot {
                 .map(structureScv -> structureScv.getScv().unit().getType())
                 .filter(unitType -> unitType == Units.TERRAN_SCV)
                 .count());
+        DebugHelper.addInfoLine("doOffense: " + ArmyManager.doOffense);
         DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
         DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
         DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
@@ -310,7 +301,7 @@ public class KetrocBot extends Bot {
         DEBUG.sendDebug();
     }
 
-    private void printCurrentGameInfo() {
+    public static void printCurrentGameInfo() {
         Print.print("\n\nGame info");
         Print.print("===================\n");
         Print.print("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
@@ -434,11 +425,13 @@ public class KetrocBot extends Bot {
                             BunkerContain.onFactoryComplete();
                         }
                         else {
-                            //start with (1 factory + 1 starport), or start with (2 starports)
-                            ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
-                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_OFFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
-                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
+                            if (!MapNames.ICE_AND_CHROME506.equals(LocationConstants.MAP)) {
+                                ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
                             }
+//                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_OFFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
+//                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
+//                            }
+//                            //start with (1 factory + 1 starport), or start with (2 starports)
 //                            else if (UnitUtils.getNumFriendlyUnits(UnitUtils.STARPORT_TYPE, true) == 0) {
 //                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
 //                            }
@@ -527,12 +520,18 @@ public class KetrocBot extends Bot {
                 }
                 break;
             case TERRAN_SCV:
-                //ignore scvs that existed the refinery as they are considered "created"
+                //ignore scvs that exited the refinery as they are considered "created"
                 if (OBS.getUnits(Alliance.SELF, u ->
                         UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
                         UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
-                    Base.assignScvToAMineralPatch(unitInPool);
+                    if (!Switches.fastDepotBarracksOpener || Bot.OBS.getFoodWorkers() != 13 || Time.nowSeconds() > 15) { //don't add first created scv if needed for depot
+                        Base.assignScvToAMineralPatch(unitInPool);
+                    }
                 }
+                break;
+            case TERRAN_FACTORY:
+                //set rally on factories to left side
+                Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
                 break;
         }
     }
@@ -698,7 +697,8 @@ public class KetrocBot extends Bot {
                 .findFirst()
                 .orElse(Result.VICTORY);
 
-        if (result == Result.TIE || result == Result.UNDECIDED) {
+        //if (result == Result.TIE || result == Result.UNDECIDED) { //removed to treat ties as losses
+        if (result == Result.UNDECIDED) {
             return;
         }
 

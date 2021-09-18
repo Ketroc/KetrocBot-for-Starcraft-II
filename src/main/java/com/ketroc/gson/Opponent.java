@@ -71,6 +71,16 @@ public class Opponent {
                 .orElse(new WinLossRecord(gamePlan));
     }
 
+    public void setRecord(GamePlan gamePlan, int wins, int losses) {
+        strategyWinRates.stream()
+                .filter(record -> record.getGamePlan() == gamePlan)
+                .findAny()
+                .ifPresent(winLossRecord -> {
+                    winLossRecord.setWins(wins);
+                    winLossRecord.setLosses(losses);
+                });
+    }
+
     public void filterToGamePlans(Set<GamePlan> gamePlanSet) {
         strategyWinRates = gamePlanSet.stream()
                 .map(gamePlan -> getRecord(gamePlan))

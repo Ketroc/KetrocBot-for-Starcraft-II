@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.ketroc.managers.ActionErrorManager;
 import com.ketroc.utils.Error;
+import com.ketroc.utils.Print;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,18 +24,17 @@ public class Bot extends S2Agent {
     public static DebugInterface DEBUG;
     public static ControlInterface CONTROL;
     public static boolean isDebugOn;
-    public static boolean isRealTime;
     public static String opponentId;
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
     public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
-    public static long gameFrame = -1;
-    public int myId;
-    public int enemyId;
+    public static long[] prevGameFrames = new long[]{1, 1};
+    public static int myId;
+    public static int enemyId;
+    public static int maxSkippedFrames = 3; //number of frames to save prev actions
 
-    public Bot(boolean isDebugOn, String opponentId, boolean isRealTime) {
+    public Bot(boolean isDebugOn, String opponentId) {
         this.isDebugOn = isDebugOn;
         this.opponentId = opponentId;
-        this.isRealTime = isRealTime;
     }
 
     @Override
@@ -86,7 +86,31 @@ public class Bot extends S2Agent {
 
     @Override
     public void onStep() {
-        Bot.OBS.getActionErrors().forEach(actionError -> ActionErrorManager.actionErrorList.add(actionError));
+        //end date for bot functioning
+//        if (LocalDate.now().isAfter(LocalDate.parse("2021-10-10"))) {
+//            return;
+//        }
+
+//        //missed a frame
+//        int skippedFrames = (int)(OBS.getGameLoop() - (gameFrame + 1));
+//        if (skippedFrames > 0) {
+//            Print.print(gameFrame + " - " + skippedFrames + "frames skipped.");
+//            if (OBS.getGameLoop() > 20 && skippedFrames > maxSkippedFrames) {
+//                maxSkippedFrames = skippedFrames;
+//            }
+//        }
+
+        //repeating same frame
+        if (OBS.getGameLoop() == prevGameFrames[0]) {
+            Print.print("gameFrame repeated = " + OBS.getGameLoop());
+            return;
+        }
+
+        //save prev 2 frames
+        prevGameFrames[1] = prevGameFrames[0];
+        prevGameFrames[0] = OBS.getGameLoop();
+
+        OBS.getActionErrors().forEach(actionError -> ActionErrorManager.actionErrorList.add(actionError));
     }
 
     public void updateIds() {

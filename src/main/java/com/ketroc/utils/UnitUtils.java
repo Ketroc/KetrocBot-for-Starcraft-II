@@ -5,6 +5,8 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
+import com.ketroc.launchers.Launcher;
+import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.StructureSize;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.GameCache;
@@ -133,7 +135,11 @@ public class UnitUtils {
 
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
             Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET,
-            Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING));
+            Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.PROTOSS_DISRUPTOR_PHASED,
+            Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE));
+
+    public static final Set<Units> UNTARGETTABLES = new HashSet<>(Set.of(
+            Units.PROTOSS_DISRUPTOR_PHASED, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE));
 
     public static final Set<Units> LONG_RANGE_ENEMIES = new HashSet<>(Set.of(
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
@@ -153,9 +159,13 @@ public class UnitUtils {
     public static final Set<Units> VIKING_PEEL_TARGET_TYPES = new HashSet<>(Set.of(
             Units.ZERG_OVERLORD, Units.ZERG_TRANSPORT_OVERLORD_COCOON, Units.ZERG_OVERSEER,
             Units.ZERG_OVERSEER_SIEGED, Units.ZERG_OVERLORD_TRANSPORT, Units.ZERG_OVERLORD_COCOON,
-            Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE,
+            Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE, //Units.PROTOSS_OBSERVER, viking dive code seems better atm
             Units.PROTOSS_WARP_PRISM, Units.PROTOSS_WARP_PRISM_PHASING, Units.TERRAN_MEDIVAC,
             Units.TERRAN_BANSHEE, Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
+
+    public static final Set<Units> DETECTOR_TYPES = new HashSet<>(Set.of(
+            Units.TERRAN_RAVEN, Units.TERRAN_MISSILE_TURRET, Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED,
+            Units.PROTOSS_PHOTON_CANNON, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED, Units.ZERG_SPORE_CRAWLER));
 
     public static final Set<Units> CREEP_TUMOR_TYPES = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN));
@@ -293,10 +303,10 @@ public class UnitUtils {
 
         if (GameCache.wallStructures.contains(unit)) {
             if (structureHealth > 75) {
-                return 1;
+                return (Strategy.WALL_OFF_IMMEDIATELY) ? 2 : 1;
             }
             else {
-                return 2;
+                return (Strategy.WALL_OFF_IMMEDIATELY) ? 3 : 2;
             }
         }
         switch ((Units)unit.getType()) {
@@ -339,7 +349,7 @@ public class UnitUtils {
             case TERRAN_BUNKER:
                 attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
                 break;
-            case TERRAN_BATTLECRUISER: case PROTOSS_HIGH_TEMPLAR: case PROTOSS_VOIDRAY:
+            case TERRAN_BATTLECRUISER: case PROTOSS_HIGH_TEMPLAR: case PROTOSS_VOIDRAY: case TERRAN_CYCLONE:
                 attackRange = 6;
                 break;
             case PROTOSS_SENTRY: case TERRAN_WIDOWMINE_BURROWED:
@@ -530,6 +540,8 @@ public class UnitUtils {
         switch ((Units)unit.getType()) {
             case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: case PROTOSS_DISRUPTOR_PHASED:
                 return true;
+            case TERRAN_BUNKER:
+                return !Strategy.DO_IGNORE_BUNKERS;
         }
         return Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.GROUND || weapon.getTargetType() == Weapon.TargetType.ANY);
@@ -539,8 +551,13 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return false;
         }
-        return unit.getType() == WIDOW_MINE_TYPE ||
-                Bot.OBS.getUnitTypeData(false).get(unit.getType())
+        switch ((Units)unit.getType()) {
+            case TERRAN_WIDOWMINE_BURROWED:
+                return true;
+            case TERRAN_BUNKER:
+                return !Strategy.DO_IGNORE_BUNKERS;
+        }
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.AIR || weapon.getTargetType() == Weapon.TargetType.ANY);
     }
 
@@ -715,6 +732,7 @@ public class UnitUtils {
     public static Unit getClosestEnemyThreat(Point2d pos, boolean isThreatToAir) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 !enemy.unit().getHallucination().orElse(false) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         isThreatToAir ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
                 .stream()
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), pos)))
@@ -774,7 +792,7 @@ public class UnitUtils {
 
         //if weapon will be ready to fire next step
         float curCooldownInFrames = myUnit.getWeaponCooldown().orElse(0f);
-        return curCooldownInFrames <= Strategy.STEP_SIZE;
+        return curCooldownInFrames <= Launcher.STEP_SIZE;
     }
 
     public static UnitInPool getClosestUnit(List<UnitInPool> unitList, Unit targetUnit) {
@@ -824,17 +842,20 @@ public class UnitUtils {
     }
 
     public static boolean isInMyMainOrNat(Point2d unitPos) {
-        Point2d mainPos = GameCache.baseList.get(0).getCcPos();
-        Point2d natPos = GameCache.baseList.get(1).getCcPos();
+        return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, unitPos) ||
+                InfluenceMaps.getValue(InfluenceMaps.pointInNat, unitPos);
 
-        float unitHeight = Bot.OBS.terrainHeight(unitPos);
-        float mainHeight = Bot.OBS.terrainHeight(mainPos);
-        float natHeight = Bot.OBS.terrainHeight(natPos);
-
-        boolean isInMain = unitPos.distance(mainPos) < 30 && Math.abs(unitHeight - mainHeight) < 1.2;
-        boolean isInNat = unitPos.distance(natPos) < 16 && Math.abs(unitHeight - natHeight) < 1.2;
-
-        return isInMain || isInNat;
+//        Point2d mainPos = GameCache.baseList.get(0).getCcPos();
+//        Point2d natPos = GameCache.baseList.get(1).getCcPos();
+//
+//        float unitHeight = Bot.OBS.terrainHeight(unitPos);
+//        float mainHeight = Bot.OBS.terrainHeight(mainPos);
+//        float natHeight = Bot.OBS.terrainHeight(natPos);
+//
+//        boolean isInMain = unitPos.distance(mainPos) < 30 && Math.abs(unitHeight - mainHeight) < 1.2;
+//        boolean isInNat = unitPos.distance(natPos) < 16 && Math.abs(unitHeight - natHeight) < 1.2;
+//
+//        return isInMain || isInNat;
     }
 
     public static int getMineralCost(Unit unit) {
@@ -864,7 +885,7 @@ public class UnitUtils {
     public static List<UnitInPool> getIdleScvs() {
         return Bot.OBS.getUnits(Alliance.SELF, scv ->
                 scv.unit().getType() == Units.TERRAN_SCV &&
-                ActionIssued.getCurOrder(scv.unit()).isEmpty() &&
+                ActionIssued.getCurOrder(scv).isEmpty() &&
                 !Ignored.contains(scv.getTag()) &&
                 !Base.isMining(scv));
     }
@@ -916,7 +937,7 @@ public class UnitUtils {
         return unit.unit().getDisplayType() != DisplayType.SNAPSHOT &&
                 unit.isAlive() &&
                 unit.getLastSeenGameLoop() < Time.nowFrames() &&
-                unit.getLastSeenGameLoop() >= (Time.nowFrames() - Strategy.STEP_SIZE);
+                unit.getLastSeenGameLoop() >= (Time.nowFrames() - Launcher.STEP_SIZE);
     }
 
     public static boolean canAttack(UnitType unitType) {
@@ -1025,13 +1046,13 @@ public class UnitUtils {
         return getWeapon(attackingUnit, targetUnit.getFlying().orElse(false));
     }
 
-    public static Optional<Weapon> getWeapon(Unit attackingUnit, boolean isEnemyFlying) {
+    public static Optional<Weapon> getWeapon(Unit attackingUnit, boolean isTargetFlying) {
         if (attackingUnit.getType().toString().contains("CHANGELING")) {
             return Optional.empty();
         }
         return Bot.OBS.getUnitTypeData(false).get(attackingUnit.getType()).getWeapons().stream()
                 .filter(weapon -> weapon.getTargetType() !=
-                        (isEnemyFlying ? Weapon.TargetType.GROUND : Weapon.TargetType.AIR))
+                        (isTargetFlying ? Weapon.TargetType.GROUND : Weapon.TargetType.AIR))
                 .findAny();
     }
 
@@ -1077,6 +1098,13 @@ public class UnitUtils {
     public static float getEnemySupply() {
         return (float) GameCache.allEnemiesList.stream()
                 .mapToDouble(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getFoodRequired().orElse(0f))
+                .sum();
+    }
+
+    public static float getVisibleEnemySupplyInMyMainorNat() {
+        return (float) GameCache.allVisibleEnemiesList.stream()
+                .filter(enemy -> UnitUtils.isInMyMainOrNat(enemy.unit()))
+                .mapToDouble(enemy -> Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType()).getFoodRequired().orElse(0f))
                 .sum();
     }
 
@@ -1182,5 +1210,30 @@ public class UnitUtils {
 
     public static int numMySiegedTanks() {
         return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED).size();
+    }
+
+    public static boolean isRepairBaySafe() {
+        return !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, LocationConstants.REPAIR_BAY) &&
+                !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, LocationConstants.REPAIR_BAY);
+    }
+
+    public static boolean isAnyBaseUnderAttack() {
+        if (ArmyManager.attackUnit == null) {
+            return false;
+        }
+        return GameCache.baseList.stream().noneMatch(base ->
+                base.isMyBase() && UnitUtils.getDistance(ArmyManager.attackUnit, base.getCcPos()) < 15);
+    }
+
+    public static List<UnitInPool> getEnemyGroundArmyUnitsWithin(int range) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                !u.unit().getFlying().orElse(true) &&
+                canAttack(u.unit().getType()) &&
+                canMove(u.unit()));
+    }
+
+    public static boolean isExpansionNeeded() {
+        return BuildManager.getNextAvailableExpansionPosition() != null &&
+                Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.numScvs(true) + (Base.numMyBases() * 4));
     }
 }

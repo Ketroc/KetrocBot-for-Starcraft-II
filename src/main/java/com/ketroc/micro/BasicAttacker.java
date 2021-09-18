@@ -52,8 +52,8 @@ public class BasicAttacker {
     }
 
     private boolean isTargettingUnit(Unit target) {
-        return ActionIssued.getCurOrder(attacker.unit()).isPresent() &&
-                target.getTag().equals(ActionIssued.getCurOrder(attacker.unit()).get().targetTag);
+        return ActionIssued.getCurOrder(attacker).isPresent() &&
+                target.getTag().equals(ActionIssued.getCurOrder(attacker).get().targetTag);
     }
 
     private Unit findTarget() {

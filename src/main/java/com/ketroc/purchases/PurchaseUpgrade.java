@@ -83,7 +83,8 @@ public class PurchaseUpgrade implements Purchase {
             }
 
             //if structure not producing upgrade
-            if (!productionStructure.unit().getActive().orElse(true)) {
+            if (!productionStructure.unit().getActive().orElse(true) &&
+                    productionStructure.unit().getBuildProgress() == 1) {
                 Print.print("sending action " + upgrade);
                 Ability upgradeAbility = getUpgradeAbility();
                 ActionHelper.unitCommand(productionStructure.unit(), upgradeAbility, false);
@@ -110,7 +111,7 @@ public class PurchaseUpgrade implements Purchase {
                 return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) > 0;
             case INFERNAL_PRE_IGNITERS:
                 return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0;
-            case BANSHEE_SPEED: case BANSHEE_CLOAK:
+            case BANSHEE_SPEED: //case BANSHEE_CLOAK:
                 return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
                 return UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) > 0;

@@ -131,6 +131,22 @@ public class StructureScv {
     // ******** STATIC METHODS *********
     // *********************************
 
+    //reduce bank for structure costs of structures which haven't gotten the "BUILD" order yet in realtime mode
+//    public static void updateBank() {
+//        if (Launcher.isRealTime) {
+//            scvBuildingList.stream()
+//                    .filter(sScv -> sScv.getStructureUnit() == null &&
+//                            sScv.scv != null &&
+//                            sScv.scv.unit().getOrders().stream()
+//                                    .anyMatch(order -> !order.getAbility().toString().contains("BUILD")))
+//                    .forEach(sScv -> {
+//                        System.out.println("frame#" + Time.nowFrames() + ": reducing available bank for " + sScv.structureType);
+//                        Cost.updateBank(sScv.structureType);
+//                        System.out.println("GameCache.mineralBank = " + GameCache.mineralBank);
+//                    });
+//        }
+//    }
+
     public static boolean onStructureCompleted(Unit structure) {
         for (int i = 0; i< scvBuildingList.size(); i++) {
             StructureScv structureScv = scvBuildingList.get(i);
@@ -226,8 +242,8 @@ public class StructureScv {
             }
 
             //if scv doesn't have the build command
-            if (ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty() ||
-                    (ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility) &&
+            if (ActionIssued.getCurOrder(structureScv.scv).isEmpty() ||
+                    (ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility) &&
                             structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility))) { //scv can have the order queued if it just finished building another structure
                 UnitInPool structure = structureScv.getStructureUnit();
 
@@ -241,8 +257,13 @@ public class StructureScv {
                             ExpansionClearing.add(structureScv.structurePos);
                         }
                     }
-                    System.out.println("ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty() = " + ActionIssued.getCurOrder(structureScv.scv.unit()).isEmpty());
-                    System.out.println("ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility) = " + ActionIssued.getCurOrder(structureScv.scv.unit()).stream().noneMatch(order -> order.ability == structureScv.buildAbility));
+                    System.out.println("Frame#" + Time.nowFrames());
+                    System.out.println("ActionIssued.lastActionIssued.get(structureScv.scv) != null = " + (ActionIssued.lastActionIssued.get(structureScv.scv) != null));
+                    System.out.println("ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility) = " + ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility));
+                    System.out.println("structureScv.buildAbility = " + structureScv.buildAbility);
+                    if (!ActionIssued.getCurOrder(structureScv.scv).isEmpty()) {
+                        System.out.println("order.ability = " + ActionIssued.getCurOrder(structureScv.scv).stream().findFirst().get().ability);
+                    }
                     System.out.println("structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility) = " + structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility));
                     requeueCancelledStructure(structureScv);
                     remove(structureScv);
@@ -280,7 +301,7 @@ public class StructureScv {
 
     //makes structure position available again, then requeues structure purchase (sometimes)
     private static void requeueCancelledStructure(StructureScv structureScv) {
-        Print.print("structure requeued");
+        Print.print("structure requeued:" + structureScv.structureType);
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:
@@ -362,7 +383,10 @@ public class StructureScv {
     public static void remove(StructureScv structureScv) {
         if (structureScv.scv != null) {
             Ignored.remove(structureScv.scv.getTag());
+            ActionHelper.unitCommand(structureScv.scv.unit(), Abilities.STOP, false);
         }
         scvBuildingList.remove(structureScv);
     }
+
+
 }

@@ -23,11 +23,11 @@ import java.util.*;
 public class Cyclone extends BasicUnitMicro {
     //list of unit types to never lock-on to TODO: check if KD8Charge unit ever exists
     public static final Set<Units> NEVER_LOCK_TYPES = new HashSet<>(Set.of(
-            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_MULE,
-            Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_DISRUPTOR_PHASED, Units.TERRAN_KD8CHARGE,
-            Units.ZERG_PARASITIC_BOMB_DUMMY, Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED,
-            Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
-            Units.ZERG_CHANGELING_MARINE_SHIELD));
+            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.ZERG_PARASITIC_BOMB_DUMMY,
+            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
+            Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE, Units.ZERG_CHANGELING_MARINE_SHIELD,
+            Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.PROTOSS_DISRUPTOR_PHASED,
+            Units.TERRAN_KD8CHARGE, Units.TERRAN_MULE));
     //list of units to soft-lock-on (keep reassessing)
     public static final Set<Units> SOFT_LOCK_TYPES = new HashSet<>(Set.of(
             Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.TERRAN_MARINE,

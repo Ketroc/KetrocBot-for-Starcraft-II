@@ -41,7 +41,7 @@ public class FlyingCC {
     // ***************
 
     public boolean isMoving() {
-        return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit.unit()).isPresent();
+        return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit).isPresent();
     }
     public boolean hasLanded() {
         return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER;
@@ -52,7 +52,7 @@ public class FlyingCC {
 
     public void keepCCMoving() {
         Unit cc = unit.unit();
-        if (cc.getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(cc).isEmpty()) {
+        if (cc.getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit).isEmpty()) {
             ActionHelper.unitCommand(cc, Abilities.LAND, destination, false);
         }
     }

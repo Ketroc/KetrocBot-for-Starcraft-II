@@ -19,7 +19,7 @@ public class ProxyHatchDefense {
         if (isProxyHatch) {
             if (!ScvAttackTarget.contains(hatchery.getTag())) {
                 List<UnitInPool> allScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 30);
-                int numScvs = hatchery.unit().getBuildProgress() > 0.45f ? 12 : 7; //TODO: math this to more accuracy?
+                int numScvs = hatchery.unit().getBuildProgress() > 0.5f ? 12 : 8; //TODO: math this to more accuracy?
                 numScvs = Math.min(allScvs.size(), numScvs);
                 allScvs.stream()
                         .sorted(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), hatchery.unit().getPosition().toPoint2d())))

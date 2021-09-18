@@ -221,9 +221,6 @@ public class EnemyUnit {
                     break;
             }
         }
-        if (range != 0) {
-            range += enemy.getRadius();
-        }
         return range;
     }
 
@@ -285,7 +282,7 @@ public class EnemyUnit {
             case TERRAN_AUTO_TURRET:
                 return 6;
             case TERRAN_CYCLONE:
-                return 2;
+                return 3;
             case TERRAN_THOR:
                 return 14;
             case TERRAN_THOR_AP:
@@ -464,6 +461,10 @@ public class EnemyUnit {
 
         }
         return 0;
+    }
+
+    public boolean isTargettableUnit() {
+        return unitType != Units.INVALID && !UnitUtils.UNTARGETTABLES.contains(unitType);
     }
 
 }

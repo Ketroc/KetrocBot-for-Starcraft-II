@@ -85,12 +85,16 @@ public class DebugHelper {
     }
 
     public static void drawText(String text, Point2d pos, Color color) {
+        drawText(text, pos, color, TEXT_SIZE);
+    }
+
+    public static void drawText(String text, Point2d pos, Color color, int textSize) {
         if (!Bot.isDebugOn) {
             return;
         }
         float x = pos.getX();
         float y = pos.getY();
-        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, TEXT_SIZE);
+        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, textSize);
     }
 
     public static void addInfoLine(String text) {
@@ -101,10 +105,14 @@ public class DebugHelper {
     }
 
     public static void drawText(String text, float x, float y, Color color) {
+        drawText(text, x, y, color, TEXT_SIZE);
+    }
+
+    public static void drawText(String text, float x, float y, Color color, int textSize) {
         if (!Bot.isDebugOn) {
             return;
         }
-        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, TEXT_SIZE);
+        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, textSize);
     }
 
     public static void boxUnit(Unit unit) {

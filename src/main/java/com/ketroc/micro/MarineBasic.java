@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 
 public class MarineBasic extends Marine {
+
     public MarineBasic(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.DPS);
     }

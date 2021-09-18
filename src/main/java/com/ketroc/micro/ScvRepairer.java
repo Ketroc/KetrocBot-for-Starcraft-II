@@ -17,8 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
-    This scv object will attack a target until it dies or flees the main&nat area
-    Scv is replaced with a fresh scv when it's hp drops below 10
+    Scv for repairing TankOffense units and other ScvRepairer units
  */
 public class ScvRepairer extends Scv {
 
@@ -48,7 +47,7 @@ public class ScvRepairer extends Scv {
         selectTargetUnit();
 
         //move to target unit
-        Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(unit.unit());
+        Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(unit);
         if (curOrder.isEmpty() ||
                 (curOrder.get().ability == Abilities.MOVE && UnitUtils.getHealthPercentage(targetUnit.unit()) < 99) ||
                 !targetUnit.getTag().equals(curOrder.get().targetTag)) {
@@ -102,7 +101,9 @@ public class ScvRepairer extends Scv {
         }
 
         //set target to closest tank if all tanks are full hp and no tank target is currently set
-        if (targetUnit == null || !targetUnit.isAlive() || UnitUtils.SIEGE_TANK_TYPE.contains(targetUnit.unit().getType())) {
+        if (targetUnit == null ||
+                !targetUnit.isAlive() ||
+                !UnitUtils.SIEGE_TANK_TYPE.contains(targetUnit.unit().getType())) {
             targetUnit = tankList.stream()
                     .min(Comparator.comparing(tank -> UnitUtils.getDistance(unit.unit(), tank.unit.unit())))
                     .get()

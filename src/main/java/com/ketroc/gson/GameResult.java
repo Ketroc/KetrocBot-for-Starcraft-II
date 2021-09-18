@@ -2,10 +2,14 @@ package com.ketroc.gson;
 
 import com.ketroc.strategies.GamePlan;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class GameResult {
-    private GamePlan gamePlan = GamePlan.NONE;
+    private GamePlan gamePlan;
     private boolean didWin;
     private String time;
+    private Set tags = new HashSet();
 
     public GameResult() {
         this.gamePlan = GamePlan.NONE;
@@ -13,10 +17,11 @@ public class GameResult {
         this.time = "15:00";
     }
 
-    public GameResult(GamePlan gamePlan, boolean didWin, String time) {
+    public GameResult(GamePlan gamePlan, boolean didWin, String time, Set tags) {
         this.gamePlan = gamePlan;
         this.didWin = didWin;
         this.time = time;
+        this.tags = tags;
     }
 
     public GamePlan getGamePlan() {
@@ -41,5 +46,13 @@ public class GameResult {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public Set getTags() {
+        return tags;
+    }
+
+    public void setTags(Set tags) {
+        this.tags = tags;
     }
 }

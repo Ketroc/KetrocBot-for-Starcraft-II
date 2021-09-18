@@ -21,6 +21,8 @@ import com.ketroc.utils.UnitUtils;
 import java.util.Optional;
 
 public class Harassers {
+    public static int NUM_BAD_HARASS = 2;
+
     public static BansheeHarasser clockwiseBanshee;
     public static BansheeHarasser counterClockwiseBanshee;
     //public static List<HellionHarasser> clockwiseHellions = new ArrayList<>();
@@ -83,7 +85,7 @@ public class Harassers {
     }
 
     private static boolean doEndBansheeHarass() {
-        return consecutiveBadHarass >= 2;
+        return consecutiveBadHarass >= NUM_BAD_HARASS;
     }
 
     private static void getNewHarassers() {
@@ -108,7 +110,7 @@ public class Harassers {
         if (ArmyManager.doOffense) {
             if (UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() >
                     UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                            (LocationConstants.opponentRace == Race.ZERG ? 1 : 0)) {
+                            (LocationConstants.opponentRace == Race.ZERG ? 2 : 0)) {
                 addHellion();
             }
         }

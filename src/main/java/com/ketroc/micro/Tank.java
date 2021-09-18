@@ -16,6 +16,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Tank extends BasicUnitMicro {
+    public static final float TARGET_POS_RADIUS = 1.3f;
+
     public static boolean isLongDelayedUnsiege = true;
 
     private long lastActiveFrame; //last frame that this tank was sieged with an enemy target
@@ -32,10 +34,12 @@ public class Tank extends BasicUnitMicro {
 
     public void siege() {
         ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE,false);
+        groundAttackRange = 13 + unit.unit().getRadius() + 0.25f;
     }
 
     public void unsiege() {
         ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_UNSIEGE,false);
+        groundAttackRange = 7 + unit.unit().getRadius() + 0.25f;
     }
 
     @Override
@@ -138,6 +142,7 @@ public class Tank extends BasicUnitMicro {
         if (!ArmyManager.doOffense &&
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
+            Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
             unsiege();
             return true;
         }
@@ -151,9 +156,11 @@ public class Tank extends BasicUnitMicro {
 
         //unsiege when no enemy targets for awhile
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
-                UnitUtils.getDistance(unit.unit(), targetPos) > 1.5f &&
+                UnitUtils.getDistance(unit.unit(), targetPos) > TARGET_POS_RADIUS + 2 &&
                 getEnemyTargetsInRange(15).isEmpty()) {
             if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
+                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
+                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
                 unsiege();
                 return true;
             }

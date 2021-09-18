@@ -82,6 +82,13 @@ public class Cost {
         return unitCost;
     }
 
+    public static Cost getUnitCost(Ability ability) {
+        if (ability == Abilities.INVALID) {
+            return null;
+        }
+        return getUnitCost(Bot.abilityToUnitType.get(ability));
+    }
+
     public static Cost getUpgradeCost(Upgrades upgrade) {
         if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
             return new Cost(100, 100);
@@ -89,8 +96,13 @@ public class Cost {
         UpgradeData upgradeData = Bot.OBS.getUpgradeData(false).get(upgrade);
         return new Cost(upgradeData.getMineralCost().orElse(0), upgradeData.getVespeneCost().orElse(0));
     }
+
     public static void updateBank(Units unitType) {
         updateBank(getUnitCost(unitType));
+    }
+
+    public static void updateBank(Ability ability) {
+        updateBank(getUnitCost(ability));
     }
 
     public static void updateBank(Cost cost) {

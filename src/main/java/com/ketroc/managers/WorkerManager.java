@@ -17,6 +17,8 @@ import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
+import com.ketroc.strategies.BunkerContain;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.strategies.defenses.WorkerRushDefense;
@@ -75,12 +77,19 @@ public class WorkerManager {
             return;
         }
 
-        //target scout workers
-        UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).forEach(enemyWorker -> {
-            if (UnitUtils.isInMyMainOrNat(enemyWorker)) {
-                ScvAttackTarget.add(enemyWorker);
-            }
-        });
+        //cancel all SCV chasers if it's an attack
+        if (UnitUtils.getVisibleEnemySupplyInMyMainorNat() > 2 ||
+                GameCache.allVisibleEnemiesList.stream().anyMatch(enemy ->
+                        !UnitUtils.WORKER_TYPE.contains(enemy.unit().getType()) &&
+                        UnitUtils.canAttack(enemy.unit().getType()))) {
+            UnitMicroList.getUnitSubList(ScvAttackTarget.class).forEach(scv -> scv.remove());
+        }
+        else {
+            //target scout workers
+            UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
+                    .filter(enemyWorker -> UnitUtils.isInMyMainOrNat(enemyWorker))
+                    .forEach(enemyWorker -> ScvAttackTarget.add(enemyWorker));
+        }
     }
 
     private static void repairLogic() {
@@ -182,7 +191,7 @@ public class WorkerManager {
                     u.unit().getType() == Units.TERRAN_SCV &&
                             Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
                             UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
-                            (ActionIssued.getCurOrder(u.unit()).isEmpty() || isMiningMinerals(u))));
+                            (ActionIssued.getCurOrder(u).isEmpty() || isMiningMinerals(u))));
         }
 //                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
 //                            //only send if safe
@@ -300,7 +309,7 @@ public class WorkerManager {
     public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced, boolean includeGasScvs) {
         List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv -> {
             return scv.unit().getType() == Units.TERRAN_SCV &&
-                    (ActionIssued.getCurOrder(scv.unit()).isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
+                    (ActionIssued.getCurOrder(scv).isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
                     UnitUtils.getDistance(scv.unit(), targetPosition) < distance &&
                     !Ignored.contains(scv.getTag());
         });
@@ -340,11 +349,11 @@ public class WorkerManager {
     }
 
     private static boolean isMiningNode(UnitInPool scv, Set<Units> nodeType) {
-        if (ActionIssued.getCurOrder(scv.unit()).isEmpty() || ActionIssued.getCurOrder(scv.unit()).get().ability != Abilities.HARVEST_GATHER) {
+        if (ActionIssued.getCurOrder(scv).isEmpty() || ActionIssued.getCurOrder(scv.unit()).get().ability != Abilities.HARVEST_GATHER) {
             return false;
         }
 
-        Tag scvTargetTag = ActionIssued.getCurOrder(scv.unit()).get().targetTag;
+        Tag scvTargetTag = ActionIssued.getCurOrder(scv).get().targetTag;
         if (scvTargetTag == null) { //return false if scv has no target
             return false;
         }
@@ -472,6 +481,13 @@ public class WorkerManager {
 //            return;
 //        }
 
+        //max gas with Tank_Viking and BunkerContain TvT
+        if ((Strategy.gamePlan == GamePlan.TANK_VIKING || BunkerContain.proxyBunkerLevel == 2) &&
+                Time.nowFrames() < Time.toFrames("4:00")) {
+            numScvsPerGas = 3;
+            return;
+        }
+
         //max gas during slow 3rd base build order
         if (Strategy.EXPAND_SLOWLY && Time.nowFrames() < Time.toFrames("5:00")) {
             numScvsPerGas = 3;
@@ -502,10 +518,11 @@ public class WorkerManager {
             }
         }
         else if (numScvsPerGas == 3) {
-            if (mins < 2750 &&
+            if (gas > mins + 3000 ||
+                    (mins < 2750 &&
                     gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
                     gasBankRatio() > 0.5 &&
-                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) == 0) {
+                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2)) {
                 numScvsPerGas = 2;
             }
         };

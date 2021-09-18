@@ -14,6 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.*;
@@ -72,10 +73,7 @@ public class BunkerContain {
         tank2Pos = Position.rotate(
                 Position.towards(behindBunkerPos, bunkerPos, -0.5f),
                 bunkerPos, -85);
-        marinesNeeded = 4;
-        if (LocationConstants.opponentRace == Race.TERRAN) {
-            marinesNeeded = 3;
-        }
+        marinesNeeded = LocationConstants.opponentRace == Race.TERRAN ? 3 : 4;
         scoutProxy = (LocationConstants.opponentRace == Race.TERRAN);
     }
 
@@ -151,6 +149,7 @@ public class BunkerContain {
                     //when 2 tanks are out
                     else if (!factory.unit().getFlying().orElse(true)) {
                         BuildManager.liftFactory(factory.unit());
+                        factory = null;
                     }
                 }
             }
@@ -272,7 +271,9 @@ public class BunkerContain {
             return;
         }
 
-        List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.getDistance(enemy.unit(), bunker.unit()) < BUNKER_RANGE);
+        List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                UnitUtils.getDistance(enemy.unit(), bunker.unit()) < BUNKER_RANGE);
         UnitInPool target = selectTarget(enemiesInRange);
         if (target != null) {
             ActionHelper.unitCommand(bunker.unit(), Abilities.ATTACK, target.unit(), false);
@@ -335,8 +336,11 @@ public class BunkerContain {
         if (!isBarracksSentHome) {
             if (UnitUtils.getOrder(barracks.unit()) == Abilities.TRAIN_MARINE) {
                 ActionHelper.unitCommand(barracks.unit(), Abilities.CANCEL_LAST, false);
+                DelayedAction.delayedActions.add(new DelayedAction(Time.nowFrames()+2, Abilities.LIFT_BARRACKS, barracks));
             }
-            DelayedAction.delayedActions.add(new DelayedAction(Time.nowFrames()+2, Abilities.LIFT_BARRACKS, barracks));
+            else {
+                ActionHelper.unitCommand(barracks.unit(), Abilities.LIFT_BARRACKS, false);
+            }
             DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.LAND, barracks, LocationConstants._3x3Structures.remove(0)));
             isBarracksSentHome = true;
         }
@@ -696,6 +700,7 @@ public class BunkerContain {
 
         //end proxy rush
         proxyBunkerLevel = 0;
+        ArmyManager.doOffense = false;
         return true;
     }
 
@@ -794,7 +799,6 @@ public class BunkerContain {
         if (proxyBunkerLevel == 2) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
 
         //set barracks rally
@@ -877,7 +881,7 @@ public class BunkerContain {
     }
 
     public static void onFactoryComplete() {
-        KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+        //KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
     }
 
     public static void onFactoryTechLabComplete() {
@@ -914,5 +918,9 @@ public class BunkerContain {
             }
         }
         return -1;
+    }
+
+    public static boolean requiresTanks() {
+        return proxyBunkerLevel == 2 && (tank1 == null || tank2 == null);
     }
 }

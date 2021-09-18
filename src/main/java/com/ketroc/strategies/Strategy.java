@@ -11,10 +11,13 @@ import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.gson.GameResult;
 import com.ketroc.gson.JsonUtil;
 import com.ketroc.gson.Opponent;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.UpgradeManager;
+import com.ketroc.micro.Harassers;
 import com.ketroc.models.DelayedChat;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.Error;
@@ -32,7 +35,6 @@ public class Strategy {
     public static GamePlan gamePlan = GamePlan.NONE;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
-    public static int STEP_SIZE = 2;
     public static boolean DO_DIVE_RAVENS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
@@ -47,16 +49,16 @@ public class Strategy {
     public static final int NUM_LIBS_PER_EXPANSION = 2; //only works for 2 atm
     public static final int MAX_LIBS = 10;
 
-    public static int NUM_MARINES = 3;
-    public static int MAX_OCS = 14;
+    public static int MAX_MARINES = 3;
+    public static int MAX_OCS = 15;
     public static final int FUNGAL_FRAMES = 16; //# of frames for fungal to land after being cast
     public static float VIKING_BANSHEE_RATIO = 0.2f;
     public static final int MAX_VIKINGS_TO_DIVE_TEMPESTS = 19; //always dive tempests if we reach this number
-    public static final float DISTANCE_RAISE_DEPOT = 4f;
+    public static final float DISTANCE_RAISE_DEPOT = 7f;
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
-    public static final float KITING_BUFFER = 2.4f + (STEP_SIZE > 2 ? 0.2f : 0);
-    public static final float STATIONARY_KITING_BUFFER = 1.6f + (STEP_SIZE > 2 ? 0.2f : 0);
+    public static final float KITING_BUFFER = 2.4f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
+    public static final float STATIONARY_KITING_BUFFER = 1.6f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
     public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
@@ -101,7 +103,7 @@ public class Strategy {
     public static int MAX_BANSHEES = 20;
 
     public static void onGameStart() {
-        STEP_SIZE = (KetrocBot.isRealTime) ? 4 : 2;
+        Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
         getGameStrategyChoice();
 
         if (DO_MATRIX && !DO_SEEKER_MISSILE) {
@@ -219,6 +221,8 @@ public class Strategy {
                 break;
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+            case "1e0db23f174f455": //MM local
+                Harassers.NUM_BAD_HARASS = 1;
                 DO_IGNORE_BUNKERS = true;
                 Switches.enemyCanProduceAir = true;
 //                BUILD_EXPANDS_IN_MAIN = true;
@@ -239,16 +243,20 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
 
-        //gamePlan = getStrategyForLadder(availableTvTGamePlans);
+        if (!Launcher.isRealTime) {
+            gamePlan = getStrategyForLadder(availableTvTGamePlans);
+        }
+        else {
+            //select random game plan
+            gamePlan = availableTvTGamePlans.stream()
+                    .skip(new Random().nextInt(availableTvTGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
+
 //        while (!availableTvTGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }
-
-        //select random game plan
-//        gamePlan = availableTvTGamePlans.stream()
-//                .skip(new Random().nextInt(availableTvTGamePlans.size()))
-//                .findFirst()
-//                .get();
 
         if (gamePlan == GamePlan.NONE) {
             gamePlan = GamePlan.TANK_VIKING;
@@ -292,32 +300,139 @@ public class Strategy {
     }
 
     private static HashSet<GamePlan> getAvailableTvTGamePlans() {
+        if (Launcher.isRealTime) { // TvT vs Humans
+            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+                    GamePlan.TANK_VIKING
+            ));
+            if (Math.random() < 0.7) {
+                humansGamePlans.add(GamePlan.BANSHEE);
+            }
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.BANSHEE_CYCLONE);
+            }
+            if (Math.random() < 0.4) {
+                humansGamePlans.add(GamePlan.RAVEN);
+            }
+            if (Math.random() < 0.4) {
+                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
+            }
+            if (Math.random() < 0.3) {
+                humansGamePlans.add(GamePlan.MARINE_RUSH);
+            }
+            if (Math.random() < 0.3) {
+                humansGamePlans.add(GamePlan.SCV_RUSH);
+            }
+            if (Math.random() < 0.1) {
+                humansGamePlans.add(GamePlan.ONE_BASE_TANK_VIKING);
+            }
+            if (Math.random() < 0.1) {
+                humansGamePlans.add(GamePlan.BANSHEE_TANK);
+            }
+            return humansGamePlans;
+        }
         switch (Bot.opponentId) {
-            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-            case "f50a7f8d4d49792": //RStrelok (LM)
+//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+//            case "f50a7f8d4d49792": //RStrelok (LM)
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING,
+//                        GamePlan.ONE_BASE_TANK_VIKING
+//                ));
+//            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+//                return new HashSet<>(Set.of(
+//                        GamePlan.BANSHEE_TANK,
+//                        GamePlan.RAVEN
+//                ));
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+            case "1e0db23f174f455": //MM local
                 return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING,
-                        GamePlan.ONE_BASE_TANK_VIKING
+                        GamePlan.TANK_VIKING
+                        //GamePlan.BUNKER_CONTAIN_STRONG
                 ));
-            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+            default:
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE_TANK,
+                        GamePlan.ONE_BASE_TANK_VIKING,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BANSHEE,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.RAVEN,
+                        GamePlan.TANK_VIKING,
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.BANSHEE_TANK
+                ));
+        }
+    }
+
+    private static HashSet<GamePlan> getAvailableTvPGamePlans() {
+        if (Launcher.isRealTime) { // TvP vs Humans
+            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+                    GamePlan.BANSHEE,
+                    GamePlan.BANSHEE_CYCLONE,
+                    GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                    GamePlan.BUNKER_CONTAIN_WEAK,
+                    GamePlan.RAVEN
+            ));
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.MARINE_RUSH);
+            }
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.SCV_RUSH);
+            }
+            return humansGamePlans;
+        }
+        switch (Bot.opponentId) {
+//            case "":
+//                return new HashSet<>(Set.of(
+//                        GamePlan.,
+//                ));
+            default:
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN
                 ));
         }
+    }
 
-        return new HashSet<>(Set.of(
-                GamePlan.ONE_BASE_TANK_VIKING,
-                GamePlan.BANSHEE_CYCLONE,
-                GamePlan.BANSHEE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_STRONG,
-                GamePlan.RAVEN,
-                GamePlan.TANK_VIKING,
-                GamePlan.RAVEN_CYCLONE,
-                GamePlan.BANSHEE_TANK
-        ));
+    private static HashSet<GamePlan> getAvailableTvZGamePlans() {
+        if (Launcher.isRealTime) { // TvP vs Humans
+            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+                    GamePlan.BANSHEE,
+                    GamePlan.BUNKER_CONTAIN_WEAK,
+                    GamePlan.RAVEN,
+                    GamePlan.BANSHEE_CYCLONE,
+                    GamePlan.RAVEN_CYCLONE
+            ));
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.MARINE_RUSH);
+            }
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.SCV_RUSH);
+            }
+            return humansGamePlans;
+        }
+        switch (Bot.opponentId) {
+//            case "":
+//                return new HashSet<>(Set.of(
+//                        GamePlan.,
+//                ));
+            default:
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.RAVEN,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.RAVEN_CYCLONE
+                ));
+        }
     }
 
     public static GamePlan getNextGamePlan(GamePlan curPlan) {
@@ -327,34 +442,30 @@ public class Strategy {
 
     private static void marineAllinStrategy() {
         MARINE_ALLIN = true;
-        NUM_MARINES = Integer.MAX_VALUE;
+        MAX_MARINES = 80; //Too many can cause the high-APM bug
     }
 
     private static void chooseTvPStrategy() {
-        Set<GamePlan> availableTvPGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEE,
-                GamePlan.BANSHEE_CYCLONE,
-                GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_WEAK,
-                GamePlan.RAVEN
-        ));
+        Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
 
-        //gamePlan = getStrategyForLadder(availableTvPGamePlans);
+        if (!Launcher.isRealTime) {
+            gamePlan = getStrategyForLadder(availableTvPGamePlans);
+        }
+        else {
+            //select random game plan
+            gamePlan = availableTvPGamePlans.stream()
+                    .skip(new Random().nextInt(availableTvPGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
 
-        //random selection
 //        while (!availableTvPGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }
-//
-//        gamePlan = availableTvPGamePlans.stream()
-//                .skip(new Random().nextInt(availableTvPGamePlans.size()))
-//                .findFirst()
-//                .get();
+
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {
@@ -365,7 +476,7 @@ public class Strategy {
                 break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
-                NUM_MARINES = 4;
+                MAX_MARINES = 4;
                 break;
             case BUNKER_CONTAIN_WEAK:
                 BunkerContain.proxyBunkerLevel = 1;
@@ -387,26 +498,22 @@ public class Strategy {
     }
 
     private static void chooseTvZStrategy() {
-        Set<GamePlan> availableTvZGamePlans = new HashSet<>(Set.of(
-                GamePlan.BANSHEE,
-                GamePlan.MARINE_RUSH,
-                GamePlan.SCV_RUSH,
-                GamePlan.BUNKER_CONTAIN_WEAK,
-                GamePlan.RAVEN,
-                GamePlan.BANSHEE_CYCLONE,
-                GamePlan.RAVEN_CYCLONE
-        ));
+        Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
-        gamePlan = getStrategyForLadder(availableTvZGamePlans);
+        if (!Launcher.isRealTime) {
+            gamePlan = getStrategyForLadder(availableTvZGamePlans);
+        }
+        else {
+            //select random game plan
+            gamePlan = availableTvZGamePlans.stream()
+                    .skip(new Random().nextInt(availableTvZGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
 
 //        while (!availableTvZGamePlans.contains(gamePlan)) {
 //            gamePlan = getNextGamePlan(gamePlan);
 //        }
-
-//        gamePlan = availableTvZGamePlans.stream()
-//                .skip(new Random().nextInt(availableTvZGamePlans.size()))
-//                .findFirst()
-//                .get();
 
         if (gamePlan == GamePlan.NONE) {
             gamePlan = GamePlan.BANSHEE_CYCLONE;
@@ -431,8 +538,16 @@ public class Strategy {
                 massRavenStrategy();
                 break;
             case RAVEN_CYCLONE:
-                massRavenStrategy();
                 useCyclonesAdjustments();
+                DO_BANSHEE_HARASS = false;
+                DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
+                UpgradeManager.armoryUpgradeList = new ArrayList<>();
+                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
+                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
+                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airAttackUpgrades);
+                NUM_BASES_TO_OC = LocationConstants.baseLocations.size();
+                BUILD_EXPANDS_IN_MAIN = false;
+                PRIORITIZE_EXPANDING = true;
                 break;
             case MARINE_RUSH:
                 marineAllinStrategy();
@@ -485,6 +600,7 @@ public class Strategy {
 //                return GamePlan.BANSHEE;
 //            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
 //            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+//            case "1e0db23f174f455": //MM local
 //                return GamePlan.BANSHEE;
             default:
                 return gamePlan;
@@ -722,6 +838,7 @@ public class Strategy {
                 return new GamePlan[]{GamePlan.RAVEN, GamePlan.BANSHEE, GamePlan.BUNKER_CONTAIN_STRONG};
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+            case "1e0db23f174f455": //MM local
                 return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEE, GamePlan.BANSHEE_CYCLONE};
 //            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
 //                return new int[]{0, 1, 2};
@@ -753,26 +870,26 @@ public class Strategy {
     public static void onStep_Faststart() {
         switch (step_TvtFastStart) {
             case 1:
-                //remove depot and rax from production queue (temporarily)
-//                KetrocBot.purchaseQueue.remove(0);
-//                KetrocBot.purchaseQueue.remove(0);
-
                 //rally cc to the depot pos
                 ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, LocationConstants.extraDepots.get(0), false);
                 step_TvtFastStart++;
                 break;
 
             case 2:
-                //rally cc to mineral node
+                if (Bot.OBS.getMinerals() >= 70) {
+                    //manually produce 2nd scv
+                    ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.TRAIN_SCV, false);
+                    step_TvtFastStart++;
+                    break;
+                }
+
+            case 3:
                 if (Bot.OBS.getFoodWorkers() == 13) {
+                    //rally cc to mineral node
                     ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER,
                             GameCache.baseList.get(0).getFullestMineralPatch(), false);
-                    step_TvtFastStart++;
-                }
-                break;
-            case 3:
-                //add depot and rax with first scv to the production queue
-                if (GameCache.mineralBank >= 100) {
+
+                    //add depot and rax with first scv to the production queue
                     scv_TvtFastStart = Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream()
                             .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.extraDepots.get(0))))
                             .get();
@@ -787,6 +904,10 @@ public class Strategy {
     }
 
     public static int getMaxScvs() {
+        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+            return 100;
+        }
+
         //if no minerals left on the map
         if (GameCache.defaultRallyNode == null) {
             return 6;
@@ -848,19 +969,19 @@ public class Strategy {
                 DIVE_RANGE = 25;
                 DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
-                NUM_MARINES = 5;
+                MAX_MARINES = 5;
                 break;
             case TERRAN:
                 DO_DIVE_RAVENS = false;
                 DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
-                NUM_MARINES = 4;
+                MAX_MARINES = 4;
                 break;
         }
     }
 
     public static void useCyclonesAdjustments() {
-        NUM_MARINES = Math.min(2, NUM_MARINES);
+        MAX_MARINES = Math.min(2, MAX_MARINES);
         MIN_BANSHEES = 0;
         DO_USE_CYCLONES = true;
         DO_DEFENSIVE_TANKS = false;
@@ -868,7 +989,7 @@ public class Strategy {
 
     public static void useTanksAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
-        NUM_MARINES = Math.min(3, NUM_MARINES);
+        MAX_MARINES = Math.min(3, MAX_MARINES);
         MIN_BANSHEES = 0;
         DO_OFFENSIVE_TANKS = true;
         NUM_BASES_TO_OC = 3;
@@ -878,15 +999,16 @@ public class Strategy {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
         //UpgradeManager.starportUpgradeList.clear();
 
-        //NUM_MARINES = Math.min(3, NUM_MARINES);
+        MAX_MARINES = 4;
         DO_OFFENSIVE_TANKS = true;
         DO_SEEKER_MISSILE = true;
+        MIN_BANSHEES = 0;
         MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_BANSHEE);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
+        BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
     }
 
     private static void setReaperBlockWall() {
@@ -903,8 +1025,10 @@ public class Strategy {
             }
         }
         else {
-            LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
-            LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
+            if (!LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+                LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
+                LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
+            }
             if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE ||
                     gamePlan == GamePlan.MARINE_RUSH ||
                     Strategy.NUM_BASES_TO_OC > 1) {
@@ -950,6 +1074,14 @@ public class Strategy {
         if (gamePlan == GamePlan.NONE) {
             gamePlan = opponentRecords.getWinningestGamePlan();
         }
+
+        //don't lose to worker rush twice
+        GameResult prevGameResult = opponentRecords.getPrevGameResult();
+//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
+//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+//            Strategy.WALL_OFF_IMMEDIATELY = true;
+//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+//        }
         return gamePlan;
     }
 

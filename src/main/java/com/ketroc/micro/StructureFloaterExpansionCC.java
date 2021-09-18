@@ -63,13 +63,13 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             //if landed not on position
             if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {
                 //remove this object when PF starts morphing FIXME: sometimes PF finishes without this if being true
-                if (ActionIssued.getCurOrder(unit.unit()).stream().anyMatch(order -> order.ability == upgradeAbility) ||
+                if (ActionIssued.getCurOrder(unit).stream().anyMatch(order -> order.ability == upgradeAbility) ||
                         unit.unit().getType() == upgradeType) {
                     removeMe = true; //TODO: cancel PF upgrade and move over if enemy command structure dies
                 }
                 //morph to PF
                 else if (!Purchase.isMorphQueued(unit.getTag(), upgradeAbility)) {
-                    Chat.chat("Polanetary forotdds");
+                    //Chat.chat("Polanetary forotdds");
                     Chat.tag("OFFENSIVE_PF");
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(upgradeAbility, unit));
                 }
@@ -91,7 +91,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         //2.5min without landing (land and PF now, or assign to another enemy base)
         if (Time.toSeconds(Time.nowFrames() - createdFrame) >= 150) {
             if (UnitUtils.getDistance(unit.unit(), basePos) < 20) {
-                Chat.chatWithoutSpam("Creating Offensive PF here because 2.5min of travel has elapsed", 120);
+                //Chat.chatWithoutSpam("Creating Offensive PF here because 2.5min of travel has elapsed", 120);
                 removeCCFromBaseList();
                 safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {
@@ -109,7 +109,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         //approaching landing zone
         if (unit.unit().getFlying().orElse(true) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
             if (isBaseBlockedByEnemyCommandStructure()) {
-                Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
+                //Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
                 removeCCFromBaseList();
                 safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {

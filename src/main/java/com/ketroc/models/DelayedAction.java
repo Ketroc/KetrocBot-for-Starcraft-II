@@ -3,7 +3,7 @@ package com.ketroc.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.Print;
 import com.ketroc.utils.Time;
@@ -78,7 +78,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
             return nextFrame();
         }
         long gameFrame = Time.nowFrames() + Time.toFrames(delaySeconds);
-        return gameFrame - (gameFrame % Strategy.STEP_SIZE);
+        return gameFrame - (gameFrame % Launcher.STEP_SIZE);
     }
 
     public boolean executeAction() {
@@ -111,7 +111,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
     }
 
     public static long nextFrame() {
-        return Time.nowFrames() + Strategy.STEP_SIZE;
+        return Time.nowFrames() + Launcher.STEP_SIZE;
     }
 
 }

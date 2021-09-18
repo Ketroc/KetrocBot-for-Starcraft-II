@@ -36,23 +36,25 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
-        boolean realTime = false;
         String opponentId = null;
         for (int i=0; i<args.length; i++) {
             String arg = args[i];
             if (arg.equals("--RealTime")) {
-                realTime = true;
+                Launcher.isRealTime = true;
+                //Launcher.STEP_SIZE = 4;
+                System.out.println("Launcher.STEP_SIZE = " + Launcher.STEP_SIZE);
                 break;
             }
             if (arg.contains("--OpponentId")) {
                 opponentId = args[i+1];
             }
         }
-        Bot bot = new KetrocBot(false, opponentId, realTime);
+        Bot bot = new KetrocBot(false, opponentId);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
-                .setRawAffectsSelection(true)
+                .setRawAffectsSelection(false)
                 .loadLadderSettings(args)
+                .setStepSize(Launcher.STEP_SIZE)
                 .setShowCloaked(true)
                 .setShowBurrowed(true)
                 .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot))

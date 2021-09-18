@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.Position;
@@ -20,8 +20,8 @@ public class MineralPatch {
     private List<UnitInPool> scvs = new ArrayList<>();
     private Point2d ccPos;
     private Point2d byNode;
-    private float distanceToHarvest = 1.38f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
-    private float distanceToCC = 3f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);;
+    private float distanceToHarvest = 1.38f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
+    private float distanceToCC = 3f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);;
     private Point2d nodePos;
     private Point2d byCC;
 

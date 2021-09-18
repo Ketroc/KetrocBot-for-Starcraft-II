@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MuleMessages {
-    private static final int MAX_MULES_REQUIRED = 34;
+    private static final int MAX_MULES_REQUIRED = 35;
 
     public static final Map<Character, Set<Point2d>> muleLetterPosTable = new Hashtable<>();
     private static char[] message;

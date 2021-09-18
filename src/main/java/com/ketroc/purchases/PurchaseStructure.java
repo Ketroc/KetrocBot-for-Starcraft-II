@@ -185,7 +185,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
         //cancel starport purchases if any existing starport is idle
         if (structureType == Units.TERRAN_STARPORT && Bot.OBS.getFoodUsed() <= 197 &&
-                GameCache.starportList.stream().anyMatch(u -> ActionIssued.getCurOrder(u.unit()).isEmpty())) {
+                GameCache.starportList.stream().anyMatch(u -> ActionIssued.getCurOrder(u).isEmpty())) {
             makePositionAvailableAgain(position);
             return PurchaseResult.CANCEL;
         }
@@ -238,7 +238,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                         .get();
             }
         }
-        Print.print("sending action " + buildAction + " at pos: " + position.toString());
+        Print.print("frame#" + Time.nowFrames() + ": sending action " + buildAction + " at pos: " + position.toString());
         ActionHelper.unitCommand(this.scv, buildAction, this.position, false);
         StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, position));
         Cost.updateBank(structureType);
@@ -280,7 +280,8 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             this.scv = availableScvs.get(0).unit();
                             gas.setNode(getGeyserUnitAtPosition(gas.getNodePos()));
-                            Print.print("sending action " + Abilities.BUILD_REFINERY);
+                            Print.print("frame#" + Time.nowFrames() + ": sending action " + Abilities.BUILD_REFINERY);
+                            System.out.println("GameCache.mineralBank = " + GameCache.mineralBank);
                             ActionHelper.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getNode(), false);
                             StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getNode().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);

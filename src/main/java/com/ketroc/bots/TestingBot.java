@@ -30,8 +30,8 @@ public class TestingBot extends Bot {
     public UnitInPool mainCC;
     public Cyclone cyclone;
 
-    public TestingBot(boolean isDebugOn, String opponentId, boolean isRealTime) {
-        super(isDebugOn, opponentId, isRealTime);
+    public TestingBot(boolean isDebugOn, String opponentId) {
+        super(isDebugOn, opponentId);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class TestingBot extends Bot {
                 .getRequestedRace();
 
 
-        PlacementMap.initializeMap();
+        PlacementMap.initializeMap(false);
 
         //start first scv
         mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);

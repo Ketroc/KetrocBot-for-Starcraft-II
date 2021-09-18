@@ -3,11 +3,13 @@ package com.ketroc.utils;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.ketroc.bots.Bot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.models.DelayedChat;
 
 import java.util.*;
 
 public class Chat {
+    public static Set<String> usedTags = new HashSet<>();
     public static Map<String, Integer> usedMessages = new HashMap<>();
     public static Map<String, String> botResponses = new HashMap<>();
     static {
@@ -30,11 +32,11 @@ public class Chat {
 
         //MicroMachine responses
         botResponses.put("range upgrade on your missile turrets", "Did you know if you zoom in, there is guy manning the cockpit of that turret?");
-        botResponses.put("rudimentary database is telling me that", "...and my rude database is telling me that you smell");
+        botResponses.put("rudimentary database is telling me that", "Rudimentary database? More like rude database");
     }
 
     public static final List<String> VIKING_DIVE = new ArrayList<>(List.of(
-            "Vikings, YOLO!", "Time to sacrifice vikings to the Gods of Aiur", "Vikings, do your thing",
+            "Vikings, YOLO!", "First viking to suicide wins a lollipop.  Go!", "Vikings, do your thing",
             "Let's purge some tempests", "Stalkers, please don't look up so I can kill some tempests"
     ));
 
@@ -77,8 +79,24 @@ public class Chat {
         Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
     }
 
+    public static void chatInvisToHuman(String message) {
+        Bot.ACTION.sendChat(message, getPublicChannel());
+    }
+
     public static void chatNeverRepeat(String message) {
         chatNeverRepeat(message, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatNeverRepeatInvisToHuman(String message) {
+        chatNeverRepeat(message, getPublicChannel());
+    }
+
+    public static void chatNeverRepeat(List<String> chatOptions) {
+        chatNeverRepeat(chatOptions, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatNeverRepeatInvisToHuman(List<String> chatOptions) {
+        chatNeverRepeat(chatOptions, getPublicChannel());
     }
 
     private static void chatNeverRepeat(String message, ActionChat.Channel channel) {
@@ -86,10 +104,6 @@ public class Chat {
             usedMessages.put(message, Time.nowSeconds());
             Bot.ACTION.sendChat(message, channel);
         }
-    }
-
-    public static void chatNeverRepeat(List<String> chatOptions) {
-        chatNeverRepeat(chatOptions, ActionChat.Channel.BROADCAST);
     }
 
     public static void chatNeverRepeat(List<String> chatOptions, ActionChat.Channel channel) {
@@ -102,26 +116,47 @@ public class Chat {
     }
 
     public static void chatWithoutSpam(String message, int secondsBetweenMessages) {
+        chatWithoutSpam(message, secondsBetweenMessages, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatWithoutSpamInvisToHuman(String message, int secondsBetweenMessages) {
+        chatWithoutSpam(message, secondsBetweenMessages, getPublicChannel());
+    }
+
+    public static void chatWithoutSpam(String message, int secondsBetweenMessages, ActionChat.Channel channel) {
         int lastChatted = usedMessages.getOrDefault(message, Integer.MIN_VALUE);
         if (lastChatted + secondsBetweenMessages <= Time.nowSeconds()) {
             usedMessages.put(message, Time.nowSeconds());
-            Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
+            Bot.ACTION.sendChat(message, channel);
         }
     }
 
     public static void chatWithoutSpam(List<String> chatOptions, int secondsBetweenMessages) {
+        chatWithoutSpam(chatOptions, secondsBetweenMessages, ActionChat.Channel.BROADCAST);
+    }
+
+    public static void chatWithoutSpamInvisToHuman(List<String> chatOptions, int secondsBetweenMessages) {
+        chatWithoutSpam(chatOptions, secondsBetweenMessages, getPublicChannel());
+    }
+
+    public static void chatWithoutSpam(List<String> chatOptions, int secondsBetweenMessages, ActionChat.Channel channel) {
         String randomMessage = getRandomMessage(chatOptions);
         int lastChatted = usedMessages.getOrDefault(randomMessage, Integer.MIN_VALUE);
         if (lastChatted + secondsBetweenMessages > Time.nowSeconds()) {
             return;
         }
-        Bot.ACTION.sendChat(randomMessage, ActionChat.Channel.BROADCAST);
+        Bot.ACTION.sendChat(randomMessage, channel);
         chatOptions.forEach(message -> usedMessages.put(message, Time.nowSeconds()));
     }
 
     public static void tag(String tag) {
-        if (tag != null && !tag.equals("")) {
+        if (!Launcher.isRealTime && tag != null && !tag.equals("")) {
+            usedTags.add(tag);
             chatNeverRepeat("Tag:ket" + tag, ActionChat.Channel.BROADCAST);
         }
+    }
+
+    private static ActionChat.Channel getPublicChannel() {
+        return Launcher.isRealTime ? ActionChat.Channel.TEAM : ActionChat.Channel.BROADCAST;
     }
 }

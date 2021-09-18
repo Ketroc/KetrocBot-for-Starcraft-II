@@ -48,9 +48,6 @@ public class CannonRushDefense {
                     Bot.ACTION.sendChat("Cannon Rush Defense failed and abandoned.  Hope it doesn't look too bad.", ActionChat.Channel.BROADCAST);
                 }
 
-                //remove dead targets (and probes that left)
-                ScvTarget.removeDeadTargets();
-
                 //add new probes, cannons, and pylons as targets
                 addNewTarget(Units.PROTOSS_PHOTON_CANNON);
                 addNewTarget(Units.PROTOSS_PROBE);
@@ -126,7 +123,7 @@ public class CannonRushDefense {
     }
 
     private static void cancelCCFirst() {
-        Chat.chat("cancelling CC First");
+        Chat.chatInvisToHuman("cancelling CC First");
         Strategy.BUILD_EXPANDS_IN_MAIN = true;
         StructureScv.cancelProduction(Units.TERRAN_COMMAND_CENTER, GameCache.baseList.get(1).getCcPos());
         KetrocBot.purchaseQueue.removeIf(purchase -> purchase instanceof PurchaseStructure &&

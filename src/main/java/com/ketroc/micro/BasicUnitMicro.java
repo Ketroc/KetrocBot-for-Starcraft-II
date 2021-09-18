@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.models.Base;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.utils.*;
@@ -90,7 +91,7 @@ public class BasicUnitMicro {
         }
 
         //detour if needed
-        if (!isSafe()) {
+        if (!isSafe() && !neverDetour()) {
             detour();
         }
         //finishing step on arrival
@@ -100,6 +101,23 @@ public class BasicUnitMicro {
         //continue moving to target
         else if (!isMovingToTargetPos()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+        }
+    }
+
+    private boolean neverDetour() {
+        return priority == MicroPriority.GET_TO_DESTINATION ||
+                (priority == MicroPriority.DPS && canAttackGround && groundAttackRange - unit.unit().getRadius() < 2);
+    }
+
+    protected void setTargetPos() {
+        if (canAttackAir && canAttackGround) {
+            targetPos = ArmyManager.attackEitherPos;
+        }
+        else if (canAttackAir) {
+            targetPos = ArmyManager.attackAirPos;
+        }
+        else {
+            targetPos = ArmyManager.attackGroundPos;
         }
     }
 
@@ -136,15 +154,15 @@ public class BasicUnitMicro {
     }
 
     protected boolean isMovingToTargetPos() {
-        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
         return order.isPresent() &&
                 order.get().targetPos != null &&
-                order.get().targetPos.distance(targetPos) < 0.5;
+                order.get().targetPos.distance(targetPos) < 0.5 ;
 
     }
 
     protected boolean isAttackingTarget(Tag targetTag) {
-        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
         return order.isPresent() &&
                 order.get().ability == Abilities.ATTACK &&
                 targetTag.equals(order.get().targetTag);
@@ -152,7 +170,7 @@ public class BasicUnitMicro {
     }
 
     protected boolean isTargettingUnit(Unit target) {
-        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit.unit());
+        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
         return order.isPresent() &&
                 target.getTag().equals(order.get().targetTag);
     }
@@ -170,6 +188,7 @@ public class BasicUnitMicro {
                 ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) &&
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
                         (isAir(enemy) ? airAttackRange : groundAttackRange) + enemy.unit().getRadius() &&
+                !UnitUtils.UNTARGETTABLES.contains(enemy.unit().getType()) &&
                 (includeIgnoredTargets || !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType())) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE);
         Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
@@ -334,6 +353,7 @@ public class BasicUnitMicro {
 
     public void replaceUnit(UnitInPool newUnit) {
         Ignored.remove(unit.getTag());
+        Base.releaseScv(newUnit.unit());
         unit = newUnit;
         Ignored.add(new IgnoredUnit(newUnit.getTag()));
     }
@@ -362,7 +382,15 @@ public class BasicUnitMicro {
 
     protected void updateTargetPos() {
         if (ArmyManager.attackGroundPos != null) {
-            targetPos = canAttackAir ? ArmyManager.attackAirPos : ArmyManager.attackGroundPos;
+            if (canAttackAir && canAttackGround) {
+                targetPos = ArmyManager.attackEitherPos;
+            }
+            else if (canAttackAir) {
+                targetPos = ArmyManager.attackAirPos;
+            }
+            else {
+                targetPos = ArmyManager.attackGroundPos;
+            }
         }
         else { //find last structures with random reachable positions
             if (UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
@@ -374,13 +402,21 @@ public class BasicUnitMicro {
     }
 
     protected boolean isMorphing() {
-        return ActionIssued.getCurOrder(unit.unit()).stream()
+        return ActionIssued.getCurOrder(unit).stream()
                 .anyMatch(action -> action.ability.toString().contains("MORPH"));
     }
 
     //consider retreating if !doOffense and not near a friendly base
     protected boolean isRetreating() {
         return !ArmyManager.doOffense && GameCache.baseList.stream()
-                        .noneMatch(base -> base.isMyBase() &&UnitUtils.getDistance(unit.unit(), base.getCcPos()) < 17);
+                        .noneMatch(base -> base.isMyBase() && UnitUtils.getDistance(unit.unit(), base.getCcPos()) < 15);
+    }
+
+    //hunt for last structures during "Finish Him"
+    protected void setFinishHimTarget() {
+        ActionIssued.getCurOrder(unit)
+                .filter(actionIssued -> actionIssued.targetPos != null)
+                .ifPresentOrElse(actionIssued -> targetPos = actionIssued.targetPos,
+                        () -> targetPos = Bot.OBS.getGameInfo().findRandomLocation());
     }
 }

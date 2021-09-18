@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.*;
 
@@ -29,7 +30,7 @@ public class HellionHarasser extends Hellion {
             Units.ZERG_CREEP_TUMOR_QUEEN, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
             Units.ZERG_CHANGELING_MARINE_SHIELD, Units.PROTOSS_PROBE, Units.PROTOSS_HIGH_TEMPLAR,
             Units.PROTOSS_SENTRY, Units.TERRAN_SCV, Units.TERRAN_MULE);
-    public static final float HELLION_MOVEMENT_SIZE = (Bot.isRealTime) ? 4f : 2.5f;
+    public static final float HELLION_MOVEMENT_SIZE = (Launcher.STEP_SIZE > 2) ? 4f : 2.5f;
 
     private boolean isBaseTravelClockwise;
     private List<Point2d> baseList;
@@ -154,7 +155,8 @@ public class HellionHarasser extends Hellion {
         }
     }
 
-    private void setTargetPos() {
+    @Override
+    protected void setTargetPos() {
         //flee from closest cyclone, if locked on
         if (unit.unit().getBuffs().contains(Buffs.LOCK_ON)) {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, unit.unit().getPosition().toPoint2d());

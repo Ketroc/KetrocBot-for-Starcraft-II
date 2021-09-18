@@ -2,7 +2,7 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.ketroc.bots.Bot;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.utils.Time;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
     // **************************************
 
     public void executeAction() {
-        if (!Bot.isRealTime) {
+        if (!Launcher.isRealTime) {
             Bot.ACTION.sendChat(message, ActionChat.Channel.BROADCAST);
         }
     }
@@ -49,7 +49,7 @@ public class DelayedChat { //TODO: add functionality for List of units if requir
 
     public static long getDelayedGameFrame(int delaySeconds) {
         long gameLoop = Time.nowFrames() + (long)(delaySeconds * 22.4);
-        gameLoop -= gameLoop % Strategy.STEP_SIZE;
+        gameLoop -= gameLoop % Launcher.STEP_SIZE;
         return gameLoop;
     }
 

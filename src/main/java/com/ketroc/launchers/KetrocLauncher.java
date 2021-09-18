@@ -12,26 +12,27 @@ public class KetrocLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-                //.setRealtime(true)
+                .setRealtime(Launcher.isRealTime)
                 .setMultithreaded(true)
                 .setWindowLocation(2560, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
+                .setStepSize(2)
                 .setShowBurrowed(true)
-                .setRawAffectsSelection(false)
+                .setRawAffectsSelection(true)
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "",false)),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
-                        //S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()))
+                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
+                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
+//                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
 
 
@@ -41,7 +42,7 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("EternalEmpire506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EverDream506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GoldenWall506.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("PillarsOfGold506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Submarine506.SC2Map")));

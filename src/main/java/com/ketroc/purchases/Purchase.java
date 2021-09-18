@@ -105,11 +105,16 @@ public interface Purchase {
     }
 
     static void removeFirst(Units unitType) {
+        removeFirst(unitType, 0);
+    }
+
+    static void removeFirst(Units unitType, int numSkip) {
         KetrocBot.purchaseQueue.stream()
                 .filter(p -> p instanceof PurchaseStructure &&
                         ((PurchaseStructure) p).getStructureType() == unitType)
+                .skip(numSkip)
                 .findFirst()
-                .ifPresent(purchase -> KetrocBot.purchaseQueue.remove(purchase));
+                .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
     }
 
 }

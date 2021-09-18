@@ -1,7 +1,7 @@
 package com.ketroc.utils;
 
 import com.ketroc.bots.Bot;
-import com.ketroc.strategies.Strategy;
+import com.ketroc.launchers.Launcher;
 
 public class Time {
     public static final double FRAMES_PER_SECOND = 22.4;
@@ -12,7 +12,7 @@ public class Time {
 
     public static long toFrames(int seconds) {
         long frames = (long) (seconds * FRAMES_PER_SECOND);
-        frames -= frames % Strategy.STEP_SIZE;
+        frames -= frames % Launcher.STEP_SIZE;
         return frames;
     }
 
@@ -43,6 +43,10 @@ public class Time {
 
     public static long nowFrames() {
         return Bot.OBS.getGameLoop();
+    }
+
+    public static boolean at(long frame) {
+        return nowFrames() >= frame && nowFrames() < frame + Launcher.STEP_SIZE;
     }
 
 

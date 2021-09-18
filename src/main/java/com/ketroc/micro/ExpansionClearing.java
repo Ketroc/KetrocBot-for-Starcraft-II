@@ -195,7 +195,7 @@ public class ExpansionClearing {
 
         //cancel turret if it didn't place
         else if (!raven.unit.unit().getActive().orElse(true) &&
-                ActionIssued.getCurOrder(raven.unit.unit()).isEmpty()) {
+                ActionIssued.getCurOrder(raven.unit).isEmpty()) {
             removeTurret();
             raven.targetPos = expansionPos;
         }

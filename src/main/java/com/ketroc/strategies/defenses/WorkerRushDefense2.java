@@ -6,6 +6,7 @@ import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.Time;
 
 public class WorkerRushDefense2 {
 
@@ -32,30 +33,18 @@ public class WorkerRushDefense2 {
 //                    StructureScv.cancelProduction(Units.TERRAN_BARRACKS, GameCache.baseList.get(0).getCcPos());
 //            });
 
+        //TODO: move first depot to wall (in case it's on reaper wall vs scv rush)
 
         //build eng bay on wall
-        KetrocBot.purchaseQueue.stream()
-                .filter(p -> p instanceof PurchaseStructure &&
-                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_ENGINEERING_BAY)
-                .findFirst()
-                .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
+        Purchase.removeFirst(Units.TERRAN_ENGINEERING_BAY);
         KetrocBot.purchaseQueue.add(1, new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.WALL_3x3));
 
         //build 2nd depot on wall
-        KetrocBot.purchaseQueue.stream()
-                .filter(p -> p instanceof PurchaseStructure &&
-                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_SUPPLY_DEPOT)
-                .skip(1)
-                .findFirst()
-                .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
+        Purchase.removeFirst(Units.TERRAN_SUPPLY_DEPOT, 1);
         KetrocBot.purchaseQueue.add(2, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.MID_WALL_2x2));
 
         //build barracks (not on wall)
-        KetrocBot.purchaseQueue.stream()
-                .filter(p -> p instanceof PurchaseStructure &&
-                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_BARRACKS)
-                .findFirst()
-                .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
+        Purchase.removeFirst(Units.TERRAN_BARRACKS);
         KetrocBot.purchaseQueue.add(3, new PurchaseStructure(Units.TERRAN_BARRACKS));
 
 //        //set same scv for 1st depot and 1st barracks
@@ -63,7 +52,19 @@ public class WorkerRushDefense2 {
 //        ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
 //        ((PurchaseStructure)KetrocBot.purchaseQueue.get(2)).setScv(scv);
 
-        //remove command center from build order so gas & factory is up quicker
-        Purchase.removeAll(Units.TERRAN_COMMAND_CENTER);
+        //remove gasless command center from build order so gas & factory is up quicker
+        if (KetrocBot.purchaseQueue.stream()
+                .skip(5)
+                .anyMatch(p -> p instanceof PurchaseStructure &&
+                        ((PurchaseStructure) p).getStructureType() == Units.TERRAN_COMMAND_CENTER)) {
+            Purchase.removeAll(Units.TERRAN_COMMAND_CENTER);
+        }
+    }
+
+    public static void onStep() {
+        //turn off worker rush code
+        if (Strategy.WALL_OFF_IMMEDIATELY && Time.nowSeconds() > 300) {
+            Strategy.WALL_OFF_IMMEDIATELY = false;
+        }
     }
 }

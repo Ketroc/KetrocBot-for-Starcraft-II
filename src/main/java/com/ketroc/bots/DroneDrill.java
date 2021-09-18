@@ -10,12 +10,12 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.models.*;
 import com.ketroc.strategies.DroneRush;
 import com.ketroc.strategies.ScvRush;
-import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 import com.ketroc.utils.Error;
 
@@ -40,8 +40,8 @@ public class DroneDrill extends Bot {
             Abilities.MORPH_LAIR, Abilities.BUILD_SPIRE
     ));
 
-    public DroneDrill(boolean isDebugOn, String opponentId, boolean isRealTime) {
-        super(isDebugOn, opponentId, isRealTime);
+    public DroneDrill(boolean isDebugOn, String opponentId) {
+        super(isDebugOn, opponentId);
     }
 
 
@@ -54,7 +54,7 @@ public class DroneDrill extends Bot {
         try {
             super.onGameStart();
 
-            Strategy.STEP_SIZE = (isRealTime) ? 4 : 2;
+            Launcher.STEP_SIZE = (Launcher.isRealTime) ? 4 : 2;
 
             //set map
             LocationConstants.MAP = OBS.getGameInfo().getMapName();
@@ -95,8 +95,8 @@ public class DroneDrill extends Bot {
         super.onStep();
         availableDrones = getAvailableDrones();
         try {
-            if (Time.nowFrames() % Strategy.STEP_SIZE == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
-                if (Time.nowFrames() == Strategy.STEP_SIZE) {
+            if (Time.nowFrames() % Launcher.STEP_SIZE == 0) { // && LocalDate.now().isBefore(LocalDate.of(2020, 8, 5))) {
+                if (Time.nowFrames() == Launcher.STEP_SIZE) {
                     ACTION.sendChat("Last updated: Sept 24, 2020", ActionChat.Channel.BROADCAST);
                 }
                 //free up ignored units

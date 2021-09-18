@@ -7,6 +7,7 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.Chat;
 import com.ketroc.utils.Time;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -15,21 +16,44 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class JsonUtil {
-    public static String getOpponentJsonFile() {
-        return null; //TODO:
+    public static final String DIRECTORY_PATH = "./data";
+
+    public static void main(String[] args) {
+        try {
+            String[] jsonPaths = getAllJsonFilePaths();
+
+            Gson gson = new Gson();
+
+            for (String pathName : jsonPaths) {
+                Path path = Path.of(DIRECTORY_PATH + "/" + pathName);
+                Opponent opp = getOpponentRecords(gson, path);
+                opp.setRecord(GamePlan.MARINE_RUSH, 0, 0);
+                Files.write(path, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
+            }
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String[] getAllJsonFilePaths() {
+        File f = new File(DIRECTORY_PATH);
+        String[] pathnames = f.list((dir, name) -> name.endsWith(".json"));
+        return pathnames;
     }
 
     public static void setGameResult(GamePlan gamePlan, boolean didWin) {
         try {
             Gson gson = new Gson();
-            Path filePath = getPath();
+            Path filePath = getPathForCurrentOpponentJson();
 
             Opponent opp = getOpponentRecords(gson, filePath);
             opp.incrementRecord(gamePlan, didWin);
 
             //maintain a record of the most recent loss
             if (!didWin) {
-                opp.setPrevGameResult(new GameResult(Strategy.gamePlan, didWin, Time.nowClock()));
+                opp.setPrevGameResult(new GameResult(Strategy.gamePlan, didWin, Time.nowClock(), Chat.usedTags));
             }
             else if (opp.getPrevGameResult() == null) {
                 opp.setPrevGameResult(new GameResult());
@@ -44,7 +68,7 @@ public class JsonUtil {
 
     public static Opponent getOpponentRecords() {
         try {
-            return getOpponentRecords(new Gson(), getPath());
+            return getOpponentRecords(new Gson(), getPathForCurrentOpponentJson());
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -85,9 +109,9 @@ public class JsonUtil {
     public static void chatAllWinRates(boolean doLog) {
         try {
             Gson gson = new Gson();
-            Path filePath = getPath();
+            Path filePath = getPathForCurrentOpponentJson();
             Opponent opp = getOpponentRecords(gson, filePath);
-            Chat.chatNeverRepeat(opp.toString());
+            Chat.chatNeverRepeatInvisToHuman(opp.toString());
             if (doLog) {
                 System.out.println(opp);
             }
@@ -97,13 +121,14 @@ public class JsonUtil {
         }
     }
 
-    private static Path getPath() {
+    private static Path getPathForCurrentOpponentJson() {
         Optional<String> oppName = Bot.OBS.getGameInfo().getPlayersInfo().stream()
                 .filter(playerInfo -> playerInfo.getPlayerId() != Bot.OBS.getPlayerId())
                 .findFirst()
                 .get()
                 .getPlayerName();
         String fileName = oppName.orElse(Bot.opponentId.equals("") ? "human" : Bot.opponentId);
-        return Path.of("./data/" + fileName + ".json");
+        return Path.of(DIRECTORY_PATH + "/" + fileName + ".json");
     }
+
 }

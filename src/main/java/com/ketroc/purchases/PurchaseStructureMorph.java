@@ -72,7 +72,7 @@ public class PurchaseStructureMorph implements Purchase {
     // =========== METHODS ============
 
     public PurchaseResult build() {
-        if (!structure.isAlive()) {
+        if (structure == null || !structure.isAlive()) {
             return PurchaseResult.CANCEL;
         }
 
@@ -119,22 +119,24 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean structureAlreadyMorphing() {
-        return ActionIssued.getCurOrder(structure.unit()).stream()
+        return ActionIssued.getCurOrder(structure).stream()
                 .anyMatch(unitOrder -> unitOrder.ability == morphOrAddOn);
     }
 
     private boolean shouldCancelPreviousOrder() {
-        if (UnitUtils.getOrder(structure.unit()) == Abilities.TRAIN_SCV) {
-            int minerals = GameCache.mineralBank;
-            int gas = GameCache.gasBank;
+        if (this.structure.unit().getOrders().isEmpty() ||
+                this.structure.unit().getOrders().get(0).getAbility() != Abilities.TRAIN_SCV) {
+            return false;
+        }
 
-            UnitOrder order = this.structure.unit().getOrders().get(0);
-            UnitTypeData producingUnitData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(order.getAbility()));
-            if (minerals + producingUnitData.getMineralCost().get() >= cost.minerals &&
-                    gas + producingUnitData.getVespeneCost().get() >= cost.gas &&
-                    order.getProgress().get() < CANCEL_THRESHOLD) {
-                return true;
-            }
+        int minerals = GameCache.mineralBank;
+        int gas = GameCache.gasBank;
+        UnitOrder order = this.structure.unit().getOrders().get(0);
+        UnitTypeData producingUnitData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(order.getAbility()));
+        if (minerals + producingUnitData.getMineralCost().get() >= cost.minerals &&
+                gas + producingUnitData.getVespeneCost().get() >= cost.gas &&
+                order.getProgress().get() < CANCEL_THRESHOLD) {
+            return true;
         }
         return false;
     }

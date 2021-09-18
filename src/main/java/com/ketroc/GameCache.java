@@ -109,6 +109,7 @@ public class GameCache {
                 !enemy.isAlive() ||
                 enemy.getLastSeenGameLoop() + Time.toFrames(75) < Time.nowFrames()); //75s memory to clean up uncleared units
 
+//                                                                                                                                            if (!Launcher.isRealTime) return;
         for (UnitInPool unitInPool: Bot.OBS.getUnits()) {
             Unit unit = unitInPool.unit();
 
@@ -328,7 +329,7 @@ public class GameCache {
                         //air units
                         enemyIsAir.add(unit);
                     }
-                    if (unit.getDetectRange().orElse(0f) > 0f || unit.getType() == Units.PROTOSS_OBSERVER) {
+                    if (UnitUtils.DETECTOR_TYPES.contains(unit.getType())) {
                         enemyDetector.add(unit);
                     }
                     Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons();
@@ -576,7 +577,7 @@ public class GameCache {
                         Switches.vikingDiveTarget = closestTempest;
                         if (Switches.vikingDiveTarget != null) {
                             Switches.isDivingTempests = true;
-                            Bot.ACTION.sendChat(Chat.getRandomMessage(Chat.VIKING_DIVE), ActionChat.Channel.BROADCAST);
+                            Chat.chatWithoutSpam(Chat.VIKING_DIVE, 7);
                         }
                     }
                 }
@@ -586,7 +587,7 @@ public class GameCache {
         if (Switches.vikingDiveTarget == null) {
             //don't dive detector if vs terran, no banshees, or if there are still voids or phoenix visible
             if (Strategy.DO_DIVE_RAVENS && //TODO: temp for vs ANIBot
-                    (Strategy.gamePlan == GamePlan.BANSHEE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_TANK) &&
+                    Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
                     !GameCache.bansheeList.isEmpty() &&
                     (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {
                 for (Unit detector : GameCache.enemyDetector) {
@@ -597,8 +598,7 @@ public class GameCache {
                             if (Switches.vikingDiveTarget.unit().getType() == Units.PROTOSS_OBSERVER &&
                                     Switches.vikingDiveTarget.unit().getCloakState().orElse(CloakState.CLOAKED_DETECTED) == CloakState.CLOAKED) {
                                 if (UnitUtils.canScan()) {
-                                    List<Unit> orbitals = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
-                                    ActionHelper.unitCommand(orbitals, Abilities.EFFECT_SCAN, Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2), false);
+                                    UnitUtils.scan(Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2));
                                 }
                                 //cancel dive if I can't scan
                                 else {
@@ -701,9 +701,12 @@ public class GameCache {
                     float distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
                     //depot raising
                     if (!enemy.isAir && enemy.canMove &&
-                            (enemy.isArmy || doCloseWallToAllUnits()) &&
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
-                        InfluenceMaps.pointRaiseDepots[x][y] = true;
+                        if (enemy.isArmy ||
+                                doCloseWallToAllUnits() ||
+                                (UnitUtils.WORKER_TYPE.contains(enemy.unitType)) && UnitUtils.getEnemyGroundArmyUnitsWithin(11).size() > 1) {
+                            InfluenceMaps.pointRaiseDepots[x][y] = true;
+                        }
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);
                     }
                     //viking keeping distance vs tempests
@@ -755,36 +758,36 @@ public class GameCache {
                         //DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
                     }
                     //autoturret cast range
-                    if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor) {
+                    if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor && enemy.isTargettableUnit()) {
                         InfluenceMaps.pointInRavenCastRange[x][y] = true;
                     }
 
                     //marine range
-                    if (distance < Strategy.MARINE_RANGE && !enemy.isEffect) {
+                    if (distance < Strategy.MARINE_RANGE && !enemy.isEffect && enemy.isTargettableUnit()) {
                         InfluenceMaps.pointInMarineRange[x][y] = true;
                     }
 
                     if (enemy.isAir) {
 
                         //viking range
-                        if (distance < Strategy.VIKING_RANGE) {
+                        if (distance < Strategy.VIKING_RANGE && !enemy.isEffect && enemy.isTargettableUnit()) {
                             InfluenceMaps.enemyInVikingRange[x][y] = true;
                         }
 
                         //missile turret range
-                        if (distance < 8 + (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 1 : 0)) {
+                        if (!enemy.isEffect && distance < 8 + (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 1 : 0)) {
                             InfluenceMaps.enemyInMissileTurretRange[x][y] = true;
                         }
                     }
                     else { //ground unit or effect
 
                         //hellion range
-                        if (distance < Strategy.HELLION_RANGE && !enemy.isEffect) {
+                        if (distance < Strategy.HELLION_RANGE && !enemy.isEffect && enemy.isTargettableUnit()) {
                             InfluenceMaps.pointInHellionRange[x][y] = true;
                         }
 
                         //banshee range
-                        if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect) {
+                        if (distance < Strategy.BANSHEE_RANGE && !enemy.isEffect && enemy.isTargettableUnit()) {
                             InfluenceMaps.pointInBansheeRange[x][y] = true;
                         }
 
@@ -795,12 +798,12 @@ public class GameCache {
                         }
 
                         //PF target value (for PF & tank targetting)
-                        if (distance < 1.25) {
+                        if (!enemy.isEffect && enemy.isTargettableUnit() && distance < 1.25) {
                             InfluenceMaps.pointPFTargetValue[x][y] += enemy.pfTargetLevel;
                         }
 
                         //ground unit within 13 range
-                        if (distance < 13) {
+                        if (distance < 13 && !enemy.isEffect && enemy.isTargettableUnit()) {
                             InfluenceMaps.pointGroundUnitWithin13[x][y] = true;
                             //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.15f,y/2-0.15f, z), Point.of(x/2+0.15f,y/2+0.15f, z), Color.GREEN);
                         }

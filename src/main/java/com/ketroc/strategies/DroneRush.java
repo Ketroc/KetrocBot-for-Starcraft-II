@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.DroneDrill;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.models.DelayedAction;
 import com.ketroc.models.TriangleOfNodes;
 import com.ketroc.utils.*;
@@ -313,10 +314,10 @@ public class DroneRush {
         }
         if (isDronesClustered()) {
             ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
-            long attackFrame = Time.nowFrames() + (Strategy.STEP_SIZE * 3);
+            long attackFrame = Time.nowFrames() + (Launcher.STEP_SIZE * 3);
             droneList.forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
-            long clusterFrame = attackFrame + (Strategy.STEP_SIZE * 3);
+            long clusterFrame = attackFrame + (Launcher.STEP_SIZE * 3);
             droneList.forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(clusterFrame, Abilities.SMART, scv, LocationConstants.enemyMineralTriangle.getMiddle())));
         }

@@ -10,6 +10,7 @@ import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.models.Base;
 import com.ketroc.models.DelayedAction;
 import com.ketroc.models.TriangleOfNodes;
@@ -291,10 +292,10 @@ public class ScvRush {
         }
         if (isScvsClustered()) {
             ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
-            long attackFrame = Time.nowFrames() + (Strategy.STEP_SIZE * 3);
+            long attackFrame = Time.nowFrames() + (Launcher.STEP_SIZE * 3);
             scvList.stream().forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
-            long clusterFrame = attackFrame + (Strategy.STEP_SIZE * 3);
+            long clusterFrame = attackFrame + (Launcher.STEP_SIZE * 3);
             scvList.stream().forEach(scv ->
                     DelayedAction.delayedActions.add(new DelayedAction(clusterFrame, Abilities.SMART, scv, LocationConstants.enemyMineralTriangle.getMiddle())));
         }

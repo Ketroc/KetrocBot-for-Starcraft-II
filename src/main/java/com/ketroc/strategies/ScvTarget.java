@@ -48,7 +48,7 @@ public class ScvTarget {
                 }
                 break;
             case PROTOSS_PROBE:
-                numScvs = 1;
+                numScvs = 2;
                 break;
             case PROTOSS_PYLON:
                 //send an scv to pylon blocking natural
@@ -61,14 +61,15 @@ public class ScvTarget {
                 }
                 break;
             case ZERG_HATCHERY: //TODO: math the answer for numScvs
-                if (targetUnit.unit().getBuildProgress() > 0.80) {
-                    giveUp = true;
-                }
-                else if (targetUnit.unit().getBuildProgress() > 0.5) {
+//                if (targetUnit.unit().getBuildProgress() > 0.80) {
+//                    giveUp = true;
+//                }
+//                else
+                    if (targetUnit.unit().getBuildProgress() > 0.5) {
                     numScvs = 12;
                 }
                 else {
-                    numScvs = 7;
+                    numScvs = 8;
                 }
                 break;
         }
@@ -99,7 +100,7 @@ public class ScvTarget {
     }
 
     // ************** STATIC METHODS ******************
-    public static void removeDeadTargets() {
+    public static void onStep() {
         for (int i = 0; i<targets.size(); i++) {
             ScvTarget scvTarget = targets.get(i);
             List<ScvAttackTarget> scvs = scvTarget.getScvList();

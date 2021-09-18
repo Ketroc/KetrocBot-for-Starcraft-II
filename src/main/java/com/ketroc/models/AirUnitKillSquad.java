@@ -17,7 +17,7 @@ import java.util.List;
 
 //banshee, overlord/seer, observer,
 public class AirUnitKillSquad {
-    public static final int MAX_THREAT = 4;
+    public static final int MAX_THREAT = 3;
 
     public static List<AirUnitKillSquad> enemyAirTargets = new ArrayList<>();
 

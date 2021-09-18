@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
@@ -22,8 +23,8 @@ public class Gas {
     private Point2d nodePos;
     private Point2d ccPos;
     private Point2d byNode;
-    private float distanceToHarvest = 2.05f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
-    private float distanceToCC = 3.15f + (Strategy.STEP_SIZE > 2 ? 0.5f : 0);
+    private float distanceToHarvest = 2.05f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
+    private float distanceToCC = 3.15f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
     private Point2d byCC;
 
 

@@ -131,7 +131,7 @@ public class UpgradeManager {
                                 .findFirst()
                                 .ifPresent(techLab -> {
                                     if (!Purchase.isUpgradeQueued(upgrade)) {
-                                        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
+                                        KetrocBot.purchaseQueue.addFirst(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
                                     }
                                 });
                     });

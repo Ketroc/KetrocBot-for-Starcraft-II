@@ -313,7 +313,7 @@ public class Base {
                 }
 
                 //fix scv if not mining wrong node
-                else if (ActionIssued.getCurOrder(scv.unit()).stream()
+                else if (ActionIssued.getCurOrder(scv).stream()
                         .anyMatch(order -> order.ability == Abilities.HARVEST_GATHER &&
                                 !gas.getRefinery().getTag().equals(order.targetTag))) {
                     ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, gas.getRefinery(), false);
@@ -681,6 +681,17 @@ public class Base {
                     .get();
 
         }
+
+        //hardcoded exception (calculated pos traps scvs)
+        if (LocationConstants.MAP.contains("Oxide")) {
+            if (turretPos.distance(Point2d.of(65, 76)) < 1) {
+                turretPos = turretPos.add(0, 1);
+            }
+            else if (turretPos.distance(Point2d.of(127, 128)) < 1) {
+                turretPos = turretPos.sub(0, 1);
+            }
+        }
+
         //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
         turrets.add(new DefenseUnitPositions(turretPos, null));
     }
