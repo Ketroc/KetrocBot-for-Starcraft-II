@@ -229,6 +229,9 @@ public class Strategy {
 //                DO_DIVE_RAVENS = false;
                 ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
+            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1":
+                DO_BANSHEE_HARASS = false;
+                break;
         }
     }
 
