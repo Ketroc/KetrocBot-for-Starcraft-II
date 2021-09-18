@@ -142,9 +142,13 @@ public class Tank extends BasicUnitMicro {
         if (!ArmyManager.doOffense &&
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
-            Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
-            unsiege();
-            return true;
+            if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
+                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
+                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
+                unsiege();
+                return true;
+            }
+            return false;
         }
 
         //unsiege immediately if no targets but under threat
