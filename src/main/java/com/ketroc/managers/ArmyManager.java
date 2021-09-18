@@ -434,10 +434,10 @@ public class ArmyManager {
 //        }
 
         //TODO: testing cyclones
-        //move out with 6+ cyclones and an air unit
-        if (Strategy.DO_USE_CYCLONES) { // &&
-//                (UnitMicroList.getUnitSubList(Cyclone.class).size() > 5 ||
-//                        (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty()))) {
+        //move out with 4+ cyclones and an air unit
+        if (Strategy.DO_USE_CYCLONES &&
+                (UnitMicroList.getUnitSubList(Cyclone.class).size() > 4 ||
+                        (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty()))) {
             doOffense = true;
             return;
         }
