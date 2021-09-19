@@ -195,6 +195,11 @@ public class ArmyManager {
     }
 
     private static void setIsAttackUnitRetreating() {
+        if (attackUnit == null) {
+            isAttackUnitRetreating = false;
+            return;
+        }
+
         //always consider burrowed units not retreating
         if (attackUnit.getType().toString().endsWith("_BURROWED")) {
             isAttackUnitRetreating = true;
@@ -202,7 +207,7 @@ public class ArmyManager {
         }
 
         //check facing angle to tell if unit is retreating
-        if (attackUnit != null && UnitUtils.canMove(attackUnit)) {
+        if (UnitUtils.canMove(attackUnit)) {
             float facing = (float)Math.toDegrees(attackUnit.getFacing());
             float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
             float angleDiff = Position.getAngleDifference(facing, attackAngle);
@@ -889,11 +894,13 @@ public class ArmyManager {
                 getEnemyInMain() :
                 getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
         if (enemyInMyBase != null) {
-            bunkerAtNatural.ifPresent(bunker -> {
-                if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
-                    ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
-                }
-            });
+            bunkerAtNatural
+                    .filter(bunker -> UnitUtils.getDistance(bunker.unit(), enemyInMyBase) > 8)
+                    .ifPresent(bunker -> {
+                        if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
+                            ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
+                        }
+                    });
             MarineBasic.setTargetPos(enemyInMyBase.getPosition().toPoint2d());
             return;
         }
