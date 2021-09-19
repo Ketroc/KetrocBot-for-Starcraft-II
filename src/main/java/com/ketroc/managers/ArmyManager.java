@@ -1470,7 +1470,7 @@ public class ArmyManager {
         ArmyCommands lastCommand = getCurrentCommand(raven);
         boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY))
                 ? InfluenceMaps.pointThreatToAir
-                : (Strategy.MASS_RAVENS) ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer;
+                : (Strategy.MASS_RAVENS ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer);
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
 
         //if maxed on mass raven, let them turret more aggressively
@@ -1481,7 +1481,8 @@ public class ArmyManager {
 //            isUnsafe = false; //FIXME: testing aggressive autoturretting to prevent tie games
 //            Chat.tag("AGGRESSIVE_RAVENS");
 //        }
-        boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInRavenCastRange, raven.getPosition().toPoint2d());
+        //boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInRavenCastRange, raven.getPosition().toPoint2d());
+        boolean inRange = attackUnit != null && UnitUtils.getDistance(attackUnit, raven) < Strategy.RAVEN_CAST_RANGE;
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke() &&
                 UnitUtils.isRepairBaySafe();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
