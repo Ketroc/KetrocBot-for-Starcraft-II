@@ -195,13 +195,23 @@ public class ArmyManager {
     }
 
     private static void setIsAttackUnitRetreating() {
-        isAttackUnitRetreating = false;
-        if (attackUnit != null && UnitUtils.canMove(attackUnit) && !attackUnit.getType().toString().endsWith("_BURROWED")) {
+        //always consider burrowed units not retreating
+        if (attackUnit.getType().toString().endsWith("_BURROWED")) {
+            isAttackUnitRetreating = true;
+            return;
+        }
+
+        //check facing angle to tell if unit is retreating
+        if (attackUnit != null && UnitUtils.canMove(attackUnit)) {
             float facing = (float)Math.toDegrees(attackUnit.getFacing());
             float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
             float angleDiff = Position.getAngleDifference(facing, attackAngle);
-            isAttackUnitRetreating = angleDiff < 50;
+            isAttackUnitRetreating = angleDiff > 100;
+            return;
         }
+
+        //default retreating
+        isAttackUnitRetreating = false;
     }
 
     private static void libTargetting() {
