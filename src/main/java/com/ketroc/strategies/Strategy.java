@@ -421,10 +421,10 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-//            case "":
-//                return new HashSet<>(Set.of(
-//                        GamePlan.,
-//                ));
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE_CYCLONE
+                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
