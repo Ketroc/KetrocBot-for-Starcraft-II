@@ -525,7 +525,7 @@ public class Strategy {
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
-                NUM_BASES_TO_OC = LocationConstants.baseLocations.size();
+                NUM_BASES_TO_OC = 3;
                 BUILD_EXPANDS_IN_MAIN = false;
                 PRIORITIZE_EXPANDING = true;
                 break;

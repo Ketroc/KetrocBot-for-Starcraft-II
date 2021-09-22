@@ -28,7 +28,7 @@ public class KetrocLauncher {
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
 
-//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
@@ -42,7 +42,7 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("EternalEmpire506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EverDream506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GoldenWall506.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("IceandChrome506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("NightshadeLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("PillarsOfGold506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Submarine506.SC2Map")));

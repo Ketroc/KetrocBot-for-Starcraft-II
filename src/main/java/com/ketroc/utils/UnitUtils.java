@@ -633,6 +633,22 @@ public class UnitUtils {
         }
     }
 
+    public static StructureSize getSize(Unit structure) {
+        float structureSize = structure.getRadius();
+        if (structureSize > 2.25) {
+            return StructureSize._5x5;
+        }
+        else if (structureSize > 1.25) {
+            return StructureSize._3x3;
+        }
+        else if (structureSize > 0.75) {
+            return StructureSize._2x2;
+        }
+        else {
+            return StructureSize._1x1;
+        }
+    }
+
     public static boolean isUnitTrapped(Unit unit) {
         boolean cantPathToMain = Bot.QUERY.pathingDistance(unit, LocationConstants.insideMainWall) == 0;
 

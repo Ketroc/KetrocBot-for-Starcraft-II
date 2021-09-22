@@ -145,7 +145,7 @@ public class KetrocBot extends Bot {
 //            }
 
             DebugHelper.onStep(); //reset debug status for printing info
-            //PlacementMap.visualizePlacementMap();
+            PlacementMap.visualizePlacementMap();
 
             Ignored.onStep(); //free up ignored units
             EnemyScan.onStep(); //remove expired enemy scans
@@ -542,6 +542,13 @@ public class KetrocBot extends Bot {
             Unit unit = unitInPool.unit();
             Alliance alliance = unit.getAlliance();
 
+            //make available non-flying structures
+            if (UnitUtils.isStructure(unit.getType()) &&
+                    !unit.getFlying().orElse(true) &&
+                    !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
+                PlacementMap.makeAvailable(unit);
+            }
+
             //cancelled structures are handled in requeueCancelledStructure(), not here
             if (alliance == Alliance.SELF && unit.getBuildProgress() < 1) {
                 return;
@@ -550,10 +557,6 @@ public class KetrocBot extends Bot {
             if (unit.getType() instanceof Units) {
                 switch (alliance) {
                     case SELF:
-                        if (UnitUtils.isStructure(unit.getType())) {
-                            PlacementMap.makeAvailable(unit);
-                        }
-
                         switch ((Units) unit.getType()) {
                             case TERRAN_COMMAND_CENTER: //ignore CCs in enemy territory
                                 Point2d enemyNatPos = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 2);
@@ -656,7 +659,14 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUnitEnterVision(UnitInPool unitInPool) {
-
+        Unit unit = unitInPool.unit();
+        //make unavailable non-flying enemy structures
+        if (unit.getAlliance() == Alliance.ENEMY &&
+                UnitUtils.isStructure(unit.getType()) &&
+                !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
+            PlacementMap.makeUnavailable(unit);
+        }
+        //TODO: add neutral doodads like rocks and xelnaga towers to unavailable
     }
 
     @Override

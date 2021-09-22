@@ -708,7 +708,7 @@ public class BuildManager {
     private static boolean isHellionsNeeded() {
         return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                 UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                        (LocationConstants.opponentRace == Race.ZERG ? 2 : 0);
+                        (LocationConstants.opponentRace == Race.ZERG ? 1 : 0);
     }
 
     public static void liftFactory(Unit factory) {

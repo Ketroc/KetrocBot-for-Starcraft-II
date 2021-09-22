@@ -30,6 +30,8 @@ public class StructureFloaterExpansionCC extends StructureFloater {
     public StructureFloaterExpansionCC(UnitInPool structure, Point2d targetPos) {
         super(structure, targetPos, true);
         basePos = targetPos;
+        PlacementMap.makeAvailable(structure.unit());
+        PlacementMap.makeUnavailable((Units)structure.unit().getType(), basePos);
         doDetourAroundEnemy = true;
         createdFrame = Time.nowFrames();
         List<Base> ocBases = GameCache.baseList.subList(0, Strategy.NUM_BASES_TO_OC);

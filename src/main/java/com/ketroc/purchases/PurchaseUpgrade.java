@@ -21,7 +21,7 @@ import java.util.Set;
 public class PurchaseUpgrade implements Purchase {
     private static final Set<Upgrades> LOW_PRIORITY_UPGRADES = Set.of(
             Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE,
-            //Upgrades.INFERNAL_PRE_IGNITERS,
+            Upgrades.INFERNAL_PRE_IGNITERS,
             Upgrades.HISEC_AUTO_TRACKING,
             Upgrades.TERRAN_BUILDING_ARMOR,
             Upgrades.BANSHEE_SPEED
@@ -100,21 +100,21 @@ public class PurchaseUpgrade implements Purchase {
 
     //prioritize producing army units over certain upgrades
     private boolean doDelayThisUpgrade() {
-        return ((LOW_PRIORITY_UPGRADES.contains(upgrade) || !hasRelatedArmyUnits()) &&
+        return ((LOW_PRIORITY_UPGRADES.contains(upgrade) || !hasEnoughRelatedArmyUnits()) &&
                 Bot.OBS.getFoodUsed() < 197 &&
                 !BuildManager.isAllProductionStructuresBusy());
     }
 
-    private boolean hasRelatedArmyUnits() {
+    private boolean hasEnoughRelatedArmyUnits() {
         switch (upgrade) { //TODO: complete for all upgrades (that I don't currently use)
             case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
-                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) > 0;
+                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 1;
             case INFERNAL_PRE_IGNITERS:
-                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0;
+                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
             case BANSHEE_SPEED: //case BANSHEE_CLOAK:
-                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0;
+                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
-                return UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) > 0;
+                return UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) >= 1;
         }
         return true;
     }

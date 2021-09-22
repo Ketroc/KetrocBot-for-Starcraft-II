@@ -3,13 +3,10 @@ package com.ketroc.utils;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
-import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.strategies.GamePlan;
-import com.ketroc.strategies.Strategy;
 
 import java.util.Arrays;
 
@@ -69,7 +66,7 @@ public class PlacementMap {
         topUp3x3List();
         populateDepotPos();
 
-        //visualizePlacementMap();
+        visualizePlacementMap();
         //create2CellColumns();
     }
 
@@ -123,35 +120,35 @@ public class PlacementMap {
             DebugHelper.drawBox(Bot.OBS.getStartLocation().toPoint2d(), Color.YELLOW, 2.5f);
         }
 
-        //remove ramp wall
-        makeUnavailable2x2(LocationConstants.WALL_2x2);
-        makeUnavailable3x3(LocationConstants.WALL_3x3);
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3);
-        DebugHelper.drawBox(LocationConstants.WALL_2x2, Color.YELLOW, 1f);
-        DebugHelper.drawBox(LocationConstants.WALL_3x3, Color.YELLOW, 1.5f);
-        DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.YELLOW, 1.5f);
-
-        //make space around ramp entrance
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(-2, -2));
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(0, -2));;
-        //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
-
-
-        //remove reaper jump wall
-        if (LocationConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
-            LocationConstants.reaperBlockDepots.forEach(p -> {
-                makeUnavailable2x2(p);
-                if (isColumnSet) {
-                    DebugHelper.drawBox(p, Color.YELLOW, 1f);
-                }
-            });
-            LocationConstants.reaperBlock3x3s.forEach(p -> {
-                makeUnavailable3x3(p);
-                if (isColumnSet) {
-                    DebugHelper.drawBox(p, Color.YELLOW, 1.5f);
-                }
-            });
-        }
+//        //remove ramp wall
+//        makeUnavailable2x2(LocationConstants.WALL_2x2);
+//        makeUnavailable3x3(LocationConstants.WALL_3x3);
+//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3);
+//        DebugHelper.drawBox(LocationConstants.WALL_2x2, Color.YELLOW, 1f);
+//        DebugHelper.drawBox(LocationConstants.WALL_3x3, Color.YELLOW, 1.5f);
+//        DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.YELLOW, 1.5f);
+//
+//        //make space around ramp entrance
+//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(-2, -2));
+//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(0, -2));;
+//        //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
+//
+//
+//        //remove reaper jump wall
+//        if (LocationConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
+//            LocationConstants.reaperBlockDepots.forEach(p -> {
+//                makeUnavailable2x2(p);
+//                if (isColumnSet) {
+//                    DebugHelper.drawBox(p, Color.YELLOW, 1f);
+//                }
+//            });
+//            LocationConstants.reaperBlock3x3s.forEach(p -> {
+//                makeUnavailable3x3(p);
+//                if (isColumnSet) {
+//                    DebugHelper.drawBox(p, Color.YELLOW, 1.5f);
+//                }
+//            });
+//        }
     }
 
     public static void visualizePlacementMap() {
@@ -159,7 +156,7 @@ public class PlacementMap {
             for (float y=LocationConstants.MIN_Y + 0.5f; y<LocationConstants.MAX_Y; y++) {
                 if (placementMap[(int)x][(int)y]) {
                     DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
-                    DebugHelper.drawText((int)x + "," + (int)y, Point2d.of(x-0.4f, y), Color.TEAL, 8);
+                    //DebugHelper.drawText((int)x + "," + (int)y, Point2d.of(x-0.4f, y), Color.TEAL, 8);
                 }
             }
         }
@@ -275,6 +272,26 @@ public class PlacementMap {
         change5x5(pos, false);
     }
 
+    public static void makeUnavailable(Unit structure) {
+        switch (UnitUtils.getSize(structure)) {
+            case _1x1:
+                makeUnavailable1x1(structure.getPosition().toPoint2d());
+                break;
+            case _2x2:
+                makeUnavailable2x2(structure.getPosition().toPoint2d());
+                break;
+            case _3x3:
+                makeUnavailable3x3(structure.getPosition().toPoint2d());
+                if (structure.getType() == Units.TERRAN_FACTORY || structure.getType() == Units.TERRAN_STARPORT) {
+                    makeUnavailable2x2(getAddOnPos(structure.getPosition().toPoint2d()));
+                }
+                break;
+            case _5x5:
+                makeUnavailable5x5(structure.getPosition().toPoint2d());
+                break;
+        }
+    }
+
     public static void makeUnavailable(Units structureType, Point2d pos) {
         switch (UnitUtils.getSize(structureType)) {
             case _1x1:
@@ -300,7 +317,20 @@ public class PlacementMap {
     }
 
     public static void makeAvailable(Unit structure) {
-        makeAvailable((Units)structure.getType(), structure.getPosition().toPoint2d());
+        switch (UnitUtils.getSize(structure)) {
+            case _1x1:
+                makeAvailable1x1(structure.getPosition().toPoint2d());
+                break;
+            case _2x2:
+                makeAvailable2x2(structure.getPosition().toPoint2d());
+                break;
+            case _3x3:
+                makeAvailable3x3(structure.getPosition().toPoint2d());
+                break;
+            case _5x5:
+                makeAvailable5x5(structure.getPosition().toPoint2d());
+                break;
+        }
     }
 
     public static void makeAvailable(Units structureType, Point2d pos) {
@@ -313,9 +343,6 @@ public class PlacementMap {
                 break;
             case _3x3:
                 makeAvailable3x3(pos);
-                if (structureType == Units.TERRAN_FACTORY || structureType == Units.TERRAN_STARPORT) {
-                    makeAvailable2x2(getAddOnPos(pos));
-                }
                 break;
             case _5x5:
                 makeAvailable5x5(pos);
