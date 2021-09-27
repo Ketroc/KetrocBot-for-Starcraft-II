@@ -145,7 +145,7 @@ public class KetrocBot extends Bot {
 //            }
 
             DebugHelper.onStep(); //reset debug status for printing info
-            PlacementMap.visualizePlacementMap();
+            //PlacementMap.visualizePlacementMap();
 
             Ignored.onStep(); //free up ignored units
             EnemyScan.onStep(); //remove expired enemy scans

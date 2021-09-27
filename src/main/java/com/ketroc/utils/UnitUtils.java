@@ -136,10 +136,10 @@ public class UnitUtils {
     public static final Set<Units> IGNORED_TARGETS = new HashSet<>(Set.of(
             Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.TERRAN_AUTO_TURRET,
             Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.PROTOSS_DISRUPTOR_PHASED,
-            Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE));
+            Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE, Units.INVALID));
 
     public static final Set<Units> UNTARGETTABLES = new HashSet<>(Set.of(
-            Units.PROTOSS_DISRUPTOR_PHASED, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE));
+            Units.PROTOSS_DISRUPTOR_PHASED, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.TERRAN_KD8CHARGE, Units.INVALID));
 
     public static final Set<Units> LONG_RANGE_ENEMIES = new HashSet<>(Set.of(
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
@@ -1251,5 +1251,18 @@ public class UnitUtils {
     public static boolean isExpansionNeeded() {
         return BuildManager.getNextAvailableExpansionPosition() != null &&
                 Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.numScvs(true) + (Base.numMyBases() * 4));
+    }
+
+    public static boolean isEnemyRetreating(Unit enemyUnit, Point2d myUnitPos) {
+        //always consider burrowed units and units unable to move as: not retreating
+        if (enemyUnit.getType().toString().endsWith("_BURROWED") || !canMove(enemyUnit)) {
+            return false;
+        }
+
+        //check facing angle to tell if unit is retreating
+        float facing = (float)Math.toDegrees(enemyUnit.getFacing());
+        float attackAngle = Position.getAngle(enemyUnit.getPosition().toPoint2d(), myUnitPos);
+        float angleDiff = Position.getAngleDifference(facing, attackAngle);
+        return angleDiff > 100;
     }
 }

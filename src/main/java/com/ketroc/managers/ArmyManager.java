@@ -200,23 +200,7 @@ public class ArmyManager {
             return;
         }
 
-        //always consider burrowed units not retreating
-        if (attackUnit.getType().toString().endsWith("_BURROWED")) {
-            isAttackUnitRetreating = true;
-            return;
-        }
-
-        //check facing angle to tell if unit is retreating
-        if (UnitUtils.canMove(attackUnit)) {
-            float facing = (float)Math.toDegrees(attackUnit.getFacing());
-            float attackAngle = Position.getAngle(attackUnit.getPosition().toPoint2d(), groundAttackersMidPoint);
-            float angleDiff = Position.getAngleDifference(facing, attackAngle);
-            isAttackUnitRetreating = angleDiff > 100;
-            return;
-        }
-
-        //default retreating
-        isAttackUnitRetreating = false;
+        isAttackUnitRetreating = UnitUtils.isEnemyRetreating(attackUnit, groundAttackersMidPoint);
     }
 
     private static void libTargetting() {
@@ -1463,7 +1447,7 @@ public class ArmyManager {
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
 
         //wait for raven to auto-turret before giving a new command
-        if (!isAttackUnitRetreating && UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
+        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
             return;
         }
 
@@ -1481,8 +1465,10 @@ public class ArmyManager {
 //            isUnsafe = false; //FIXME: testing aggressive autoturretting to prevent tie games
 //            Chat.tag("AGGRESSIVE_RAVENS");
 //        }
+        Optional<UnitInPool> turretTarget = getRavenTurretTarget(raven);
         //boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInRavenCastRange, raven.getPosition().toPoint2d());
-        boolean inRange = attackUnit != null && UnitUtils.getDistance(attackUnit, raven) < Strategy.RAVEN_CAST_RANGE;
+        //boolean inRange = attackUnit != null && UnitUtils.getDistance(attackUnit, raven) < Strategy.RAVEN_CAST_RANGE;
+        boolean inRange = turretTarget.isPresent();
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke() &&
                 UnitUtils.isRepairBaySafe();
         int healthToRepair = (!doOffense && attackUnit == null) ? 99 : (Strategy.RETREAT_HEALTH + 10);
@@ -1500,15 +1486,15 @@ public class ArmyManager {
         }
 
         //stay in repair bay if not on offensive or under 100% health
-        else if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && raven.getPosition().toPoint2d().distance(retreatPos) < 3) {
+        else if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && UnitUtils.getDistance(raven, retreatPos) < 3) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
         }
 
-        //go home to repair if low
+        //go home to repair if low TODO: kite first
         else if (canRepair && UnitUtils.getHealthPercentage(raven) < healthToRepair) {
-            if (!doCastTurrets || !doAutoTurretOnRetreat(raven)) {
+//            if (!doCastTurrets) || !doAutoTurretOnRetreat(raven)) {
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
-            }
+//            }
         }
 
         //go home to repair if mass raven strategy and no energy for autoturrets
@@ -1521,7 +1507,7 @@ public class ArmyManager {
         else if (isUnsafe || inRange) {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!Strategy.DO_MATRIX || !castMatrix(raven)) {
-                    if (!doCastTurrets || !doAutoTurret(raven)) {
+                    if (!doCastTurrets || !doAutoTurret(raven, turretTarget)) {
 //                        if (isUnsafe) {
                             kiteBackAirUnit(raven, lastCommand);
 //                        }
@@ -1543,41 +1529,72 @@ public class ArmyManager {
         }
     }
 
-    //drop auto-turrets near enemy before going home to repair
-    private static boolean doAutoTurretOnRetreat(Unit raven) {
-        if (raven.getEnergy().orElse(0f) >= 50 &&
-                !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
-                UnitUtils.getDistance(raven, attackGroundPos) < 12 &&
-                attackUnit != null) {
-            return castAutoTurret(raven, 0);
+    private static Optional<UnitInPool> getRavenTurretTarget(Unit raven) {
+        List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                isTargetImportant(enemy.unit().getType()) &&
+                UnitUtils.getDistance(raven, enemy.unit()) < 11); //radius 1, cast range 2, attack range 7, 1 enemy radius/buffer
+        if (targets.isEmpty() && raven.getEnergy().orElse(0f) > 175) {
+            targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                    UnitUtils.getDistance(raven, enemy.unit()) < 10); //radius 1, cast range 2, attack range 7
         }
-        return false;
+        return targets.stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(raven, enemy.unit())));
     }
 
+//    //drop auto-turrets near enemy before going home to repair
+//    private static boolean doAutoTurretOnRetreat(Unit raven) {
+//        if (raven.getEnergy().orElse(0f) >= 50 &&
+//                !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
+//                UnitUtils.getDistance(raven, attackGroundPos) < 12 &&
+//                attackUnit != null) {
+//            return castAutoTurret(raven, 0);
+//        }
+//        return false;
+//    }
+
     //drop auto-turrets near enemy
-    private static boolean doAutoTurret(Unit raven) {
-        if (!isAttackUnitRetreating &&
-                (isAttackUnitImportant() || raven.getEnergy().orElse(0f) >= 175) &&
+    private static boolean doAutoTurret(Unit raven, Optional<UnitInPool> turretTarget) {
+        if (turretTarget.isEmpty()) {
+            return false;
+        }
+        if (!UnitUtils.isEnemyRetreating(turretTarget.get().unit(), raven.getPosition().toPoint2d()) &&
                 raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
                 !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
-            return castAutoTurret(raven, 0);
+            return castAutoTurret(raven, turretTarget.get().unit());
         }
         return false;
     }
 
     private static boolean isAttackUnitImportant() {
-        return attackUnit != null &&
-                (!UnitUtils.isStructure(attackUnit.getType()) ||
-                        UnitUtils.canAttack(attackUnit.getType()));
+        return attackUnit != null && isTargetImportant(attackUnit.getType());
     }
 
-    private static boolean castAutoTurret(Unit raven, float towardsEnemyDistance) {
-        Point2d turretPos = Position.toWholePoint(
-                Position.towards(raven.getPosition().toPoint2d(), attackGroundPos, towardsEnemyDistance));
+    private static boolean isTargetImportant(UnitType targetType) {
+        return !UnitUtils.isStructure(targetType) || UnitUtils.canAttack(targetType);
+    }
+
+    private static boolean castAutoTurret(Unit raven, Unit enemyTarget) {
+        //see how close we can safely cast from
+        Point2d ravenPos = raven.getPosition().toPoint2d();
+        Point2d enemyTargetPos = enemyTarget.getPosition().toPoint2d();
+        float distanceToTarget = UnitUtils.getDistance(raven, enemyTargetPos);
+        Point2d turretPos = ravenPos;
+        if (!raven.getBuffs().contains(Buffs.FUNGAL_GROWTH)) { //cast at raven if fungaled
+            for (int i = 1; i < distanceToTarget - 1; i++) {
+                Point2d testPos = Position.towards(ravenPos, enemyTargetPos, i);
+                if (testSafetyOfPos(testPos, enemyTarget)) {
+                    break;
+                }
+                turretPos = testPos;
+            }
+        }
+        turretPos = Position.toWholePoint(turretPos);
+
+        //get list of nearby placeable positions
         List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
-                .filter(p -> p.distance(attackGroundPos) < 8)
+                .filter(p -> p.distance(enemyTargetPos) < 8)
                 .filter(p -> Bot.OBS.isPlacable(p))
-                .sorted(Comparator.comparing(p -> p.distance(attackGroundPos)))
+                .sorted(Comparator.comparing(p -> p.distance(enemyTargetPos)))
                 .collect(Collectors.toList());
         if (posList.isEmpty()) {
             return false;
@@ -1599,10 +1616,22 @@ public class ArmyManager {
             turretsCast++;
             return true;
         }
-        else if (attackUnit != null && !UnitUtils.canMove(attackUnit) && towardsEnemyDistance < 4) {
-            castAutoTurret(raven, 4);
-        }
+//        else if (attackUnit != null && !UnitUtils.canMove(attackUnit) && towardsEnemyDistance < 4) {
+//            castAutoTurret(raven, 4);
+//        }
         return false;
+    }
+
+    //hacky way to deal with stuck ravens (for 4sec every 3 minutes, the ravens will power in past 14 threat to attack structures/thors
+    private static boolean testSafetyOfPos(Point2d testPos, Unit enemyTarget) {
+        int threatThreshold = 0;
+        //with mass raven... periodically let them go deep into threat range to lay turrets
+        if ((UnitUtils.isStructure(enemyTarget.getType()) || UnitUtils.THOR_TYPE.contains(enemyTarget.getType())) &&
+                UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) >= 10 &&
+                Time.periodic(3, 96)) {
+            threatThreshold = 14;
+        }
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, testPos) <= threatThreshold;
     }
 
     private static boolean castSeeker(Unit raven) {

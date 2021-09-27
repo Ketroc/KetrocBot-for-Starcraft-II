@@ -5,6 +5,7 @@ import com.ketroc.launchers.Launcher;
 
 public class Time {
     public static final double FRAMES_PER_SECOND = 22.4;
+    public static final int NUM_FRAMES_PER_MINUTE = 1344;
 
     public static int toSeconds(long frames) {
         return (int)(frames / FRAMES_PER_SECOND);
@@ -49,8 +50,13 @@ public class Time {
         return nowFrames() >= frame && nowFrames() < frame + Launcher.STEP_SIZE;
     }
 
-
     public static boolean isFrameSkip(int i) {
         return nowFrames() % i == 0;
+    }
+
+    //returns true if within first numFrames of any numMinutes period
+    public static boolean periodic(int numMinutes, int numFrames) {
+        long periodFrame = nowFrames() % (NUM_FRAMES_PER_MINUTE * numMinutes);
+        return periodFrame < numFrames;
     }
 }

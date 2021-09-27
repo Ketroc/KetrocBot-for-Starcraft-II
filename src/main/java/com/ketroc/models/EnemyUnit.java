@@ -225,8 +225,9 @@ public class EnemyUnit {
     }
 
     private void calcMaxRange() {
-        //viking stay back range if tempests are out
-        if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) {
+        //viking stay back range if tempests are out or mass raven strat
+        if ((unitType == Units.TERRAN_VIKING_FIGHTER && !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) ||
+                (unitType == Units.TERRAN_RAVEN && Strategy.MASS_RAVENS)) {
             maxRange = 15 + Strategy.KITING_BUFFER;
             return;
         }

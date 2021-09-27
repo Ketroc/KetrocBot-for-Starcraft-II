@@ -758,7 +758,7 @@ public class GameCache {
                         //DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
                     }
                     //autoturret cast range
-                    if (distance < Strategy.RAVEN_CAST_RANGE && !enemy.isEffect && !enemy.isTumor && enemy.isTargettableUnit()) {
+                    if (distance < Strategy.RAVEN_CAST_RANGE && !UnitUtils.IGNORED_TARGETS.contains(enemy.unitType) && !enemy.isTumor) {
                         InfluenceMaps.pointInRavenCastRange[x][y] = true;
                     }
 
@@ -822,10 +822,13 @@ public class GameCache {
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }
-//                    else if (InfluenceMaps.pointThreatToAir[x][y]) {
-//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.GREEN, 0.25f);
-//                    }
-//                    else if (InfluenceMaps.pointDetected[x][y]) {
+                    if (InfluenceMaps.pointThreatToAir[x][y]) {
+                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
+                    }
+                    else if (InfluenceMaps.pointVikingsStayBack[x][y]) {
+                        DebugHelper.drawBox(x / 2f, y / 2f, Color.TEAL, 0.25f);
+                    }
+//                    if (InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
 //                    }
 //                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {

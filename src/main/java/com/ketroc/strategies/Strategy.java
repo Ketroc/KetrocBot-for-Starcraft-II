@@ -66,7 +66,7 @@ public class Strategy {
     public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
     public static final float MARINE_RANGE = 5.1f; //range in which marine will be given the command to attack
     public static final float HELLION_RANGE = 5.1f; //range in which hellion will be given the command to attack
-    public static float RAVEN_CAST_RANGE = 8f;
+    public static float RAVEN_CAST_RANGE = 10f;
     public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static int DIVE_RANGE = 12;
