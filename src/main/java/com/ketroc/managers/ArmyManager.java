@@ -1531,10 +1531,12 @@ public class ArmyManager {
 
     private static Optional<UnitInPool> getRavenTurretTarget(Unit raven) {
         List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                !enemy.unit().getType().toString().contains("CHANGELING") &&
                 isTargetImportant(enemy.unit().getType()) &&
                 UnitUtils.getDistance(raven, enemy.unit()) < 11); //radius 1, cast range 2, attack range 7, 1 enemy radius/buffer
         if (targets.isEmpty() && raven.getEnergy().orElse(0f) > 175) {
             targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                    !enemy.unit().getType().toString().contains("CHANGELING") &&
                     UnitUtils.getDistance(raven, enemy.unit()) < 10); //radius 1, cast range 2, attack range 7
         }
         return targets.stream()
