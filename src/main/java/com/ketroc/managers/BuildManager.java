@@ -674,7 +674,7 @@ public class BuildManager {
                 }
             }
             else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
             }
         }
     }

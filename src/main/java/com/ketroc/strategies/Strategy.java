@@ -137,6 +137,7 @@ public class Strategy {
             case RANDOM:
                 gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
                 useCyclonesAdjustments();
+                MAX_MARINES = 4;
                 Switches.enemyCanProduceAir = true;
                 Switches.enemyHasCloakThreat = true;
         }

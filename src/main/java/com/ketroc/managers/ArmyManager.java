@@ -885,7 +885,7 @@ public class ArmyManager {
 
         //if bunker in production, head out front of bunker (protects bunker scv, and gives chance to snipe overlord)
         if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
-            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 7);
+            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 5);
             MarineBasic.setTargetPos(inFrontOfBunkerPos);
             return;
         }

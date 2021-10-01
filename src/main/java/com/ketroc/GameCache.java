@@ -822,12 +822,12 @@ public class GameCache {
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }
-                    if (InfluenceMaps.pointThreatToAir[x][y]) {
-                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
-                    }
-                    else if (InfluenceMaps.pointVikingsStayBack[x][y]) {
-                        DebugHelper.drawBox(x / 2f, y / 2f, Color.TEAL, 0.25f);
-                    }
+//                    if (InfluenceMaps.pointThreatToAir[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
+//                    }
+//                    else if (InfluenceMaps.pointVikingsStayBack[x][y]) {
+//                        DebugHelper.drawBox(x / 2f, y / 2f, Color.TEAL, 0.25f);
+//                    }
 //                    if (InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
 //                    }
