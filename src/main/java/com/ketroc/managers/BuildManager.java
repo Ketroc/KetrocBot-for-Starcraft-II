@@ -514,9 +514,10 @@ public class BuildManager {
 
     private static boolean isCcNeededForExpansion() {
         //if safe and oversaturated
-        return !UnitUtils.isWallUnderAttack() &&
-                CannonRushDefense.isSafe &&
-                Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.numScvs(true) + 5);
+        return !UnitUtils.isWallUnderAttack() && CannonRushDefense.isSafe && (
+                        WorkerManager.numScvsPerGas == 3 ||
+                        Base.scvsReqForMyBases() < Math.min(Strategy.maxScvs, UnitUtils.numScvs(true) + 5)
+                );
     }
 
     private static void saveDyingCCs() {

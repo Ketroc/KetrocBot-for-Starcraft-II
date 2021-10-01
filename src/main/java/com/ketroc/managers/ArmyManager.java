@@ -883,6 +883,13 @@ public class ArmyManager {
             return;
         }
 
+        //if bunker in production, head out front of bunker (protects bunker scv, and gives chance to snipe overlord)
+        if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
+            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 7);
+            MarineBasic.setTargetPos(inFrontOfBunkerPos);
+            return;
+        }
+
         //if bunker exists, head to bunker and enter
         if (bunkerAtNatural.isPresent()) {
             MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
