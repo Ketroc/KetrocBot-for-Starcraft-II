@@ -1451,8 +1451,9 @@ public class ArmyManager {
     //return true if autoturret cast
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
 
-        //wait for raven to auto-turret before giving a new command
-        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET) {
+        //wait for raven to auto-turret before giving a new command, if auto-turret pos is still in range of enemies
+        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET &&
+                !UnitUtils.getEnemyTargetsNear(ActionIssued.getCurOrder(raven).get().targetPos, 7).isEmpty()) {
             return;
         }
 
@@ -1599,7 +1600,7 @@ public class ArmyManager {
 
         //get list of nearby placeable positions
         List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
-                .filter(p -> p.distance(enemyTargetPos) < 8)
+                .filter(p -> p.distance(enemyTargetPos) < 7)
                 .filter(p -> Bot.OBS.isPlacable(p))
                 .sorted(Comparator.comparing(p -> p.distance(enemyTargetPos)))
                 .collect(Collectors.toList());
