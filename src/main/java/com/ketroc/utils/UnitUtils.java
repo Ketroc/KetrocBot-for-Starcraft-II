@@ -1265,4 +1265,13 @@ public class UnitUtils {
         float angleDiff = Position.getAngleDifference(facing, attackAngle);
         return angleDiff > 100;
     }
+
+    public static Optional<UnitInPool> getNatBunker() {
+        return Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
+                getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
+                ActionIssued.getCurOrder(bunker).stream()
+                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
+        .stream()
+        .findFirst();
+    }
 }

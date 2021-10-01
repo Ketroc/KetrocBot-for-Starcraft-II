@@ -61,10 +61,14 @@ public class PlacementMap {
         initializeMap(false);
         setColumn();
         populateMainBase3x3WithAddonPos(buildColumn, true);
-        replaceFactoriesWithCommandCenters();
+        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+            replaceFactoriesWithCommandCenters();
+        }
         populateMainBase3x3Pos(buildColumn, true);
-        topUp3x3List();
-        populateDepotPos();
+        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+            topUp3x3List();
+            populateDepotPos();
+        }
 
         visualizePlacementMap();
         //create2CellColumns();

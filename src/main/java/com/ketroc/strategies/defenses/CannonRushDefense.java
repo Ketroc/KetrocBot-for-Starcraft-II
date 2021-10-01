@@ -27,9 +27,11 @@ public class CannonRushDefense {
     public static void onStep() {
         switch (cannonRushStep) {
             case 0: //was a pylon built in my vision in the first 2min of the game
-                if (Time.nowFrames() < Time.toFrames("1:50") &&
-                        !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, Units.PROTOSS_PYLON,
-                                LocationConstants.myMineralPos, 40).isEmpty() &&
+                if (Time.nowFrames() < Time.toFrames("2:10") &&
+                        (UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PYLON).stream()
+                                .anyMatch(u -> UnitUtils.isInMyMainOrNat(u.unit().getPosition().toPoint2d())) ||
+                        UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PHOTON_CANNON).stream()
+                                .anyMatch(u -> UnitUtils.isInMyMainOrNat(u.unit().getPosition().toPoint2d()))) &&
                         !isAnyCannonComplete()) {
                     cancelCCFirst();
                     Chat.chat("Cannon Rush Detected");

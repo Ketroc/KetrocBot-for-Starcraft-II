@@ -58,7 +58,7 @@ public class Strategy {
     public static final int MIN_STRUCTURE_HEALTH = 40; //TODO: repair to this % to prevent burn
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.4f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
-    public static final float STATIONARY_KITING_BUFFER = 1.6f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
+    public static final float STATIONARY_KITING_BUFFER = 1.55f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
     public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
@@ -358,7 +358,7 @@ public class Strategy {
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BANSHEE,
                         GamePlan.MARINE_RUSH,
-                        GamePlan.SCV_RUSH,
+                        //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.RAVEN,
                         GamePlan.TANK_VIKING,
@@ -396,7 +396,7 @@ public class Strategy {
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.ONE_BASE_BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
-                        GamePlan.SCV_RUSH,
+                        //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN
                 ));
@@ -429,7 +429,7 @@ public class Strategy {
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
                         GamePlan.MARINE_RUSH,
-                        GamePlan.SCV_RUSH,
+                        //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN,
                         GamePlan.BANSHEE_CYCLONE,
@@ -1071,7 +1071,7 @@ public class Strategy {
         opponentRecords.filterToGamePlans(gamePlans);
 
         //play 4 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1); //TODO: FOR TESTING - 4);
 
         //pick the winningest strategy (exclude most recent loss strategy)
         if (gamePlan == GamePlan.NONE) {

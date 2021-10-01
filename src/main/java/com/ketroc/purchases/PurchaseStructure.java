@@ -22,7 +22,6 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class PurchaseStructure implements Purchase { //TODO: add rally point
     private Unit scv;  //okay to not be unitInPool as it's only set the same frame the build command is given
@@ -368,12 +367,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             case TERRAN_SUPPLY_DEPOT:
                 if (!LocationConstants.extraDepots.isEmpty()) {
                     //1st try finding safe depot pos in fog of war. if none, then any safe depot pos
-                    Stream<Point2d> safeDepotPosStream = LocationConstants.extraDepots.stream()
-                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT));
-                    position = safeDepotPosStream
+                    position = LocationConstants.extraDepots.stream()
+                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
                             .filter(depotPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                             .findFirst()
-                            .orElse(safeDepotPosStream.findFirst().orElse(null));
+                            .orElse(
+                                    LocationConstants.extraDepots.stream()
+                                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
+                                            .findFirst()
+                                            .orElse(null)
+                            );
                     if (position != null) {
                         LocationConstants.extraDepots.remove(position);
                         return true;
@@ -402,12 +405,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 return false;
             case TERRAN_STARPORT:
                 if (!LocationConstants.STARPORTS.isEmpty()) {
-                    Stream<Point2d> safeStarportPosStream = LocationConstants.STARPORTS.stream()
-                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT));
-                    position = safeStarportPosStream
+                    position = LocationConstants.STARPORTS.stream()
+                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
                             .filter(starportPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                             .findFirst()
-                            .orElse(safeStarportPosStream.findFirst().orElse(null));
+                            .orElse(
+                                    LocationConstants.STARPORTS.stream()
+                                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
+                                            .findFirst()
+                                            .orElse(null)
+                            );
                     if (position != null) {
                         LocationConstants.STARPORTS.remove(position);
                         return true;
@@ -428,12 +435,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     return false;
                 }
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
-                Stream<Point2d> safe3x3PosStream = LocationConstants._3x3Structures.stream()
-                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()));
-                position = safe3x3PosStream
+                position = LocationConstants._3x3Structures.stream()
+                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
                         .filter(starportPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                         .findFirst()
-                        .orElse(safe3x3PosStream.findFirst().orElse(null));
+                        .orElse(
+                                LocationConstants._3x3Structures.stream()
+                                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                                        .findFirst()
+                                        .orElse(null)
+                        );
                 if (position != null) {
                     LocationConstants._3x3Structures.remove(position);
                     return true;

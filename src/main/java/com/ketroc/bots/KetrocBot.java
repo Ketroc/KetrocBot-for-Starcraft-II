@@ -141,7 +141,10 @@ public class KetrocBot extends Bot {
             //TODO: delete - for testing
 //            if (Time.at(Time.toFrames(5))) {
 //                //GameCache.baseList.get(0).scvReport();
-//                DEBUG.debugCreateUnit(Units.ZERG_CHANGELING_MARINE, LocationConstants.mainBaseMidPos, enemyId, 1);
+//                Point2d pylonPos = Position.towards(LocationConstants.baseLocations.get(1), LocationConstants.baseLocations.get(0), -5);
+//                pylonPos = Position.towards(pylonPos, LocationConstants.baseLocations.get(3), -5);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, pylonPos, enemyId, 1);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, pylonPos, enemyId, 1);
 //            }
 
             DebugHelper.onStep(); //reset debug status for printing info

@@ -490,7 +490,7 @@ public class ArmyManager {
     private static void setDefensePosition() {
         attackUnit = GameCache.allVisibleEnemiesList.stream()
                 .filter(u -> GameCache.baseList.stream()
-                                .filter(Base::isMyBase)
+                                .filter(base -> base.isMyBase() || base.isNatBaseAndHasBunker())
                                 .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
                         !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
                         u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
@@ -867,13 +867,7 @@ public class ArmyManager {
         }
 
         //if main/nat under attack, empty natural bunker and target enemy
-        Optional<UnitInPool> bunkerAtNatural =
-                Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
-                        UnitUtils.getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
-                        ActionIssued.getCurOrder(bunker).stream()
-                                .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
-                .stream()
-                .findFirst();
+        Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
         Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && bunkerAtNatural.isEmpty()) ?
                 getEnemyInMain() :
                 getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
@@ -916,9 +910,9 @@ public class ArmyManager {
 //            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
 //            return;
 //        }
-//
-//        //otherwise, go to top of ramp
-//        MarineBasic.setTargetPos(LocationConstants.insideMainWall);
+
+        //otherwise, go to top of ramp
+        MarineBasic.setTargetPos(LocationConstants.insideMainWall);
     }
 
     private static boolean isBehindMainOrNat(Point2d pos) {

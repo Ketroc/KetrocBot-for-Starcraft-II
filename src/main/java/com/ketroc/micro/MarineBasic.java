@@ -3,7 +3,8 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.strategies.defenses.CannonRushDefense;
+import com.ketroc.managers.ArmyManager;
+import com.ketroc.utils.UnitUtils;
 
 public class MarineBasic extends Marine {
 
@@ -23,7 +24,9 @@ public class MarineBasic extends Marine {
     }
 
     private void updateMicroPriority() {
-        if (CannonRushDefense.cannonRushStep == 2) {
+        if (ArmyManager.attackUnit != null &&
+                UnitUtils.isStructure(ArmyManager.attackUnit.getType()) &&
+                UnitUtils.canAttackGround(ArmyManager.attackUnit)) {
             priority = MicroPriority.SURVIVAL;
             return;
         }

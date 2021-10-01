@@ -717,6 +717,10 @@ public class Base {
         }
     }
 
+    public boolean isNatBaseAndHasBunker() {
+        return ccPos.equals(GameCache.baseList.get(1).ccPos) && UnitUtils.getNatBunker().isPresent();
+    }
+
 
     // ======= STATIC METHODS ========
 
