@@ -857,10 +857,6 @@ public class BuildManager {
         int numLiberators = UnitUtils.numMyUnits(UnitUtils.LIBERATOR_TYPE, true) +
                 Ignored.numOfType(UnitUtils.LIBERATOR_TYPE);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
-        int vikingsByRatio = (int) (numBanshees * Strategy.VIKING_BANSHEE_RATIO);
-        if (vikingsByRatio > vikingsRequired) { //build vikings 1:1 with banshees until 1.5x vikings required
-            vikingsRequired = Math.min((int) (vikingsRequired * 1.8), vikingsByRatio);
-        }
         int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 4 : 1;
 
         //start with main army banshee in TvT bunker contain

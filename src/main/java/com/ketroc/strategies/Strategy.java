@@ -35,7 +35,7 @@ public class Strategy {
     public static GamePlan gamePlan = GamePlan.NONE;
     public static final List<GamePlan> availableGamePlans = new ArrayList<>(Arrays.asList(GamePlan.values()));
 
-    public static boolean DO_DIVE_RAVENS = true;
+    public static boolean DO_DIVE_MOBILE_DETECTORS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
     public static boolean NO_TURRETS;
@@ -167,7 +167,9 @@ public class Strategy {
                 DO_BANSHEE_HARASS = false;
                 break;
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
                 DO_BANSHEE_HARASS = false;
+                DO_DIVE_MOBILE_DETECTORS = false;
                 break;
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
             case "76cc9871-f9fb-4fc7-9165-d5b748f2734a": //dantheman_3
@@ -215,7 +217,7 @@ public class Strategy {
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
                 BUILD_EXPANDS_IN_MAIN = true;
-                DO_DIVE_RAVENS = false;
+                DO_DIVE_MOBILE_DETECTORS = false;
                 ENEMY_DOES_BANSHEE_HARASS = true;
                 //Switches.enemyCanProduceAir = true;
                 break;
@@ -226,7 +228,7 @@ public class Strategy {
                 DO_IGNORE_BUNKERS = true;
                 Switches.enemyCanProduceAir = true;
 //                BUILD_EXPANDS_IN_MAIN = true;
-//                DO_DIVE_RAVENS = false;
+//                DO_DIVE_MOBILE_DETECTORS = false;
                 ENEMY_DOES_BANSHEE_HARASS = true;
                 break;
             case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1":
@@ -975,7 +977,7 @@ public class Strategy {
                 MAX_MARINES = 5;
                 break;
             case TERRAN:
-                DO_DIVE_RAVENS = false;
+                DO_DIVE_MOBILE_DETECTORS = false;
                 DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
                 MAX_MARINES = 4;
@@ -1045,7 +1047,7 @@ public class Strategy {
 
     public static void printStrategySettings() {
         Print.print("selectedStrategy = " + gamePlan);
-        Print.print("DO_DIVE_RAVENS = " + DO_DIVE_RAVENS);
+        Print.print("DO_DIVE_MOBILE_DETECTORS = " + DO_DIVE_MOBILE_DETECTORS);
         Print.print("EARLY_BANSHEE_SPEED = " + EARLY_BANSHEE_SPEED);
         Print.print("DO_LEAVE_UP_BUNKER = " + DO_LEAVE_UP_BUNKER);
         Print.print("NO_TURRETS = " + NO_TURRETS);

@@ -586,7 +586,7 @@ public class GameCache {
         //start viking dive vs detector
         if (Switches.vikingDiveTarget == null) {
             //don't dive detector if vs terran, no banshees, or if there are still voids or phoenix visible
-            if (Strategy.DO_DIVE_RAVENS && //TODO: temp for vs ANIBot
+            if (Strategy.DO_DIVE_MOBILE_DETECTORS && //TODO: temp for vs ANIBot
                     Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
                     !GameCache.bansheeList.isEmpty() &&
                     (UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_PHOENIX).size() + UnitUtils.getVisibleEnemyUnitsOfType(Units.PROTOSS_VOIDRAY).size() == 0)) {

@@ -1097,52 +1097,56 @@ public class ArmyManager {
     }
 
     public static int calcNumVikingsNeeded() {
-        float answer = 0;
-        boolean hasDetector = false;
+        float numVikings = 0;
+        boolean hasMobileDetector = false;
         boolean hasTempests = false;
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
-                    answer += 0.5;
-                    hasDetector = true;
+                    numVikings += 0.5;
+                    hasMobileDetector = true;
                     break;
                 case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
                 case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
                 case PROTOSS_ORACLE:
-                    answer += 0.5;
+                    numVikings += 0.5;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT: case ZERG_CORRUPTOR:
-                    answer += 1.3;
+                    numVikings += 1.3;
                     break;
                 case PROTOSS_PHOENIX:
-                    answer += 2;
+                    numVikings += 2;
                     break;
                 case PROTOSS_VOIDRAY:
-                    answer += 1.5;
+                    numVikings += 1.5;
                     break;
                 case TERRAN_BATTLECRUISER: case PROTOSS_CARRIER:
-                    answer += 3.67;
+                    numVikings += 3.67;
                     break;
                 case PROTOSS_TEMPEST:
                     hasTempests = true;
-                    answer += 2;
+                    numVikings += 2;
                     break;
                 case PROTOSS_MOTHERSHIP:
-                    answer += 4;
+                    numVikings += 4;
                     break;
             }
         }
         if (hasTempests) { //minimum 10 vikings at all times if enemy has a tempest
-            answer = Math.max(10, answer);
+            numVikings = Math.max(10, numVikings);
+        }
+        else if (hasMobileDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+            numVikings = Math.max(3, numVikings); //minimum vikings if he has a detector
         }
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
-            answer = Math.max(2, answer);
+            numVikings = Math.max(2, numVikings);
         }
-        else if (hasDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
-            answer = Math.max(3, answer); //minimum vikings if he has a detector
+
+        if (UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, false) > 0) {
+            numVikings--;
         }
-        answer = Math.max(answer, GameCache.bansheeList.size() / 5); //at least 1 safety viking for every 5 banshees
-        return (int)answer;
+        numVikings = Math.max(numVikings, GameCache.bansheeList.size() * Strategy.VIKING_BANSHEE_RATIO); //at least 1 safety viking for every 5 banshees
+        return (int)numVikings;
     }
 
     public static void giveHellionCommand(Unit hellion) {
