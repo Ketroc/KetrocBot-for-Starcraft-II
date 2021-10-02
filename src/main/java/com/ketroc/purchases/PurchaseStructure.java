@@ -369,7 +369,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     //1st try finding safe depot pos in fog of war. if none, then any safe depot pos
                     position = LocationConstants.extraDepots.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
-                            .filter(depotPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                            .filter(depotPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                             .findFirst()
                             .orElse(
                                     LocationConstants.extraDepots.stream()
@@ -407,7 +407,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 if (!LocationConstants.STARPORTS.isEmpty()) {
                     position = LocationConstants.STARPORTS.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
-                            .filter(starportPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                            .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                             .findFirst()
                             .orElse(
                                     LocationConstants.STARPORTS.stream()
@@ -437,7 +437,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
                 position = LocationConstants._3x3Structures.stream()
                         .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                        .filter(starportPos -> KetrocBot.purchaseQueue.size() > 2 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                        .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                         .findFirst()
                         .orElse(
                                 LocationConstants._3x3Structures.stream()
