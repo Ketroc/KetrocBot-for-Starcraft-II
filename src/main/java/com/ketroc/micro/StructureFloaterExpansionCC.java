@@ -181,7 +181,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         return null;
     }
 
-    private void assignToAnotherBase() {
+    private void assignToAnotherBase() { //TODO: check nearest available bases, then macro_oc list, then extra OC list, then
         Point2d randomUnownedBasePos = UnitUtils.getRandomUnownedBasePos();
         if (randomUnownedBasePos != null) {
             basePos = targetPos = randomUnownedBasePos;

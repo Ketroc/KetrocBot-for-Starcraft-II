@@ -551,7 +551,7 @@ public class Strategy {
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airAttackUpgrades);
-                NUM_BASES_TO_OC = LocationConstants.baseLocations.size();
+                NUM_BASES_TO_OC = 3;
                 BUILD_EXPANDS_IN_MAIN = false;
                 PRIORITIZE_EXPANDING = true;
                 break;

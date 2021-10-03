@@ -411,6 +411,13 @@ public class ArmyManager {
     }
 
     private static void setDoOffense() {
+        //attack if no mining (prevents draws)
+        if (Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0 &&
+                Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0) {
+            doOffense = true;
+            return;
+        }
+
         if (ProxyBunkerDefense.isProxyBunker) {
             doOffense = true;
             return;

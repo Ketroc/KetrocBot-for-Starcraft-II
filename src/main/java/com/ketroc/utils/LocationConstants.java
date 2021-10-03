@@ -92,9 +92,7 @@ public class LocationConstants {
     }
 
     public static void onStep() {
-        if (Time.nowFrames() % Time.toFrames("5:00") == 0 && Base.numMyBases() >= 4) { //every ~5min
-            setNewEnemyBaseIndex();
-        }
+        setNewEnemyBaseIndex(); //set base index of current base to hit
     }
 
     //returns base index of newest enemy base
@@ -102,7 +100,7 @@ public class LocationConstants {
         for (int i = 0; i< GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);
             if (base.isEnemyBase) {
-                baseAttackIndex = i;
+                baseAttackIndex = Math.min(i, baseAttackIndex);
                 return;
             }
         }
