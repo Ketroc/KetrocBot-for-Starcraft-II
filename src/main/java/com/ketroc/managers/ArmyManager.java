@@ -289,19 +289,24 @@ public class ArmyManager {
         }
     }
 
+    //shoot best target, otherwise changelings, otherwise let autoattack happen
     private static void autoturretTargetting() {
         UnitUtils.getMyUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
                 .filter(turret -> UnitUtils.isWeaponAvailable(turret))
                 .forEach(turret -> {
-                    selectTarget(turret).ifPresent(target ->
-                            ActionHelper.unitCommand(turret, Abilities.ATTACK, target, false));
+                    selectTarget(turret).ifPresentOrElse(target -> ActionHelper.unitCommand(turret, Abilities.ATTACK, target, false),
+                            () -> {
+                                UnitUtils.getEnemyTargetsNear(turret, 8).stream()
+                                        .findFirst()
+                                        .ifPresent(target -> ActionHelper.unitCommand(turret, Abilities.ATTACK, target.unit(), false));
+                            });
                 });
     }
 
     private static Optional<Unit> selectTarget(Unit turret) {
         List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsNear(turret, 8);
 
-        com.ketroc.micro.Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
+        Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             if (UnitUtils.CREEP_TUMOR_TYPES.contains(enemy.unit().getType())) { //shoot creep tumors first
                 return Optional.of(enemy.unit());
@@ -893,7 +898,7 @@ public class ArmyManager {
 
         //if bunker in production, head out front of bunker (protects bunker scv, and gives chance to snipe overlord)
         if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
-            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 5);
+            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 3);
             MarineBasic.setTargetPos(inFrontOfBunkerPos);
             return;
         }
