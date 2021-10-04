@@ -24,12 +24,12 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.MEDIUM))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
 
-                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
