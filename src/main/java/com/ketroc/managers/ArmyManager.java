@@ -411,9 +411,10 @@ public class ArmyManager {
     }
 
     private static void setDoOffense() {
-        //attack if no mining (prevents draws)
+        //attack if no mining (prevents draws) (ignore start of game)
         if (Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0 &&
-                Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0) {
+                Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0 &&
+                Time.nowFrames() > Time.toFrames("12:00")) {
             doOffense = true;
             return;
         }

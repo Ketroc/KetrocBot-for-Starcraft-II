@@ -167,8 +167,10 @@ public class Strategy {
             case "2540c0f3-238f-40a7-9c39-2e4f3dca2e2f": //sharkbot
                 DO_BANSHEE_HARASS = false;
                 break;
-            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+                NO_TURRETS = true;
+                //no break
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
                 break;
@@ -528,7 +530,7 @@ public class Strategy {
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
-                NUM_BASES_TO_OC = 3;
+                NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = false;
                 PRIORITIZE_EXPANDING = true;
                 break;
@@ -551,7 +553,7 @@ public class Strategy {
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airAttackUpgrades);
-                NUM_BASES_TO_OC = 3;
+                NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = false;
                 PRIORITIZE_EXPANDING = true;
                 break;
