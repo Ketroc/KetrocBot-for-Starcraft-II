@@ -388,9 +388,13 @@ public class BuildManager {
                                         isCcNeededForExpansion()) {
                                     Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
                                     if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up TODO: make OC or wait??
-                                        break;
+                                        if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                            KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                        }
                                     }
-                                    floatCCForExpansion(cc, nextFreeBasePos);
+                                    else {
+                                        floatCCForExpansion(cc, nextFreeBasePos);
+                                    }
                                 }
                                 else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
                                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
