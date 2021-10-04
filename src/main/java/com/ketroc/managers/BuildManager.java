@@ -295,7 +295,8 @@ public class BuildManager {
 
     private static void build2ndLayerOfTech() {
         //build after 4th base started TODO: get armories earlier and smarter
-        if (!Strategy.techBuilt && ((ArmyManager.doOffense && BunkerContain.proxyBunkerLevel == 0) || Base.numMyBases() >= 4)) {
+        if (!Strategy.techBuilt &&
+                ((ArmyManager.doOffense && BunkerContain.proxyBunkerLevel == 0) || Base.numMyBases() >= 4)) {
             List<Unit> engBayList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
             if (!engBayList.isEmpty()) {
                 KetrocBot.purchaseQueue.add(
@@ -1102,9 +1103,10 @@ public class BuildManager {
 
     public static Point2d getNextAvailableExpansionPosition() {
         List<Base> expansionOptions = GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
-                .filter(base -> base.isUntakenBase() && //base.isReachable() &&
+                .filter(base -> base.isUntakenBase() &&
                         !base.isDryedUp() &&
-                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, base.getCcPos()) == 0)
+                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, base.getCcPos()) == 0 &&
+                        base.isReachable())
                 .collect(Collectors.toList());
 
         for (Base base : expansionOptions) {

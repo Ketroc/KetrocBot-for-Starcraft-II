@@ -355,7 +355,6 @@ public class GameCache {
         //************************
         // *** BUILD BASE LIST ***
         //************************
-        List<UnitInPool> enemyCCs = Bot.OBS.getUnits(Alliance.ENEMY, enemyCC -> UnitUtils.enemyCommandStructures.contains(enemyCC.unit().getType())); //TODO: refactor when allEnemiesList doesn't duplicate snapshots
         for (Base base : baseList) { //TODO: handle FlyingCCs
             //ignore bases that aren't mine AND aren't visible
             if (!base.isMyBase() &&
@@ -371,7 +370,10 @@ public class GameCache {
             base.setCc(base.getUpdatedUnit(Units.TERRAN_PLANETARY_FORTRESS, base.getCc(), base.getCcPos()));
 
             //set who owns the base
-            base.isEnemyBase = enemyCCs.stream().anyMatch(enemyCC -> UnitUtils.getDistance(enemyCC.unit(), base.getCcPos()) < 2);
+            if (!base.isEnemyBase || Bot.OBS.getVisibility(base.getCcPos()) == Visibility.VISIBLE) {
+                base.isEnemyBase = !UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.COMMAND_STRUCTURE_TYPE, base.getCcPos(), 2)
+                        .isEmpty();
+            }
 
             //update mineral nodes
 //            base.getMineralPatchUnits().clear();

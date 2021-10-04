@@ -385,7 +385,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 return false;
             case TERRAN_COMMAND_CENTER:
                 for (Base base : GameCache.baseList) {
-                    if (base.isUntakenBase() &&
+                    if (base.isUntakenBase() && base.isReachable() &&
                             isLocationSafeAndAvailable(base.getCcPos(), Abilities.BUILD_COMMAND_CENTER)) {
                         position = base.getCcPos(); //TODO: check for minerals/gas at base
                         return true;

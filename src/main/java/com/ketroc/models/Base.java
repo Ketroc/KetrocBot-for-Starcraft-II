@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -387,6 +388,23 @@ public class Base {
         return cc == null &&
                 !isEnemyBase &&
                 StructureScv.scvBuildingList.stream().noneMatch(scv -> scv.structurePos.distance(ccPos) < 1);
+    }
+
+    public boolean isReachable() {
+        boolean unreachableBase = Bot.OBS.getVisibility(ccPos) != Visibility.VISIBLE &&
+                Bot.QUERY.pathingDistance(GameCache.baseList.get(1).resourceMidPoint, ccPos) == 0;
+        if (unreachableBase) {
+            isEnemyBase = true;
+        }
+        return unreachableBase;
+    }
+
+    public boolean isReachable(Unit scv) {
+        boolean unreachableBase = Bot.QUERY.pathingDistance(scv, ccPos) == 0;
+        if (unreachableBase) {
+            isEnemyBase = true;
+        }
+        return unreachableBase;
     }
 
     public int numActiveRefineries() {
