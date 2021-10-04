@@ -253,6 +253,7 @@ public class KetrocBot extends Bot {
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 
         DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
+        DebugHelper.addInfoLine("baseAttackIndex: " + LocationConstants.baseAttackIndex);
         DebugHelper.addInfoLine("");
 
 
@@ -516,6 +517,9 @@ public class KetrocBot extends Bot {
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     BunkerContain.onTankCreated(unitInPool);
                 }
+                break;
+            case TERRAN_CYCLONE:
+                Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_LOCK_ON);
                 break;
             case TERRAN_MARINE:
                 if (BunkerContain.proxyBunkerLevel > 0) {

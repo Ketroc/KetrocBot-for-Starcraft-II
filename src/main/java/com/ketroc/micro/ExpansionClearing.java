@@ -28,6 +28,7 @@ public class ExpansionClearing {
     public List<UnitInPool> blockers = new ArrayList<>();
     public UnitInPool turret;
     public boolean isTurretActive;
+    private long turretCastFrame;
 
     public ExpansionClearing(Point2d expansionPos) {
         this.expansionPos = expansionPos;
@@ -131,6 +132,7 @@ public class ExpansionClearing {
     private void castAutoturret(Point2d turretPos) {
         raven.targetPos = turretPos;
         ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+        turretCastFrame = Time.nowFrames();
         isTurretActive = true;
     }
 
@@ -185,7 +187,7 @@ public class ExpansionClearing {
 
     private void setTurret() {
         //find turret after cast
-        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.unit.unit().getPosition().toPoint2d(), 5f)
+        turret = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_AUTO_TURRET, raven.unit.unit().getPosition().toPoint2d(), 4f)
                 .stream()
                 .findFirst()
                 .orElse(null);
@@ -195,7 +197,8 @@ public class ExpansionClearing {
 
         //cancel turret if it didn't place
         else if (!raven.unit.unit().getActive().orElse(true) &&
-                ActionIssued.getCurOrder(raven.unit).isEmpty()) {
+                ActionIssued.getCurOrder(raven.unit).isEmpty() &&
+                turretCastFrame + 24 < Time.nowFrames()) {
             removeTurret();
             raven.targetPos = expansionPos;
         }
