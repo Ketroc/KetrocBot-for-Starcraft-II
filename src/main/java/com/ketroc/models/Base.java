@@ -13,11 +13,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
-import com.ketroc.micro.BasicUnitMicro;
-import com.ketroc.micro.Liberator;
-import com.ketroc.micro.MicroPriority;
-import com.ketroc.micro.UnitMicroList;
+import com.ketroc.micro.*;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
@@ -25,6 +23,7 @@ import com.ketroc.utils.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Base {
@@ -229,6 +228,13 @@ public class Base {
                 .collect(Collectors.toList());
     }
 
+    public List<UnitInPool> getAvailableMineralScvs() {
+        return mineralPatches.stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .filter(u -> !UnitUtils.isCarryingResources(u.unit()))
+                .collect(Collectors.toList());
+    }
+
     public List<UnitInPool> getGasScvs() {
         return gases.stream()
                 .flatMap(gas -> gas.getScvs().stream())
@@ -265,6 +271,21 @@ public class Base {
             if (!InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, ccPos)) {
                 unsiegeBase();
                 continueUnsieging = false;
+            }
+        }
+        if (isMyBase() && !isMyMainBase()) {
+            Set<Unit> repairBayTargets = getRepairBayTargets();
+            if (!repairBayTargets.isEmpty()) {
+                Point2d repairBayPos = inFrontPos();
+                int numRepairScvs = (int) UnitMicroList.getUnitSubList(RepairBayScv2.class).stream()
+                        .filter(repairBayScv -> repairBayScv.repairBayPos.equals(repairBayPos))
+                        .count();
+                List<UnitInPool> availableMineralScvs = getAvailableMineralScvs();
+                while (numRepairScvs < 4 && !availableMineralScvs.isEmpty()) {
+                    UnitInPool newRepairScv = availableMineralScvs.remove(0);
+                    UnitMicroList.add(new RepairBayScv2(newRepairScv, repairBayPos));
+                    numRepairScvs++;
+                }
             }
         }
     }
@@ -378,6 +399,16 @@ public class Base {
                 cc.unit().getType() != Units.TERRAN_COMMAND_CENTER_FLYING &&
                 cc.unit().getBuildProgress() >= percentageDone &&
                 UnitUtils.getDistance(cc.unit(), ccPos) < 1;
+    }
+
+    public boolean isUnderAttack() {
+        return isMyBase() &&
+                ArmyManager.attackUnit != null &&
+                UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < 15;
+    }
+
+    public Set<Unit> getRepairBayTargets() {
+        return UnitUtils.getRepairBayTargets(inFrontPos());
     }
 
     public boolean isMyBase() {

@@ -9,6 +9,7 @@ import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
+//old way of assigning repairbay to main base
 public class RepairBayScv extends BasicUnitMicro {
     public RepairBayScv(UnitInPool scv) {
         super(scv, LocationConstants.REPAIR_BAY, MicroPriority.SURVIVAL);

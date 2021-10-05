@@ -107,6 +107,8 @@ public class UnitUtils {
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.TERRAN_BANSHEE, Units.TERRAN_GHOST,
             Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
 
+    public static final Set<Units> REPAIR_BAY_TYPES = new HashSet<>(Set.of(
+            Units.TERRAN_CYCLONE, Units.TERRAN_HELLION));
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -562,9 +564,7 @@ public class UnitUtils {
     }
 
     public static boolean isCarryingResources(Unit worker) {
-        return worker.getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) || worker.getBuffs().contains(Buffs.CARRY_HIGH_YIELD_MINERAL_FIELD_MINERALS) ||
-                worker.getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS) || worker.getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS_PROTOSS) ||
-                worker.getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS_ZERG);
+        return worker.getBuffs().stream().anyMatch(buff -> buff.toString().startsWith("CARRY_"));
     }
 
     public static Unit getSafestMineralPatch() {
@@ -1234,11 +1234,7 @@ public class UnitUtils {
     }
 
     public static boolean isAnyBaseUnderAttack() {
-        if (ArmyManager.attackUnit == null) {
-            return false;
-        }
-        return GameCache.baseList.stream().noneMatch(base ->
-                base.isMyBase() && UnitUtils.getDistance(ArmyManager.attackUnit, base.getCcPos()) < 15);
+        return GameCache.baseList.stream().noneMatch(base -> base.isUnderAttack());
     }
 
     public static List<UnitInPool> getEnemyGroundArmyUnitsWithin(int range) {
@@ -1273,5 +1269,14 @@ public class UnitUtils {
                         .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
         .stream()
         .findFirst();
+    }
+
+    public static Set<Unit> getRepairBayTargets(Point2d repairBayPos) {
+        return Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.REPAIR_BAY_TYPES.contains(u.unit().getType()) &&
+                        UnitUtils.getDistance(u.unit(), repairBayPos) <= 3 &&
+                        UnitUtils.getHealthPercentage(u.unit()) < 100)
+                .stream()
+                .map(UnitInPool::unit)
+                .collect(Collectors.toSet());
     }
 }

@@ -144,7 +144,9 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private boolean isSafeToAttemptLock(UnitInPool lockTarget) {
-        if (Switches.isDivingTempests) {
+        if (Switches.isDivingTempests ||
+                UnitUtils.getDistance(lockTarget.unit(), unit.unit()) +
+                        lockTarget.unit().getRadius() + unit.unit().getRadius() <= 7) {
             return true;
         }
         Point2d posForLock = getPosForLock(lockTarget.unit());
@@ -156,15 +158,24 @@ public class Cyclone extends BasicUnitMicro {
         //locked on
         if (lockTarget != null) {
             targetPos = lockTarget.unit().getPosition().toPoint2d();
+            return;
         }
+
+        //go to a repair bay
+        Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
+        if (closestRepairBay.isPresent() && (requiresRepairs() || underRepair(closestRepairBay.get()))) {
+            targetPos = closestRepairBay.get();
+            return;
+        }
+
         //lock is on cooldown
-        else if (isLockOnCooldown()) {
+        if (isLockOnCooldown()) {
             targetPos = LocationConstants.insideMainWall;
+            return;
         }
-        //attacking
-        else {
-            super.updateTargetPos();
-        }
+
+        //lock is off cooldown
+        super.updateTargetPos();
     }
 
     private boolean setLockTarget() {

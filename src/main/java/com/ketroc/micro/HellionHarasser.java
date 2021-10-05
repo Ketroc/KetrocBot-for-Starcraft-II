@@ -166,6 +166,13 @@ public class HellionHarasser extends Hellion {
             }
         }
 
+        //go to a repair bay
+        Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
+        if (closestRepairBay.isPresent() && (requiresRepairs() || underRepair(closestRepairBay.get()))) {
+            targetPos = closestRepairBay.get();
+            return;
+        }
+
         //go towards nearest high priority enemy target (eg workers)
         Unit closestChaseTarget = UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy)))

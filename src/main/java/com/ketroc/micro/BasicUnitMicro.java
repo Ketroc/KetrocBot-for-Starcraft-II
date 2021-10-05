@@ -15,12 +15,15 @@ import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.utils.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
 public class BasicUnitMicro {
+    protected static final float HEALTH_TO_REPAIR = 40;
+
     public UnitInPool unit;
     public Point2d targetPos;
     public MicroPriority priority;
@@ -418,5 +421,26 @@ public class BasicUnitMicro {
                 .filter(actionIssued -> actionIssued.targetPos != null)
                 .ifPresentOrElse(actionIssued -> targetPos = actionIssued.targetPos,
                         () -> targetPos = Bot.OBS.getGameInfo().findRandomLocation());
+    }
+
+
+    protected Optional<Point2d> getClosestRepairBay(Point2d unitPos) {
+        return GameCache.baseList.stream()
+                .filter(base -> base.isMyBase() &&
+                        base.isComplete() &&
+                        !base.isMyMainBase() &&
+                        base.getNumMineralScvs() >= 4 &&
+                        !base.isUnderAttack())
+                .map(Base::inFrontPos)
+                .min(Comparator.comparing(pos -> pos.distance(unitPos)));
+    }
+
+    protected boolean underRepair(Point2d repairBayPos) {
+        return UnitUtils.getHealthPercentage(unit.unit()) < 100 &&
+                UnitUtils.getDistance(unit.unit(), repairBayPos) <= 3;
+    }
+
+    protected boolean requiresRepairs() {
+        return unit.unit().getHealth().orElse(120f) <= HEALTH_TO_REPAIR;
     }
 }
