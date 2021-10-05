@@ -396,7 +396,7 @@ public class Base {
         if (unreachableBase) {
             isEnemyBase = true;
         }
-        return unreachableBase;
+        return !unreachableBase;
     }
 
     public boolean isReachable(Unit scv) {

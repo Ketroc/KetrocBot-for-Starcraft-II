@@ -24,7 +24,7 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.MEDIUM))
+                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
 
