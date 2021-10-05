@@ -330,7 +330,7 @@ public class BuildManager {
 
     //build 1 turret at each base except main base
     private static void buildTurretLogic() {
-        if (Strategy.NO_TURRETS && !Switches.enemyHasCloakThreat) {
+        if (Strategy.NO_TURRETS) { // && !Switches.enemyHasCloakThreat) {
             return;
         }
         if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) { // || Time.nowFrames() > Time.toFrames("3:30")) {
