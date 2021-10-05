@@ -353,6 +353,7 @@ public class Strategy {
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
+            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
                 return new HashSet<>(Set.of(
                         GamePlan.TANK_VIKING
                         //GamePlan.BUNKER_CONTAIN_STRONG
