@@ -149,7 +149,7 @@ public class Cyclone extends BasicUnitMicro {
         }
         Point2d posForLock = getPosForLock(lockTarget.unit());
         int dmgAtLockPos = InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, posForLock);
-        return dmgAtLockPos < 30;
+        return dmgAtLockPos < 40;
     }
 
     protected void updateTargetPos() {
@@ -327,6 +327,6 @@ public class Cyclone extends BasicUnitMicro {
     private Point2d getPosForLock(Unit targetUnit) {
         return Position.towards(targetUnit.getPosition().toPoint2d(), //tank pos
                 unit.unit().getPosition().toPoint2d(), //cyclone pos
-                7 + targetUnit.getRadius()); //7 + tank radius
+                8 + targetUnit.getRadius()); //7 + cyclone radius +1 buffer
     }
 }
