@@ -327,6 +327,6 @@ public class Cyclone extends BasicUnitMicro {
     private Point2d getPosForLock(Unit targetUnit) {
         return Position.towards(targetUnit.getPosition().toPoint2d(), //tank pos
                 unit.unit().getPosition().toPoint2d(), //cyclone pos
-                8 + targetUnit.getRadius()); //7 + cyclone radius +1 buffer
+                8.5f + targetUnit.getRadius()); //7 lock range + 1.5 buffer + cyclone radius
     }
 }
