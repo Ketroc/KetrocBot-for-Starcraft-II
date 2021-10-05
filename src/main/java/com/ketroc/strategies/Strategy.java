@@ -531,7 +531,7 @@ public class Strategy {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 NUM_BASES_TO_OC = 2;
-                BUILD_EXPANDS_IN_MAIN = false;
+                BUILD_EXPANDS_IN_MAIN = true;
                 PRIORITIZE_EXPANDING = true;
                 break;
             case BANSHEE:
