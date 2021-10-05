@@ -625,7 +625,10 @@ public class KetrocBot extends Bot {
                         Harassers.onEnemyUnitDeath(unit);
 
                         //turn on trolling if game is all but over
-                        if (ArmyManager.doOffense) {
+                        // (check to turn on when command structure dies)
+                        // (check to turn off when any enemy unit dies)
+                        if (MuleMessages.doTrollMule ||
+                                (ArmyManager.doOffense && UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()))) {
                             MuleMessages.checkIfGameIsWon();
                         }
                 }
