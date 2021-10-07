@@ -953,7 +953,7 @@ public class ArmyManager {
         //for (Base base : GameCache.baseList) {
         for (int i=0; i<BASE_DEFENSE_INDEX_ORDER.length && i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(BASE_DEFENSE_INDEX_ORDER[i]);
-            if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
+            if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
                 for (DefenseUnitPositions libPos : base.getLiberators()) {
                     if (libPos.getUnit() == null) {
                         libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
@@ -979,7 +979,7 @@ public class ArmyManager {
         Unit idleTank = GameCache.siegeTankList.get(0);
         if (Strategy.DO_DEFENSIVE_TANKS) {
             for (Base base : GameCache.baseList) {
-                if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
+                if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));

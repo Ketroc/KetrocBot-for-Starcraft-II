@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class Base {
     public long lastScoutedFrame;
     public boolean isEnemyBase;
-    private boolean isDryedUp;
+    private boolean isDriedUp;
     private Point2d ccPos;
     private UnitInPool cc;
     private List<Gas> gases = new ArrayList<>();
@@ -140,15 +140,15 @@ public class Base {
         return turrets;
     }
 
-    public boolean isDryedUp() {
-        return isDryedUp;
-    }
-
-    public void setDryedUp(boolean dryedUp) {
-        if (dryedUp && !isDryedUp) {
-            continueUnsieging = true;
+    public boolean isDriedUp() {
+        //once dried up, it will remain dried up
+        if (isDriedUp) {
+            return isDriedUp;
         }
-        isDryedUp = dryedUp;
+
+        //check if gas and minerals are all empty TODO: another method to check if it's worth expanding to with the remaining resources
+        isDriedUp = getMineralPatchUnits().isEmpty() && gases.stream().allMatch(Gas::isDriedUp);
+        return isDriedUp;
     }
 
     public List<DefenseUnitPositions> getLiberators() {
@@ -815,13 +815,13 @@ public class Base {
 
     public static int numAvailableBases() {
         return (int) GameCache.baseList.stream()
-                .filter(base -> base.isUntakenBase() && !base.isDryedUp)
+                .filter(base -> base.isUntakenBase() && !base.isDriedUp)
                 .count();
     }
 
     public static Point2d getNextAvailableBase() {
         return GameCache.baseList.stream()
-                .filter(base -> base.isUntakenBase() && !base.isDryedUp)
+                .filter(base -> base.isUntakenBase() && !base.isDriedUp)
                 .findFirst()
                 .map(Base::getCcPos)
                 .orElse(null);
@@ -892,7 +892,7 @@ public class Base {
 
     public static boolean distanceMineScv(UnitInPool scv) {
         Base nextBase = GameCache.baseList.stream()
-                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase && !base.isDryedUp)
+                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase && !base.isDriedUp)
                 .findFirst()
                 .orElse(null);
         if (nextBase != null) {

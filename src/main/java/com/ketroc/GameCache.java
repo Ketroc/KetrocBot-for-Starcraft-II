@@ -376,23 +376,11 @@ public class GameCache {
             }
 
             //update mineral nodes
-//            base.getMineralPatchUnits().clear();
-//            base.getMineralPatchUnits().addAll(mineralNodeList.stream()
-//                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
-//                    .collect(Collectors.toList()));
             base.getMineralPatches().forEach(mineralPatch -> mineralPatch.updateUnit());
             base.getMineralPatches().removeIf(mineralPatch -> mineralPatch.getNode() == null);
 
-
-//            base.getMineralPatches().addAll(mineralNodeList.stream()
-//                    .filter(node -> UnitUtils.getDistance(node, base.getCcPos()) < 10)
-//                    .map(node -> new MineralPatch(node, base.getCcPos()))
-//                    .collect(Collectors.toList()));
-
-            //check if base is dry
-            if (!base.isDryedUp() && base.getMineralPatchUnits().isEmpty()) { //TODO: check gas (need workaround for geyser snapshot always having zero gas)
-                base.setDryedUp(true);
-            }
+            //update gas nodes
+            base.getGases().forEach(gas -> gas.updateUnit());
 
             //nothing else required if enemy base or untaken base
             if (base.isEnemyBase || base.getCc() == null) {
@@ -431,21 +419,6 @@ public class GameCache {
                     defaultRallyNode = base.getRallyNode();
                 }
             }
-
-            //set geyser nodes and refineries
-//            base.getGases().clear();
-//            geyserList.stream()
-//                    .filter(geyser -> UnitUtils.getDistance(geyser, base.getCcPos()) < 10)
-//                    .forEach(geyser -> {
-//                        Gas gas = new Gas(geyser, base.getCcPos());
-//                        refineryList.stream()
-//                                .filter(refinery -> UnitUtils.getDistance(geyser, refinery) < 1)
-//                                .findFirst()
-//                                .ifPresent(refinery -> gas.setRefinery(refinery));
-//                        base.getGases().add(gas);
-//                    });
-            base.getGases().forEach(gas -> gas.updateUnit());
-
 
             //update turret
             for (DefenseUnitPositions turret : base.getTurrets()) {

@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.launchers.Launcher;
@@ -26,6 +27,7 @@ public class Gas {
     private float distanceToHarvest = 2.05f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
     private float distanceToCC = 3.15f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
     private Point2d byCC;
+    private boolean isDriedUp;
 
 
     // ========= CONSTRUCTORS ===========
@@ -95,6 +97,10 @@ public class Gas {
         this.byCC = byCC;
     }
 
+    public boolean isDriedUp() {
+        return isDriedUp;
+    }
+
     // ============= METHODS ==============
 
     public boolean isAvailable() {
@@ -148,18 +154,38 @@ public class Gas {
         }
     }
 
+    //update Unit objects for geyser and refinery
     public void updateUnit() {
+        //ignore dried up geysers
+        if (isDriedUp) {
+            return;
+        }
+
+        //update geyser Unit
         node = Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.getDistance(u.unit(), nodePos) < 0.5f).stream()
                 .map(UnitInPool::unit)
-                .findFirst()
+                .findAny()
                 .orElse(null);
+
+        //no further updates if out of vision
+        if (node.getDisplayType() != DisplayType.VISIBLE) {
+            return;
+        }
+
+        //set if geyser is dried up
+        isDriedUp = node.getVespeneContents().orElse(1500) == 0;
+
+        //update refinery Unit
+        boolean hadRefinery = refinery != null; //had refinery last frame
         refinery = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
                         UnitUtils.getDistance(u.unit(), nodePos) < 0.5f)
                 .stream()
                 .map(UnitInPool::unit)
                 .findFirst()
                 .orElse(null);
-        if (refinery == null || refinery.getVespeneContents().orElse(0) == 0) {
+
+        //free up gas scvs if refinery dried up or died
+        if (hadRefinery && (isDriedUp || refinery == null)) {
             onRefineryDeath();
         }
     }
