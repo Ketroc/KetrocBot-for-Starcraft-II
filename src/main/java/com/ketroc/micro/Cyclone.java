@@ -14,6 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.CycloneKillTracker;
 import com.ketroc.utils.*;
 
@@ -111,7 +112,13 @@ public class Cyclone extends BasicUnitMicro {
 
         //detour if unsafe
         if (!isSafe()) {
-            detour();
+            Point2d towardsRetreatPos = Position.towards(unit.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, 2);
+            if (isSafe(towardsRetreatPos)) { //first try going straight back
+                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, ArmyManager.retreatPos, false);
+            }
+            else {
+                detour();
+            }
             return;
         }
 

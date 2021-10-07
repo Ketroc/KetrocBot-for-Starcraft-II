@@ -169,9 +169,10 @@ public class Strategy {
                 break;
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
                 NO_TURRETS = true;
-                //no break
-            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_BANSHEE_HARASS = false;
+                DO_DIVE_MOBILE_DETECTORS = false;
+                break;
+            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_DIVE_MOBILE_DETECTORS = false;
                 break;
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
