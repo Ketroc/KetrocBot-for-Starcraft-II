@@ -166,7 +166,8 @@ public class Gas {
 
     private void onRefineryDeath() {
         if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.HARVEST_RETURN, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, true);
             scvs.clear();
         }
     }
