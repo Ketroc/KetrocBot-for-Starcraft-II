@@ -14,7 +14,7 @@ import com.ketroc.strategies.BunkerContain;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.LocationConstants;
-import com.ketroc.utils.Position;
+import com.ketroc.geometry.Position;
 
 import java.util.Comparator;
 

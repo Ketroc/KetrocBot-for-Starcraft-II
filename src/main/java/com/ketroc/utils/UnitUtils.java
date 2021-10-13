@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
+import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.StructureSize;

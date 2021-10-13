@@ -4,7 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.utils.LocationConstants;
-import com.ketroc.utils.Position;
+import com.ketroc.geometry.Position;
 
 public class MarineProxyBunker extends Marine {
     public MarineProxyBunker(Unit unit, Point2d bunkerPos) {

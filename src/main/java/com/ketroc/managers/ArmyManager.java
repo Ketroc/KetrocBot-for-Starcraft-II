@@ -14,6 +14,7 @@ import com.ketroc.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.micro.Target;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
@@ -956,7 +957,7 @@ public class ArmyManager {
             if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                 for (DefenseUnitPositions libPos : base.getLiberators()) {
                     if (libPos.getUnit() == null) {
-                        libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()));
+                        libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()), base);
                         Point2d libZonePos = Position.towards(libPos.getPos(), base.getCcPos(), Liberator.castRange);
                         UnitMicroList.add(new LibToPosition(libPos.getUnit(), libPos.getPos(), libZonePos));
                         return;
@@ -982,7 +983,7 @@ public class ArmyManager {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDryedUp()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                         if (tankPos.getUnit() == null) {
-                            tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()));
+                            tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()), base);
                             UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));
                             return;
                         }

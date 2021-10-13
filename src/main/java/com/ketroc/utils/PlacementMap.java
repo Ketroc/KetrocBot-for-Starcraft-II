@@ -70,7 +70,7 @@ public class PlacementMap {
             populateDepotPos();
         }
 
-        visualizePlacementMap();
+        //visualizePlacementMap();
         //create2CellColumns();
     }
 
@@ -120,9 +120,9 @@ public class PlacementMap {
 
         //remove start CC from to placement grid
         makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());
-        if (isColumnSet) {
-            DebugHelper.drawBox(Bot.OBS.getStartLocation().toPoint2d(), Color.YELLOW, 2.5f);
-        }
+//        if (isColumnSet) {
+//            DebugHelper.drawBox(Bot.OBS.getStartLocation().toPoint2d(), Color.YELLOW, 2.5f);
+//        }
 
 //        //remove ramp wall
 //        makeUnavailable2x2(LocationConstants.WALL_2x2);

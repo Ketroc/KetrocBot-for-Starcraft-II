@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -13,6 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.*;
@@ -302,7 +304,7 @@ public class Base {
                 }
 
                 //don't give scv command if it is getting auto-pushed out of the way of a new structure
-                if (scv.unit().getOrders().size() >= 2) {
+                if (scv.unit().getOrders().size() >= 3) {
                     return;
                 }
 
@@ -334,7 +336,7 @@ public class Base {
                     new BasicUnitMicro(scv, gas.getNodePos(), MicroPriority.SURVIVAL).onStep();
                 }
 
-                //fix scv if not mining wrong node
+                //fix scv if mining wrong node
                 else if (ActionIssued.getCurOrder(scv).stream()
                         .anyMatch(order -> order.ability == Abilities.HARVEST_GATHER &&
                                 !gas.getRefinery().getTag().equals(order.targetTag))) {
@@ -655,7 +657,7 @@ public class Base {
                 } else {
                     ActionHelper.unitCommand(baseLib, Abilities.STOP, false);
                 }
-                libPos.setUnit(null);
+                libPos.setUnit(null, this);
             }
         }
     }
@@ -664,7 +666,7 @@ public class Base {
         for (DefenseUnitPositions tankPos : getTanks()) {
             if (tankPos.getUnit() != null) {
                 UnitMicroList.remove(tankPos.getUnit().getTag());
-                tankPos.setUnit(null);
+                tankPos.setUnit(null, this);
             }
         }
     }
@@ -703,17 +705,20 @@ public class Base {
     }
 
     private void addTurretPosFor0GasSide() {
-        Point2d farMineralPos = getMineralPatchUnits().stream()
-                .max(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, getGases().get(0).getNodePos())))
-                .get().getPosition().toPoint2d();
+        //get gas angle
+        float gasAngle = Position.getAngle(ccPos, getGases().get(0).getNodePos());
+
+        //get mineralpatch with biggest difference from gas angle
+        Point2d farMineralPos = getMineralPatches().stream()
+                .max(Comparator.comparing(mineral -> Position.getAngleDifference(gasAngle, Position.getAngle(ccPos, mineral.getNodePos()))))
+                .get().getNode().getPosition().toPoint2d();
+
         Point2d ccTowardsMineral = Position.toWholePoint(Position.towards1dDistance(getCcPos(), farMineralPos, 3.5f));
-        System.out.println(Math.abs(ccTowardsMineral.getX() - getCcPos().getX()));
         Point2d turretPos = Position.toWholePoint(
                 Position.towards(ccTowardsMineral, getResourceMidPoint(), -1));
         if (!PlacementMap.canFit2x2(turretPos)) {
             turretPos = ccTowardsMineral;
         }
-        //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
         turrets.add(new DefenseUnitPositions(turretPos, null));
 
     }
@@ -774,7 +779,10 @@ public class Base {
     // ======= STATIC METHODS ========
 
     public static void onGameStart() {
-        GameCache.baseList.forEach(base -> base.setTurretPositions());
+        GameCache.baseList.forEach(base -> {
+            base.setTurretPositions();
+            base.getTurrets().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.YELLOW, 1));
+        });
     }
 
     public static float getLibDistanceFromCC() {
@@ -966,7 +974,7 @@ public class Base {
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.mineralPatches.stream())
                 .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                .min(Comparator.comparing(mineralPatch -> mineralPatch.getByNode().distance(pos)))
+                .min(Comparator.comparing(mineralPatch -> mineralPatch.getByNodePos().distance(pos)))
                 .orElse(null);
     }
 

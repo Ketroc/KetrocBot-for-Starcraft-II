@@ -5,7 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.utils.Position;
+import com.ketroc.geometry.Position;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 

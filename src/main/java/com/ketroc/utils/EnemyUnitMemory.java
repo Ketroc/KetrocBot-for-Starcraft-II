@@ -29,7 +29,7 @@ public class EnemyUnitMemory {
     private static void mapEnemyUnits() {
         enemyUnitMemory.forEach(enemy -> GameCache.enemyMappingList.add(new EnemyUnit(enemy.unit())));
         if (Time.nowFrames() % 1344 == 0) { //once a minute
-            System.out.println("enemy mapping list size: " + GameCache.enemyMappingList.size());
+            Print.print("enemy mapping list size: " + GameCache.enemyMappingList.size());
         }
     }
 

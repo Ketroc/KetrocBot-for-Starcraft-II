@@ -1,4 +1,4 @@
-package com.ketroc.utils;
+package com.ketroc.geometry;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitSnapshot;
 import com.ketroc.bots.Bot;
+import com.ketroc.utils.LocationConstants;
 
 import java.util.ArrayList;
 import java.util.Comparator;

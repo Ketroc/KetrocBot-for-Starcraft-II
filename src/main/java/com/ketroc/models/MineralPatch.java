@@ -2,43 +2,86 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.launchers.Launcher;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.Position;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.geometry.Line;
+import com.ketroc.geometry.Rectangle;
+import com.ketroc.geometry.Octagon;
+import com.ketroc.utils.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class MineralPatch {
+    private static final float BY_NODE_DISTANCE = 1.3f;
+
     private Unit node;
     private List<UnitInPool> scvs = new ArrayList<>();
     private Point2d ccPos;
-    private Point2d byNode;
-    private float distanceToHarvest = 1.38f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
-    private float distanceToCC = 3f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);;
+    private Point2d byNodePos;
+    //private float distanceToHarvest = 1.38f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
+    //private float distanceToCC = 3f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);;
     private Point2d nodePos;
-    private Point2d byCC;
+    private Point2d byCCPos;
 
     public MineralPatch(Unit node, Point2d ccPos) {
         this.ccPos = ccPos;
         this.node = node;
         nodePos = node.getPosition().toPoint2d();
-        byNode = Position.towards(nodePos, ccPos, 0.2f);
-        byCC = Position.towards(ccPos, nodePos, 2.15f);
-        float angle = Position.getAngle(byCC, byNode);
-        if ((angle > 70 && angle < 120) || (angle > 240 && angle < 300)) { //mining angle is up or down
-            byNode = nodePos;
+        initMiningPositions();
+    }
+
+    public void initMiningPositions() {
+        Rectangle mineralRect = new Rectangle(nodePos);
+        byNodePos = mineralRect.intersection(new Line(nodePos, ccPos)).iterator().next();
+        mineralRect.draw(Color.RED);
+        adjustForNearbyMinerals();
+        adjustForMissileTurrets();
+        byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
+        new Octagon(ccPos).draw(Color.YELLOW);
+        DebugHelper.drawBox(byNodePos, Color.WHITE, 0.1f);
+        DebugHelper.drawBox(byCCPos, Color.WHITE, 0.1f);
+    }
+
+    private void adjustForNearbyMinerals() {
+        List<UnitInPool> blockingMineralNodes = Bot.OBS.getUnits(Alliance.NEUTRAL, otherMineralPatch ->
+                UnitUtils.MINERAL_NODE_TYPE.contains(otherMineralPatch.unit().getType()) &&
+                        !node.getTag().equals(otherMineralPatch.getTag()) &&
+                        new Rectangle(otherMineralPatch).contains(byNodePos));
+        if (blockingMineralNodes.isEmpty()) {
+            return;
         }
-        else if ((angle > 130 && angle < 230) || angle > 310 || angle < 50) { //mining angle is left or right or diagonal
-            distanceToHarvest += 0.17f;
-            distanceToCC += 0.07f;
+        new Rectangle(node).intersection(new Rectangle(blockingMineralNodes.stream()
+                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), byNodePos)))
+                        .get()))
+                .stream()
+                .min(Comparator.comparing(p -> p.distance(byNodePos)))
+                .ifPresent(p -> byNodePos = p);
+    }
+
+    public void adjustForMissileTurrets() {
+        Base base = getBase();
+        if (base == null) {
+            return;
         }
+
+        base.getTurrets().stream()
+                .filter(defenseUnitPositions -> defenseUnitPositions.getUnit() != null)
+                .map(DefenseUnitPositions::getPos)
+                .forEach(turretPos -> {
+                    Rectangle turretRect = new Rectangle(turretPos, 1.4f);
+                    new Rectangle(turretPos, 1f).draw(Color.YELLOW);
+                    if (turretRect.contains(byNodePos)) {
+                        turretRect.intersection(new Rectangle(node)).stream()
+                                .min(Comparator.comparing(intersectPos -> intersectPos.distance(byNodePos)))
+                                .ifPresent(p -> byNodePos = p);
+                    }
+                });
     }
 
     public Unit getNode() {
@@ -57,12 +100,12 @@ public class MineralPatch {
         this.scvs = scvs;
     }
 
-    public Point2d getByNode() {
-        return byNode;
+    public Point2d getByNodePos() {
+        return byNodePos;
     }
 
-    public void setByNode(Point2d byNode) {
-        this.byNode = byNode;
+    public void setByNodePos(Point2d byNodePos) {
+        this.byNodePos = byNodePos;
     }
 
     public Point2d getNodePos() {
@@ -73,33 +116,28 @@ public class MineralPatch {
         this.nodePos = nodePos;
     }
 
-    public Point2d getByCC() {
-        return byCC;
+    public Point2d getByCCPos() {
+        return byCCPos;
     }
 
-    public void setByCC(Point2d byCC) {
-        this.byCC = byCC;
+    public void setByCCPos(Point2d byCCPos) {
+        this.byCCPos = byCCPos;
     }
 
     public void harvestMicro(Unit scv) {
-        float distToNode = UnitUtils.getDistance(scv, nodePos);
+        float distToNode = UnitUtils.getDistance(scv, byNodePos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_GATHER)) {
             //start speed MOVE
-            if (distToNode < 3.1f && distToNode > distanceToHarvest) {
-                ActionHelper.unitCommand(scv, Abilities.MOVE, byNode, false);
+            if (distToNode < 2f && distToNode > 1f) {
+                ActionHelper.unitCommand(scv, Abilities.MOVE, byNodePos, false);
+                ActionHelper.unitCommand(scv, Abilities.SMART, node, true);
             }
             //fix bounce
             else if (!node.getTag().equals(UnitUtils.getTargetUnitTag(scv))) {
                 ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             }
         }
-        else if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.MOVE)) {
-            //end speed MOVE
-            if (distToNode <= distanceToHarvest) {
-                ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
-            }
-        }
-        else {
+        else if (ActionIssued.getCurOrder(scv).isEmpty()) {
             //put wayward scv back to work
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
         }
@@ -118,21 +156,22 @@ public class MineralPatch {
     }
 
     public void returnMicro(Unit scv) {
-        float distToCC = UnitUtils.getDistance(scv, ccPos);
+        float distToCC = UnitUtils.getDistance(scv, byCCPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             //start speed MOVE
-            if (distToCC < 4.7f && distToCC > distanceToCC) {
-                ActionHelper.unitCommand(scv, Abilities.MOVE, byCC, false);
-            }
-        }
-        else if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.MOVE)) {
-            //end speed MOVE
-            if (distToCC <= distanceToCC) {
-                ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+            if (distToCC < 2f && distToCC > 1f) {
+                ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
+                UnitInPool cc = getCC();
+                if (cc != null) {
+                    ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
+                }
+                else {
+                    ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+                }
             }
         }
         //put wayward scv back to work
-        else {
+        else if (ActionIssued.getCurOrder(scv).isEmpty()) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }
@@ -157,5 +196,16 @@ public class MineralPatch {
         if (!scvs.isEmpty()) {
             ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
         }
+    }
+
+    private UnitInPool getCC() {
+        return getBase().getCc();
+    }
+
+    private Base getBase() {
+        return GameCache.baseList.stream()
+                .filter(base -> base.getCcPos().distance(ccPos) < 1)
+                .findAny()
+                .orElse(null);
     }
 }

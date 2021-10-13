@@ -103,7 +103,7 @@ public class Strategy {
     public static int MAX_BANSHEES = 20;
 
     public static void onGameStart() {
-        Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
+        //Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
         getGameStrategyChoice();
 
         if (DO_MATRIX && !DO_SEEKER_MISSILE) {
@@ -458,7 +458,7 @@ public class Strategy {
         Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvPGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvPGamePlans);
         }
         else {
             //select random game plan
@@ -510,7 +510,7 @@ public class Strategy {
         Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvZGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvZGamePlans);
         }
         else {
             //select random game plan
@@ -525,7 +525,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.MARINE_RUSH;
         }
 
         switch (gamePlan) {
@@ -913,40 +913,41 @@ public class Strategy {
     }
 
     public static int getMaxScvs() {
-        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-            return 100;
-        }
-
-        //if no minerals left on the map
-        if (GameCache.defaultRallyNode == null) {
-            return 6;
-        }
-
-        //cutting workers to wall off at the start of the game
-        if (Strategy.WALL_OFF_IMMEDIATELY && !UnitUtils.isWallComplete()) {
-            return 13; //TODO: change to 14 when my bot sends scvs to build structures early
-        }
-
-        //marine all-in without an expansion
-        if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
-            return 19;
-        }
-
-        //if maxed out on macro OCs
-        if (LocationConstants.MACRO_OCS.isEmpty()) {
-            return 60;
-        }
-
-        //if maxed out on macro OCs
-        if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
-            return 50;
-        }
-
-        if (MASS_RAVENS) {
-            return 80;
-        }
-
-        return 90;
+        return 16;
+//        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+//            return 100;
+//        }
+//
+//        //if no minerals left on the map
+//        if (GameCache.defaultRallyNode == null) {
+//            return 6;
+//        }
+//
+//        //cutting workers to wall off at the start of the game
+//        if (Strategy.WALL_OFF_IMMEDIATELY && !UnitUtils.isWallComplete()) {
+//            return 13; //TODO: change to 14 when my bot sends scvs to build structures early
+//        }
+//
+//        //marine all-in without an expansion
+//        if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
+//            return 19;
+//        }
+//
+//        //if maxed out on macro OCs
+//        if (LocationConstants.MACRO_OCS.isEmpty()) {
+//            return 60;
+//        }
+//
+//        //if maxed out on macro OCs
+//        if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
+//            return 50;
+//        }
+//
+//        if (MASS_RAVENS) {
+//            return 80;
+//        }
+//
+//        return 90;
     }
 
     public static void antiNydusBuild() {

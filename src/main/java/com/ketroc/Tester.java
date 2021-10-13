@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.DebugHelper;
-import com.ketroc.utils.Position;
+import com.ketroc.geometry.Position;
 import com.ketroc.utils.Print;
 import com.ketroc.utils.UnitUtils;
 

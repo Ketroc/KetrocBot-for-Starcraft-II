@@ -55,7 +55,7 @@ public class EnemyDebugTestBot extends S2Agent {
     public void onStep() {
 
         if (at(100)) {
-            debug().debugCreateUnit(Units.ZERG_HATCHERY, LocationConstants.baseLocations.get(1), myId, 1);
+            //debug().debugCreateUnit(Units.ZERG_HATCHERY, LocationConstants.baseLocations.get(1), myId, 1);
         }
 
 //        if (at(1320)) {

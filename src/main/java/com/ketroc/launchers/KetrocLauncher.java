@@ -1,9 +1,11 @@
 package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
+import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.ketroc.bots.EnemyDebugTestBot;
 import com.ketroc.bots.KetrocBot;
 
 import java.nio.file.Paths;
@@ -14,17 +16,17 @@ public class KetrocLauncher {
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
                 .setMultithreaded(true)
-                .setWindowLocation(2560, 0)
+                .setWindowLocation(560, 20)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
-                .setStepSize(2)
+                .setStepSize(Launcher.STEP_SIZE)
                 .setShowBurrowed(true)
                 .setRawAffectsSelection(true)
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.VERY_EASY, AiBuild.MACRO))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
 
