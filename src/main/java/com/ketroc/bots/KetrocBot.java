@@ -18,6 +18,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
+import com.ketroc.geometry.Position;
 import com.ketroc.gson.JsonUtil;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.*;
@@ -143,8 +144,10 @@ public class KetrocBot extends Bot {
 //                //GameCache.baseList.get(0).scvReport();
 //                Point2d pylonPos = Position.towards(LocationConstants.baseLocations.get(1), LocationConstants.baseLocations.get(0), -5);
 //                pylonPos = Position.towards(pylonPos, LocationConstants.baseLocations.get(3), -5);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, pylonPos, enemyId, 1);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, pylonPos, enemyId, 1);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, LocationConstants.BUNKER_NATURAL, myId, 1);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, LocationConstants.BUNKER_NATURAL, myId, 3);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), myId, 1);
+//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), myId, 3);
 //            }
 
             DebugHelper.onStep(); //reset debug status for printing info
@@ -600,7 +603,7 @@ public class KetrocBot extends Bot {
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions tankPos : base.getTanks()) {
                                         if (tankPos.getUnit() != null && unit.getTag().equals(tankPos.getUnit().getTag())) {
-                                            tankPos.setUnit(null);
+                                            tankPos.setUnit(null, base);
                                         }
                                     }
                                 }
@@ -610,7 +613,7 @@ public class KetrocBot extends Bot {
                                 for (Base base : GameCache.baseList) {
                                     for (DefenseUnitPositions libPos : base.getLiberators()) {
                                         if (libPos.getUnit() != null && unit.getTag().equals(libPos.getUnit().getTag())) {
-                                            libPos.setUnit(null);
+                                            libPos.setUnit(null, base);
                                         }
                                     }
                                 }

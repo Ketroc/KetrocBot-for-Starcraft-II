@@ -103,7 +103,7 @@ public class Strategy {
     public static int MAX_BANSHEES = 20;
 
     public static void onGameStart() {
-        Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
+        //Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
         getGameStrategyChoice();
 
         if (DO_MATRIX && !DO_SEEKER_MISSILE) {
@@ -459,7 +459,7 @@ public class Strategy {
         Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvPGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvPGamePlans);
         }
         else {
             //select random game plan
@@ -511,7 +511,7 @@ public class Strategy {
         Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvZGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvZGamePlans);
         }
         else {
             //select random game plan
@@ -526,7 +526,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.MARINE_RUSH;
         }
 
         switch (gamePlan) {

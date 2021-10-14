@@ -14,6 +14,7 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.micro.MarineBasic;
@@ -422,7 +423,7 @@ public class GameCache {
 
             //update turret
             for (DefenseUnitPositions turret : base.getTurrets()) {
-                turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()));
+                turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()), base);
             }
 
         }

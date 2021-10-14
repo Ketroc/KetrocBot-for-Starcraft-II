@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Rectangle;
 
 public class DebugHelper {
     public static float z;
@@ -31,12 +32,32 @@ public class DebugHelper {
                 color);
     }
 
+    public static void drawRect(float top, float bottom, float left, float right, Color color) {
+        if (!Bot.isDebugOn) {
+            return;
+        }
+        float z = Bot.OBS.terrainHeight(Point2d.of(left, bottom)) + 0.2f;
+        Bot.DEBUG.debugBoxOut(Point.of(left, bottom, z), Point.of(right, top, z), color);
+    }
+
+    public static void drawRect(Rectangle rect, Color color) {
+        drawRect(rect.getTop(), rect.getBottom(), rect.getLeft(), rect.getRight(), color);
+    }
+
+    public static void drawSphere(Point2d pos, Color color, float radius) {
+        if (!Bot.isDebugOn) {
+            return;
+        }
+        float z = Bot.OBS.terrainHeight(pos) + 0.2f;
+        Bot.DEBUG.debugSphereOut(Point.of(pos.getX(),pos.getY(), z), radius, color);
+    }
+
     public static void drawLine(Point2d pos1, Point2d pos2, Color color) {
         if (!Bot.isDebugOn) {
             return;
         }
-        float z1 = Bot.OBS.terrainHeight(pos1) + 0.5f;
-        float z2 = Bot.OBS.terrainHeight(pos2) + 0.5f;
+        float z1 = Bot.OBS.terrainHeight(pos1) + 0.2f;
+        float z2 = Bot.OBS.terrainHeight(pos2) + 0.2f;
         Bot.DEBUG.debugLineOut(
                 Point.of(pos1.getX(), pos1.getY(), z1),
                 Point.of(pos2.getX(), pos2.getY(), z2),

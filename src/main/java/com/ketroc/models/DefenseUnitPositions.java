@@ -1,6 +1,7 @@
 package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 
 import java.util.Optional;
@@ -26,7 +27,11 @@ public class DefenseUnitPositions {
         return unit;
     }
 
-    public void setUnit(UnitInPool unit) {
+    public void setUnit(UnitInPool unit, Base base) {
+        if ((this.unit == null && unit != null && unit.unit().getType() == Units.TERRAN_MISSILE_TURRET) || //turret added
+                (this.unit != null && unit == null && this.unit.unit().getType() == Units.TERRAN_MISSILE_TURRET)) { //turret cancelled/destroyed
+            base.getMineralPatches().forEach(mineralPatch -> mineralPatch.initMiningPositions());
+        }
         this.unit = unit;
     }
 }

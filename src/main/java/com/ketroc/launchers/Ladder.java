@@ -41,7 +41,7 @@ public class Ladder {
             String arg = args[i];
             if (arg.equals("--RealTime")) {
                 Launcher.isRealTime = true;
-                //Launcher.STEP_SIZE = 4;
+                Launcher.STEP_SIZE = 4;
                 System.out.println("Launcher.STEP_SIZE = " + Launcher.STEP_SIZE);
                 break;
             }

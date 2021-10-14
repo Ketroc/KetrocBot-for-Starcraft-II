@@ -11,6 +11,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.geometry.Position;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.TankToPosition;
 import com.ketroc.micro.UnitMicroList;
@@ -451,7 +452,7 @@ public class WorkerManager {
         for (Gas gas : myGases) {
             int numScvs = (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH) ? 3 : numScvsPerGas;
             while (gas.getScvs().size() < numScvs) {
-                UnitInPool closestMineralScv = Base.releaseClosestMineralScv(gas.getByNode());
+                UnitInPool closestMineralScv = Base.releaseClosestMineralScv(gas.getByNodePos());
                 if (closestMineralScv == null) {
                     return;
                 }

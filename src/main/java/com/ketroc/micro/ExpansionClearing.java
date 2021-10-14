@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.models.StructureScv;

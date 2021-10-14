@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.utils.Position;
+import com.ketroc.geometry.Position;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.List;
