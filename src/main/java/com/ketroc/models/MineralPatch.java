@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Line;
+import com.ketroc.geometry.MineralShape;
 import com.ketroc.geometry.Rectangle;
 import com.ketroc.geometry.Octagon;
 import com.ketroc.utils.*;
@@ -37,26 +38,22 @@ public class MineralPatch {
     }
 
     public void initMiningPositions() {
-        Rectangle mineralRect = new Rectangle(nodePos);
+        Rectangle mineralRect = new MineralShape(nodePos);
         byNodePos = mineralRect.intersection(new Line(nodePos, ccPos)).iterator().next();
-        mineralRect.draw(Color.RED);
         adjustForNearbyMinerals();
         adjustForMissileTurrets();
         byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
-        new Octagon(ccPos).draw(Color.YELLOW);
-        DebugHelper.drawBox(byNodePos, Color.WHITE, 0.1f);
-        DebugHelper.drawBox(byCCPos, Color.WHITE, 0.1f);
     }
 
     private void adjustForNearbyMinerals() {
         List<UnitInPool> blockingMineralNodes = Bot.OBS.getUnits(Alliance.NEUTRAL, otherMineralPatch ->
                 UnitUtils.MINERAL_NODE_TYPE.contains(otherMineralPatch.unit().getType()) &&
                         !node.getTag().equals(otherMineralPatch.getTag()) &&
-                        new Rectangle(otherMineralPatch).contains(byNodePos));
+                        new MineralShape(otherMineralPatch).contains(byNodePos));
         if (blockingMineralNodes.isEmpty()) {
             return;
         }
-        new Rectangle(node).intersection(new Rectangle(blockingMineralNodes.stream()
+        new MineralShape(node).intersection(new MineralShape(blockingMineralNodes.stream()
                         .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), byNodePos)))
                         .get()))
                 .stream()
@@ -75,9 +72,8 @@ public class MineralPatch {
                 .map(DefenseUnitPositions::getPos)
                 .forEach(turretPos -> {
                     Rectangle turretRect = new Rectangle(turretPos, 1.4f);
-                    new Rectangle(turretPos, 1f).draw(Color.YELLOW);
                     if (turretRect.contains(byNodePos)) {
-                        turretRect.intersection(new Rectangle(node)).stream()
+                        turretRect.intersection(new MineralShape(node)).stream()
                                 .min(Comparator.comparing(intersectPos -> intersectPos.distance(byNodePos)))
                                 .ifPresent(p -> byNodePos = p);
                     }
@@ -207,5 +203,11 @@ public class MineralPatch {
                 .filter(base -> base.getCcPos().distance(ccPos) < 1)
                 .findAny()
                 .orElse(null);
+    }
+
+    public void visualMiningLayout() {
+        DebugHelper.drawBox(byNodePos, Color.WHITE, 0.1f);
+        DebugHelper.drawBox(byCCPos, Color.WHITE, 0.1f);
+        new MineralShape(nodePos).draw(Color.RED);
     }
 }

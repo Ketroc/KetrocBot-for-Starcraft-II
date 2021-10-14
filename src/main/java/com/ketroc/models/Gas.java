@@ -2,18 +2,21 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.*;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
-import com.ketroc.geometry.Position;
+import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Gas {
@@ -22,26 +25,45 @@ public class Gas {
     private List<UnitInPool> scvs = new ArrayList<>();
     private Point2d nodePos;
     private Point2d ccPos;
-    private Point2d byNode;
-//    private float distanceToHarvest = 2.05f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
-//    private float distanceToCC = 3.15f + (Launcher.STEP_SIZE > 2 ? 0.8f : 0);
+    private Point2d byNodePos;
     private Point2d byCCPos;
 
 
     // ========= CONSTRUCTORS ===========
 
     public Gas(Unit node, Point2d ccPos) {
-        this.node = node;
         this.ccPos = ccPos;
-        this.nodePos = node.getPosition().toPoint2d();
-        byNode = Position.towards(nodePos, ccPos, 1.8f);
-        byCCPos = Position.towards(ccPos, nodePos, 2.8f);
-//        float angle = Position.getAngle(byCC, byNode);
-//        if ((angle > 20 && angle < 70) || (angle > 110 && angle < 160) ||
-//                (angle > 200 && angle < 250) || (angle > 280 && angle < 330)) { //mining diagonal
-//            distanceToHarvest += 0.1f;
-//            distanceToCC += 0.1f;
-//        }
+        this.node = node;
+        nodePos = node.getPosition().toPoint2d();
+        initMiningPositions();
+    }
+
+    public void initMiningPositions() {
+        Rectangle gasRect = new GeyserShape(nodePos);
+        byNodePos = gasRect.intersection(new Line(nodePos, ccPos)).iterator().next();
+        adjustForMissileTurrets();
+        byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
+    }
+
+    public void adjustForMissileTurrets() {
+        Base base = getBase();
+        if (base == null) {
+            return;
+        }
+
+        base.getTurrets().stream()
+                .filter(defenseUnitPositions -> defenseUnitPositions.getUnit() != null)
+                .map(DefenseUnitPositions::getPos)
+                .forEach(turretPos -> {
+                    Rectangle turretRect = new Rectangle(turretPos, 1.4f);
+                    if (turretRect.contains(byNodePos)) {
+                        turretRect.intersection(new GeyserShape(node)).stream()
+                                .min(Comparator.comparing(intersectPos -> intersectPos.distance(byNodePos)))
+                                .ifPresent(p -> {
+                                    byNodePos = p;
+                                });
+                    }
+                });
     }
 
     // ========= GETTERS AND SETTERS =========
@@ -78,12 +100,12 @@ public class Gas {
         this.scvs = scvs;
     }
 
-    public Point2d getByNode() {
-        return byNode;
+    public Point2d getByNodePos() {
+        return byNodePos;
     }
 
-    public void setByNode(Point2d byNode) {
-        this.byNode = byNode;
+    public void setByNodePos(Point2d byNodePos) {
+        this.byNodePos = byNodePos;
     }
 
     public Point2d getByCCPos() {
@@ -103,11 +125,11 @@ public class Gas {
     }
 
     public void harvestMicro(Unit scv) {
-        float distToNode = UnitUtils.getDistance(scv, nodePos);
+        float distToNode = UnitUtils.getDistance(scv, byNodePos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_GATHER)) {
             //start speed MOVE
-            if (distToNode < 4.5f && distToNode > 2.5f) {
-                ActionHelper.unitCommand(scv, Abilities.MOVE, byNode, false);
+            if (distToNode < 1.75f && distToNode > 1f) {
+                ActionHelper.unitCommand(scv, Abilities.MOVE, byNodePos, false);
                 ActionHelper.unitCommand(scv, Abilities.SMART, refinery, true);
             }
         }
@@ -120,9 +142,10 @@ public class Gas {
         float distToCC = UnitUtils.getDistance(scv, byCCPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             //start speed MOVE
-            if (distToCC < 1.5f && distToCC > 1f) {
+            if (distToCC < 1.75f && distToCC > 1f) {
                 UnitInPool cc = getCC();
                 if (cc != null) {
+                    ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }
                 else {
@@ -154,7 +177,7 @@ public class Gas {
 
     private void onRefineryDeath() {
         if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.HARVEST_RETURN, false);
             scvs.clear();
         }
     }
@@ -165,8 +188,14 @@ public class Gas {
 
     private Base getBase() {
         return GameCache.baseList.stream()
-                .filter(base -> base.getCcPos().equals(ccPos))
+                .filter(base -> base.getCcPos().distance(ccPos) < 1)
                 .findAny()
-                .get();
+                .orElse(null);
+    }
+
+    public void visualMiningLayout() {
+        DebugHelper.drawBox(byNodePos, Color.WHITE, 0.1f);
+        DebugHelper.drawBox(byCCPos, Color.WHITE, 0.1f);
+        new GeyserShape(nodePos).draw(Color.RED);
     }
 }

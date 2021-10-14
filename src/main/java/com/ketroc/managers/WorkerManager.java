@@ -452,7 +452,7 @@ public class WorkerManager {
         for (Gas gas : myGases) {
             int numScvs = (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH) ? 3 : numScvsPerGas;
             while (gas.getScvs().size() < numScvs) {
-                UnitInPool closestMineralScv = Base.releaseClosestMineralScv(gas.getByNode());
+                UnitInPool closestMineralScv = Base.releaseClosestMineralScv(gas.getByNodePos());
                 if (closestMineralScv == null) {
                     return;
                 }

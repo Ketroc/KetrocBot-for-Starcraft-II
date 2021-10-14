@@ -14,7 +14,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.geometry.Octagon;
 import com.ketroc.geometry.Position;
+import com.ketroc.geometry.Rectangle;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.*;
@@ -671,6 +673,13 @@ public class Base {
         }
     }
 
+    public void visualizeMiningLayout() {
+        getMineralPatches().forEach(m -> m.visualMiningLayout());
+        getGases().forEach(g -> g.visualMiningLayout());
+        getTurrets().forEach(turrets -> new Rectangle(turrets.getPos(), 1.4f).draw(Color.YELLOW));
+        new Octagon(ccPos).draw(Color.YELLOW);
+    }
+
     public boolean isReadyForMining() {
         return isMyBase() && isComplete();
     }
@@ -983,7 +992,7 @@ public class Base {
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
                 .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1f && gas.getScvs().size() < 3)
-                .min(Comparator.comparing(gas -> gas.getByNode().distance(pos)))
+                .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos)))
                 .orElse(null);
     }
     public static Gas getClosestUnderSaturatedGas(Point2d pos) {
@@ -991,7 +1000,7 @@ public class Base {
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
                 .filter(gas -> gas.getScvs().size() < WorkerManager.numScvsPerGas)
-                .min(Comparator.comparing(gas -> gas.getByNode().distance(pos)))
+                .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos)))
                 .orElse(null);
     }
 

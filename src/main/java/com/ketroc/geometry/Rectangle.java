@@ -4,11 +4,10 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.bots.Bot;
 import com.ketroc.utils.DebugHelper;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Rectangle {
     private float top;
@@ -23,22 +22,9 @@ public class Rectangle {
         this.right = right;
     }
 
-    public Rectangle(Point2d mineralPos) {
-        this (mineralPos.getY()+0.975f, mineralPos.getY()-0.975f,
-                mineralPos.getX()-1.475f, mineralPos.getX()+1.475f);
-    }
-
     public Rectangle(Point2d squareCenterPos, float radius) {
         this (squareCenterPos.getY()+radius, squareCenterPos.getY()-radius,
                 squareCenterPos.getX()-radius, squareCenterPos.getX()+radius);
-    }
-
-    public Rectangle(UnitInPool mineral) {
-        this(mineral.unit());
-    }
-
-    public Rectangle(Unit mineral) {
-        this(mineral.getPosition().toPoint2d());
     }
 
     public float getTop() {
@@ -77,30 +63,21 @@ public class Rectangle {
         return top > p.getY() && bottom < p.getY() && left < p.getX() && right > p.getX();
     }
 
+    public List<Line> getLines() {
+        return List.of(new Line(Point2d.of(left, top), Point2d.of(right, top)),
+                new Line(Point2d.of(right, top), Point2d.of(right, bottom)),
+                new Line(Point2d.of(right, bottom), Point2d.of(left, bottom)),
+                new Line(Point2d.of(left, bottom), Point2d.of(left, top)));
+    }
+
     public Set<Point2d> intersection(Rectangle r2) {
         if (top < r2.bottom || bottom > r2.top || left > r2.right || right < r2.left) {
             return Collections.emptySet();
         }
 
-        float x1, x2, y1, y2;
-        if (top < r2.top && top > r2.bottom) {
-            y1 = top;
-            y2 = r2.bottom;
-        }
-        else {
-            y1 = bottom;
-            y2 = r2.top;
-        }
-        if (left > r2.left && left < r2.right) {
-            x1 = left;
-            x2 = r2.right;
-        }
-        else {
-            x1 = right;
-            x2 = r2.left;
-        }
-
-        return Set.of(Point2d.of(x1, y2), Point2d.of(x2, y1));
+        Set<Point2d> intersectPoints = new HashSet<>();
+        r2.getLines().forEach(line -> intersectPoints.addAll(intersection(line)));
+        return intersectPoints;
     }
 
     public Set<Point2d> intersection(Line line) {
