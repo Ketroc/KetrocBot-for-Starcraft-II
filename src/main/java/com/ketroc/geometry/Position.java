@@ -357,8 +357,21 @@ public class Position {
     }
 
     public static float getAngleDifference(float angle1, float angle2) {
+        return getAngleDifference(angle1, angle2, false);
+    }
+
+    public static float getSignedAngleDifference(float angle1, float angle2) {
+        return getAngleDifference(angle1, angle2, true);
+    }
+
+    private static float getAngleDifference(float angle1, float angle2, boolean isSigned) {
         float difference = Math.abs(angle1 - angle2) % 360;
-        return (difference > 180) ? Math.abs(360 - difference) : difference;
+        difference = (difference > 180) ? 360 - difference : difference;
+        if (isSigned &&
+                !((angle1 - angle2 >= 0 && angle1 - angle2 <= 180) || (angle1 - angle2 <= -180 && angle1 - angle2 >= -360))){
+            difference *= -1;
+        }
+        return difference;
     }
 
     public static float getFacingAngle(Unit unit) {

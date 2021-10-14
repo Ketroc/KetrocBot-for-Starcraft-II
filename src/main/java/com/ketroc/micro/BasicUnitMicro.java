@@ -293,6 +293,14 @@ public class BasicUnitMicro {
         return findDetourPos(rangeCheck+1.5f);
     }
 
+    //TODO: start of another pathing technique that attempts to maintain the same direction by starting with Facing Angle
+    protected Point2d findDetourPos3(float rangeCheck) {
+        float facingAngle = Position.getFacingAngle(unit.unit());
+        float retreatAngle = Position.getAngle(unit.unit().getPosition().toPoint2d(), ArmyManager.retreatPos);
+        float sign = (Position.getSignedAngleDifference(facingAngle, retreatAngle) >= 0) ? 1 : -1;
+        return null;
+    }
+
     //retreats as straight back as possible from the threat
     protected Point2d findDetourPos(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
