@@ -2,7 +2,6 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.debug.Color;
@@ -24,10 +23,8 @@ import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Base {
@@ -223,7 +220,14 @@ public class Base {
     }
 
     public int getNumMineralScvs() {
-        return mineralPatches.stream().mapToInt(mineralPatch -> mineralPatch.getScvs().size()).sum();
+        return getNumMineralScvs(scv -> true);
+    }
+
+    public int getNumMineralScvs(Predicate<UnitInPool> scvFilter) {
+        return (int)mineralPatches.stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .filter(scvFilter)
+                .count();
     }
 
     public List<UnitInPool> getMineralScvs() {
@@ -685,14 +689,118 @@ public class Base {
     }
 
     public List<UnitInPool> getAndReleaseAvailableScvs(int numScvs) {
-        List<UnitInPool> baseScvs = WorkerManager.getAllScvs(ccPos, 9).stream()
-                .filter(scv -> !scv.unit().getBuffs().contains(Buffs.CARRY_MINERAL_FIELD_MINERALS) &&
-                        !scv.unit().getBuffs().contains(Buffs.CARRY_HARVESTABLE_VESPENE_GEYSER_GAS) &&
-                        !scv.unit().getBuffs().contains(Buffs.CARRY_HIGH_YIELD_MINERAL_FIELD_MINERALS))
-                .limit(numScvs)
-                .collect(Collectors.toList());
-        baseScvs.forEach(scv -> releaseScv(scv.unit()));
+        List<UnitInPool> baseScvs = new ArrayList<>();
+        for (int i=0; i<numScvs; i++) {
+            UnitInPool scv = getAndReleaseScv();
+            if (scv == null) {
+                return baseScvs;
+            }
+            baseScvs.add(scv);
+        }
         return baseScvs;
+    }
+
+    public UnitInPool getAndReleaseScv() {
+        UnitInPool scv = getScv();
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+        }
+        return scv;
+    }
+
+    public UnitInPool getScv() {
+        //1. try get oversaturated mineral scv
+        //2. try get oversaturated gas scv
+        //3. try get scv from smallest patch
+        return getScvFromOversaturatedMineral().orElse(
+                getScvFromOversaturatedGas().orElse(
+                        getScvFromSmallestPatch().orElse(null)));
+    }
+
+    public Optional<UnitInPool> getDistanceMiningScv(Point2d targetPos) {
+        return getDistanceMiningScv(targetPos, scv -> true);
+    }
+
+    public Optional<UnitInPool> getDistanceMiningScv(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
+        if (!isUntakenBase()) {
+            return Optional.empty();
+        }
+
+        return getMineralPatches().stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .filter(scvFilter)
+                .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), targetPos) +
+                        (UnitUtils.isCarryingResources(scv.unit()) ? 100 : 0)));
+    }
+
+    public boolean hasDistanceMiningScv() {
+        return hasDistanceMiningScv(scv -> true);
+    }
+
+    public boolean hasDistanceMiningScv(Predicate<UnitInPool> scvFilter) {
+        return isUntakenBase() &&
+                getMineralPatches().stream().anyMatch(mineralPatch -> !mineralPatch.getScvs().isEmpty() &&
+                        mineralPatch.getScvs().stream().anyMatch(scvFilter));
+    }
+
+    public Optional<UnitInPool> getScvFromOversaturatedMineral() {
+        return getScvFromOversaturatedMineral(scv -> true);
+    }
+
+    public Optional<UnitInPool> getScvFromOversaturatedMineral(Predicate<UnitInPool> scvFilter) {
+        return getMineralPatches().stream()
+                .filter(mineralPatch -> mineralPatch.getScvs().size() > 2)
+                .min(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
+                .stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .filter(scvFilter)
+                .min(Comparator.comparing(scv -> UnitUtils.isCarryingResources(scv.unit()) ? 10 : 0));
+    }
+
+    public boolean hasOverSaturatedMineral() {
+        return hasOverSaturatedMineral(scv -> true);
+    }
+
+    public boolean hasOverSaturatedMineral(Predicate<UnitInPool> scvFilter) {
+        return getMineralPatches().stream().anyMatch(mineralPatch -> mineralPatch.getScvs().size() > 2 &&
+                mineralPatch.getScvs().stream().anyMatch(scvFilter));
+    }
+
+    public Optional<UnitInPool> getScvFromOversaturatedGas() {
+        return getScvFromOversaturatedGas(scv -> true);
+    }
+
+    public Optional<UnitInPool> getScvFromOversaturatedGas(Predicate<UnitInPool> scvFilter) {
+        return getGases().stream()
+                .filter(gas -> gas.getScvs().size() > WorkerManager.numScvsPerGas)
+                .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
+                .stream()
+                .flatMap(gas -> gas.getScvs().stream())
+                .filter(scvFilter)
+                .min(Comparator.comparing(scv -> UnitUtils.isCarryingResources(scv.unit()) ? 10 : 0));
+    }
+
+    public boolean hasOverSaturatedGas() {
+        return hasOverSaturatedGas(scv -> true);
+    }
+
+    public boolean hasOverSaturatedGas(Predicate<UnitInPool> scvFilter) {
+        return getGases().stream().anyMatch(gas -> gas.getScvs().size() > WorkerManager.numScvsPerGas &&
+                gas.getScvs().stream().anyMatch(scvFilter));
+    }
+
+    public Optional<UnitInPool> getScvFromSmallestPatch() {
+        return getScvFromSmallestPatch(scv -> true);
+    }
+
+    public Optional<UnitInPool> getScvFromSmallestPatch(Predicate<UnitInPool> scvFilter) {
+        return getMineralPatches().stream()
+                .filter(mineralPatch -> !mineralPatch.getScvs().isEmpty())
+                .min(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
+                .stream()
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .filter(scvFilter)
+                .min(Comparator.comparing(scv -> UnitUtils.isCarryingResources(scv.unit()) ? 10 : 0));
     }
 
     public void setTurretPositions() {

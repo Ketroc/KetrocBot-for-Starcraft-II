@@ -12,6 +12,7 @@ import com.ketroc.models.Base;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.DebugHelper;
+import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -49,7 +50,7 @@ public class ScvAttackTarget extends Scv {
 
         //swap out scv if it gets low in health
         if (!unit.isAlive() || unit.unit().getHealth().orElse(45f) <= 10) {
-            UnitInPool newScv = getNewScv();
+            UnitInPool newScv = getNewScv(targetPos);
             if (newScv != null) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.STOP, false);
                 replaceUnit(newScv);
@@ -90,17 +91,15 @@ public class ScvAttackTarget extends Scv {
                 .anyMatch(unitMicro -> unitMicro instanceof ScvAttackTarget &&
                         ((ScvAttackTarget) unitMicro).targetUnit.getTag().equals(enemyWorker.getTag()));
         if (!alreadyExists) {
-            UnitInPool newScv = getNewScv();
+            UnitInPool newScv = getNewScv(enemyWorker.getPosition().toPoint2d());
             if (newScv != null) {
                 UnitMicroList.add(new ScvAttackTarget(newScv, Bot.OBS.getUnit(enemyWorker.getTag())));
             }
         }
     }
 
-    private static UnitInPool getNewScv() {
-        return WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getCcPos()).stream()
-                .max(Comparator.comparing(scv -> scv.unit().getHealth().orElse(0f)))
-                .orElse(null);
+    private static UnitInPool getNewScv(Point2d targetPos) {
+        return WorkerManager.getScv(targetPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
     }
 
     public static boolean contains(Tag targetTag) {

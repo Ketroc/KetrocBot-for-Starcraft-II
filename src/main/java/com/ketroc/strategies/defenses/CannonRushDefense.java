@@ -56,44 +56,33 @@ public class CannonRushDefense {
                 addNewTarget(Units.PROTOSS_PROBE);
                 addNewTarget(Units.PROTOSS_PYLON);
 
-                //fill targets list with required scvs, send those scvs to attack their target, send marines
-//                List<Unit> marines = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_MARINE);
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 50);
-
                 for (ScvTarget scvTarget : ScvTarget.targets) {
                     //attack with scvs
-                    int numScvsToSend = Math.min(scvTarget.numScvs - scvTarget.getScvList().size(), availableScvs.size());
+                    int numScvsToSend = scvTarget.numScvs - scvTarget.getScvList().size();
                     for (int i = 0; i < numScvsToSend; i++) {
-                        UnitInPool newScv = availableScvs.remove(0);
-                        Base.releaseScv(newScv.unit());
+                        UnitInPool newScv = WorkerManager.getAndReleaseScv(scvTarget.targetUnit.unit().getPosition().toPoint2d());
+                        if (newScv == null) {
+                            break;
+                        }
                         //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
                         if (numScvsToSend >= 4 && i < numScvsToSend/2) {
                             Point2d behindCannon = Position.towards(
                                     scvTarget.targetUnit.unit().getPosition().toPoint2d(),
                                     newScv.unit().getPosition().toPoint2d(), 3);
-                            ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false);
-                            ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);
+                            if (Bot.OBS.isPathable(behindCannon)) {
+                                ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false);
+                                ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);
+                            }
+                            else {
+                                ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
+                            }
                         }
                         else {
                             ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
                         }
                         scvTarget.addScv(newScv);
                     }
-//                    //attack with marines if cannon
-//                    if (!marines.isEmpty() && scvTarget.targetUnit.unit().getType() == Units.PROTOSS_PHOTON_CANNON) {
-//                        ActionHelper.unitCommand(marines, Abilities.ATTACK, scvTarget.targetUnit.unit(), false);
-//                    }
                 }
-//                //if marines don't have a target, attack starting with closest to natural base
-//                if (!marines.isEmpty() && !ScvTarget.targets.isEmpty()) {
-//
-//                    Unit cleanUp = ScvTarget.targets.stream()
-//                            .map(scvTarget -> scvTarget.targetUnit.unit())
-//                            .sorted(Comparator.comparing(targetUnit -> UnitUtils.getDistance(targetUnit, GameCache.baseList.get(1).getCcPos())))
-//                            .findFirst()
-//                            .get();
-//                    ActionHelper.unitCommand(marines, Abilities.ATTACK, cleanUp, false);
-//                }
 
                 DebugHelper.addInfoLine("targets list size: " + ScvTarget.targets.size());
                 for (ScvTarget target : ScvTarget.targets) {

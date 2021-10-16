@@ -184,7 +184,7 @@ public class ArmyManager {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
             if (!tankList.isEmpty()) {
                 for (int i=0; i<numScvsToAdd; i++) {
-                    UnitInPool closestAvailableScv = WorkerManager.getClosestAvailableScv(
+                    UnitInPool closestAvailableScv = WorkerManager.getScv(
                             tankList.get(0).unit.unit().getPosition().toPoint2d());
                     if (closestAvailableScv == null) {
                         return;

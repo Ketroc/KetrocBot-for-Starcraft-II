@@ -228,16 +228,13 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);
             }
             if (scv == null) {
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
-                if (availableScvs.isEmpty()) {
+                UnitInPool availableScv = WorkerManager.getScv(this.position);
+                if (availableScv == null) {
                     Print.print("cancelled " + structureType + " because no scv available");
                     makePositionAvailableAgain(position);
                     return PurchaseResult.CANCEL;
                 }
-                scv = availableScvs.stream()
-                        .map(unitInPool -> unitInPool.unit())
-                        .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv, position)))
-                        .get();
+                scv = availableScv.unit();
             }
         }
         Print.print("frame#" + Time.nowFrames() + ": sending action " + buildAction + " at pos: " + position.toString());
@@ -276,16 +273,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                         if (StructureScv.scvBuildingList.stream()
                                 .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getNodePos()) < 1)) {
                             this.position = gas.getNodePos();
-                            List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(this.position);
-                            if (availableScvs.isEmpty()) {
+                            UnitInPool scv = WorkerManager.getScv(this.position);
+                            if (scv == null) {
                                 return PurchaseResult.WAITING;
                             }
-                            this.scv = availableScvs.get(0).unit();
+                            this.scv = scv.unit();
                             gas.setNode(getGeyserUnitAtPosition(gas.getNodePos()));
                             Print.print("frame#" + Time.nowFrames() + ": sending action " + Abilities.BUILD_REFINERY);
                             System.out.println("GameCache.mineralBank = " + GameCache.mineralBank);
                             ActionHelper.unitCommand(this.scv, Abilities.BUILD_REFINERY, gas.getNode(), false);
-                            StructureScv.add(new StructureScv(Bot.OBS.getUnit(scv.getTag()), buildAction, Bot.OBS.getUnit(gas.getNode().getTag())));
+                            StructureScv.add(new StructureScv(scv, buildAction, Bot.OBS.getUnit(gas.getNode().getTag())));
                             Cost.updateBank(Units.TERRAN_REFINERY);
                             return PurchaseResult.SUCCESS;
                         }

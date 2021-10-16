@@ -92,7 +92,7 @@ public class BunkerContain {
 
         // ========= SCVS ===========
         if (Time.nowFrames() == Time.toFrames(6)) {
-            Unit scv = WorkerManager.getClosestAvailableScv(LocationConstants.extraDepots.get(0)).unit();
+            Unit scv = WorkerManager.getScv(LocationConstants.extraDepots.get(0)).unit();
             ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure)KetrocBot.purchaseQueue.get(0)).setScv(scv);
@@ -366,9 +366,8 @@ public class BunkerContain {
 
     private static void sendScoutScvs() {
         if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(23)) {
-            List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(GameCache.baseList.get(0).getResourceMidPoint(), 10);
-            scoutScvs = availableScvs.subList(0, 2);
-            scoutScvs.forEach(scv -> Base.releaseScv(scv.unit()));
+            scoutScvs.add(WorkerManager.getAndReleaseScv(LocationConstants.BUNKER_NATURAL));
+            scoutScvs.add(WorkerManager.getAndReleaseScv(LocationConstants.BUNKER_NATURAL));
             if (!LocationConstants.MAP.contains("Golden Wall") && !LocationConstants.MAP.contains("Blackburn")) {
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
@@ -379,7 +378,7 @@ public class BunkerContain {
                 ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)), true);
                 UnitUtils.patrolInPlace(scoutScvs.get(1).unit(), getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)));
             }
-            else {
+            else { //for goldenwall and blackburn only
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(3)), false);
                 UnitUtils.patrolInPlace(scoutScvs.get(0).unit(), getResourceMidPoint(LocationConstants.baseLocations.get(3)));
                 ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(4)), false);
@@ -595,7 +594,7 @@ public class BunkerContain {
                 if (oldScv.isAlive()) {
                     ActionHelper.unitCommand(oldScv.unit(), Abilities.STOP, false);
                 }
-                UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
+                UnitInPool newScv = WorkerManager.getScv(LocationConstants.proxyBunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
                 Base.releaseScv(newScv.unit());
                 Ignored.remove(oldScv.getTag());
                 Ignored.add(new IgnoredUnit(newScv.getTag()));
@@ -609,7 +608,10 @@ public class BunkerContain {
     }
 
     public static void addNewRepairScv() {
-        UnitInPool newScv = WorkerManager.getAvailableScvs(LocationConstants.baseLocations.get(0), 10).get(0);
+        UnitInPool newScv = WorkerManager.getScv(
+                LocationConstants.proxyBunkerPos,
+                scv -> scv.unit().getHealth().orElse(0f) > 40
+        );
         addRepairScv(newScv);
         ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindBunkerPos, false);
     }

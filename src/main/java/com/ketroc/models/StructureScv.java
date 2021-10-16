@@ -234,9 +234,9 @@ public class StructureScv {
                             InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
                         continue;
                     }
-                    List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(structureScv.structurePos);
-                    if (!availableScvs.isEmpty()) {
-                        structureScv.setScv(availableScvs.get(0));
+                    UnitInPool availableScv = WorkerManager.getScv(structureScv.structurePos);
+                    if (availableScv != null) {
+                        structureScv.setScv(availableScv);
                     }
                 }
             }

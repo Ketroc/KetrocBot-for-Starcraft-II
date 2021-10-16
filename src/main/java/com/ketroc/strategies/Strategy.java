@@ -526,7 +526,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.MARINE_RUSH;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {

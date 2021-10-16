@@ -483,9 +483,6 @@ public class KetrocBot extends Bot {
 //                        if (!bigMinerals.isEmpty()) {
 //                            ActionHelper.unitCommand(unit, Abilities.RALLY_COMMAND_CENTER, bigMinerals.get(0).unit(), false);
 //                        }
-
-                        //send some scvs to this base so it can saturate gas when needed
-                        //WorkerManager.sendScvsToNewPf(unit); //TODO: turned off cuz it doesn't use new MineralPatch objects for the scvs
                         break;
                 }
             }

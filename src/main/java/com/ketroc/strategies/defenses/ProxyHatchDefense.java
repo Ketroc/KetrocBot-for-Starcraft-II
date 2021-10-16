@@ -2,6 +2,7 @@ package com.ketroc.strategies.defenses;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
@@ -18,13 +19,15 @@ public class ProxyHatchDefense {
         setIsProxyHatch();
         if (isProxyHatch) {
             if (!ScvAttackTarget.contains(hatchery.getTag())) {
-                List<UnitInPool> allScvs = WorkerManager.getAllScvs(LocationConstants.baseLocations.get(0), 30);
-                int numScvs = hatchery.unit().getBuildProgress() > 0.5f ? 12 : 8; //TODO: math this to more accuracy?
-                numScvs = Math.min(allScvs.size(), numScvs);
-                allScvs.stream()
-                        .sorted(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), hatchery.unit().getPosition().toPoint2d())))
-                        .limit(numScvs)
-                        .forEach(scv -> UnitMicroList.add(new ScvAttackTarget(scv, hatchery)));
+                Point2d hatcheryPos = hatchery.unit().getPosition().toPoint2d();
+                int numScvs = 6 + (int)(hatchery.unit().getBuildProgress() * 10);
+                for (int i=0; i<numScvs; i++) {
+                    UnitInPool scv = WorkerManager.getScv(hatcheryPos);
+                    if (scv == null) {
+                        break;
+                    }
+                    UnitMicroList.add(new ScvAttackTarget(scv, hatchery));
+                }
             }
         }
     }
@@ -34,7 +37,7 @@ public class ProxyHatchDefense {
             if (Time.nowFrames() < Time.toFrames("3:00")) {
                 UnitInPool closestHatchery = UnitUtils.getClosestEnemyUnitOfType(Units.ZERG_HATCHERY, LocationConstants.baseLocations.get(1));
                 if (closestHatchery != null &&
-//                        closestHatchery.unit().getBuildProgress() < 0.8 &&
+                        closestHatchery.unit().getBuildProgress() < 0.8 &&
                         (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, closestHatchery.unit().getPosition().toPoint2d()) ||
                                 InfluenceMaps.getValue(InfluenceMaps.pointInNat, closestHatchery.unit().getPosition().toPoint2d()))) {
                     hatchery = closestHatchery;
