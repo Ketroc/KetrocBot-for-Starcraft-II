@@ -11,10 +11,8 @@ import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.*;
 import com.ketroc.strategies.Strategy;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.DebugHelper;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
+import io.vertx.codegen.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -128,6 +126,19 @@ public class Gas {
         return refinery == null &&
                 node.getVespeneContents().orElse(0) > Strategy.MIN_GAS_FOR_REFINERY &&
                 UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.GAS_STRUCTURE_TYPES, nodePos, 1).isEmpty();
+    }
+
+    @Nullable
+    public UnitInPool getAndReleaseScv() {
+        UnitInPool gasScv = scvs.stream()
+                .filter(scv -> Time.nowFrames() == scv.getLastSeenGameLoop()) //not in the refinery
+                .max(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), nodePos) +
+                        (!UnitUtils.isCarryingResources(scv.unit()) ? 1000 : 0)))
+                .orElse(null);
+        if (gasScv != null) {
+            scvs.remove(gasScv);
+        }
+        return gasScv;
     }
 
     public void harvestMicro(Unit scv) {

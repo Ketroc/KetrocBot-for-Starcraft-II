@@ -12,14 +12,11 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.WorkerManager;
-import com.ketroc.models.Base;
 import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.ScvTarget;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
-
-import java.util.List;
 
 public class CannonRushDefense {
     public static int cannonRushStep;
@@ -60,7 +57,7 @@ public class CannonRushDefense {
                     //attack with scvs
                     int numScvsToSend = scvTarget.numScvs - scvTarget.getScvList().size();
                     for (int i = 0; i < numScvsToSend; i++) {
-                        UnitInPool newScv = WorkerManager.getAndReleaseScv(scvTarget.targetUnit.unit().getPosition().toPoint2d());
+                        UnitInPool newScv = WorkerManager.getScv(scvTarget.targetUnit.unit().getPosition().toPoint2d());
                         if (newScv == null) {
                             break;
                         }

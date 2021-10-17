@@ -253,7 +253,7 @@ public class Strategy {
         Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvTGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvTGamePlans);
         }
         else {
             //select random game plan
@@ -268,7 +268,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.TANK_VIKING;
+            gamePlan = GamePlan.ONE_BASE_TANK_VIKING;
         }
 
         switch (gamePlan) {
@@ -475,7 +475,7 @@ public class Strategy {
 
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {

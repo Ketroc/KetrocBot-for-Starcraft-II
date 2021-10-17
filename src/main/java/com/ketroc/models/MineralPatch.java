@@ -13,6 +13,7 @@ import com.ketroc.geometry.MineralShape;
 import com.ketroc.geometry.Rectangle;
 import com.ketroc.geometry.Octagon;
 import com.ketroc.utils.*;
+import io.vertx.codegen.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -118,6 +119,18 @@ public class MineralPatch {
 
     public void setByCCPos(Point2d byCCPos) {
         this.byCCPos = byCCPos;
+    }
+
+    @Nullable
+    public UnitInPool getAndReleaseScv() { //get scv (prefer scv that is not carrying minerals or about to)
+        UnitInPool scv = scvs.stream()
+                .max(Comparator.comparing(miningScv -> UnitUtils.getDistance(miningScv.unit(), nodePos) +
+                        (!UnitUtils.isCarryingResources(miningScv.unit()) ? 1000 : 0)))
+                .orElse(null);
+        if (scv != null) {
+            scvs.remove(scv);
+        }
+        return scv;
     }
 
     public void harvestMicro(Unit scv) {

@@ -23,6 +23,7 @@ import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
+import javax.swing.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -311,6 +312,18 @@ public class Base {
 
                 //don't give scv command if it is getting auto-pushed out of the way of a new structure
                 if (scv.unit().getOrders().size() >= 3) {
+                    return;
+                }
+
+                //mine normally if 3 scvs
+                if (mineralPatch.getScvs().size() >= 3 &&
+                        mineralPatch.getScvs().stream().allMatch(mineralScv -> UnitUtils.getDistance(mineralScv.unit(), mineralPatch.getByNodePos()) < 5)) {
+                    Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(scv);
+                    if (curOrder.isEmpty() ||
+                            (curOrder.get().ability == Abilities.HARVEST_GATHER &&
+                                    !curOrder.get().targetTag.equals(mineralPatch.getNode().getTag()))) {
+                        ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, mineralPatch.getNode(), false);
+                    }
                     return;
                 }
 
@@ -1095,12 +1108,22 @@ public class Base {
                 .orElse(null);
     }
 
+    public static MineralPatch getClosestSaturatedSmallMineral(Point2d pos) {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.mineralPatches.stream())
+                .filter(mineralPatch -> mineralPatch.getScvs().size() == 2 &&
+                        UnitUtils.MINERAL_NODE_TYPE_SMALL.contains(mineralPatch.getNode().getType()))
+                .min(Comparator.comparing(mineralPatch -> mineralPatch.getByNodePos().distance(pos)))
+                .orElse(null);
+    }
+
     public static Gas getClosestUnmaxedGas(Point2d pos) {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
                 .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1f && gas.getScvs().size() < 3)
-                .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos)))
+                .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos) + (gas.getScvs().size() >= 2 ? 1000 : 0)))
                 .orElse(null);
     }
     public static Gas getClosestUnderSaturatedGas(Point2d pos) {
@@ -1129,6 +1152,14 @@ public class Base {
                 .filter(base -> !base.isEnemyBase && !base.isReadyForMining())
                 .flatMap(base -> base.mineralPatches.stream())
                 .filter(mineralPatch -> !mineralPatch.getScvs().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static List<MineralPatch> getOversaturatedMineralPatches() {
+        return GameCache.baseList.stream()
+                .filter(base -> !base.isReadyForMining())
+                .flatMap(base -> base.mineralPatches.stream())
+                .filter(mineralPatch -> mineralPatch.getScvs().size() > 2)
                 .collect(Collectors.toList());
     }
 

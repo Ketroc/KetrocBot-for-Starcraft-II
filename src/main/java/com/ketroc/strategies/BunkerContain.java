@@ -366,8 +366,8 @@ public class BunkerContain {
 
     private static void sendScoutScvs() {
         if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(23)) {
-            scoutScvs.add(WorkerManager.getAndReleaseScv(LocationConstants.BUNKER_NATURAL));
-            scoutScvs.add(WorkerManager.getAndReleaseScv(LocationConstants.BUNKER_NATURAL));
+            scoutScvs.add(WorkerManager.getScv(LocationConstants.BUNKER_NATURAL));
+            scoutScvs.add(WorkerManager.getScv(LocationConstants.BUNKER_NATURAL));
             if (!LocationConstants.MAP.contains("Golden Wall") && !LocationConstants.MAP.contains("Blackburn")) {
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
