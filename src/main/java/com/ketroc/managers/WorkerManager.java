@@ -36,18 +36,18 @@ public class WorkerManager {
     public static Map<UnitInPool, Long> idleWorkers = new HashMap<>();
 
     public static void onStep() {
-        //TODO: for testing
-
+        //TODO: for testing - breakpoint when worker stays idle
         idleWorkers.entrySet().removeIf(entry -> !entry.getKey().unit().getOrders().isEmpty() ||
                 StructureScv.isScvProducing(entry.getKey().unit()));
-        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV && StructureScv.isScvProducing(u.unit()))
-                .forEach(scv -> {
-                    if (scv.unit().getOrders().isEmpty()) {
-                        idleWorkers.putIfAbsent(scv, Time.nowFrames());
-                    }
-                });
+        List<UnitInPool> inProductionStructures = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.isStructure(u.unit().getType()) && u.unit().getBuildProgress() < 0.99f);
+        Bot.OBS.getUnits(Alliance.SELF, scv ->
+                        scv.unit().getType() == Units.TERRAN_SCV &&
+                        scv.unit().getOrders().isEmpty() &&
+                        inProductionStructures.stream()
+                                .noneMatch(structure -> UnitUtils.getDistance(structure.unit(), scv.unit()) < 3.5f))
+                .forEach(scv -> idleWorkers.putIfAbsent(scv, Time.nowFrames()));
         idleWorkers.forEach((scv, frame) -> {
-            if (frame + 24 < Time.nowFrames()) {
+            if (frame + 48 < Time.nowFrames()) {
                 DebugHelper.boxUnit(scv.unit());
                 Bot.DEBUG.sendDebug();
             }
