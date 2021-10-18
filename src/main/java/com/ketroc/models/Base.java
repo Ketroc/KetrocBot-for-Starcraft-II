@@ -839,16 +839,17 @@ public class Base {
         //get gas angle
         float gasAngle = Position.getAngle(ccPos, getGases().get(0).getNodePos());
 
-        //get mineralpatch with biggest difference from gas angle
-        Point2d farMineralPos = getMineralPatches().stream()
+        //get mineralpatch with biggest difference from gas angle TODO: adjust this to have the least interruption of speed mining
+        MineralPatch farMineralPatch = getMineralPatches().stream()
                 .max(Comparator.comparing(mineral -> Position.getAngleDifference(gasAngle, Position.getAngle(ccPos, mineral.getNodePos()))))
-                .get().getNode().getPosition().toPoint2d();
+                .get();
 
-        Point2d ccTowardsMineral = Position.toWholePoint(Position.towards1dDistance(getCcPos(), farMineralPos, 3.5f));
+        Point2d farPatchMiningMidpoint = Position.towards(farMineralPatch.getByNodePos(), farMineralPatch.getByCCPos(), 2f);
         Point2d turretPos = Position.toWholePoint(
-                Position.towards(ccTowardsMineral, getResourceMidPoint(), -1));
+                Position.rotateTowards(farPatchMiningMidpoint, ccPos, getResourceMidPoint(), -25));
+        turretPos = Position.moveClear(turretPos, ccPos, 3.5f);
         if (!PlacementMap.canFit2x2(turretPos)) {
-            turretPos = ccTowardsMineral;
+            turretPos = farPatchMiningMidpoint;
         }
         turrets.add(new DefenseUnitPositions(turretPos, null));
 

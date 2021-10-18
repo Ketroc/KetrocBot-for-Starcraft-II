@@ -161,6 +161,14 @@ public class Position {
         return rotate(origin, pivotPoint, angle, false);
     }
 
+    public static Point2d rotateTowards(Point2d origin, Point2d pivotPoint, Point2d towardsTarget, double angle) {
+        float angleDiff = getSignedAngleDifference(getAngle(origin, pivotPoint), getAngle(origin, towardsTarget));
+        if (angleDiff < 1) {
+            angle *= -1;
+        }
+        return rotate(origin, pivotPoint, angle, false);
+    }
+
     public static Point2d rotate(Point2d origin, Point2d pivotPoint, double angle, boolean nullOutOfBounds) {
         double rads = Math.toRadians(angle);
         double sin = Math.sin(rads);
