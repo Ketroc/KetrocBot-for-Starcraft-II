@@ -73,11 +73,19 @@ public class MineralPatch {
                 .map(DefenseUnitPositions::getPos)
                 .forEach(turretPos -> {
                     Rectangle turretRect = new Rectangle(turretPos, 1.4f);
+//                    turretRect.draw(Color.RED);
+//                    new MineralShape(node).draw(Color.RED);
+//                    DebugHelper.drawBox(byNodePos, Color.WHITE, 0.1f);
                     if (turretRect.contains(byNodePos)) {
                         turretRect.intersection(new MineralShape(node)).stream()
                                 .min(Comparator.comparing(intersectPos -> intersectPos.distance(byNodePos)))
-                                .ifPresent(p -> byNodePos = p);
+                                .ifPresent(p -> {
+                                    byNodePos = p;
+//                                    DebugHelper.drawBox(byNodePos, Color.YELLOW, 0.1f);
+                                });
                     }
+//                    Bot.DEBUG.sendDebug();
+//                    int souidf = 21384;
                 });
     }
 

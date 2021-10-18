@@ -23,7 +23,6 @@ import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -798,7 +797,9 @@ public class Base {
     }
 
     public boolean hasOverSaturatedGas(Predicate<UnitInPool> scvFilter) {
-        return getGases().stream().anyMatch(gas -> gas.getScvs().size() > WorkerManager.numScvsPerGas &&
+        return getGases().stream().anyMatch(gas -> gas.getRefinery() != null &&
+                gas.getScvs().size() >
+                        (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas) &&
                 gas.getScvs().stream().anyMatch(scvFilter));
     }
 

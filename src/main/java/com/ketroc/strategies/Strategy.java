@@ -253,7 +253,7 @@ public class Strategy {
         Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
 
         if (!Launcher.isRealTime) {
-            //gamePlan = getStrategyForLadder(availableTvTGamePlans);
+            gamePlan = getStrategyForLadder(availableTvTGamePlans);
         }
         else {
             //select random game plan
@@ -459,7 +459,7 @@ public class Strategy {
         Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
 
         if (!Launcher.isRealTime) {
-            //gamePlan = getStrategyForLadder(availableTvPGamePlans);
+            gamePlan = getStrategyForLadder(availableTvPGamePlans);
         }
         else {
             //select random game plan
@@ -511,7 +511,7 @@ public class Strategy {
         Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
         if (!Launcher.isRealTime) {
-            //gamePlan = getStrategyForLadder(availableTvZGamePlans);
+            gamePlan = getStrategyForLadder(availableTvZGamePlans);
         }
         else {
             //select random game plan
