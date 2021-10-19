@@ -511,7 +511,7 @@ public class Strategy {
         Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
         if (!Launcher.isRealTime) {
-            gamePlan = getStrategyForLadder(availableTvZGamePlans);
+            //gamePlan = getStrategyForLadder(availableTvZGamePlans);
         }
         else {
             //select random game plan
@@ -526,7 +526,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.BANSHEE;
         }
 
         switch (gamePlan) {

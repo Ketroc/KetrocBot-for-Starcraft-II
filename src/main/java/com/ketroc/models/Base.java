@@ -889,17 +889,35 @@ public class Base {
     private void addTurretPosForEach1GasSide() {
         for (Gas gas : getGases()) {
             //closest mineral to gas node
-            Unit closestMineral = getMineralPatchUnits().stream().min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, gas.getNodePos()))).get();
+            MineralPatch closestMineral = getMineralPatches().stream()
+                    .min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral.getNode(), gas.getNodePos())))
+                    .get();
 
-            Point2d gasTowardsCC = Position.toWholePoint(Position.towards1dDistance(gas.getNodePos(), getCcPos(), 2.5f));
-            Point2d turretPos = (Math.abs(gasTowardsCC.getX() - gas.getNodePos().getX()) == 2.5f) ?
-                    Position.towardsYAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f) :
-                    Position.towardsXAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f);
-            if (!PlacementMap.canFit2x2(turretPos)) {
-                turretPos = gasTowardsCC;
-            }
+            Point2d gasMiningPos = Position.towards(gas.getByNodePos(), gas.getByCCPos(), 0.3f);
+            Point2d mineralMiningPos = Position.towards(closestMineral.getByNodePos(), closestMineral.getByCCPos(), 0.3f);
+            Point2d turretPos = Position.toWholePoint(Position.midPoint(gasMiningPos, mineralMiningPos));
+//            if (!PlacementMap.canFit2x2(turretPos)) {
+//                turretPos = gasMiningPos;
+//            }
             //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
             turrets.add(new DefenseUnitPositions(turretPos, null));
+
+
+
+
+
+//            //closest mineral to gas node
+//            Unit closestMineral = getMineralPatchUnits().stream().min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, gas.getNodePos()))).get();
+//
+//            Point2d gasTowardsCC = Position.toWholePoint(Position.towards1dDistance(gas.getNodePos(), getCcPos(), 2.5f));
+//            Point2d turretPos = (Math.abs(gasTowardsCC.getX() - gas.getNodePos().getX()) == 2.5f) ?
+//                    Position.towardsYAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f) :
+//                    Position.towardsXAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f);
+//            if (!PlacementMap.canFit2x2(turretPos)) {
+//                turretPos = gasTowardsCC;
+//            }
+//            //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
+//            turrets.add(new DefenseUnitPositions(turretPos, null));
         }
     }
 
@@ -1173,15 +1191,11 @@ public class Base {
                 .sum();
     }
 
-    public static int numScvsFromMaxSaturation() {
-        return numMineralScvsFromMaxSaturation() + numGasScvsFromMaxSaturation();
-    }
-
-    public static int numMineralScvsFromMaxSaturation() {
+    public static int numMineralScvsFromSoftSaturation() {
         return GameCache.baseList.stream()
                         .filter(Base::isReadyForMining)
                         .flatMap(base -> base.mineralPatches.stream())
-                        .mapToInt(mineralPatch -> 2-mineralPatch.getScvs().size())
+                        .mapToInt(mineralPatch -> Math.max(0, 2-mineralPatch.getScvs().size()))
                         .sum();
     }
 
@@ -1190,6 +1204,14 @@ public class Base {
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
                 .mapToInt(gas -> 3-gas.getScvs().size())
+                .sum();
+    }
+
+    public static int numGasScvsFromDesiredSaturation() {
+        return GameCache.baseList.stream()
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.gases.stream())
+                .mapToInt(gas -> WorkerManager.numScvsPerGas - gas.getScvs().size())
                 .sum();
     }
 

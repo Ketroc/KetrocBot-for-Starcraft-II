@@ -154,6 +154,9 @@ public class KetrocBot extends Bot {
                     base.getMineralPatches().forEach(patch -> {
                         DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
                     });
+                    base.getGases().forEach(patch -> {
+                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
+                    });
                     base.getTurrets().forEach(turret -> {
                         DebugHelper.drawBox(turret.getPos(), Color.GREEN, 1f);
                     });

@@ -440,8 +440,8 @@ public class WorkerManager {
 
     //make oversaturation scvs available to handle normal saturation everywhere
     private static void freeUpExtraScvs() {
-        int numGasScvsNeeded = Base.numGasScvsFromMaxSaturation();
-        int numMineralScvsNeeded = Base.numMineralScvsFromMaxSaturation();
+        int numGasScvsNeeded = Base.numGasScvsFromDesiredSaturation();
+        int numMineralScvsNeeded = Base.numMineralScvsFromSoftSaturation();
         int totalScvsNeeded = numMineralScvsNeeded + numGasScvsNeeded;
         if (totalScvsNeeded == 0) {
             return;
@@ -466,7 +466,6 @@ public class WorkerManager {
 //            return;
 //        }
 
-        //TODO: take from oversaturated minerals
         //take from oversaturated minerals to cover required mineral and gas scvs
         List<MineralPatch> oversaturatedMineralPatches = Base.getOversaturatedMineralPatches();
         for (MineralPatch minPatch : oversaturatedMineralPatches) {

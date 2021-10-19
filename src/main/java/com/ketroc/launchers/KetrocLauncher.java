@@ -1,11 +1,9 @@
 package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
-import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.bots.EnemyDebugTestBot;
 import com.ketroc.bots.KetrocBot;
 
 import java.nio.file.Paths;
@@ -26,13 +24,14 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
                 .launchStarcraft()
+
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
 
