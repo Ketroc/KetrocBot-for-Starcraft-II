@@ -299,37 +299,33 @@ public class WorkerManager {
 
     @Nullable
     public static UnitInPool getScv(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
-        UnitInPool scv;
-
         //find closest distance-mining scv
-        if (GameCache.baseList.stream().anyMatch(base -> base.hasDistanceMiningScv(scvFilter))) {
-            scv = GameCache.baseList.stream()
-                    .filter(base -> base.hasDistanceMiningScv(scvFilter))
-                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
-                    .flatMap(base -> base.getDistanceMiningScv(targetPos))
-                    .get();
-        }
+        UnitInPool scv = GameCache.baseList.stream()
+                .filter(base -> base.hasDistanceMiningScv(scvFilter))
+                .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+                .flatMap(base -> base.getDistanceMiningScv(targetPos))
+                .orElse(null);
 
         //find closest mineral-oversaturated scv
-        else if (GameCache.baseList.stream().anyMatch(base -> base.hasOverSaturatedMineral(scvFilter))) {
+        if (scv == null) {
             scv = GameCache.baseList.stream()
                     .filter(base -> base.hasOverSaturatedMineral(scvFilter))
                     .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
                     .flatMap(base -> base.getScvFromOversaturatedMineral(scvFilter))
-                    .get();
+                    .orElse(null);
         }
 
         //find closest gas-oversaturated scv
-        else if (GameCache.baseList.stream().anyMatch(Base::hasOverSaturatedGas)) {
+        if (scv == null) {
             scv = GameCache.baseList.stream()
                     .filter(base -> base.hasOverSaturatedGas(scvFilter))
                     .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
                     .flatMap(base -> base.getScvFromOversaturatedGas(scvFilter))
-                    .get();
+                    .orElse(null);
         }
 
         //find closest mineral-mining scv
-        else {
+        if (scv == null) {
             scv = GameCache.baseList.stream()
                     .filter(base -> base.getNumMineralScvs(scvFilter) > 0)
                     .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))

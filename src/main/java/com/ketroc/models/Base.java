@@ -1164,7 +1164,7 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .mapToInt(gas -> WorkerManager.numScvsPerGas - gas.getScvs().size())
+                .mapToInt(gas -> Math.max(0, WorkerManager.numScvsPerGas - gas.getScvs().size()))
                 .sum();
     }
 
