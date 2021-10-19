@@ -3,6 +3,7 @@ package com.ketroc.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.unit.Tag;
+import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.Time;
@@ -21,7 +22,10 @@ public class IgnoredScvDefender extends Ignored {
         if (!target.isAlive() ||
                 target.getLastSeenGameLoop() != Time.nowFrames() ||
                 UnitUtils.getDistance(target.unit(), LocationConstants.baseLocations.get(0)) >= 40) {
-            ActionHelper.unitCommand(unitTag, Abilities.STOP, false);
+            UnitInPool scv = Bot.OBS.getUnit(unitTag);
+            if (scv != null) {
+                UnitUtils.returnAndStopScv(scv);
+            }
             return true;
         }
         return false;

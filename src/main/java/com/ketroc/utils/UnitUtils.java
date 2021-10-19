@@ -1285,4 +1285,14 @@ public class UnitUtils {
                 .map(UnitInPool::unit)
                 .collect(Collectors.toSet());
     }
+
+    public static void returnAndStopScv(UnitInPool scv) {
+        if (isCarryingResources(scv.unit())) {
+            ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false);
+            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, true);
+        }
+        else {
+            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
+        }
+    }
 }

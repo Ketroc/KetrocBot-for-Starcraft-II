@@ -594,14 +594,14 @@ public class Base {
     }
 
     public void onNewBaseTaken() {
-        //make distance mining scvs available
-        GameCache.baseList.stream()
-                .filter(base -> !base.isMyBase())
-                .flatMap(base -> base.mineralPatches.stream())
-                .forEach(mineralPatch -> {
-                    mineralPatch.getScvs().forEach(scv -> ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false));
-                    mineralPatch.getScvs().clear();
-                });
+//        //make distance mining scvs available
+//        GameCache.baseList.stream()
+//                .filter(base -> !base.isMyBase())
+//                .flatMap(base -> base.mineralPatches.stream())
+//                .forEach(mineralPatch -> {
+//                    mineralPatch.getScvs().forEach(scv -> ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false));
+//                    mineralPatch.getScvs().clear();
+//                });
 
         //set rally
         Unit rallyNode = getFullestMineralPatch();
@@ -611,35 +611,9 @@ public class Base {
     }
 
     public void onMyBaseDeath() {
-        //send all scvs to another base's mineral patch
-//        List<Unit> baseScvs = UnitUtils.toUnitList(UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Set.of(Units.TERRAN_SCV, Units.TERRAN_MULE), ccPos, 7));
-//        Unit mineralPatch = UnitUtils.getSafestMineralPatch();
-//        List<Unit> scvsCarrying = baseScvs.stream().filter(unit -> UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());//scvs carrying return cargo first
-//        if (!scvsCarrying.isEmpty()) {
-//            ActionHelper.unitCommand(scvsCarrying, Abilities.HARVEST_RETURN, false);
-//            if (mineralPatch == null) {
-//                ActionHelper.unitCommand(scvsCarrying, Abilities.STOP, true);
-//            }
-//            else {
-//                ActionHelper.unitCommand(scvsCarrying, Abilities.SMART, mineralPatch, true);
-//            }
-//        }
-//        List<Unit> scvsNotCarrying = baseScvs.stream().filter(unit -> !UnitUtils.isCarryingResources(unit)).collect(Collectors.toList());
-//        if (!scvsNotCarrying.isEmpty()) {
-//            if (mineralPatch == null) {
-//                ActionHelper.unitCommand(scvsNotCarrying, Abilities.STOP, false);
-//            }
-//            else {
-//                ActionHelper.unitCommand(scvsNotCarrying, Abilities.SMART, mineralPatch, false);
-//            }
-//        }
-        mineralPatches.forEach(mineralPatch ->
-                mineralPatch.getScvs().forEach(scv ->
-                        ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false)));
+        mineralPatches.forEach(mineralPatch -> mineralPatch.getScvs().forEach(scv -> UnitUtils.returnAndStopScv(scv)));
         mineralPatches.forEach(mineralPatch -> mineralPatch.getScvs().clear());
-        gases.forEach(gas ->
-                gas.getScvs().forEach(scv ->
-                        ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false)));
+        gases.forEach(gas -> gas.getScvs().forEach(scv -> UnitUtils.returnAndStopScv(scv)));
         gases.forEach(gas -> gas.getScvs().clear());
         //TODO: delayed action for scv inside the refinery
 
@@ -896,28 +870,7 @@ public class Base {
             Point2d gasMiningPos = Position.towards(gas.getByNodePos(), gas.getByCCPos(), 0.3f);
             Point2d mineralMiningPos = Position.towards(closestMineral.getByNodePos(), closestMineral.getByCCPos(), 0.3f);
             Point2d turretPos = Position.toWholePoint(Position.midPoint(gasMiningPos, mineralMiningPos));
-//            if (!PlacementMap.canFit2x2(turretPos)) {
-//                turretPos = gasMiningPos;
-//            }
-            //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
             turrets.add(new DefenseUnitPositions(turretPos, null));
-
-
-
-
-
-//            //closest mineral to gas node
-//            Unit closestMineral = getMineralPatchUnits().stream().min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral, gas.getNodePos()))).get();
-//
-//            Point2d gasTowardsCC = Position.toWholePoint(Position.towards1dDistance(gas.getNodePos(), getCcPos(), 2.5f));
-//            Point2d turretPos = (Math.abs(gasTowardsCC.getX() - gas.getNodePos().getX()) == 2.5f) ?
-//                    Position.towardsYAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f) :
-//                    Position.towardsXAxis(gasTowardsCC, closestMineral.getPosition().toPoint2d(), 1f);
-//            if (!PlacementMap.canFit2x2(turretPos)) {
-//                turretPos = gasTowardsCC;
-//            }
-//            //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
-//            turrets.add(new DefenseUnitPositions(turretPos, null));
         }
     }
 

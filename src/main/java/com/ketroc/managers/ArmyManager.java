@@ -24,6 +24,7 @@ import com.ketroc.strategies.MarineAllIn;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.ProxyBunkerDefense;
 import com.ketroc.utils.*;
+import io.reactivex.Scheduler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -610,16 +611,13 @@ public class ArmyManager {
 
     private static List<UnitInPool> getRepairBayScvs(int numScvsToSend) {
         List<UnitInPool> repairScvs = new ArrayList<>();
-        for (Base base : GameCache.baseList) {
-            if (base.isMyBase()) {
-                List<UnitInPool> availableScvs = WorkerManager.getAvailableScvs(base.getCcPos(), 9, true, true);
-                if (!availableScvs.isEmpty()) {
-                    repairScvs.addAll(availableScvs);
-                    if (repairScvs.size() >= numScvsToSend) {
-                        return repairScvs.subList(0, numScvsToSend);
-                    }
-                }
+
+        for (int i=0; i<numScvsToSend; i++) {
+            UnitInPool scv = WorkerManager.getScv(LocationConstants.REPAIR_BAY);
+            if (scv == null) {
+                return repairScvs;
             }
+            repairScvs.add(scv);
         }
         return repairScvs;
     }

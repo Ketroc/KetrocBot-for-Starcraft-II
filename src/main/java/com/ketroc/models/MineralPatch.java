@@ -210,9 +210,8 @@ public class MineralPatch {
     }
 
     private void onNodeDepleted() {
-        if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, false);
-        }
+        scvs.forEach(scv -> UnitUtils.returnAndStopScv(scv));
+        scvs.clear();
     }
 
     private UnitInPool getCC() {

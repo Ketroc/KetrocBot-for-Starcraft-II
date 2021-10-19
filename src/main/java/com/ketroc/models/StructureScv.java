@@ -109,7 +109,7 @@ public class StructureScv {
         //send scv to mineral patch
         if (scv.isAlive()) {
             Ignored.remove(scv.getTag());
-            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
+            UnitUtils.returnAndStopScv(scv);
         }
     }
 
@@ -383,7 +383,7 @@ public class StructureScv {
     public static void remove(StructureScv structureScv) {
         if (structureScv.scv != null) {
             Ignored.remove(structureScv.scv.getTag());
-            ActionHelper.unitCommand(structureScv.scv.unit(), Abilities.STOP, false);
+            UnitUtils.returnAndStopScv(structureScv.scv);
         }
         scvBuildingList.remove(structureScv);
     }

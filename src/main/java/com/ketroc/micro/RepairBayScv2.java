@@ -30,7 +30,7 @@ public class RepairBayScv2 extends BasicUnitMicro {
         Set<Unit> repairTargets = UnitUtils.getRepairBayTargets(repairBayPos);
         if (repairTargets.isEmpty()) {
             removeMe = true;
-            ActionHelper.unitCommand(unit.unit(), Abilities.STOP, false);
+            UnitUtils.returnAndStopScv(unit);
         }
         else if (UnitUtils.getOrder(unit.unit()) != Abilities.EFFECT_REPAIR) {
             repairTargets.stream()

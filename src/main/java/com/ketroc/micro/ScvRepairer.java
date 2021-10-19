@@ -120,7 +120,7 @@ public class ScvRepairer extends Scv {
     public void remove() {
         removeMe = true;
         if (unit.isAlive()) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.STOP, false);
+            UnitUtils.returnAndStopScv(unit);
         }
     }
 

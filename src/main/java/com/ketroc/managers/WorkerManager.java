@@ -292,14 +292,6 @@ public class WorkerManager {
                         Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS));
     }
 
-    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition) {
-        return getAvailableScvs(targetPosition, 20, false, true);
-    }
-
-    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance) {
-        return getAvailableScvs(targetPosition, distance, true, true);
-    }
-
     @Nullable
     public static UnitInPool getScv(Point2d targetPos) {
         return getScv(targetPos, scv -> true);
@@ -349,24 +341,6 @@ public class WorkerManager {
             Base.releaseScv(scv.unit());
         }
         return scv;
-    }
-
-    //return list of scvs that are mining minerals without holding minerals within an optional distance
-    public static List<UnitInPool> getAvailableScvs(Point2d targetPosition, int distance, boolean isDistanceEnforced, boolean includeGasScvs) {
-        List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, scv ->
-                scv.unit().getType() == Units.TERRAN_SCV &&
-                (ActionIssued.getCurOrder(scv).isEmpty() || isMiningMinerals(scv) || (includeGasScvs && isMiningGas(scv))) &&
-                UnitUtils.getDistance(scv.unit(), targetPosition) < distance &&
-                !Ignored.contains(scv.getTag()));
-
-//        List<UnitInPool> scvList = GameCache.availableScvs.stream()
-//                .filter(scv -> Bot.QUERY.pathingDistance(scv.unit(), targetPosition) < distance)
-//                .collect(Collectors.toList());
-
-        if (scvList.isEmpty() && !isDistanceEnforced) {
-            return getAvailableScvs(targetPosition, Integer.MAX_VALUE, true, includeGasScvs);
-        }
-        return scvList;
     }
 
     public static boolean isMiningMinerals(UnitInPool scv) {
@@ -452,7 +426,7 @@ public class WorkerManager {
         for (int i = distanceMinedMineralPatches.size() - 1; i > 0; i--) {
             MineralPatch minPatch = distanceMinedMineralPatches.get(i);
             while (!minPatch.getScvs().isEmpty()) {
-                ActionHelper.unitCommand(minPatch.getAndReleaseScv().unit(), Abilities.STOP, false);
+                UnitUtils.returnAndStopScv(minPatch.getAndReleaseScv());
                 totalScvsNeeded--;
                 numMineralScvsNeeded--;
                 if (totalScvsNeeded == 0) {
@@ -470,7 +444,7 @@ public class WorkerManager {
         List<MineralPatch> oversaturatedMineralPatches = Base.getOversaturatedMineralPatches();
         for (MineralPatch minPatch : oversaturatedMineralPatches) {
             while (minPatch.getScvs().size() > 2) {
-                ActionHelper.unitCommand(minPatch.getAndReleaseScv().unit(), Abilities.STOP, false);
+                UnitUtils.returnAndStopScv(minPatch.getAndReleaseScv());
                 totalScvsNeeded--;
                 numMineralScvsNeeded--;
                 if (totalScvsNeeded == 0) {
@@ -484,7 +458,7 @@ public class WorkerManager {
             if (gas.getRefinery().getType() != Units.TERRAN_REFINERY_RICH && gas.getScvs().size() > numScvsPerGas) {
                 UnitInPool gasScv = gas.getAndReleaseScv();
                 if (gasScv != null) {
-                    ActionHelper.unitCommand(gasScv.unit(), Abilities.STOP, false);
+                    UnitUtils.returnAndStopScv(gasScv);
                     numMineralScvsNeeded--;
                     if (numMineralScvsNeeded == 0) {
                         break;

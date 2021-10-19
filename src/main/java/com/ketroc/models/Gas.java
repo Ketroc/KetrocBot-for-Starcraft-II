@@ -213,11 +213,8 @@ public class Gas {
     }
 
     private void onRefineryDeath() {
-        if (!scvs.isEmpty()) {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.HARVEST_RETURN, false);
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvs), Abilities.STOP, true);
-            scvs.clear();
-        }
+        scvs.forEach(scv -> UnitUtils.returnAndStopScv(scv));
+        scvs.clear();
     }
 
     private UnitInPool getCC() {

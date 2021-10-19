@@ -253,7 +253,7 @@ public class BunkerContain {
     public static void removeRepairScv(UnitInPool scv) {
         repairScvList.remove(scv);
         if (UnitUtils.getOrder(scv.unit()) != null) {
-            ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
+            UnitUtils.returnAndStopScv(scv);
         }
         Ignored.remove(scv.getTag());
     }
@@ -592,7 +592,7 @@ public class BunkerContain {
             UnitInPool oldScv = repairScvList.get(i);
             if (!oldScv.isAlive() || oldScv.unit().getHealth().orElse(45f) < 10) {
                 if (oldScv.isAlive()) {
-                    ActionHelper.unitCommand(oldScv.unit(), Abilities.STOP, false);
+                    UnitUtils.returnAndStopScv(oldScv);
                 }
                 UnitInPool newScv = WorkerManager.getScv(LocationConstants.proxyBunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
                 Base.releaseScv(newScv.unit());
@@ -697,8 +697,10 @@ public class BunkerContain {
 
         //send scvs home
         if (!repairScvList.isEmpty()) { //TODO: does this work?  Is this required
-            ActionHelper.unitCommand(UnitUtils.toUnitList(repairScvList), Abilities.STOP, false);
-            repairScvList.forEach(scv -> Ignored.remove(scv.getTag()));
+            repairScvList.forEach(scv -> {
+                UnitUtils.returnAndStopScv(scv);
+                Ignored.remove(scv.getTag());
+            });
         }
 
         //end proxy rush
