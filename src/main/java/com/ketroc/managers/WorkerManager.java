@@ -318,14 +318,18 @@ public class WorkerManager {
                     .orElse(null);
         }
 
+
+        // - turned off to prevent issues with scvs entering gas or gas-in-hand scvs from producing
+        // - oversaturated gas scvs will still get freed up if needed for mining elsewhere
+        // - FIXME: should we also turn off distance-mining scvs and min-oversaturated scvs for the same reason?
         //find closest gas-oversaturated scv
-        if (scv == null) {
-            scv = GameCache.baseList.stream()
-                    .filter(base -> base.hasOverSaturatedGas(scvFilter))
-                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
-                    .flatMap(base -> base.getScvFromOversaturatedGas(scvFilter))
-                    .orElse(null);
-        }
+//        if (scv == null) {
+//            scv = GameCache.baseList.stream()
+//                    .filter(base -> base.hasOverSaturatedGas(scvFilter))
+//                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+//                    .flatMap(base -> base.getScvFromOversaturatedGas(scvFilter))
+//                    .orElse(null);
+//        }
 
         //find closest mineral-mining scv
         if (scv == null) {

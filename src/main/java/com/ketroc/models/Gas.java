@@ -149,7 +149,7 @@ public class Gas {
     }
 
     public boolean isScvEnteringGas(UnitInPool scv) {
-        return UnitUtils.getDistance(scv.unit(), nodePos) < 3 && !UnitUtils.isCarryingResources(scv.unit());
+        return UnitUtils.getDistance(scv.unit(), nodePos) < 2.9 && !UnitUtils.isCarryingResources(scv.unit());
     }
 
     public void harvestMicro(Unit scv) {

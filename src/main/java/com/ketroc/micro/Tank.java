@@ -144,8 +144,8 @@ public class Tank extends BasicUnitMicro {
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
             if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
-                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
-                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
+//                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
+//                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
                 unsiege();
                 return true;
             }
@@ -164,8 +164,8 @@ public class Tank extends BasicUnitMicro {
                 UnitUtils.getDistance(unit.unit(), targetPos) > TARGET_POS_RADIUS + 2 &&
                 getEnemyTargetsInRange(15).isEmpty()) {
             if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
-                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
-                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
+//                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
+//                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
                 unsiege();
                 return true;
             }
