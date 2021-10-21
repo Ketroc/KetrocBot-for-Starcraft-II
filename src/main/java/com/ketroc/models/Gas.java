@@ -17,6 +17,7 @@ import io.vertx.codegen.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class Gas {
     private Unit node;
@@ -130,8 +131,14 @@ public class Gas {
 
     @Nullable
     public UnitInPool getAndReleaseScv() {
+        return getAndReleaseScv(scv -> true);
+    }
+
+    @Nullable
+    public UnitInPool getAndReleaseScv(Predicate<UnitInPool> scvFilter) {
         UnitInPool gasScv = scvs.stream()
-                .filter(scv -> Time.nowFrames() == scv.getLastSeenGameLoop()) //not in the refinery
+                .filter(scvFilter)
+                .filter(scv -> !isScvEnteringGas(scv))
                 .max(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), nodePos) +
                         (!UnitUtils.isCarryingResources(scv.unit()) ? 1000 : 0)))
                 .orElse(null);
@@ -139,6 +146,10 @@ public class Gas {
             scvs.remove(gasScv);
         }
         return gasScv;
+    }
+
+    public boolean isScvEnteringGas(UnitInPool scv) {
+        return UnitUtils.getDistance(scv.unit(), nodePos) < 3 && !UnitUtils.isCarryingResources(scv.unit());
     }
 
     public void harvestMicro(Unit scv) {

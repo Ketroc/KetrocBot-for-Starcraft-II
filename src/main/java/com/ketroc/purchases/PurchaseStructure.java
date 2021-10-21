@@ -223,7 +223,8 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return PurchaseResult.WAITING;
         }
 
-        if (scv == null) { //select an scv if none was provided
+        //select an scv if none was provided
+        if (scv == null) {
             if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && LocationConstants.baseLocations.get(0).distance(position) > 50) {
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);
             }

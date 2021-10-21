@@ -757,13 +757,17 @@ public class Base {
     }
 
     public Optional<UnitInPool> getScvFromOversaturatedGas(Predicate<UnitInPool> scvFilter) {
-        return getGases().stream()
-                .filter(gas -> gas.getScvs().size() > WorkerManager.numScvsPerGas)
+        Optional<UnitInPool> scv = getGases().stream()
+                .filter(gas -> gas.getScvs().size() >
+                        (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas))
                 .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
-                .stream()
-                .flatMap(gas -> gas.getScvs().stream())
-                .filter(scvFilter)
-                .min(Comparator.comparing(scv -> UnitUtils.isCarryingResources(scv.unit()) ? 10 : 0));
+                .map(gas -> gas.getAndReleaseScv(scvFilter));
+        if (scv.isPresent()) {
+            DebugHelper.boxUnit(scv.get().unit());
+            Bot.DEBUG.sendDebug();
+            int sldkfj = 213984;
+        }
+        return scv;
     }
 
     public boolean hasOverSaturatedGas() {
@@ -857,7 +861,7 @@ public class Base {
     }
 
     public Point2d inFrontPos() {
-        return Position.towards(ccPos, getResourceMidPoint(), -5f);
+        return Position.towards(ccPos, getResourceMidPoint(), -5.5f);
     }
 
     private void addTurretPosForEach1GasSide() {

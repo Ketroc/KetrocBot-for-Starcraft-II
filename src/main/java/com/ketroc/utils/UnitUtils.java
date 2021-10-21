@@ -1279,7 +1279,7 @@ public class UnitUtils {
 
     public static Set<Unit> getRepairBayTargets(Point2d repairBayPos) {
         return Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.REPAIR_BAY_TYPES.contains(u.unit().getType()) &&
-                        UnitUtils.getDistance(u.unit(), repairBayPos) <= 3 &&
+                        UnitUtils.getDistance(u.unit(), repairBayPos) <= 4 &&
                         UnitUtils.getHealthPercentage(u.unit()) < 100)
                 .stream()
                 .map(UnitInPool::unit)

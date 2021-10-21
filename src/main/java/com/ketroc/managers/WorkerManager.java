@@ -15,7 +15,10 @@ import com.ketroc.geometry.Position;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.TankToPosition;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.models.*;
+import com.ketroc.models.Base;
+import com.ketroc.models.Gas;
+import com.ketroc.models.MineralPatch;
+import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.BunkerContain;
@@ -430,11 +433,6 @@ public class WorkerManager {
                 }
             }
         }
-
-// I don't think this is needed cuz we still want to release oversaturated gas scvs to fill new gases
-//        if (numMineralScvsNeeded <= 0) {
-//            return;
-//        }
 
         //take from oversaturated minerals to cover required mineral and gas scvs
         List<MineralPatch> oversaturatedMineralPatches = Base.getOversaturatedMineralPatches();
