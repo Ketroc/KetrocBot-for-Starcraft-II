@@ -63,6 +63,10 @@ public class BunkerContain {
         if (proxyBunkerLevel == 0) {
             return;
         }
+        UnitInPool initialScv = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV).stream()
+                .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.myRampPos)))
+                .orElse(null);
+        addRepairScv(initialScv);
         barracksPos = LocationConstants.proxyBarracksPos;
         bunkerPos = LocationConstants.proxyBunkerPos;
         enemyPos = getEnemyPos();
