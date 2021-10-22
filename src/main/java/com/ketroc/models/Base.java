@@ -760,7 +760,7 @@ public class Base {
         Optional<UnitInPool> scv = getGases().stream()
                 .filter(gas -> gas.getRefinery() != null &&
                         gas.getScvs().size() >
-                        (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3: WorkerManager.numScvsPerGas))
+                        (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas))
                 .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
                 .map(gas -> gas.getAndReleaseScv(scvFilter));
         if (scv.isPresent()) {

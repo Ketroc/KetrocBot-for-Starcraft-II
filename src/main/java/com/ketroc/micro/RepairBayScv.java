@@ -22,16 +22,20 @@ public class RepairBayScv extends BasicUnitMicro {
         Abilities order = UnitUtils.getOrder(unit.unit());
         if (order == Abilities.MOVE || order == Abilities.HARVEST_GATHER || order == Abilities.HARVEST_RETURN) {
             if (ArmyManager.getNumRepairBayUnits() == 0) {
-                Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
-                removeMe = true;
+                endScvRepair();
             }
             else {
                 ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, targetPos, false);
             }
         }
         else if (order != Abilities.ATTACK && order != Abilities.EFFECT_REPAIR) {
-            removeMe = true;
-            Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
+            endScvRepair();
         }
+    }
+
+    public void endScvRepair() {
+        Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
+        UnitUtils.returnAndStopScv(unit);
+        removeMe = true;
     }
 }

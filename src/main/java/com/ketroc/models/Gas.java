@@ -172,7 +172,7 @@ public class Gas {
             //start speed MOVE
             if (distToCC < 1.75f && distToCC > 1f) {
                 UnitInPool cc = getCC();
-                if (cc != null) {
+                if (cc != null && cc.unit().getBuildProgress() > 0.99f) {
                     ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }

@@ -96,11 +96,10 @@ public class BunkerContain {
 
         // ========= SCVS ===========
         if (Time.at(160)) {
-            PurchaseStructure depotPurchase = (PurchaseStructure) KetrocBot.purchaseQueue.get(0);
-            Unit scv = WorkerManager.getScv(depotPurchase.getPosition()).unit();
-            ActionHelper.giveScvCommand(scv, Abilities.MOVE, depotPurchase.getPosition(), false);
-            UnitUtils.patrolInPlace(scv, depotPurchase.getPosition());
-            depotPurchase.setScv(scv);
+            Unit scv = WorkerManager.getScv(LocationConstants.extraDepots.get(0)).unit();
+            ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
+            UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
+            ((PurchaseStructure) KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
         if (Time.nowFrames() == Time.toFrames("0:44")) {
             addNewRepairScv();

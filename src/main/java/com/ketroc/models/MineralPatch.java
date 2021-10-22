@@ -173,13 +173,13 @@ public class MineralPatch {
     }
 
     public void returnMicro(Unit scv) {
-        float distToCC = UnitUtils.getDistance(scv, byCCPos);
+        float distToByCCPos = UnitUtils.getDistance(scv, byCCPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             //start speed MOVE
-            if (distToCC < 2f && distToCC > 1f) {
+            if (distToByCCPos < 2f && distToByCCPos > 1f) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                 UnitInPool cc = getCC();
-                if (cc != null) {
+                if (cc != null && cc.unit().getBuildProgress() > 0.99f) {
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }
                 else {
