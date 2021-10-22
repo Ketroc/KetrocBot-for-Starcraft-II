@@ -97,10 +97,11 @@ public class Opponent {
                 .getGamePlan();
     }
 
+    //randomly select a game plan that requires more test games
     public GamePlan getGamePlanNeedingMoreTests(int minTestGames) {
         return strategyWinRates.stream()
                 .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
-                .min(Comparator.comparing(WinLossRecord::numGames))
+                .min(Comparator.comparing(winLossRecord -> Math.random()))
                 .map(WinLossRecord::getGamePlan)
                 .orElse(GamePlan.NONE);
     }
