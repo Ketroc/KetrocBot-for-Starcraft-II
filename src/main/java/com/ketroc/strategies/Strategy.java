@@ -268,7 +268,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.ONE_BASE_TANK_VIKING;
+            gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
         }
 
         switch (gamePlan) {
@@ -346,11 +346,12 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.ONE_BASE_TANK_VIKING
 //                ));
-//            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
-//                return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE_TANK,
-//                        GamePlan.RAVEN
-//                ));
+            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+                return new HashSet<>(Set.of(
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.TANK_VIKING,
+                        GamePlan.BANSHEE
+                ));
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
@@ -475,7 +476,7 @@ public class Strategy {
 
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+            gamePlan = GamePlan.BANSHEE;
         }
 
         switch (gamePlan) {
@@ -511,7 +512,7 @@ public class Strategy {
         Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
         if (!Launcher.isRealTime) {
-            //gamePlan = getStrategyForLadder(availableTvZGamePlans);
+            gamePlan = getStrategyForLadder(availableTvZGamePlans);
         }
         else {
             //select random game plan
@@ -526,7 +527,7 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE;
+            gamePlan = GamePlan.BUNKER_CONTAIN_WEAK;
         }
 
         switch (gamePlan) {

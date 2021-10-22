@@ -244,4 +244,8 @@ public class Gas {
         DebugHelper.drawBox(byCCPos, Color.WHITE, 0.1f);
         new GeyserShape(nodePos).draw(Color.RED);
     }
+
+    public boolean isReadyForMining() {
+        return !isDriedUp() && getRefinery() != null && getRefinery().getBuildProgress() > 0.99f;
+    }
 }

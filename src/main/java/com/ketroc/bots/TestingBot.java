@@ -134,6 +134,18 @@ public class TestingBot extends Bot {
 //            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
 //            int wer = 392847;
 //        }
+        List<UnitInPool> ccList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
+                u.unit().getBuildProgress() > 0.95f && u.unit().getBuildProgress() < 0.99f);
+        if (!ccList.isEmpty()) {
+            Unit cc = ccList.get(0).unit();
+            List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV &&
+                    UnitUtils.getDistance(u.unit(), cc) < 4 &&
+                    UnitUtils.isCarryingResources(u.unit()));
+            if (!scvList.isEmpty()) {
+                UnitInPool scv = scvList.get(0);
+                int qoeriu = 21384;
+            }
+        }
 
         ACTION.sendActions();
         DEBUG.sendDebug();

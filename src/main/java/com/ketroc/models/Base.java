@@ -43,7 +43,7 @@ public class Base {
     private static float libDistanceFromCC = -1;
     private boolean continueUnsieging;
     private boolean onMyBaseDeath;
-    private boolean onNewBaseTaken;
+    private boolean onBaseAcquired;
     public long prevMuleSpamFrame;
     public int scvsAddedThisFrame;
     public long lastMorphFrame;
@@ -97,7 +97,7 @@ public class Base {
         //on cc added
         else if (this.cc == null && cc != null) {
             continueUnsieging = false; //leave sieged units here
-            onNewBaseTaken = true;
+            onBaseAcquired = true;
         }
         this.cc = cc;
     }
@@ -270,10 +270,11 @@ public class Base {
         if (onMyBaseDeath) {
             onMyBaseDeath();
             onMyBaseDeath = false;
+
         }
-        if (onNewBaseTaken && isReadyForMining()) {
-            onNewBaseTaken();
-            onNewBaseTaken = false;
+        if (onBaseAcquired && isReadyForMining()) {
+            onBaseAcquired();
+            onBaseAcquired = false;
         }
         if (continueUnsieging) {
             if (!InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, ccPos)) {
@@ -593,15 +594,14 @@ public class Base {
         freeUpTanks();
     }
 
-    public void onNewBaseTaken() {
-//        //make distance mining scvs available
-//        GameCache.baseList.stream()
-//                .filter(base -> !base.isMyBase())
-//                .flatMap(base -> base.mineralPatches.stream())
-//                .forEach(mineralPatch -> {
-//                    mineralPatch.getScvs().forEach(scv -> ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false));
-//                    mineralPatch.getScvs().clear();
-//                });
+    public void onBaseAcquired() {
+        //free up all the extra distance miners who were on this base
+        mineralPatches.forEach(mineral -> {
+            for (int i=2; i<mineral.getScvs().size(); i++) {
+                UnitUtils.returnAndStopScv(mineral.getScvs().get(i));
+                mineral.getScvs().remove(i--);
+            }
+        });
 
         //set rally
         Unit rallyNode = getFullestMineralPatch();
@@ -1008,12 +1008,13 @@ public class Base {
 
     public static boolean distanceMineScv(UnitInPool scv) {
         Base nextBase = GameCache.baseList.stream()
-                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase && !base.isDriedUp)
+                .filter(base -> !base.isReadyForMining() && !base.isEnemyBase && !base.isDriedUp &&
+                        base.getNumMineralScvs() < base.mineralPatches.size() * 5)
                 .findFirst()
                 .orElse(null);
         if (nextBase != null) {
             MineralPatch nextBaseMineral = nextBase.getMineralPatches().stream()
-                    .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
+                    .filter(mineralPatch -> mineralPatch.getScvs().size() < 5)
                     .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
                     //TODO: snapshots get ignored so replace above??
                     .orElse(null);
@@ -1169,6 +1170,7 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
+                .filter(Gas::isReadyForMining)
                 .mapToInt(gas -> Math.max(0, WorkerManager.numScvsPerGas - gas.getScvs().size()))
                 .sum();
     }

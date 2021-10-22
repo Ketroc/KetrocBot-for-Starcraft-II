@@ -145,24 +145,21 @@ public class KetrocBot extends Bot {
 //                Point2d pylonPos = Position.towards(LocationConstants.baseLocations.get(1), LocationConstants.baseLocations.get(0), -5);
 //                pylonPos = Position.towards(pylonPos, LocationConstants.baseLocations.get(3), -5);
 //                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, LocationConstants.BUNKER_NATURAL, myId, 1);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, LocationConstants.BUNKER_NATURAL, myId, 3);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), myId, 1);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PHOTON_CANNON, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2), myId, 3);
-                GameCache.baseList.forEach(base -> {
-                    DebugHelper.drawBox(base.getCcPos(), Color.WHITE, 2.5f);
-                    DebugHelper.drawBox(base.getResourceMidPoint(), Color.WHITE, 0.3f);
-                    base.getMineralPatches().forEach(patch -> {
-                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
-                    });
-                    base.getGases().forEach(patch -> {
-                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
-                    });
-                    base.getTurrets().forEach(turret -> {
-                        DebugHelper.drawBox(turret.getPos(), Color.GREEN, 1f);
-                    });
-                });
-                Bot.DEBUG.sendDebug();
-                int weior = 398;
+//                GameCache.baseList.forEach(base -> {
+//                    DebugHelper.drawBox(base.getCcPos(), Color.WHITE, 2.5f);
+//                    DebugHelper.drawBox(base.getResourceMidPoint(), Color.WHITE, 0.3f);
+//                    base.getMineralPatches().forEach(patch -> {
+//                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
+//                    });
+//                    base.getGases().forEach(patch -> {
+//                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
+//                    });
+//                    base.getTurrets().forEach(turret -> {
+//                        DebugHelper.drawBox(turret.getPos(), Color.GREEN, 1f);
+//                    });
+//                });
+//                Bot.DEBUG.sendDebug();
+//                int weior = 398;
             }
 
             DebugHelper.onStep(); //reset debug status for printing info
