@@ -877,13 +877,14 @@ public class ArmyManager {
         }
 
         Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
-        boolean enemyInBunkerRange = bunkerAtNatural.stream().anyMatch(bunker -> !UnitUtils.getEnemyTargetsInRange(bunker.unit()).isEmpty());
+        boolean enemyInBunkerRange = bunkerAtNatural.isPresent() && //bunker exists
+                !UnitUtils.getEnemyTargetsInRange(bunkerAtNatural.get().unit()).isEmpty(); //enemies in range of bunker
         Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && bunkerAtNatural.isEmpty()) ?
                 getEnemyInMain() :
                 getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
 
         //if main/nat under attack and all enemies passed the bunker, then empty bunker and engage with marines
-        if (enemyInMyBase != null && enemyInBunkerRange) {
+        if (enemyInMyBase != null && !enemyInBunkerRange) {
             bunkerAtNatural
                     .filter(bunker -> UnitUtils.getDistance(bunker.unit(), enemyInMyBase) > 8)
                     .ifPresent(bunker -> {

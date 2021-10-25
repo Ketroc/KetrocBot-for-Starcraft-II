@@ -25,13 +25,13 @@ public class KetrocLauncher {
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
                         S2Coordinator.createComputer(Race.PROTOSS, Difficulty.HARD))
-//                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()))
+//                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()))
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
 
