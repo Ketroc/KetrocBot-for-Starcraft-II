@@ -101,7 +101,11 @@ public class DebugHelper {
 
     public static void drawBox(float x, float y, Color color, float radius) {
         if (Bot.isDebugOn) {
-            Bot.DEBUG.debugBoxOut(Point.of(x-radius,y-radius, z), Point.of(x+radius,y+radius, z), color);
+            Bot.DEBUG.debugBoxOut(
+                    Point.of(x-radius,y-radius, Bot.OBS.terrainHeight(Point2d.of(x-radius,y-radius)) + 0.2f),
+                    Point.of(x+radius,y+radius, Bot.OBS.terrainHeight(Point2d.of(x+radius,y+radius)) + 0.2f),
+                    color
+            );
         }
     }
 
@@ -133,7 +137,8 @@ public class DebugHelper {
         if (!Bot.isDebugOn) {
             return;
         }
-        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, textSize);
+        //Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, textSize);
+        Bot.DEBUG.debugTextOut(text, Point.of(x, y, Bot.OBS.terrainHeight(Point2d.of(x, y)) + 0.3f), color, textSize);
     }
 
     public static void boxUnit(Unit unit) {

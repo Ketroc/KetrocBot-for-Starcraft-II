@@ -230,7 +230,7 @@ public class StructureScv {
                     //don't add another scv if the structure is under enemy threat (exception for wall/bunkers/turrets)
                     if (structureScv.structureType != Units.TERRAN_BUNKER &&
                             structureScv.structureType != Units.TERRAN_MISSILE_TURRET &&
-                            !UnitUtils.isWallStructurePos(structureScv.structurePos) &&
+                            !UnitUtils.isWallingStructure(structureScv.structurePos) &&
                             InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
                         continue;
                     }

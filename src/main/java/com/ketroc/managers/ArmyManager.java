@@ -876,12 +876,14 @@ public class ArmyManager {
             return;
         }
 
-        //if main/nat under attack, empty natural bunker and target enemy
         Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
+        boolean enemyInBunkerRange = bunkerAtNatural.stream().anyMatch(bunker -> !UnitUtils.getEnemyTargetsInRange(bunker.unit()).isEmpty());
         Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && bunkerAtNatural.isEmpty()) ?
                 getEnemyInMain() :
                 getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
-        if (enemyInMyBase != null) {
+
+        //if main/nat under attack and all enemies passed the bunker, then empty bunker and engage with marines
+        if (enemyInMyBase != null && enemyInBunkerRange) {
             bunkerAtNatural
                     .filter(bunker -> UnitUtils.getDistance(bunker.unit(), enemyInMyBase) > 8)
                     .ifPresent(bunker -> {
@@ -893,10 +895,10 @@ public class ArmyManager {
             return;
         }
 
-        //if bunker in production, head out front of bunker (protects bunker scv, and gives chance to snipe overlord)
+        //if bunker in production, wait behind bunker
         if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
-            Point2d inFrontOfBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.enemyMineralPos, 1.8f);
-            MarineBasic.setTargetPos(inFrontOfBunkerPos);
+            Point2d behindBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.baseLocations.get(1), 1.9f);
+            MarineBasic.setTargetPos(behindBunkerPos);
             return;
         }
 
@@ -1036,7 +1038,7 @@ public class ArmyManager {
             boolean isDepotLowered = depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED;
 
             //WALL DEPOTS
-            if (UnitUtils.isWallStructure(depot)) {
+            if (UnitUtils.isRampWallStructure(depot)) {
                 //Raise
                 if (isDepotLowered) {
                     if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {
@@ -1062,7 +1064,11 @@ public class ArmyManager {
                 }
                 //Lower
                 else if (!isDepotLowered && !isReaperNearby) {
-                    ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
+                    boolean isMyScvNearby = !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV &&
+                            UnitUtils.getDistance(u.unit(), depot) < 3).isEmpty();
+                    if (isMyScvNearby) {
+                        ActionHelper.unitCommand(depot, Abilities.MORPH_SUPPLY_DEPOT_LOWER, false);
+                    }
                 }
             }
 

@@ -30,10 +30,7 @@ import com.ketroc.strategies.defenses.*;
 import com.ketroc.utils.Error;
 import com.ketroc.utils.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -320,53 +317,6 @@ public class KetrocBot extends Bot {
         DEBUG.sendDebug();
     }
 
-    public static void printCurrentGameInfo() {
-        Print.print("\n\nGame info");
-        Print.print("===================\n");
-        Print.print("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
-        Print.print("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
-        Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
-        Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
-        Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_DEFENSIVE_LIBS);
-        Print.print("Strategy.DO_DEFENSIVE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
-        Print.print("Strategy.DO_OFFENSIVE_TANKS = " + Strategy.DO_OFFENSIVE_TANKS);
-        Print.print("Strategy.maxScvs = " + Strategy.maxScvs);
-        Print.print("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
-        Print.print("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
-        Print.print("Switches.isDivingTempests = " + Switches.isDivingTempests);
-        Print.print("Switches.includeTanks = " + Switches.includeTanks);
-        Print.print("Switches.vikingDiveTarget == null? = " + Boolean.valueOf(Switches.vikingDiveTarget == null).toString());
-        Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
-        Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
-        Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
-        Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
-        Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
-        Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
-        Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());
-        Print.print("UpgradeManager.armoryAttackUpgrades.toString() = " + UpgradeManager.airAttackUpgrades.toString());
-        Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
-        Print.print("\n\n");
-        for (int i=0; i<GameCache.baseList.size(); i++) {
-            Base base = GameCache.baseList.get(i);
-            Print.print("\nBase " + i);
-            if (base.isMyBase()) {
-                Print.print("isMyBase");
-            }
-            if (base.isEnemyBase) {
-                Print.print("isEnemyBase");
-            }
-            if (base.isUntakenBase()) {
-                Print.print("isUntakenBase()");
-            }
-            Print.print("base.isDryedUp() = " + base.isDriedUp());
-            Print.print("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
-            Print.print("base.lastScoutedFrame = " + base.lastScoutedFrame);
-            Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + OBS.getVisibility(base.getCcPos()).toString());
-        }
-        Print.print("\n\n");
-    }
-
-
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {
             Unit unit = unitInPool.unit();
@@ -589,13 +539,23 @@ public class KetrocBot extends Bot {
                                 }
                                 break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
-                                LocationConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                if (UnitUtils.isWallingStructure(unit)) {
+                                    LocationConstants.extraDepots.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                }
+                                else {
+                                    LocationConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                }
                                 if (UnitUtils.getDistance(unit, LocationConstants.WALL_2x2) < 1) {
                                     Chat.tag("main_base_breached");
                                 }
                                 break;
-                            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
-                                LocationConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY: case TERRAN_ARMORY:
+                                if (UnitUtils.isWallingStructure(unit)) {
+                                    LocationConstants._3x3Structures.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                }
+                                else {
+                                    LocationConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                                }
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
                                 break;
                             case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
@@ -736,23 +696,69 @@ public class KetrocBot extends Bot {
 
         JsonUtil.setGameResult(Strategy.gamePlan, result == Result.VICTORY);
 
-        Path path = Paths.get("./data/prevResult.txt");
-        char charResult = (result == Result.VICTORY) ? 'W' : 'L';
-        try {
-            String newFileText = opponentId + "~" + Strategy.gamePlan + "~" + charResult;
-            String prevFileText = Files.readString(Paths.get("./data/prevResult.txt"));
-            if (prevFileText.contains(opponentId)) {
-                newFileText = prevFileText + "\r\n" + newFileText;
-            }
-            Files.write(path, newFileText.getBytes());
-            Print.print("New File Text = " + newFileText);
-        }
-        catch (IOException e) {
-            Error.onException(e);
-        }
+        //old text file save
+//        Path path = Paths.get("./data/prevResult.txt");
+//        char charResult = (result == Result.VICTORY) ? 'W' : 'L';
+//        try {
+//            String newFileText = opponentId + "~" + Strategy.gamePlan + "~" + charResult;
+//            String prevFileText = Files.readString(Paths.get("./data/prevResult.txt"));
+//            if (prevFileText.contains(opponentId)) {
+//                newFileText = prevFileText + "\r\n" + newFileText;
+//            }
+//            Files.write(path, newFileText.getBytes());
+//            Print.print("New File Text = " + newFileText);
+//        }
+//        catch (IOException e) {
+//            Error.onException(e);
+//        }
         Print.print("==========================");
         Print.print("  Result: " + result.toString());
         Print.print("==========================");
     }
 
+    public static void printCurrentGameInfo() {
+        Print.print("\n\nGame info");
+        Print.print("===================\n");
+        Print.print("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
+        Print.print("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
+        Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
+        Print.print("GameState.bansheeList.size() = " + GameCache.bansheeList.size());
+        Print.print("Strategy.DO_INCLUDE_LIBS = " + Strategy.DO_DEFENSIVE_LIBS);
+        Print.print("Strategy.DO_DEFENSIVE_TANKS = " + Strategy.DO_DEFENSIVE_TANKS);
+        Print.print("Strategy.DO_OFFENSIVE_TANKS = " + Strategy.DO_OFFENSIVE_TANKS);
+        Print.print("Strategy.maxScvs = " + Strategy.maxScvs);
+        Print.print("Switches.enemyCanProduceAir = " + Switches.enemyCanProduceAir);
+        Print.print("Switches.phoenixAreReal = " + Switches.phoenixAreReal);
+        Print.print("Switches.isDivingTempests = " + Switches.isDivingTempests);
+        Print.print("Switches.includeTanks = " + Switches.includeTanks);
+        Print.print("Switches.vikingDiveTarget == null? = " + Boolean.valueOf(Switches.vikingDiveTarget == null).toString());
+        Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
+        Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
+        Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
+        Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
+        Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
+        Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
+        Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());
+        Print.print("UpgradeManager.armoryAttackUpgrades.toString() = " + UpgradeManager.airAttackUpgrades.toString());
+        Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
+        Print.print("\n\n");
+        for (int i=0; i<GameCache.baseList.size(); i++) {
+            Base base = GameCache.baseList.get(i);
+            Print.print("\nBase " + i);
+            if (base.isMyBase()) {
+                Print.print("isMyBase");
+            }
+            if (base.isEnemyBase) {
+                Print.print("isEnemyBase");
+            }
+            if (base.isUntakenBase()) {
+                Print.print("isUntakenBase()");
+            }
+            Print.print("base.isDryedUp() = " + base.isDriedUp());
+            Print.print("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
+            Print.print("base.lastScoutedFrame = " + base.lastScoutedFrame);
+            Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + OBS.getVisibility(base.getCcPos()).toString());
+        }
+        Print.print("\n\n");
+    }
 }

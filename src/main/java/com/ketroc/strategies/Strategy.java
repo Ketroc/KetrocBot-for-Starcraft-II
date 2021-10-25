@@ -1088,11 +1088,11 @@ public class Strategy {
 
         //don't lose to worker rush twice
         GameResult prevGameResult = opponentRecords.getPrevGameResult();
-//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
-//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-//            Strategy.WALL_OFF_IMMEDIATELY = true;
-//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
-//        }
+        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
+            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+            Strategy.WALL_OFF_IMMEDIATELY = true;
+            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+        }
         return gamePlan;
     }
 

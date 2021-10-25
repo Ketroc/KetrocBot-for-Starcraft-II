@@ -2,6 +2,7 @@ package com.ketroc.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
@@ -853,14 +854,7 @@ public class UnitUtils {
     }
 
     public static boolean isInMyMain(Point2d unitPos) {
-        Point2d mainPos = GameCache.baseList.get(0).getCcPos();
-
-        float unitHeight = Bot.OBS.terrainHeight(unitPos);
-        float mainHeight = Bot.OBS.terrainHeight(mainPos);
-
-        boolean isInMain = unitPos.distance(mainPos) < 30 && Math.abs(unitHeight - mainHeight) < 1.2;
-
-        return isInMain;
+        return InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, unitPos);
     }
 
     public static boolean isInMyMainOrNat(Point2d unitPos) {
@@ -1014,18 +1008,36 @@ public class UnitUtils {
     }
 
     public static boolean isWallComplete() {
-        return Bot.OBS.getUnits(Alliance.SELF, u -> isStructure(u.unit().getType()) && isWallStructure(u.unit())).size() >= 3;
+        return Bot.OBS.getUnits(Alliance.SELF, u -> isStructure(u.unit().getType()) && isRampWallStructure(u.unit())).size() >= 3;
     }
 
-    public static boolean isWallStructure(Unit structure) {
-        return isWallStructurePos(structure.getPosition().toPoint2d());
+    public static boolean isReaperWallStructure(Unit structure) {
+        return isReaperWallStructure(structure.getPosition().toPoint2d());
     }
 
-    public static boolean isWallStructurePos(Point2d structurePos) {
+    public static boolean isReaperWallStructure(Point2d structurePos) {
+        return LocationConstants.reaperBlockDepots.stream().anyMatch(p -> p.distance(structurePos) < 1) ||
+                LocationConstants.reaperBlock3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
+    }
+
+    public static boolean isRampWallStructure(Unit structure) {
+        return isRampWallStructure(structure.getPosition().toPoint2d());
+    }
+
+    public static boolean isRampWallStructure(Point2d structurePos) {
         return structurePos.distance(LocationConstants.WALL_2x2) < 1 ||
                 structurePos.distance(LocationConstants.WALL_3x3) < 1 ||
                 structurePos.distance(LocationConstants.MID_WALL_2x2) < 1 ||
                 structurePos.distance(LocationConstants.MID_WALL_3x3) < 1;
+    }
+
+    public static boolean isWallingStructure(Unit structure) {
+        return isWallingStructure(structure.getPosition().toPoint2d());
+    }
+
+    public static boolean isWallingStructure(Point2d structurePos) {
+        return isRampWallStructure(structurePos) ||
+                (LocationConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos));
     }
 
     public static boolean myUnitWithinOneShotThreat(Unit myUnit) {
@@ -1155,11 +1167,6 @@ public class UnitUtils {
 
     public static boolean isOutOfGas() {
         return Cost.isGasBroke(25) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
-    }
-
-    public static boolean isReaperWallStructure(Unit structure) {
-        return LocationConstants.reaperBlock3x3s.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1) ||
-                LocationConstants.reaperBlockDepots.stream().anyMatch(p -> UnitUtils.getDistance(structure, p) < 1);
     }
 
     //TODO: correctly identify this, rather than using time

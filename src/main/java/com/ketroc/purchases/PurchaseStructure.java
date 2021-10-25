@@ -340,7 +340,12 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     private void makePositionAvailableAgain(Point2d pos) {
         switch (structureType) {
             case TERRAN_SUPPLY_DEPOT:
-                LocationConstants.extraDepots.add(pos);
+                if (UnitUtils.isWallingStructure(pos)) {
+                    LocationConstants.extraDepots.add(0, pos);
+                }
+                else {
+                    LocationConstants.extraDepots.add(pos);
+                }
                 break;
             case TERRAN_FACTORY:
                 LocationConstants.FACTORIES.add(pos);
@@ -356,7 +361,12 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 LocationConstants.MACRO_OCS.add(pos);
                 break;
             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
-                LocationConstants._3x3Structures.add(pos);
+                if (UnitUtils.isWallingStructure(pos)) {
+                    LocationConstants._3x3Structures.add(0, pos);
+                }
+                else {
+                    LocationConstants._3x3Structures.add(pos);
+                }
                 break;
         }
     }
