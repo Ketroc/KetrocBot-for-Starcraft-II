@@ -92,8 +92,7 @@ public class KetrocBot extends Bot {
             Strategy.printStrategySettings();
 
             //initialize starting scvs
-            OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV)
-                    .forEach(scv -> Base.assignScvToAMineralPatch(scv));
+            WorkerManager.sendScvsToMine(OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV));
 
             DEBUG.sendDebug();
             ACTION.sendActions();
@@ -494,7 +493,7 @@ public class KetrocBot extends Bot {
                         UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
                         UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
                     if (!Switches.fastDepotBarracksOpener || Bot.OBS.getFoodWorkers() != 13 || Time.nowSeconds() > 15) { //don't add first created scv if needed for depot
-                        Base.assignScvToAMineralPatch(unitInPool);
+                        WorkerManager.sendScvsToMine(unitInPool);
                     }
                 }
                 break;

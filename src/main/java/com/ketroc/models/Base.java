@@ -972,39 +972,39 @@ public class Base {
                 .collect(Collectors.toList());
     }
 
-    public static boolean assignScvToAMineralPatch(UnitInPool scv) {
-        //pair up scvs on mineral patches
-        MineralPatch mineralToMine = GameCache.baseList.stream()
-                .filter(base -> base.isReadyForMining() && base.numScvsFromSoftSaturated() > 0)
-                .min(Comparator.comparing(base -> UnitUtils.getDistance(scv.unit(), base.getCcPos())))
-                .stream()
-                .flatMap(base -> base.getMineralPatches().stream())
-                .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
-                .orElse(null);
-        if (mineralToMine != null) {
-            mineralToMine.getScvs().add(scv);
-            return true;
-        }
-
-        //TODO: add 3rd scv to small patches
-//        MineralPatch smallMineralToMine = GameCache.baseList.stream()
-//                .filter(base -> base.isReadyForMining() && base.numScvsFromHardSaturated() > 0)
+//    public static boolean assignScvToAMineralPatch(UnitInPool scv) {
+//        //pair up scvs on mineral patches
+//        MineralPatch mineralToMine = GameCache.baseList.stream()
+//                .filter(base -> base.isReadyForMining() && base.numScvsFromSoftSaturated() > 0)
 //                .min(Comparator.comparing(base -> UnitUtils.getDistance(scv.unit(), base.getCcPos())))
 //                .stream()
 //                .flatMap(base -> base.getMineralPatches().stream())
-//                .filter(mineral -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(mineral.getNode().getType()) &&
-//                        mineral.getScvs().size() < 3)
+//                .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
 //                .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
 //                .orElse(null);
-//        if (smallMineralToMine != null) {
-//            smallMineralToMine.getScvs().add(scv);
+//        if (mineralToMine != null) {
+//            mineralToMine.getScvs().add(scv);
 //            return true;
 //        }
-
-        //distance mine
-        return distanceMineScv(scv); //TODO: change to 'return false;' when better distance mining method is used
-    }
+//
+//        //TODO: add 3rd scv to small patches
+////        MineralPatch smallMineralToMine = GameCache.baseList.stream()
+////                .filter(base -> base.isReadyForMining() && base.numScvsFromHardSaturated() > 0)
+////                .min(Comparator.comparing(base -> UnitUtils.getDistance(scv.unit(), base.getCcPos())))
+////                .stream()
+////                .flatMap(base -> base.getMineralPatches().stream())
+////                .filter(mineral -> UnitUtils.MINERAL_NODE_TYPE_LARGE.contains(mineral.getNode().getType()) &&
+////                        mineral.getScvs().size() < 3)
+////                .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
+////                .orElse(null);
+////        if (smallMineralToMine != null) {
+////            smallMineralToMine.getScvs().add(scv);
+////            return true;
+////        }
+//
+//        //distance mine
+//        return distanceMineScv(scv); //TODO: change to 'return false;' when better distance mining method is used
+//    }
 
     public static boolean distanceMineScv(UnitInPool scv) {
         Base nextBase = GameCache.baseList.stream()

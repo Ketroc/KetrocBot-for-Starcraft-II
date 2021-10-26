@@ -140,9 +140,11 @@ public class BuildManager {
     }
 
     private static boolean doPrioritizeStarportUnits() {
-        return (LocationConstants.opponentRace == Race.TERRAN &&
+        return !GameCache.starportList.isEmpty() &&
+                ((LocationConstants.opponentRace == Race.TERRAN &&
                         UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true) < numVikingsInTvT()) ||
-                UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) < 1;
+                (GameCache.starportList.stream().anyMatch(u -> u.unit().getAddOnTag().isPresent()) &&
+                        UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) < 1));
     }
 
     private static int numVikingsInTvT() {
@@ -627,9 +629,8 @@ public class BuildManager {
 
             //get add-on if required, or if factory is idle (eg when supply blocked)
             if (unitToProduce == null || (factory.getAddOnTag().isEmpty() && UnitUtils.requiresTechLab(unitToProduce))) {
-                if (UnitUtils.canAfford(Units.TERRAN_FACTORY_TECHLAB)) {
-                    ActionHelper.unitCommand(factory, Abilities.BUILD_TECHLAB_FACTORY, false);
-                    Cost.updateBank(Units.TERRAN_FACTORY_TECHLAB);
+                if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                 }
             }
 

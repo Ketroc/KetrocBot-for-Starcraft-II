@@ -377,6 +377,18 @@ public class WorkerManager {
         // get all idle scvs
         List<UnitInPool> idleScvs = UnitUtils.getIdleScvs();
 
+        sendScvsToMine(idleScvs);
+
+        //free up needed scvs from distance miners, oversatured mineral miners, and oversaturated gas miners
+        freeUpExtraScvs();
+
+    }
+
+    public static void sendScvsToMine(UnitInPool idleScv) {
+        sendScvsToMine(new ArrayList<>(List.of(idleScv)));
+    }
+
+    public static void sendScvsToMine(List<UnitInPool> idleScvs) {
         // saturate minerals
         while (!idleScvs.isEmpty()) {
             MineralPatch closestUnderSaturatedMineral = Base.getClosestUnderSaturatedMineral(idleScvs.get(0).unit().getPosition().toPoint2d());
@@ -409,10 +421,6 @@ public class WorkerManager {
         if (!idleScvs.isEmpty()) {
             idleScvs.forEach(Base::distanceMineScv);
         }
-
-        //free up needed scvs from distance miners, oversatured mineral miners, and oversaturated gas miners
-        freeUpExtraScvs();
-
     }
 
     //make oversaturation scvs available to handle normal saturation everywhere

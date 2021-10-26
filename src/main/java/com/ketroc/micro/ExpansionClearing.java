@@ -206,7 +206,7 @@ public class ExpansionClearing {
         //cancel turret if it didn't place
         else if (!raven.unit.unit().getActive().orElse(true) &&
                 ActionIssued.getCurOrder(raven.unit).isEmpty() &&
-                turretCastFrame + 24 < Time.nowFrames()) {
+                turretCastFrame + 72 < Time.nowFrames()) {
             removeTurret();
             raven.targetPos = expansionPos;
             Chat.chat("EC: turret didn't place");
