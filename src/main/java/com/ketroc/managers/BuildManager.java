@@ -39,6 +39,7 @@ public class BuildManager {
     );
     private static boolean isMuleSpamming;
     public static List<Abilities> openingStarportUnits = new ArrayList<>();
+    public static List<Units> openingFactoryUnits = new ArrayList<>();
 
     public static void onStep() {
 
@@ -616,73 +617,74 @@ public class BuildManager {
     }
 
     private static void buildFactoryUnitsLogic() {
-        if (GameCache.factoryList.isEmpty()) {
-            return;
-        }
         for (UnitInPool factoryUIP : GameCache.factoryList) {
             Unit factory = factoryUIP.unit();
             if (factory.getActive().get() || UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1) {
                 continue;
             }
-            //1 hellion for every 4 zerglings
-            if (isHellionsNeeded()) {
-                if (UnitUtils.canAfford(Units.TERRAN_HELLION)) {
-                    produceHellion(factory);
-                }
-                return;
-            }
-            if (factory.getAddOnTag().isPresent()) {
-                //cyclone strategy (build constantly)
-                if (Strategy.DO_USE_CYCLONES) {
-                    if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
-                        produceCyclone(factory);
-                        return;
-                    }
-                }
 
-                //offensive tank strategy (build constantly)
-                if (Strategy.DO_OFFENSIVE_TANKS) {
-                    if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                        produceTank(factory);
-                        return;
-                    }
-                }
+            Units unitToProduce = decideFactoryUnit();
 
-                //defensive tank strategy (build 2 per base)
-                if (Strategy.DO_DEFENSIVE_TANKS) {
-                    int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
-                    //if tank needed for PF
-                    if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
-                        UnitInPool tankOnOffense = UnitMicroList.unitMicroList.stream()
-                                .filter(u -> u instanceof TankOffense)
-                                .findFirst()
-                                .map(u -> u.unit)
-                                .orElse(null);
-                        //take an offensive tank
-                        if (tankOnOffense != null) {
-                            UnitMicroList.remove(tankOnOffense.getTag());
-                        }
-                        //build a new tank
-                        else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                            produceTank(factory);
-                            return;
-                        }
-                    }
-                }
-
-                //build hellion if too gas starved for other factory units
-                if (GameCache.gasBank < 75 &&
-                        (LocationConstants.opponentRace != Race.TERRAN || Base.numMyBases() >= 3) &&
-                        UnitUtils.canAfford(Units.TERRAN_HELLION) &&
-                        !UnitUtils.isExpansionNeeded()) {
-                    produceHellion(factory);
-                    return;
+            //get add-on if required, or if factory is idle (eg when supply blocked)
+            if (unitToProduce == null || (factory.getAddOnTag().isEmpty() && UnitUtils.requiresTechLab(unitToProduce))) {
+                if (UnitUtils.canAfford(Units.TERRAN_FACTORY_TECHLAB)) {
+                    ActionHelper.unitCommand(factory, Abilities.BUILD_TECHLAB_FACTORY, false);
+                    Cost.updateBank(Units.TERRAN_FACTORY_TECHLAB);
                 }
             }
-            else if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
+
+            //purchase factory unit
+            else if (UnitUtils.canAfford(unitToProduce)) {
+                ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
+                Cost.updateBank(unitToProduce);
+                openingFactoryUnits.remove(unitToProduce);
             }
         }
+    }
+
+    private static Units decideFactoryUnit() {
+        //first build hardcoded starport units
+        if (!openingFactoryUnits.isEmpty()) {
+            return openingFactoryUnits.get(0);
+        }
+
+        //1 hellion for every 4 zerglings
+        if (isHellionsNeeded()) {
+            return Units.TERRAN_HELLION;
+        }
+
+        //cyclone strategy (build constantly)
+        if (Strategy.DO_USE_CYCLONES) {
+            if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
+                return Units.TERRAN_CYCLONE;
+            }
+        }
+
+        //offensive tank strategy (build constantly)
+        if (Strategy.DO_OFFENSIVE_TANKS) {
+            if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                return Units.TERRAN_SIEGE_TANK;
+            }
+        }
+
+        //defensive tank strategy (build 2 per base)
+        if (Strategy.DO_DEFENSIVE_TANKS) {
+            int numTanks = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType())).size();
+            //if tank needed for PF
+            if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+                return Units.TERRAN_SIEGE_TANK;
+            }
+        }
+
+        //build hellion if too gas starved for other factory units
+        if (GameCache.gasBank < 75 &&
+                (LocationConstants.opponentRace != Race.TERRAN || Base.numMyBases() >= 3) &&
+                UnitUtils.canAfford(Units.TERRAN_HELLION) &&
+                !UnitUtils.isExpansionNeeded()) {
+            return Units.TERRAN_HELLION;
+        }
+
+        return null;
     }
 
     private static void produceTank(Unit factory) {
@@ -715,7 +717,7 @@ public class BuildManager {
     private static boolean isHellionsNeeded() {
         return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                 UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                        (LocationConstants.opponentRace == Race.ZERG ? 1 : 0);
+                        (LocationConstants.opponentRace == Race.ZERG ? 3 : 0);
     }
 
     public static void liftFactory(Unit factory) {

@@ -476,7 +476,7 @@ public class Strategy {
 
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {
@@ -484,6 +484,8 @@ public class Strategy {
                 break;
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                NUM_BASES_TO_OC = 2;
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
                 break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
@@ -527,12 +529,16 @@ public class Strategy {
 //        }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BUNKER_CONTAIN_WEAK;
+            gamePlan = GamePlan.BANSHEE_CYCLONE;
         }
 
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_HELLION);
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_HELLION);
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_HELLION);
+                MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;
                 PRIORITIZE_EXPANDING = true;

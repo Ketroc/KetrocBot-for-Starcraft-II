@@ -177,6 +177,9 @@ public class ArmyManager {
 
     //add scvs when tanks move out, or when tanks need repair on defense
     private static void manageTankRepairScvs() {
+        if (!Strategy.DO_OFFENSIVE_TANKS) {
+            return;
+        }
         List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
         if ((doOffense && !tankList.isEmpty()) ||
                 tankList.stream().anyMatch(tankOffense -> tankOffense.unit.isAlive() &&
@@ -670,7 +673,7 @@ public class ArmyManager {
         }
 
         //cover lead siege tank
-        if (leadTank != null) {
+        if (Strategy.DO_OFFENSIVE_TANKS && leadTank != null) {
             attackAirPos = Position.towards(leadTank.unit().getPosition().toPoint2d(),
                     attackGroundPos,
                     leadTank.unit().getType() == Units.TERRAN_SIEGE_TANK ? 8f : 4.5f);

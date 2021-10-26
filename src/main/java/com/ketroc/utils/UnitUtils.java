@@ -1302,4 +1302,15 @@ public class UnitUtils {
             ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
         }
     }
+
+    public static boolean requiresTechLab(Units unitType) {
+        switch(unitType) {
+            case TERRAN_MARAUDER: case TERRAN_GHOST:
+            case TERRAN_CYCLONE: case TERRAN_SIEGE_TANK: case TERRAN_THOR:
+            case TERRAN_BANSHEE: case TERRAN_RAVEN: case TERRAN_BATTLECRUISER:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

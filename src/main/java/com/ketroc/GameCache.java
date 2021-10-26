@@ -807,13 +807,13 @@ public class GameCache {
 //                    if (InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
 //                    }
-                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
-                        DebugHelper.drawBox(x/2f, y/2f, Color.WHITE, 0.24f);
-                        DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
-                    }
-                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
-                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
-                    }
+//                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.WHITE, 0.24f);
+//                        DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
+//                    }
+//                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
+//                    }
                 }
             }
 //            float x = LocationConstants.mainBaseMidPos.getX();

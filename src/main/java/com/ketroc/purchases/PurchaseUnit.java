@@ -70,7 +70,7 @@ public class PurchaseUnit implements Purchase {
                 selectProductionStructure();
             }
             if (productionStructure != null && !productionStructure.unit().getActive().orElse(true) &&
-                    (!requiresTechLab() || isAddOnComplete())) {
+                    (!UnitUtils.requiresTechLab(unitType) || isAddOnComplete())) {
                 ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);
                 return PurchaseResult.SUCCESS;
@@ -88,7 +88,7 @@ public class PurchaseUnit implements Purchase {
 
     private void selectProductionStructure() {
         Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == getRequiredStructureType()).stream()
-                .filter(u -> !requiresTechLab() || UnitUtils.getAddOn(u.unit()).isPresent())
+                .filter(u -> !UnitUtils.requiresTechLab(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
                 .filter(u -> !PurchaseUnit.contains(u))
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
@@ -119,17 +119,6 @@ public class PurchaseUnit implements Purchase {
                 return Units.TERRAN_FACTORY;
             default: //starport units
                 return Units.TERRAN_STARPORT;
-        }
-    }
-
-    private boolean requiresTechLab() {
-        switch(unitType) {
-            case TERRAN_MARAUDER: case TERRAN_GHOST:
-            case TERRAN_CYCLONE: case TERRAN_SIEGE_TANK: case TERRAN_THOR:
-            case TERRAN_BANSHEE: case TERRAN_RAVEN: case TERRAN_BATTLECRUISER:
-                return true;
-            default:
-                return false;
         }
     }
 

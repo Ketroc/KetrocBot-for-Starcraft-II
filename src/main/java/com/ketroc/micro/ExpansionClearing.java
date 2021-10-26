@@ -70,7 +70,7 @@ public class ExpansionClearing {
 
         //raven is travelling to expansion
         else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
-            //TODO: if raven can't reach position, turret now
+            //if raven can't reach position, turret now
             if (destinationUnreachable()) {
                 Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit().getPosition().toPoint2d(), 2.9f);
                 Unit closestEnemyThreat = UnitUtils.getClosestEnemyThreat(destinationPos, true);
