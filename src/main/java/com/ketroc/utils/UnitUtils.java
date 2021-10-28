@@ -6,18 +6,18 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.geometry.Position;
-import com.ketroc.launchers.Launcher;
-import com.ketroc.managers.BuildManager;
-import com.ketroc.managers.StructureSize;
-import com.ketroc.purchases.Purchase;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.managers.BuildManager;
+import com.ketroc.managers.StructureSize;
 import com.ketroc.models.Base;
 import com.ketroc.models.Cost;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.StructureScv;
+import com.ketroc.purchases.Purchase;
 import com.ketroc.strategies.Strategy;
 
 import java.util.*;
@@ -1311,6 +1311,36 @@ public class UnitUtils {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    public static float getTrainingTimeRemaining(Unit structure) {
+        return structure.getOrders().stream()
+                .findFirst()
+                .flatMap(order -> order.getProgress())
+                .orElse(0f);
+    }
+
+    //gets production structure that is available or best one to cancel current production of
+    public static Optional<Unit> getEmergencyProductionStructure(Units unitToTrain) {
+        Units structureType = getRequiredStructureType(unitToTrain);
+        boolean requiresTechLab = requiresTechLab(unitToTrain);
+        return getMyUnitsOfType(structureType).stream()
+                .filter(structure -> !requiresTechLab || structure.getAddOnTag().isPresent())
+                .min(Comparator.comparing(structure -> getTrainingTimeRemaining(structure)));
+    }
+
+    public static Units getRequiredStructureType(Units unitType) {
+        switch(unitType) {
+            case TERRAN_SCV:
+                return Units.TERRAN_COMMAND_CENTER;
+            case TERRAN_MARINE: case TERRAN_MARAUDER: case TERRAN_GHOST: case TERRAN_REAPER:
+                return Units.TERRAN_BARRACKS;
+            case TERRAN_HELLION: case TERRAN_HELLION_TANK: case TERRAN_CYCLONE:
+            case TERRAN_SIEGE_TANK: case TERRAN_THOR: case TERRAN_WIDOWMINE:
+                return Units.TERRAN_FACTORY;
+            default: //starport units
+                return Units.TERRAN_STARPORT;
         }
     }
 }

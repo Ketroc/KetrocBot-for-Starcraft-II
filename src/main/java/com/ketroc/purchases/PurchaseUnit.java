@@ -69,7 +69,9 @@ public class PurchaseUnit implements Purchase {
             if (productionStructure == null) {
                 selectProductionStructure();
             }
-            if (productionStructure != null && !productionStructure.unit().getActive().orElse(true) &&
+            if (productionStructure != null &&
+                    !productionStructure.unit().getActive().orElse(true) &&
+                    productionStructure.unit().getBuildProgress() == 1 &&
                     (!UnitUtils.requiresTechLab(unitType) || isAddOnComplete())) {
                 ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);
@@ -87,7 +89,7 @@ public class PurchaseUnit implements Purchase {
     }
 
     private void selectProductionStructure() {
-        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == getRequiredStructureType()).stream()
+        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
                 .filter(u -> !UnitUtils.requiresTechLab(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
                 .filter(u -> !PurchaseUnit.contains(u))
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
@@ -107,19 +109,6 @@ public class PurchaseUnit implements Purchase {
     @Override
     public String getType() {
         return unitType.toString();
-    }
-
-    private Units getRequiredStructureType() {
-        switch(unitType) {
-            case TERRAN_SCV:
-                return Units.TERRAN_COMMAND_CENTER;
-            case TERRAN_MARINE: case TERRAN_MARAUDER: case TERRAN_GHOST:
-                return Units.TERRAN_BARRACKS;
-            case TERRAN_HELLION: case TERRAN_HELLION_TANK: case TERRAN_CYCLONE: case TERRAN_SIEGE_TANK: case TERRAN_THOR:
-                return Units.TERRAN_FACTORY;
-            default: //starport units
-                return Units.TERRAN_STARPORT;
-        }
     }
 
     // ***************************************

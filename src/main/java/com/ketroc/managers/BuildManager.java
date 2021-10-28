@@ -628,14 +628,14 @@ public class BuildManager {
             Units unitToProduce = decideFactoryUnit();
 
             //get add-on if required, or if factory is idle (eg when supply blocked)
-            if (unitToProduce == null || (factory.getAddOnTag().isEmpty() && UnitUtils.requiresTechLab(unitToProduce))) {
+            if (factory.getAddOnTag().isEmpty() && (unitToProduce == null || UnitUtils.requiresTechLab(unitToProduce))) {
                 if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                 }
             }
 
             //purchase factory unit
-            else if (UnitUtils.canAfford(unitToProduce)) {
+            else if (unitToProduce != null && UnitUtils.canAfford(unitToProduce)) {
                 ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
                 Cost.updateBank(unitToProduce);
                 openingFactoryUnits.remove(unitToProduce);
@@ -863,8 +863,9 @@ public class BuildManager {
         int numBanshees = UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true);
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
         int numVikings = UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int numLiberators = UnitUtils.numMyUnits(UnitUtils.LIBERATOR_TYPE, true) +
-                Ignored.numOfType(UnitUtils.LIBERATOR_TYPE);
+        int numCyclones = UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true);
+        int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
+        int numLiberators = UnitUtils.numMyUnits(UnitUtils.LIBERATOR_TYPE, true);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
         int ravensRequired = (LocationConstants.opponentRace == Race.ZERG) ? 4 : 1;
 
@@ -901,8 +902,8 @@ public class BuildManager {
 //            return Abilities.TRAIN_RAVEN;
 //        }
 
-        //maintain 1+ ravens if an expansion needs clearing
-        if (numRavens == 0 && !ExpansionClearing.expoClearList.isEmpty()) {
+        //maintain 2+ ravens if an expansion needs clearing
+        if (numRavens < 2 && !ExpansionClearing.expoClearList.isEmpty()) {
             return Abilities.TRAIN_RAVEN;
         }
 
@@ -923,8 +924,8 @@ public class BuildManager {
         }
 
         if (LocationConstants.opponentRace == Race.ZERG) {
-            //maintain a raven count of 1 vs zerg
-            if (numRavens < 1) {
+            //maintain a raven count of 2 vs zerg
+            if (numRavens < 2) {
                 return Abilities.TRAIN_RAVEN;
             }
 
@@ -944,14 +945,8 @@ public class BuildManager {
         if (numRavens == 0 && numBanshees > 0 && numVikings > 0 && !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_OBSERVER).isEmpty()) {
             return Abilities.TRAIN_RAVEN;
         }
-        //TvZ, get raven after first banshee, then a 2nd after 15 air units.
-        if (LocationConstants.opponentRace == Race.ZERG) {
-            if (numBanshees + numVikings > 15 && numRavens < ravensRequired) {
-                return Abilities.TRAIN_RAVEN;
-            }
-        }
-        //TvT/TvP, get a raven after 15 banshees+vikings
-        else if (numRavens < ravensRequired && numBanshees + numVikings >= 15) {
+        //get required ravens after army has 15 core units
+        if (numRavens < ravensRequired && numBanshees + numVikings + numCyclones + numTanks >= 15) {
             return Abilities.TRAIN_RAVEN;
         }
 

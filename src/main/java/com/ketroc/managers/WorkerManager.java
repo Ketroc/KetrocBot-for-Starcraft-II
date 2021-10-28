@@ -42,7 +42,7 @@ public class WorkerManager {
         //TODO: for testing - breakpoint when worker stays idle
         idleWorkers.entrySet().removeIf(entry -> !entry.getKey().unit().getOrders().isEmpty() ||
                 StructureScv.isScvProducing(entry.getKey().unit()));
-        List<UnitInPool> inProductionStructures = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.isStructure(u.unit().getType()) && u.unit().getBuildProgress() < 0.99f);
+        List<UnitInPool> inProductionStructures = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.isStructure(u.unit().getType()) && u.unit().getBuildProgress() < 1f);
         Bot.OBS.getUnits(Alliance.SELF, scv ->
                         scv.unit().getType() == Units.TERRAN_SCV &&
                         scv.unit().getOrders().isEmpty() &&

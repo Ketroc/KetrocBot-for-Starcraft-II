@@ -11,7 +11,6 @@ import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
-import com.ketroc.gson.GameResult;
 import com.ketroc.gson.JsonUtil;
 import com.ketroc.gson.Opponent;
 import com.ketroc.launchers.Launcher;
@@ -484,6 +483,7 @@ public class Strategy {
                 break;
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
                 break;
@@ -1092,13 +1092,13 @@ public class Strategy {
             gamePlan = opponentRecords.getWinningestGamePlan();
         }
 
-        //don't lose to worker rush twice
-        GameResult prevGameResult = opponentRecords.getPrevGameResult();
-        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
-            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-            Strategy.WALL_OFF_IMMEDIATELY = true;
-            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
-        }
+        //don't lose to worker rush twice TODO: turn on for tournaments
+//        GameResult prevGameResult = opponentRecords.getPrevGameResult();
+//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
+//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+//            Strategy.WALL_OFF_IMMEDIATELY = true;
+//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+//        }
         return gamePlan;
     }
 

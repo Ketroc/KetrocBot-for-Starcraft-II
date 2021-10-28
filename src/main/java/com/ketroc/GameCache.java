@@ -14,12 +14,14 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.micro.MarineBasic;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
+import com.ketroc.purchases.PurchaseUnit;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.MarineAllIn;
 import com.ketroc.strategies.Strategy;
@@ -293,6 +295,7 @@ public class GameCache {
                             case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
                                 Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
                                 Switches.enemyHasCloakThreat = true;
+                                purchaseEmergencyRaven();
                         }
                     }
 
@@ -851,52 +854,23 @@ public class GameCache {
         return Math.sqrt(width*width + height*height) < range;
     }
 
-    /*
-    public static Base createBaseObject(Unit cc, Point2d basePos) {
-        Base base = new Base(basePos);
-        //set cc
-        base.setCc(cc);
+    private static void purchaseEmergencyRaven() {
+        //do nothing if I already have a raven
+        if (UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) > 0) {
+            return;
+        }
 
-        //set mineral nodes
-        for (Unit mineralNode : mineralNodeList) {
-            if (cc.getPosition().toPoint2d().distance(mineralNode.getPosition().toPoint2d()) < 10) {
-                base.getMineralPatches().add(mineralNode);
+        //make a starport available and purchase a raven
+        Optional<Unit> starport = UnitUtils.getEmergencyProductionStructure(Units.TERRAN_RAVEN);
+        if (starport.isPresent()) {
+            if (starport.get().getActive().orElse(false)) {
+                ActionHelper.unitCommand(starport.get(), Abilities.CANCEL_LAST, false);
             }
+            KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_RAVEN, starport.get()));
         }
-        if (!base.getMineralPatches().isEmpty()) {
-            base.setRallyNode(base.getMineralPatches().get(0));
-        }
-        if ((base.getNumMineralScvs() < cc.getIdealHarvesters().get()) && !base.getMineralPatches().isEmpty()) {
-            if (GameState.defaultRallyNode == null) {
-                GameState.defaultRallyNode = base.getRallyNode();
-            }
+        else {
+            KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_RAVEN));
         }
 
-        //set geyser nodes
-        for (UnitInPool geyser : geyserList) {
-            if (cc.getPosition().toPoint2d().distance(geyser.unit().getPosition().toPoint2d()) < 10) {
-                Gas gas = new Gas(geyser);
-                for (UnitInPool refinery : refineryList) {
-                    if (geyser.unit().getPosition().toPoint2d().distance(refinery.unit().getPosition().toPoint2d()) < 1) {
-                        gas.setRefinery(refinery);
-                    }
-                }
-                base.getGases().add(gas);
-            }
-        }
-
-//        //set missile turrets  UNNEEDED IF I ONLY BUILD THE TURRETS ONCE
-//        for (UnitInPool turret : allFriendliesMap.getOrDefault(Units.TERRAN_MISSILE_TURRET, new ArrayList<>())) {
-//            if (cc.unit().getPosition().toPoint2d().distance(turret.unit().getPosition().toPoint2d()) < 5) {
-//                base.getTurrets().add(turret);
-//            }
-//        }
-
-        //set REPAIR_BAY location if not set
-        if (LocationConstants.REPAIR_BAY == null && base.getCcPos() == LocationConstants.baseLocations.get(0)) {
-            ArmyManager.retreatPos = ArmyManager.attackPos = LocationConstants.REPAIR_BAY = base.getResourceMidPoint();
-        }
-        return base;
     }
-    */
 }
