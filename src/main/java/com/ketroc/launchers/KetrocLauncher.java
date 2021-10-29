@@ -1,15 +1,21 @@
 package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
+import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 
 import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
+        Launcher.isRealTime = false;
+        Launcher.STEP_SIZE = 2;
+        Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
@@ -24,7 +30,7 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.CHEAT_INSANE))
+                        S2Coordinator.createComputer(Race.PROTOSS, Difficulty.CHEAT_INSANE, AiBuild.RUSH))
 //                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()))
                 .launchStarcraft()
 

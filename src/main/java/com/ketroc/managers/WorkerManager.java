@@ -523,7 +523,7 @@ public class WorkerManager {
         }
         else if (numScvsPerGas == 2) {
             //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (mins > 3100 || (mins > 300 && gasBankRatio() < 0.3)) {
+            if (mins > 3100 || (mins > 300 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) && gasBankRatio() < 0.3)) {
                 numScvsPerGas = 3;
             }
             //go to 1 in gas
@@ -532,11 +532,12 @@ public class WorkerManager {
             }
         }
         else if (numScvsPerGas == 3) {
-            if (gas > mins + 3000 ||
-                    (mins < 2750 &&
+            if (gas > mins + 3000 || (
+                    mins < 2750 &&
                     gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
                     gasBankRatio() > 0.5 &&
-                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2)) {
+                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2
+            )) {
                 numScvsPerGas = 2;
             }
         }

@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
@@ -18,6 +19,7 @@ import com.ketroc.models.Cost;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.Purchase;
+import com.ketroc.purchases.PurchaseUnit;
 import com.ketroc.strategies.Strategy;
 
 import java.util.*;
@@ -1176,34 +1178,44 @@ public class UnitUtils {
 
     //time (s) until a structure is available
     public static int secondsUntilAvailable(Unit structure) {
-        //if available now
-        if (!structure.getActive().orElse(true)) {
-            return 0;
-        }
+        //include time of units in purchase queue for this structure
+        int timeForQueuedUnits = KetrocBot.purchaseQueue.stream()
+                .filter(purchase -> purchase instanceof PurchaseUnit)
+                .map(purchase -> (PurchaseUnit)purchase)
+                .filter(purchaseUnit -> purchaseUnit.getProductionStructure() != null &&
+                        purchaseUnit.getProductionStructure().getTag().equals(structure.getTag()))
+                .mapToInt(purchaseUnit -> secondsToProduce(purchaseUnit.getUnitType()))
+                .sum();
 
         // if under construction
         if (structure.getBuildProgress() != 1) {
-            return (int)(secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
+            return timeForQueuedUnits + (int)(secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
         }
+
         //TODO: include structure morphs (command centers)
 
-        else if (!structure.getOrders().isEmpty()) {
+        //if available now
+        if (!structure.getActive().orElse(true)) {
+            return timeForQueuedUnits;
+        }
+
+        if (!structure.getOrders().isEmpty()) {
             UnitOrder curOrder = structure.getOrders().get(0);
 
             // if currently training a unit
             if (curOrder.getProgress().isPresent() && curOrder.getAbility().toString().contains("TRAIN")) {
                 Units unitTypeInProduction = Bot.abilityToUnitType.get(curOrder.getAbility());
-                return (int)(secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
+                return timeForQueuedUnits + (int)(secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
             }
 
             // if currently building an add-on
             else if (curOrder.getAbility().toString().contains("BUILD")) {
                 UnitInPool addOn = getAddOn(structure).orElse(null);
                 if (addOn == null) {
-                    return secondsToProduce(addOn.unit().getType());
+                    return timeForQueuedUnits + secondsToProduce(addOn.unit().getType());
                 }
                 else {
-                    return (int)(secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
+                    return timeForQueuedUnits + (int)(secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
                 }
             }
 
@@ -1285,7 +1297,9 @@ public class UnitUtils {
     }
 
     public static Set<Unit> getRepairBayTargets(Point2d repairBayPos) {
-        return Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.REPAIR_BAY_TYPES.contains(u.unit().getType()) &&
+        return Bot.OBS.getUnits(Alliance.SELF, u ->
+                        (UnitUtils.REPAIR_BAY_TYPES.contains(u.unit().getType()) ||
+                                (!Strategy.DO_OFFENSIVE_TANKS && UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType()))) &&
                         UnitUtils.getDistance(u.unit(), repairBayPos) <= 4 &&
                         UnitUtils.getHealthPercentage(u.unit()) < 100)
                 .stream()

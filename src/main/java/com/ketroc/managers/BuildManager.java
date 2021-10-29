@@ -619,9 +619,11 @@ public class BuildManager {
     }
 
     private static void buildFactoryUnitsLogic() {
-        for (UnitInPool factoryUIP : GameCache.factoryList) {
-            Unit factory = factoryUIP.unit();
-            if (factory.getActive().get() || UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1) {
+        for (UnitInPool factoryUip : GameCache.factoryList) {
+            Unit factory = factoryUip.unit();
+            if (factory.getActive().get() ||
+                    PurchaseUnit.contains(factoryUip) ||
+                    UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1) {
                 continue;
             }
 
@@ -718,7 +720,7 @@ public class BuildManager {
     private static boolean isHellionsNeeded() {
         return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                 UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                        (LocationConstants.opponentRace == Race.ZERG ? 3 : 0);
+                        (LocationConstants.opponentRace == Race.ZERG ? 4 : 0);
     }
 
     public static void liftFactory(Unit factory) {
@@ -759,8 +761,8 @@ public class BuildManager {
     }
 
     private static void buildStarportUnitsLogic() {
-        for (UnitInPool starport : GameCache.starportList) {
-            if (!starport.unit().getActive().get()) {
+        for (UnitInPool starportUip : GameCache.starportList) {
+            if (!starportUip.unit().getActive().get() || PurchaseUnit.contains(starportUip)) {
                 Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING ||
                         Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
                         (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) ?
@@ -771,15 +773,15 @@ public class BuildManager {
                 }
                 Units unitType = Bot.abilityToUnitType.get(unitToProduce);
                 //get add-on if required
-                if (starport.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starport.unit()) &&
+                if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
                         (Bot.OBS.getFoodUsed() >= 198 ||
                         ((unitToProduce == Abilities.TRAIN_RAVEN ||
                                 unitToProduce == Abilities.TRAIN_BANSHEE ||
                                 unitToProduce == Abilities.TRAIN_BATTLECRUISER)))) {
-                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starport));
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
                 }
                 else if (UnitUtils.canAfford(unitType)) {
-                    ActionHelper.unitCommand(starport.unit(), unitToProduce, false);
+                    ActionHelper.unitCommand(starportUip.unit(), unitToProduce, false);
                     if (!openingStarportUnits.isEmpty()) {
                         openingStarportUnits.remove(0);
                     }

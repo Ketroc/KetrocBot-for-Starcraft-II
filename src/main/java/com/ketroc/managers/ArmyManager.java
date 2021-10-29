@@ -185,15 +185,13 @@ public class ArmyManager {
                 tankList.stream().anyMatch(tankOffense -> tankOffense.unit.isAlive() &&
                         UnitUtils.getHealthPercentage(tankOffense.unit.unit()) < 99)) {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
-            if (!tankList.isEmpty()) {
-                for (int i=0; i<numScvsToAdd; i++) {
-                    UnitInPool closestAvailableScv = WorkerManager.getScv(
-                            tankList.get(0).unit.unit().getPosition().toPoint2d());
-                    if (closestAvailableScv == null) {
-                        return;
-                    }
-                    UnitMicroList.add(new ScvRepairer(closestAvailableScv));
+            for (int i=0; i<numScvsToAdd; i++) {
+                UnitInPool closestAvailableScv = WorkerManager.getScv(
+                        tankList.get(0).unit.unit().getPosition().toPoint2d());
+                if (closestAvailableScv == null) {
+                    return;
                 }
+                UnitMicroList.add(new ScvRepairer(closestAvailableScv));
             }
         }
     }
@@ -534,7 +532,11 @@ public class ArmyManager {
 
     private static Point2d getArmyRallyPoint() {
         if (Strategy.gamePlan == GamePlan.MARINE_RUSH && MarineAllIn.isInitialBuildUp) {
-            return GameCache.baseList.get(0).getResourceMidPoint();
+            return Position.towards(
+                    GameCache.baseList.get(0).getCcPos(),
+                    GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(),
+                    4
+            );
         }
 
         //protect 3rd if OC

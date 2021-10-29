@@ -78,7 +78,8 @@ public class PurchaseUnit implements Purchase {
                 return PurchaseResult.SUCCESS;
             }
         }
-        if (productionStructure != null) {
+        //if production structure exists
+        if (!Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).isEmpty()) {
             Cost.updateBank(cost);
         }
         return PurchaseResult.WAITING;
@@ -91,7 +92,7 @@ public class PurchaseUnit implements Purchase {
     private void selectProductionStructure() {
         Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
                 .filter(u -> !UnitUtils.requiresTechLab(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
-                .filter(u -> !PurchaseUnit.contains(u))
+                //.filter(u -> !PurchaseUnit.contains(u)) //commented out as it's been replaced to handle timing out PurchaseUnits in purchase queue
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
     }

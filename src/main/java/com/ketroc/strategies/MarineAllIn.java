@@ -1,7 +1,6 @@
 package com.ketroc.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -12,7 +11,10 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.micro.MarineBasic;
 import com.ketroc.micro.MarineOffense;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.utils.*;
+import com.ketroc.utils.Chat;
+import com.ketroc.utils.InfluenceMaps;
+import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -109,12 +111,12 @@ public class MarineAllIn {
         if (!attackPoints.isEmpty()) {
             Point2d attackPos = attackPoints.get(0);
             int distance = Bot.OBS.isPathable(attackPos, false) ? 4 : 8;
-            if (avgMarinePos.distance(attackPos) < 3) {
+            if (avgMarinePos.distance(attackPos) < distance) {
                 attackPoints.remove(0);
             }
         }
         if (attackPoints.isEmpty()) {
-            List<UnitInPool> enemyStructures = Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.isStructure((Units) u.unit().getType()));
+            List<UnitInPool> enemyStructures = Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.isStructure(u.unit().getType()));
             if (!enemyStructures.isEmpty()) {
                 return enemyStructures.stream()
                         .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), avgMarinePos)))

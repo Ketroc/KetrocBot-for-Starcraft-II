@@ -1136,7 +1136,7 @@ public class Base {
 
     public static List<MineralPatch> getOversaturatedMineralPatches() {
         return GameCache.baseList.stream()
-                .filter(base -> !base.isReadyForMining())
+                .filter(base -> base.isReadyForMining())
                 .flatMap(base -> base.mineralPatches.stream())
                 .filter(mineralPatch -> mineralPatch.getScvs().size() > 2)
                 .collect(Collectors.toList());
