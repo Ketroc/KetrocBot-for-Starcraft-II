@@ -199,7 +199,7 @@ public class BunkerContain {
                 Unit closestEnemyTank = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, UnitUtils.SIEGE_TANK_TYPE, bunkerPos);
                 //set targetPos to tank towards bunkerPos
                 if (closestEnemyTank != null && UnitUtils.getDistance(closestEnemyTank, bunkerPos) < 15) {
-                    barracksSpotter.targetPos = Position.towards(closestEnemyTank.getPosition().toPoint2d(), bunkerPos,
+                    barracksSpotter.targetPos = Position.towards(closestEnemyTank, bunkerPos,
                             UnitUtils.rangeToSee(barracksSpotter.unit.unit(), closestEnemyTank) - 0.5f);
                 }
                 else {

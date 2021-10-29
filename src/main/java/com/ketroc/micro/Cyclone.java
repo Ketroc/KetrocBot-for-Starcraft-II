@@ -113,7 +113,7 @@ public class Cyclone extends BasicUnitMicro {
 
         //detour if unsafe
         if (!isSafe()) {
-            Point2d towardsRetreatPos = Position.towards(unit.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, 2);
+            Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 2);
             if (isSafe(towardsRetreatPos)) { //first try going straight back
                 ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, ArmyManager.retreatPos, false);
             }

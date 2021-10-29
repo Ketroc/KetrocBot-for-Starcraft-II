@@ -211,7 +211,7 @@ public class ArmyManager {
                 if (libPos.getUnit() != null && libPos.getUnit().isAlive()) {
                     Unit lib = libPos.getUnit().unit();
                     if (lib.getType() == Units.TERRAN_LIBERATOR_AG && UnitUtils.isWeaponAvailable(lib)) {
-                        Point2d libZone = Position.towards(lib.getPosition().toPoint2d(), base.getCcPos(), 5);
+                        Point2d libZone = Position.towards(lib, base.getCcPos(), 5);
                         Unit targetUnit = getLibTarget(lib, libZone);
                         if (targetUnit != null) {
                             ActionHelper.unitCommand(lib, Abilities.ATTACK, targetUnit, false);
@@ -397,7 +397,7 @@ public class ArmyManager {
                     if (Switches.vikingDiveTarget.unit().getCloakState().get() == CloakState.CLOAKED) {
                         //scan behind the tempest
                         if (UnitUtils.canScan()) {
-                            UnitUtils.scan(Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -5));
+                            UnitUtils.scan(Position.towards(Switches.vikingDiveTarget.unit(), ArmyManager.retreatPos, -5));
                         }
                         ActionHelper.unitCommand(attackVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
                     }
@@ -676,9 +676,11 @@ public class ArmyManager {
 
         //cover lead siege tank
         if (Strategy.DO_OFFENSIVE_TANKS && leadTank != null) {
-            attackAirPos = Position.towards(leadTank.unit().getPosition().toPoint2d(),
+            attackAirPos = Position.towards(
+                    leadTank.unit(),
                     attackGroundPos,
-                    leadTank.unit().getType() == Units.TERRAN_SIEGE_TANK ? 8f : 4.5f);
+                    leadTank.unit().getType() == Units.TERRAN_SIEGE_TANK ? 8f : 4.5f
+            );
             return;
         }
 
@@ -724,10 +726,12 @@ public class ArmyManager {
         GameCache.allEnemiesList.stream()
                 .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
                         !enemyAirUip.unit().getHallucination().orElse(false) &&
-                        enemyAirUip.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
+                        !UnitUtils.isInFogOfWar(enemyAirUip) &&
                         !Ignored.contains(enemyAirUip.getTag()) &&
-                        InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, enemyAirUip.unit().getPosition().toPoint2d())
-                                < AirUnitKillSquad.MAX_THREAT)
+                        InfluenceMaps.getValue(
+                                InfluenceMaps.pointThreatToAirValue,
+                                Position.towards(enemyAirUip.unit(), ArmyManager.vikingMidPoint, 9)
+                        ) < AirUnitKillSquad.MAX_THREAT)
                 .min(Comparator.comparing(enemyAirUip ->
                         UnitUtils.getDistance(enemyAirUip.unit(), LocationConstants.baseLocations.get(0))))
                 .ifPresent(enemyAirUip -> AirUnitKillSquad.add(enemyAirUip));
@@ -917,7 +921,7 @@ public class ArmyManager {
         //cover lead tank
         if (leadTank != null) {
             Point2d marineAttackPos = Position.towards(
-                    leadTank.unit().getPosition().toPoint2d(),
+                    leadTank.unit(),
                     attackGroundPos,
                     leadTank.unit().getType() == Units.TERRAN_SIEGE_TANK ? 3.5f : 1.5f);
             MarineBasic.setTargetPos(marineAttackPos);
@@ -1307,7 +1311,7 @@ public class ArmyManager {
             return retreatPos;
         }
         Point2d enemyPos = closestEnemy.getPosition().toPoint2d();
-        Point2d kiteBackPos = Position.towards(myUnit.getPosition().toPoint2d(), enemyPos, -3.5f);
+        Point2d kiteBackPos = Position.towards(myUnit, enemyPos, -3.5f);
         if (Position.isOutOfBounds(kiteBackPos)) { //ignore when kited to the edge of the map
             return null;
         }
@@ -1330,7 +1334,7 @@ public class ArmyManager {
         }
         else {
             //retreat command away from nearest cyclone position
-            ActionHelper.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit.getPosition().toPoint2d(), cyclonePos, -3f), false);
+            ActionHelper.unitCommand(myUnit, Abilities.MOVE, Position.towards(myUnit, cyclonePos, -3f), false);
         }
     }
 
@@ -1429,7 +1433,7 @@ public class ArmyManager {
 
     private static void kiteBackAirUnit(Unit myAirUnit, ArmyCommands lastCommand) {
         //try going home direction to save apm
-        Point2d retreatingPos = Position.towards(myAirUnit.getPosition().toPoint2d(), retreatPos, 2);
+        Point2d retreatingPos = Position.towards(myAirUnit, retreatPos, 2);
         if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, retreatingPos)) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(myAirUnit);
             return;

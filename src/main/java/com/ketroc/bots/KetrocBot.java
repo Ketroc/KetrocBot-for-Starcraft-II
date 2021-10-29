@@ -338,7 +338,7 @@ public class KetrocBot extends Bot {
                             Point2d barracksRally;
                             Point2d bunkerPos = Purchase.getPositionOfQueuedStructure(Units.TERRAN_BUNKER);
                             if (bunkerPos != null) {
-                                barracksRally = Position.towards(bunkerPos, unit.getPosition().toPoint2d(), 2f);
+                                barracksRally = Position.towards(bunkerPos, unit, 2f);
                             } else {
                                 barracksRally = LocationConstants.insideMainWall;
                             }

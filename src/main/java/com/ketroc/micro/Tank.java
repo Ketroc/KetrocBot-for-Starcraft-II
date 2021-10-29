@@ -152,9 +152,10 @@ public class Tank extends BasicUnitMicro {
             return false;
         }
 
-        //unsiege immediately if no targets but under threat
-        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) &&
-                getEnemyTargetsInRange(13).isEmpty()) {
+        //unsiege immediately if no targets but threat from enemy air or enemy ground in my blind spot exists
+        if (getEnemyTargetsInRange(13).isEmpty() &&
+                (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) ||
+                        isEnemyTargetsInBlindSpot())) {
             unsiege();
             return true;
         }
@@ -176,15 +177,26 @@ public class Tank extends BasicUnitMicro {
     }
 
     protected List<UnitInPool> getEnemyTargetsInRange(int range) {
-        List<UnitInPool> enemies = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
-                        (UnitUtils.canMove(enemy.unit()) ? range : Math.min(range, 13)) + enemy.unit().getRadius() &&
-                !enemy.unit().getFlying().orElse(true) &&
-                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !enemy.unit().getHallucination().orElse(false) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                !UnitUtils.isSnapshot(enemy.unit()));
-        return enemies;
+        float finalRange = range + unit.unit().getRadius();
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> {
+            float distance = UnitUtils.getDistance(enemy.unit(), unit.unit());
+            return distance <= (UnitUtils.canMove(enemy.unit()) ? finalRange : Math.min(range, 13)) + enemy.unit().getRadius() &&
+                    distance - unit.unit().getRadius() + enemy.unit().getRadius() > 2 &&
+                    !enemy.unit().getFlying().orElse(true) &&
+                    !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                    !enemy.unit().getHallucination().orElse(false) &&
+                    enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                    !UnitUtils.isSnapshot(enemy.unit());
+        });
+    }
+
+    protected boolean isEnemyTargetsInBlindSpot() {
+        return !Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                UnitUtils.getDistance(enemy.unit(), unit.unit()) - unit.unit().getRadius() + enemy.unit().getRadius() < 2 &&
+                    !enemy.unit().getFlying().orElse(true) &&
+                    !enemy.unit().getHallucination().orElse(false) &&
+                    enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                    !UnitUtils.isSnapshot(enemy.unit())).isEmpty();
     }
 
     //if enemy sieged tank nearby and it can't see
@@ -210,9 +222,7 @@ public class Tank extends BasicUnitMicro {
 
     private boolean canEnemyTankSeeMaxSiegeRange(Unit enemyTank) {
         //edge of my tank at pos where it will siege (test vision here)
-        Point2d enemyVisionPos = Position.towards(enemyTank.getPosition().toPoint2d(),
-                unit.unit().getPosition().toPoint2d(),
-                12.9f + enemyTank.getRadius());
+        Point2d enemyVisionPos = Position.towards(enemyTank, unit.unit(), 12.9f + enemyTank.getRadius());
 
         //check if enemy can see my siege position
         if (InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, enemyVisionPos)) {
@@ -242,10 +252,7 @@ public class Tank extends BasicUnitMicro {
     }
 
     protected void scanEnemyTank(Unit enemyTank) {
-        Point2d scanPos = Position.towards(
-                enemyTank.getPosition().toPoint2d(),
-                unit.unit().getPosition().toPoint2d(),
-                -5);
+        Point2d scanPos = Position.towards(enemyTank, unit.unit(), -5);
         UnitUtils.scan(scanPos);
     }
 

@@ -69,7 +69,7 @@ public class Infestor {
         airUnitsInFungalRange.stream()
                 .forEach(unit -> {
                     Ignored.add(new IgnoredFungalDodger(unit.getTag()));
-                    Point2d dodgePoint = Position.towards(unit.unit().getPosition().toPoint2d(), infestor.getPosition().toPoint2d(), -3);
+                    Point2d dodgePoint = Position.towards(unit.unit(), infestor, -3);
                     ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, dodgePoint, false);
                     switch ((Units)unit.unit().getType()) {
                         case TERRAN_BANSHEE:

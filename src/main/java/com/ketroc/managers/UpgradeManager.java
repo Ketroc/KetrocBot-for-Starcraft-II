@@ -8,6 +8,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseUpgrade;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.UnitUtils;
 
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UpgradeManager {
-    public static boolean doStarportUpgrades;
+    public static boolean doStarportTechlabUpgrades;
 
     public static final List<Upgrades> airUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
@@ -69,6 +70,7 @@ public class UpgradeManager {
         //updateUpgradeList();
         checkArmories();
         checkStarportTechLabs();
+        checkFactoryTechLabs();
     }
 
     public static void updateUpgradeList(Upgrade upgrade) {
@@ -105,10 +107,29 @@ public class UpgradeManager {
         return null;
     }
 
+    private static void checkFactoryTechLabs() {
+        //don't start blue flame until 1 banshee in production
+        if (!Strategy.DO_USE_HELLIONS && UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0) {
+            Strategy.DO_USE_HELLIONS = true;
+            PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
+
+            //get +3attack
+            if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1)) {
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
+            }
+            if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2)) {
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2);
+            }
+            if (!UpgradeManager.armoryUpgradeList.contains(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3)) {
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3);
+            }
+        }
+    }
+
     private static void checkStarportTechLabs() {
         //don't start cloak/speed until 1 banshee in production
-        if (!doStarportUpgrades && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
-            doStarportUpgrades = true;
+        if (!doStarportTechlabUpgrades && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+            doStarportTechlabUpgrades = true;
         }
 
         //if all upgrades done
@@ -120,7 +141,7 @@ public class UpgradeManager {
                 .map(unit -> Bot.abilityToUpgrade.get(ActionIssued.getCurOrder(unit).get().ability))
                 .collect(Collectors.toList());
 
-        if (doStarportUpgrades) { //if at least 1 banshee
+        if (doStarportTechlabUpgrades) { //if at least 1 banshee
             starportUpgradeList.stream()
                     .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
                     .filter(upgrade -> upgrade != Upgrades.BANSHEE_SPEED || ArmyManager.doOffense) //don't get banshee speed until on the offense

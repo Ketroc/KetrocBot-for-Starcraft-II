@@ -757,18 +757,12 @@ public class Base {
     }
 
     public Optional<UnitInPool> getScvFromOversaturatedGas(Predicate<UnitInPool> scvFilter) {
-        Optional<UnitInPool> scv = getGases().stream()
+        return getGases().stream()
                 .filter(gas -> gas.getRefinery() != null &&
                         gas.getScvs().size() >
                         (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas))
                 .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
                 .map(gas -> gas.getAndReleaseScv(scvFilter));
-        if (scv.isPresent()) {
-            DebugHelper.boxUnit(scv.get().unit());
-            Bot.DEBUG.sendDebug();
-            int sldkfj = 213984;
-        }
-        return scv;
     }
 
     public boolean hasOverSaturatedGas() {

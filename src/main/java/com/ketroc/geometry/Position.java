@@ -18,6 +18,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Position {
+    public static Point2d towards(Unit originUnit, Point2d target, float distance) {
+        return towards(originUnit.getPosition().toPoint2d(), target, distance);
+    }
+
+    public static Point2d towards(Point2d origin, Unit targetUnit, float distance) {
+        return towards(origin, targetUnit.getPosition().toPoint2d(), distance);
+    }
+
+    public static Point2d towards(Unit originUnit, Unit targetUnit, float distance) {
+        return towards(originUnit.getPosition().toPoint2d(), targetUnit.getPosition().toPoint2d(), distance);
+    }
+
     public static Point2d towards(Point2d origin, Point2d target, float distance) {
         if (origin.equals(target)) { //move the distance left if origin == target
             return inBounds(origin.getX() + distance, origin.getY());

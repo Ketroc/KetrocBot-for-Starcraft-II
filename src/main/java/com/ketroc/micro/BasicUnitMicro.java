@@ -269,7 +269,7 @@ public class BasicUnitMicro {
 
     //tries to go around the threat
     protected Point2d findDetourPos2(float rangeCheck) {
-        Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck + unit.unit().getRadius());
+        Point2d towardsTarget = Position.towards(unit.unit(), targetPos, rangeCheck + unit.unit().getRadius());
         for (int i=0; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
@@ -284,7 +284,7 @@ public class BasicUnitMicro {
                 i += 5;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
-                return Position.towards(detourPos, unit.unit().getPosition().toPoint2d(), unit.unit().getRadius());
+                return Position.towards(detourPos, unit.unit(), unit.unit().getRadius());
             }
         }
         if (rangeCheck > 18) {
@@ -303,7 +303,7 @@ public class BasicUnitMicro {
 
     //retreats as straight back as possible from the threat
     protected Point2d findDetourPos(float rangeCheck) {
-        Point2d towardsTarget = Position.towards(unit.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
+        Point2d towardsTarget = Position.towards(unit.unit(), targetPos, rangeCheck);
         for (int i=180; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : (i * -1);
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
@@ -341,10 +341,10 @@ public class BasicUnitMicro {
         float terrainDifference = Math.abs(Bot.OBS.terrainHeight(detourPos) - Bot.OBS.terrainHeight(unit.unit().getPosition().toPoint2d()));
         if (terrainDifference > 1) { //only check when change terrain level
             float distanceToDetourPos = UnitUtils.getDistance(unit.unit(), detourPos);
-            return Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.2f)) &&
-                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.4f)) &&
-                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.6f)) &&
-                    Bot.OBS.isPathable(Position.towards(unit.unit().getPosition().toPoint2d(), detourPos, distanceToDetourPos * 0.8f));
+            return Bot.OBS.isPathable(Position.towards(unit.unit(), detourPos, distanceToDetourPos * 0.2f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit(), detourPos, distanceToDetourPos * 0.4f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit(), detourPos, distanceToDetourPos * 0.6f)) &&
+                    Bot.OBS.isPathable(Position.towards(unit.unit(), detourPos, distanceToDetourPos * 0.8f));
         }
         return true;
     }

@@ -80,8 +80,7 @@ public class AirUnitKillSquad {
                 vikings.size() == 2 &&
                 vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) &&
                 (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
-            Point2d scanPos = Position.towards(targetUnit.unit().getPosition().toPoint2d(),
-                    vikings.get(0).unit.unit().getPosition().toPoint2d(), -3.5f);
+            Point2d scanPos = Position.towards(targetUnit.unit(), vikings.get(0).unit.unit(), -3.5f);
             UnitUtils.scan(scanPos);
             System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
         }
@@ -159,13 +158,15 @@ public class AirUnitKillSquad {
         vikings.forEach(vikingChaser -> Ignored.remove(vikingChaser.unit.getTag()));
     }
 
-    //cancel killsquad is target is dead, in fog, or protected
+    //cancel killsquad is target is dead, in fog (for over 4s), or protected from vikings
     private boolean shouldCancelKillSquad() {
-        boolean enemyIsProtected = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue,
-                targetUnit.unit().getPosition().toPoint2d()) >= MAX_THREAT;
         return !targetUnit.isAlive() ||
-                UnitUtils.isInFogOfWar(targetUnit) ||
-                enemyIsProtected;
+                targetUnit.getLastSeenGameLoop() + 96 <= Time.nowFrames() ||
+                (!vikings.isEmpty() && vikings.stream()
+                        .allMatch(viking -> InfluenceMaps.getValue(
+                                InfluenceMaps.pointThreatToAirValue,
+                                Position.towards(targetUnit.unit(), viking.unit.unit(), 9)
+                        ) >= MAX_THREAT));
     }
 
 

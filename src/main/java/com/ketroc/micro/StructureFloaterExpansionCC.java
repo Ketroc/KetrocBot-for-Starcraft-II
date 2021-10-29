@@ -152,7 +152,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
     }
 
     private Point2d calcSafeLandingPos() {
-        Point2d inFrontOfExpansionPos = Position.toHalfPoint(Position.towards(basePos, unit.unit().getPosition().toPoint2d(), 11));
+        Point2d inFrontOfExpansionPos = Position.toHalfPoint(Position.towards(basePos, unit.unit(), 11));
         return calcSafeLandingPos(inFrontOfExpansionPos);
     }
     private Point2d calcSafeLandingPos(Point2d searchOriginPos) {

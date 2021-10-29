@@ -577,7 +577,7 @@ public class GameCache {
                             if (Switches.vikingDiveTarget.unit().getType() == Units.PROTOSS_OBSERVER &&
                                     Switches.vikingDiveTarget.unit().getCloakState().orElse(CloakState.CLOAKED_DETECTED) == CloakState.CLOAKED) {
                                 if (UnitUtils.canScan()) {
-                                    UnitUtils.scan(Position.towards(Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), ArmyManager.retreatPos, -2));
+                                    UnitUtils.scan(Position.towards(Switches.vikingDiveTarget.unit(), ArmyManager.retreatPos, -2));
                                 }
                                 //cancel dive if I can't scan
                                 else {

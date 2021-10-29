@@ -63,9 +63,7 @@ public class CannonRushDefense {
                         }
                         //if sending 4+ scvs put some behind the cannon before attacking to prevent scvs blocking each other
                         if (numScvsToSend >= 4 && i < numScvsToSend/2) {
-                            Point2d behindCannon = Position.towards(
-                                    scvTarget.targetUnit.unit().getPosition().toPoint2d(),
-                                    newScv.unit().getPosition().toPoint2d(), 3);
+                            Point2d behindCannon = Position.towards(scvTarget.targetUnit.unit(), newScv.unit(), 3);
                             if (Bot.OBS.isPathable(behindCannon)) {
                                 ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, behindCannon, false);
                                 ActionHelper.unitCommand(newScv.unit(), Abilities.ATTACK, scvTarget.targetUnit.unit(), true);

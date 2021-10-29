@@ -640,7 +640,7 @@ public class Strategy {
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
-        UpgradeManager.doStarportUpgrades = true;
+        UpgradeManager.doStarportTechlabUpgrades = true;
 
         //get 2 banshees and +1attack for creep clearing and early defense
         if (LocationConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {

@@ -72,12 +72,12 @@ public class ExpansionClearing {
         else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
             //if raven can't reach position, turret now
             if (destinationUnreachable()) {
-                Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit().getPosition().toPoint2d(), 2.9f);
+                Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit(), 2.9f);
                 Unit closestEnemyThreat = UnitUtils.getClosestEnemyThreat(destinationPos, true);
                 if (closestEnemyThreat != null) {
                     Point2d turretPos = Position.towards(
-                            closestEnemyThreat.getPosition().toPoint2d(),
-                            raven.unit.unit().getPosition().toPoint2d(),
+                            closestEnemyThreat,
+                            raven.unit.unit(),
                             Math.min(5, UnitUtils.getDistance(closestEnemyThreat, raven.unit.unit()) - 1));
                     turretPos = getTurretPos(turretPos); //find nearest placeable pos
                     //cast autoturret
@@ -147,7 +147,7 @@ public class ExpansionClearing {
         if (UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 10) {
             return false;
         }
-        Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit().getPosition().toPoint2d(), 2.9f);
+        Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit(), 2.9f);
         return InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, destinationPos);
     }
 

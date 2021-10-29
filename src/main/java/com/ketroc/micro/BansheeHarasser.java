@@ -110,8 +110,7 @@ public class BansheeHarasser {
                     Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());
             if (nearestCyclone != null) {
                 ActionHelper.unitCommand(banshee.unit(), Abilities.MOVE,
-                        Position.towards(banshee.unit().getPosition().toPoint2d(),
-                                nearestCyclone.getPosition().toPoint2d(), -3),
+                        Position.towards(banshee.unit(), nearestCyclone, -3),
                         false);
                 return;
             }
@@ -161,7 +160,7 @@ public class BansheeHarasser {
     }
 
     private Point2d getSafePos(Point2d targetPos, float rangeCheck) {
-        Point2d towardsTarget = Position.towards(banshee.unit().getPosition().toPoint2d(), targetPos, rangeCheck);
+        Point2d towardsTarget = Position.towards(banshee.unit(), targetPos, rangeCheck);
         Point2d safestPos = null;
         int safestThreatValue = Integer.MAX_VALUE;
         boolean canCloak = canCloak();
