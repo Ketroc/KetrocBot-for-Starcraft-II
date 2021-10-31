@@ -919,7 +919,7 @@ public class ArmyManager {
         }
 
         //cover lead tank
-        if (leadTank != null) {
+        if (leadTank != null && attackGroundPos != null) {
             Point2d marineAttackPos = Position.towards(
                     leadTank.unit(),
                     attackGroundPos,

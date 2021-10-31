@@ -23,8 +23,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class BasicUnitMicro {
-    protected static final float HEALTH_TO_REPAIR = 40;
-
     public UnitInPool unit;
     public Point2d targetPos;
     public MicroPriority priority;
@@ -449,7 +447,7 @@ public class BasicUnitMicro {
                 UnitUtils.getDistance(unit.unit(), repairBayPos) <= 3;
     }
 
-    protected boolean requiresRepairs() {
-        return unit.unit().getHealth().orElse(120f) <= HEALTH_TO_REPAIR;
+    protected boolean requiresRepairs(int healthToRepairAt) {
+        return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
     }
 }

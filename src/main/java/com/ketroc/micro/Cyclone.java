@@ -171,7 +171,7 @@ public class Cyclone extends BasicUnitMicro {
 
         //go to a repair bay
         Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
-        if (closestRepairBay.isPresent() && (requiresRepairs() || underRepair(closestRepairBay.get()))) {
+        if (closestRepairBay.isPresent() && (requiresRepairs(60) || underRepair(closestRepairBay.get()))) {
             targetPos = closestRepairBay.get();
             return;
         }

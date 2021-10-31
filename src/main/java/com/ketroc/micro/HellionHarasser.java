@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class HellionHarasser extends Hellion {
+    protected static final float HEALTH_TO_REPAIR = 60;
     public static final Set<Units> VALID_TARGET_TYPES = Set.of(
             Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.ZERG_ZERGLING, Units.ZERG_ZERGLING_BURROWED,
             Units.ZERG_LARVA, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_QUEEN,
@@ -169,7 +170,7 @@ public class HellionHarasser extends Hellion {
 
         //go to a repair bay
         Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
-        if (closestRepairBay.isPresent() && (requiresRepairs() || underRepair(closestRepairBay.get()))) {
+        if (closestRepairBay.isPresent() && (requiresRepairs(50) || underRepair(closestRepairBay.get()))) {
             targetPos = closestRepairBay.get();
             return;
         }
