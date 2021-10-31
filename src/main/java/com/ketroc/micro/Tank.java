@@ -192,7 +192,7 @@ public class Tank extends BasicUnitMicro {
 
     protected boolean isEnemyTargetsInBlindSpot() {
         return !Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                UnitUtils.getDistance(enemy.unit(), unit.unit()) - unit.unit().getRadius() + enemy.unit().getRadius() < 2 &&
+                UnitUtils.getDistance(enemy.unit(), unit.unit()) - unit.unit().getRadius() - enemy.unit().getRadius() < 2 &&
                     !enemy.unit().getFlying().orElse(true) &&
                     !enemy.unit().getHallucination().orElse(false) &&
                     enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
