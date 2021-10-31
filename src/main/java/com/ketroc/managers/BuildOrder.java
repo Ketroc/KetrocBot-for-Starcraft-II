@@ -209,10 +209,10 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
-        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_HELLION));
         if (!LocationConstants.FACTORIES.isEmpty()) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
         }
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_HELLION));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_HELLION));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_HELLION));

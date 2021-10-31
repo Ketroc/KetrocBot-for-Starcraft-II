@@ -1129,13 +1129,18 @@ public class ArmyManager {
         for (UnitInPool enemy : GameCache.allEnemiesList) {
             switch ((Units)enemy.unit().getType()) {
                 case TERRAN_RAVEN: case ZERG_OVERSEER: case PROTOSS_OBSERVER:
+                case ZERG_OVERSEER_SIEGED: case PROTOSS_OBSERVER_SIEGED:
                     numVikings += 0.5;
                     hasMobileDetector = true;
                     break;
                 case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG: case TERRAN_BANSHEE:
-                case ZERG_MUTALISK: case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
-                case PROTOSS_ORACLE:
+                case ZERG_VIPER: case ZERG_BROODLORD_COCOON: case ZERG_BROODLORD:
+                case PROTOSS_ORACLE: case TERRAN_MEDIVAC:
                     numVikings += 0.5;
+                    break;
+                case ZERG_MUTALISK: case ZERG_OVERLORD_TRANSPORT: case PROTOSS_WARP_PRISM:
+                case PROTOSS_WARP_PRISM_PHASING:
+                    numVikings += 1;
                     break;
                 case TERRAN_VIKING_FIGHTER: case TERRAN_VIKING_ASSAULT: case ZERG_CORRUPTOR:
                     numVikings += 1.3;
