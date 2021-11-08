@@ -23,6 +23,7 @@ import com.ketroc.purchases.PurchaseUnit;
 import com.ketroc.strategies.Strategy;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class UnitUtils {
@@ -117,7 +118,7 @@ public class UnitUtils {
             Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
 
     public static final Set<Units> REPAIR_BAY_TYPES = new HashSet<>(Set.of(
-            Units.TERRAN_CYCLONE, Units.TERRAN_HELLION));
+            Units.TERRAN_CYCLONE, Units.TERRAN_HELLION, Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED));
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -178,6 +179,10 @@ public class UnitUtils {
             Units.TERRAN_RAVEN, Units.TERRAN_MISSILE_TURRET, Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED,
             Units.PROTOSS_PHOTON_CANNON, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED, Units.ZERG_SPORE_CRAWLER));
 
+    public static final Set<Units> MOBILE_DETECTOR_TYPES = new HashSet<>(Set.of(
+            Units.TERRAN_RAVEN, Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED,
+            Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED));
+
     public static final Set<Units> CREEP_TUMOR_TYPES = new HashSet<>(Set.of(
             Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN));
 
@@ -196,8 +201,7 @@ public class UnitUtils {
     public static Units enemyWorkerType;
 
     //includes units in Ignored List
-    public static int numMyUnits(Units unitType, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
-        //int numUnits = UnitUtils.getFriendlyUnitsOfType(unitType).size();
+    public static int numMyUnits(Units unitType, boolean includeProducing) {
         int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
             if (isStructure(unitType)) {
@@ -356,6 +360,9 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return 0;
         }
+        if (WIDOW_MINE_TYPE.contains(unit.getType())) {
+            return 5 + unit.getRadius();
+        }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
                 attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
@@ -399,7 +406,9 @@ public class UnitUtils {
     }
 
     public static List<Unit> toUnitList(List<UnitInPool> unitInPoolList) {
-        return unitInPoolList.stream().map(UnitInPool::unit).collect(Collectors.toList());
+        return unitInPoolList.stream()
+                .map(UnitInPool::unit)
+                .collect(Collectors.toList());
     }
 
     public static boolean hasDecloakBuff(Unit unit) {
@@ -518,13 +527,13 @@ public class UnitUtils {
     }
 
     public static List<Unit> getMyUnitsOfType(Units unitType) {
-        return GameCache.allFriendliesMap.getOrDefault(unitType, new ArrayList<>());
+        return GameCache.allMyUnitsMap.getOrDefault(unitType, new ArrayList<>());
     }
 
     public static List<Unit> getMyUnitsOfType(Set<Units> unitTypes) {
         List<Unit> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
-            List<Unit> myUnitsOfType = GameCache.allFriendliesMap.getOrDefault(unitType, new ArrayList<>());
+            List<Unit> myUnitsOfType = GameCache.allMyUnitsMap.getOrDefault(unitType, new ArrayList<>());
             if (!myUnitsOfType.isEmpty()) {
                 result.addAll(myUnitsOfType);
             }
@@ -684,15 +693,23 @@ public class UnitUtils {
     }
 
     public static List<UnitInPool> getEnemyTargetsInRange(Unit unit) {
+        return getEnemyTargetsInRange(unit, target -> true);
+    }
+
+    public static List<UnitInPool> getEnemyTargetsInRange(Unit unit, Predicate<UnitInPool> targetFilter) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                ((enemy.unit().getFlying().orElse(true) &&
-                        getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
-                (!enemy.unit().getFlying().orElse(true) &&
-                        getDistance(enemy.unit(), unit) <= getGroundAttackRange(unit) + enemy.unit().getRadius())) &&
-                !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !enemy.unit().getHallucination().orElse(false) &&
-                !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
+                        ((enemy.unit().getFlying().orElse(true) &&
+                                getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
+                        (!enemy.unit().getFlying().orElse(true) &&
+                                getDistance(enemy.unit(), unit) <= getGroundAttackRange(unit) + enemy.unit().getRadius())) &&
+                        !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        !enemy.unit().getHallucination().orElse(false) &&
+                        !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        !UnitUtils.isSnapshot(enemy.unit()))
+                .stream()
+                .filter(targetFilter).
+                collect(Collectors.toList());
     }
 
 
@@ -1356,5 +1373,38 @@ public class UnitUtils {
             default: //starport units
                 return Units.TERRAN_STARPORT;
         }
+    }
+
+    public static Base getNextEnemyBase() {
+        return getNextEnemyBase(null);
+    }
+
+    public static Base getNextEnemyBase(Point2d curEnemyBasePos) {
+        List<Base> enemyBases = GameCache.baseList.stream()
+                .filter(base -> base.isEnemyBase)
+                .collect(Collectors.toList());
+        if (enemyBases.isEmpty()) {
+            return null;
+        }
+        if (curEnemyBasePos == null || //no cur base
+                enemyBases.get(enemyBases.size()-1).getCcPos().distance(curEnemyBasePos) < 1) { //cur base = enemy main
+            return enemyBases.get(0);
+        }
+        //otherwise get the next newest enemy base
+        for (int i=0; i<enemyBases.size(); i++) {
+            if (enemyBases.get(i).getCcPos().distance(curEnemyBasePos) < 1) {
+                return enemyBases.get(i+1);
+            }
+        }
+        System.out.println("Bad position passed in to UnitUtils.getNextEnemyBase()");
+        return enemyBases.get(0);
+    }
+
+    //only valid to use on speed-mining scv, that has an order, and isn't carrying resources
+    public static boolean isMiningScvStuck(Unit scv) {
+        ActionIssued curOrder = ActionIssued.getCurOrder(scv).get();
+        return curOrder.ability == Abilities.MOVE &&
+                curOrder.targetTag != null &&
+                UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(Bot.OBS.getUnit(curOrder.targetTag).unit().getType());
     }
 }

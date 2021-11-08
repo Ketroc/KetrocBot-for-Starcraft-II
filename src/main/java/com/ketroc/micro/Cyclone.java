@@ -21,7 +21,6 @@ import com.ketroc.utils.*;
 
 import java.util.*;
 
-//TODO: if target dies before it gets a LOCK_ON buff, then don't go on cooldown
 public class Cyclone extends BasicUnitMicro {
     //list of unit types to never lock-on to TODO: check if KD8Charge unit ever exists
     public static final Set<Units> NEVER_LOCK_TYPES = new HashSet<>(Set.of(
@@ -170,7 +169,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //go to a repair bay
-        Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
+        Optional<Point2d> closestRepairBay = getClosestRepairBay();
         if (closestRepairBay.isPresent() && (requiresRepairs(60) || underRepair(closestRepairBay.get()))) {
             targetPos = closestRepairBay.get();
             return;
@@ -246,7 +245,7 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private boolean isLockOnCooldown() {
-        return COOLDOWN_DURATION >= Time.nowFrames() - cooldownStartFrame;
+        return !MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_LOCK_ON);
     }
 
     private void visualizeCooldown() {

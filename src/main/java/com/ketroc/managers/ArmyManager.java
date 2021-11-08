@@ -37,9 +37,9 @@ public class ArmyManager {
 
     public static Point2d attackGroundPos;
     public static Point2d attackAirPos;
-    public static UnitInPool leadTank;
     public static Point2d attackEitherPos;
     public static Point2d attackCloakedPos;
+    public static UnitInPool leadTank;
 
     public static Unit attackUnit;
     public static boolean isAttackUnitRetreating;
@@ -104,6 +104,11 @@ public class ArmyManager {
         //TODO: this is a temporary test
         UnitUtils.getMyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
             UnitMicroList.add(new Cyclone(cyclone, LocationConstants.insideMainWall));
+        });
+
+        //TODO: this is a temporary test
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_WIDOWMINE).forEach(mine -> {
+            UnitMicroList.add(new WidowMine(mine, LocationConstants.insideMainWall));
         });
 
         //repair station
@@ -431,6 +436,11 @@ public class ArmyManager {
             return;
         }
 
+        if (Strategy.MASS_MINE_OPENER && WidowMine.hasPermaCloak()) {
+            doOffense = true;
+            return;
+        }
+
         if (Strategy.gamePlan == GamePlan.MARINE_RUSH) {
             doOffense = MarineAllIn.getDoOffense();
             return;
@@ -448,11 +458,10 @@ public class ArmyManager {
 //        }
 
         //TODO: testing cyclones
-        //move out with 4+ cyclones and an air unit
-        if (Strategy.DO_USE_CYCLONES &&
-                (UnitMicroList.getUnitSubList(Cyclone.class).size() > 4 ||
-                        (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty()))) {
-            doOffense = true;
+        //move out with 5 core attack units (with at least 1 air unit)
+        if (Strategy.DO_USE_CYCLONES) {
+            doOffense = UnitMicroList.getUnitSubList(Cyclone.class).size() + GameCache.bansheeList.size() + GameCache.ravenList.size() > 5 &&
+                    (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty());
             return;
         }
 

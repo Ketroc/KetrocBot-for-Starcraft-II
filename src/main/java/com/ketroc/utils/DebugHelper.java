@@ -9,7 +9,7 @@ import com.ketroc.geometry.Rectangle;
 
 public class DebugHelper {
     public static float z;
-    private static final int TEXT_SIZE = 30;
+    private static final int TEXT_SIZE = 18;
     private static int lineNum;
 
     public static void onGameStart() {

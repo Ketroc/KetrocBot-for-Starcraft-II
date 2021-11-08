@@ -158,6 +158,7 @@ public class KetrocBot extends Bot {
 //                int weior = 398;
             }
 
+            MyUnitAbilities.onStep();
             DebugHelper.onStep(); //reset debug status for printing info
             //PlacementMap.visualizePlacementMap();
 
@@ -622,7 +623,7 @@ public class KetrocBot extends Bot {
         switch((Upgrades)upgrade) {
             case TERRAN_BUILDING_ARMOR:
                 if (!OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
-                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, OBS.getUnit(GameCache.allFriendliesMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, OBS.getUnit(GameCache.allMyUnitsMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
                 }
                 break;
             case LIBERATOR_AG_RANGE_UPGRADE:

@@ -78,7 +78,7 @@ public class TestingBot extends Bot {
         //dropMuleMessageAsDrones();
 //        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
-//        debug().debugCreateUnit(Units.TERRAN_RAVEN, mySpawnPos, myId, 1);
+        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
         debug().sendDebug();
 
 

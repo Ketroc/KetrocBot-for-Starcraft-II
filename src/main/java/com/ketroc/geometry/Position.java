@@ -8,7 +8,6 @@ import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.github.ocraft.s2client.protocol.unit.UnitSnapshot;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.LocationConstants;
 
@@ -128,12 +127,12 @@ public class Position {
             return null;
         }
         List<Float> xCoords = unitList.stream()
-                .map(UnitSnapshot::getPosition)
+                .map(Unit::getPosition)
                 .map(Point::getX)
                 .sorted()
                 .collect(Collectors.toList());
         List<Float> yCoords = unitList.stream()
-                .map(UnitSnapshot::getPosition)
+                .map(Unit::getPosition)
                 .map(Point::getY)
                 .sorted()
                 .collect(Collectors.toList());

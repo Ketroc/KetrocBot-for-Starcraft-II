@@ -232,6 +232,13 @@ public class BasicUnitMicro {
     }
 
     protected void setWeaponInfo() {
+        if (UnitUtils.WIDOW_MINE_TYPE.contains(unit.unit().getType())) {
+            canAttackAir = true;
+            canAttackGround = true;
+            airAttackRange = groundAttackRange = 5 + unit.unit().getRadius() + 0.25f;
+            return;
+        }
+
         Set<Weapon> weapons = Bot.OBS.getUnitTypeData(false).get(unit.unit().getType()).getWeapons();
         for (Weapon weapon : weapons) {
             switch (weapon.getTargetType()) {
@@ -430,6 +437,10 @@ public class BasicUnitMicro {
                         () -> targetPos = Bot.OBS.getGameInfo().findRandomLocation());
     }
 
+
+    protected Optional<Point2d> getClosestRepairBay() {
+        return getClosestRepairBay(unit.unit().getPosition().toPoint2d());
+    }
 
     protected Optional<Point2d> getClosestRepairBay(Point2d unitPos) {
         return GameCache.baseList.stream()

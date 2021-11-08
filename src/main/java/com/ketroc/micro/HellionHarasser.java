@@ -169,7 +169,7 @@ public class HellionHarasser extends Hellion {
         }
 
         //go to a repair bay
-        Optional<Point2d> closestRepairBay = getClosestRepairBay(unit.unit().getPosition().toPoint2d());
+        Optional<Point2d> closestRepairBay = getClosestRepairBay();
         if (closestRepairBay.isPresent() && (requiresRepairs(50) || underRepair(closestRepairBay.get()))) {
             targetPos = closestRepairBay.get();
             return;

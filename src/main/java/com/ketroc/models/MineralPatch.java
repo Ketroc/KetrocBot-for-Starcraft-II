@@ -154,7 +154,7 @@ public class MineralPatch {
                 ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             }
         }
-        else if (ActionIssued.getCurOrder(scv).isEmpty()) {
+        else if (ActionIssued.getCurOrder(scv).isEmpty() || UnitUtils.isMiningScvStuck(scv)) {
             //put wayward scv back to work
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
         }

@@ -77,7 +77,8 @@ public class BuildManager {
                 if (numTanks < 4) {
                     buildFactoryUnitsLogic();
                 }
-            } else {
+            }
+            else {
                 //build factory units
                 if (numTanks < 12) {
                     buildFactoryUnitsLogic();
@@ -86,7 +87,8 @@ public class BuildManager {
                 //build starport units
                 buildStarportUnitsLogic();
             }
-        } else {
+        }
+        else {
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
@@ -306,10 +308,11 @@ public class BuildManager {
                 KetrocBot.purchaseQueue.add(
                         new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
             }
-            if (!UpgradeManager.airAttackUpgrades.isEmpty()) {
+            int numArmories = UnitUtils.numMyUnits(Units.TERRAN_ARMORY, true);
+            if (!UpgradeManager.airAttackUpgrades.isEmpty() && numArmories-- < 1) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
-            if (!UpgradeManager.mechArmorUpgrades.isEmpty()) {
+            if (!UpgradeManager.mechArmorUpgrades.isEmpty() && numArmories-- < 1) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
             Strategy.techBuilt = true;
@@ -646,6 +649,10 @@ public class BuildManager {
     }
 
     private static Units decideFactoryUnit() {
+        if (Strategy.MASS_MINE_OPENER) {
+            return Units.TERRAN_WIDOWMINE;
+        }
+
         //first build hardcoded starport units
         if (!openingFactoryUnits.isEmpty()) {
             return openingFactoryUnits.get(0);
@@ -708,7 +715,7 @@ public class BuildManager {
     private static boolean isHellionsNeeded() {
         return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                 UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                        (LocationConstants.opponentRace == Race.ZERG ? 4 : 0);
+                        (LocationConstants.opponentRace == Race.ZERG ? 2 : 0);
     }
 
     public static void liftFactory(Unit factory) {

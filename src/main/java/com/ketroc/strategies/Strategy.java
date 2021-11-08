@@ -78,6 +78,7 @@ public class Strategy {
     public static final int MAP_ENEMIES_IN_FOG_DURATION = 112; //number of game frames to map the threat from enemies that entered the fog of war (5seconds)
 
     public static boolean MASS_RAVENS;
+    public static boolean MASS_MINE_OPENER;
     public static boolean MARINE_ALLIN;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
@@ -115,6 +116,13 @@ public class Strategy {
     }
 
     public static void onStep() {
+        //end mass mine strategy when a mobile detector is spotted
+        if (MASS_MINE_OPENER) {
+            Chat.tag("MASS_MINE_OPENER");
+            if (!UnitUtils.getEnemyUnitsOfType(UnitUtils.MOBILE_DETECTOR_TYPES).isEmpty()) {
+                MASS_MINE_OPENER = false;
+            }
+        }
         maxScvs = getMaxScvs();
     }
 
@@ -170,6 +178,10 @@ public class Strategy {
                 NO_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
+                MASS_MINE_OPENER = false;
+                break;
+            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+                MASS_MINE_OPENER = false;
                 break;
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_DIVE_MOBILE_DETECTORS = false;
@@ -357,7 +369,8 @@ public class Strategy {
             case "1e0db23f174f455": //MM local
             case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
                 return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
+                        GamePlan.MARINE_RUSH
+                        //GamePlan.TANK_VIKING
                         //GamePlan.BUNKER_CONTAIN_STRONG
                 ));
             default:
@@ -441,6 +454,7 @@ public class Strategy {
         }
         switch (Bot.opponentId) {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE_CYCLONE
                 ));
@@ -551,6 +565,7 @@ public class Strategy {
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                MASS_MINE_OPENER = true;
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;

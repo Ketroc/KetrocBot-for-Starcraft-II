@@ -67,7 +67,7 @@ public class GameCache {
     public static final List<Unit> enemyDetector = new ArrayList<>();
     public static final List<EnemyUnit> enemyMappingList = new ArrayList<>();
 
-    public static final Map<Units, List<Unit>> allFriendliesMap = new HashMap<>();
+    public static final Map<Units, List<Unit>> allMyUnitsMap = new HashMap<>(); //ignore my structures with buildProgress < 1
     public static Unit defaultRallyNode;
     public static List<Unit> wallStructures = new ArrayList<>();
     public static List<Unit> burningStructures = new ArrayList<>();
@@ -93,7 +93,7 @@ public class GameCache {
         starportList.clear();
         factoryList.clear();
         barracksList.clear();
-        allFriendliesMap.clear();
+        allMyUnitsMap.clear();
         allVisibleEnemiesList.clear();
         allVisibleEnemiesMap.clear();
         inProductionList.clear();
@@ -159,10 +159,10 @@ public class GameCache {
                     }
 
                     //map of every friendly unit
-                    if (!allFriendliesMap.containsKey(unitType)) {
-                        allFriendliesMap.put(unitType, new ArrayList<>());
+                    if (!allMyUnitsMap.containsKey(unitType)) {
+                        allMyUnitsMap.put(unitType, new ArrayList<>());
                     }
-                    allFriendliesMap.get(unitType).add(unit);
+                    allMyUnitsMap.get(unitType).add(unit);
 
                     //build unitType specific lists
                     Abilities curOrder = UnitUtils.getOrder(unit);
@@ -363,8 +363,9 @@ public class GameCache {
             //ignore bases that aren't mine AND aren't visible
             if (!base.isMyBase() &&
                     Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE &&
+                    Bot.OBS.getVisibility(base.getResourceMidPoint()) != Visibility.VISIBLE &&
                     base.getMineralPatchUnits().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE) &&
-                    (base.lastScoutedFrame != 0 || !base.getMineralPatchUnits().isEmpty())) {
+                    (base.lastScoutedFrame != 0 || !base.isDriedUp())) {
                 continue;
             }
             base.lastScoutedFrame = Time.nowFrames();
@@ -661,6 +662,8 @@ public class GameCache {
         InfluenceMaps.pointDamageToGroundValue = new int[800][800];
         InfluenceMaps.pointDamageToAirValue = new int[800][800];
         InfluenceMaps.pointThreatToGround = new boolean[800][800];
+        InfluenceMaps.pointThreatToGroundPlusBuffer = new boolean[800][800];
+        InfluenceMaps.pointThreatToGroundPlusBufferValue = new int[800][800];
         InfluenceMaps.pointPersistentDamageToGround = new boolean[800][800];
         InfluenceMaps.pointPFTargetValue = new int[800][800];
         InfluenceMaps.pointGroundUnitWithin13 = new boolean[800][800];
@@ -705,6 +708,13 @@ public class GameCache {
                         }
                     }
 
+                    //ground threat range + extra buffer
+                    if (enemy.groundAttackRange != 0 &&
+                            distance < enemy.groundAttackRange + (enemy.canMove ? Strategy.RAVEN_DISTANCING_BUFFER : 0)) {
+                        InfluenceMaps.pointThreatToGroundPlusBufferValue[x][y] += enemy.threatLevel;
+                        InfluenceMaps.pointThreatToGroundPlusBuffer[x][y] = true;
+                    }
+
                     //threat to air
                     if (distance < enemy.airAttackRange) {
                         InfluenceMaps.pointThreatToAirValue[x][y] += enemy.threatLevel;
@@ -712,9 +722,9 @@ public class GameCache {
                         InfluenceMaps.pointDamageToAirValue[x][y] += enemy.airDamage;
                     }
 
-
                     //air threat range + extra buffer
-                    if (enemy.airAttackRange != 0 && distance < enemy.airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER) {
+                    if (enemy.airAttackRange != 0 &&
+                            distance < enemy.airAttackRange + (enemy.canMove ? Strategy.RAVEN_DISTANCING_BUFFER : 0)) {
                         InfluenceMaps.pointThreatToAirPlusBufferValue[x][y] += enemy.threatLevel;
                         InfluenceMaps.pointThreatToAirPlusBuffer[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.23f,y/2-0.23f, z), Point.of(x/2+0.23f,y/2+0.23f, z), Color.BLACK);
@@ -795,8 +805,8 @@ public class GameCache {
         if (Bot.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-//                    if (InfluenceMaps.pointPFTargetValue[x][y] > 0) {
-//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointPFTargetValue[x][y]),x / 2f, y / 2f, Color.RED);
+//                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
+//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
 //                    }
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);

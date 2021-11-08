@@ -106,11 +106,16 @@ public class BansheeHarasser {
 
         //flee from closest cyclone, if locked on
         if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
-            Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(
-                    Units.TERRAN_CYCLONE, banshee.unit().getPosition().toPoint2d());
-            if (nearestCyclone != null) {
-                ActionHelper.unitCommand(banshee.unit(), Abilities.MOVE,
-                        Position.towards(banshee.unit(), nearestCyclone, -3),
+            Point2d nearestCyclonePos = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_CYCLONE).stream()
+                    .filter(cyclone -> UnitUtils.getDistance(banshee.unit(), cyclone.unit()) <= 16.5)
+                    .min(Comparator.comparing(cyclone -> UnitUtils.getDistance(banshee.unit(), cyclone.unit())))
+                    .map(u -> u.unit().getPosition().toPoint2d())
+                    .orElse(null);
+            if (nearestCyclonePos != null) {
+                ActionHelper.unitCommand(
+                        banshee.unit(),
+                        Abilities.MOVE,
+                        Position.towards(banshee.unit(), nearestCyclonePos, -3),
                         false);
                 return;
             }

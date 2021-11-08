@@ -110,7 +110,7 @@ public class Harassers {
         if (ArmyManager.doOffense) {
             if (UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() >
                     UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                            (LocationConstants.opponentRace == Race.ZERG ? 4 : 0)) {
+                            (LocationConstants.opponentRace == Race.ZERG ? 2 : 0)) {
                 addHellion();
             }
         }

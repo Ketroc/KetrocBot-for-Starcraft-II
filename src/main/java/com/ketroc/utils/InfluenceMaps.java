@@ -22,6 +22,8 @@ public class InfluenceMaps {
     public static boolean[][] pointThreatToAirPlusBuffer;
     public static float[][] pointSupplyInSeekerRange;
     public static int[][] pointThreatToGroundValue;
+    public static int[][] pointThreatToGroundPlusBufferValue;
+    public static boolean[][] pointThreatToGroundPlusBuffer;
     public static int[][] pointDamageToGroundValue;  //1shot damage potential
     public static int[][] pointDamageToAirValue;  //1shot damage potential
     public static boolean[][] pointThreatToGround;

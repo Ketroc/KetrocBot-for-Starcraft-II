@@ -139,7 +139,7 @@ public class WorkerRushDefense {
                     break;
 
                 case 5: //land cc
-                    if (GameCache.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, new ArrayList<>()).isEmpty()) {
+                    if (GameCache.allMyUnitsMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, new ArrayList<>()).isEmpty()) {
                         defenseStep = 0;
                     }
                     break;

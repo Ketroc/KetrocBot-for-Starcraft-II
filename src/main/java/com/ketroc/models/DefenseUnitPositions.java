@@ -30,6 +30,7 @@ public class DefenseUnitPositions {
                 (this.unit != null && unit == null && this.unit.unit().getType() == Units.TERRAN_MISSILE_TURRET)) { //turret cancelled/destroyed
             this.unit = unit;
             base.getMineralPatches().forEach(mineralPatch -> mineralPatch.initMiningPositions());
+            base.getGases().forEach(gas -> gas.initMiningPositions());
         }
         else {
             this.unit = unit;
