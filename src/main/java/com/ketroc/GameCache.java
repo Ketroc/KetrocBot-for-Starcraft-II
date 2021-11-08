@@ -360,7 +360,7 @@ public class GameCache {
         // *** BUILD BASE LIST ***
         //************************
         for (Base base : baseList) { //TODO: handle FlyingCCs
-            //ignore bases that aren't mine AND aren't visible
+            //ignore bases that aren't visible
             if (!base.isMyBase() &&
                     Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE &&
                     Bot.OBS.getVisibility(base.getResourceMidPoint()) != Visibility.VISIBLE &&
@@ -368,8 +368,9 @@ public class GameCache {
                     (base.lastScoutedFrame != 0 || !base.isDriedUp())) {
                 continue;
             }
-            base.lastScoutedFrame = Time.nowFrames();
-            base.scvsAddedThisFrame = 0;
+            if (Bot.OBS.getVisibility(base.getCcPos()) == Visibility.VISIBLE) {
+                base.lastScoutedFrame = Time.nowFrames();
+            }
 
             //update cc
             base.setCc(base.getUpdatedUnit(Units.TERRAN_PLANETARY_FORTRESS, base.getCc(), base.getCcPos()));
@@ -445,7 +446,6 @@ public class GameCache {
             defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
         }
 
-
         //loop through effects
         for (EffectLocations effect : Bot.OBS.getEffects()) {
             if (effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY) {
@@ -455,7 +455,7 @@ public class GameCache {
                             EnemyScan.add(effect);
                         }
                         break;
-                    case RAVAGER_CORROSIVE_BILE_CP:
+//                    case RAVAGER_CORROSIVE_BILE_CP:
                     case PSI_STORM_PERSISTENT:
                     case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
                     case LIBERATOR_TARGET_MORPH_PERSISTENT:
@@ -465,6 +465,9 @@ public class GameCache {
                 }
             }
         }
+
+        //add biles
+        BileTracker.activeBiles.forEach(bile -> enemyMappingList.add(new EnemyUnit(bile.getEffect())));
 
         //add scans to enemyMappingList
         EnemyScan.enemyScanSet.stream().forEach(enemyScan -> enemyMappingList.add(new EnemyUnit(enemyScan.scanEffect)));

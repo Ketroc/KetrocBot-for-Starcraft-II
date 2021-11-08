@@ -334,7 +334,7 @@ public class WorkerManager {
         //find closest mineral-mining scv
         if (scv == null) {
             scv = GameCache.baseList.stream()
-                    .filter(base -> base.getNumMineralScvs(scvFilter) > 0)
+                    .filter(base -> base.numMineralScvs(scvFilter) > 0)
                     .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
                     .flatMap(base -> base.getScvFromSmallestPatch(scvFilter))
                     .orElse(null);

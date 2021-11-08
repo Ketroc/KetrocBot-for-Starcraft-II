@@ -30,7 +30,7 @@ public class WidowMine extends BasicUnitMicro {
 
     public WidowMine(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
-        offenseTargetBase = GameCache.baseList.get(LocationConstants.baseAttackIndex);
+        offenseTargetBase = LocationConstants.nextEnemyBase;
     }
 
     public WidowMine(UnitInPool unit, Point2d targetPos) {

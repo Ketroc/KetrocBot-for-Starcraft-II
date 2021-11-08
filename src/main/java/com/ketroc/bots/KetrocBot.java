@@ -110,10 +110,6 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
-//            Bot.OBS.getUnits(Alliance.NEUTRAL).forEach(uip -> DebugHelper.boxUnit(uip.unit()));
-//            DEBUG.sendDebug();
-
-
             for (ChatReceived chat : OBS.getChatMessages()) {
                 if (chat.getPlayerId() != OBS.getPlayerId()) {
                     Chat.respondToBots(chat);
@@ -158,6 +154,9 @@ public class KetrocBot extends Bot {
 //                int weior = 398;
             }
 
+            if (LocationConstants.opponentRace == Race.ZERG) {
+                BileTracker.onStep();
+            }
             MyUnitAbilities.onStep();
             DebugHelper.onStep(); //reset debug status for printing info
             //PlacementMap.visualizePlacementMap();
@@ -265,7 +264,6 @@ public class KetrocBot extends Bot {
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 
         DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
-        DebugHelper.addInfoLine("baseAttackIndex: " + LocationConstants.baseAttackIndex);
         DebugHelper.addInfoLine("");
 
 
@@ -302,7 +300,6 @@ public class KetrocBot extends Bot {
 
         DebugHelper.addInfoLine("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7);
         DebugHelper.addInfoLine("Purchase Queue: " + KetrocBot.purchaseQueue.size());
-        DebugHelper.addInfoLine("BaseTarget: " + LocationConstants.baseAttackIndex);
         DebugHelper.addInfoLine("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir);
         if (ArmyManager.attackGroundPos != null) {
             DebugHelper.draw3dBox(ArmyManager.attackGroundPos, Color.YELLOW, 0.6f);

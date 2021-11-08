@@ -299,7 +299,6 @@ public class DroneDrill extends Bot {
                     }
                 }
                 if (curGas < 100) {
-                    LocationConstants.baseAttackIndex = LocationConstants.baseLocations.size()-2;
                     mutaRushBuildStep++;
                 }
                 break;
@@ -322,17 +321,12 @@ public class DroneDrill extends Bot {
                         if (!enemies.isEmpty()) {
                             ActionHelper.unitCommand(mutas, Abilities.ATTACK, enemies.get(0).unit().getPosition().toPoint2d(), false);
                         }
-                        else if (Switches.finishHim) {
+                        else if (LocationConstants.nextEnemyBase == null) {
                             ArmyManager.spreadArmy(mutas);
                         }
                         else {
-                            Point2d attackPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
-                            Point2d lambdaAttackPos = attackPos;
-                            if (mutas.stream().anyMatch(muta -> UnitUtils.getDistance(muta, lambdaAttackPos) < 3)) {
-                                attackPos = LocationConstants.getNextBaseAttackPos();
-                            }
-                            ActionHelper.unitCommand(mutas, Abilities.ATTACK,
-                                    LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex), false);
+                            Point2d attackPos = UnitUtils.getNextEnemyBase().getResourceMidPoint();
+                            ActionHelper.unitCommand(mutas, Abilities.ATTACK, attackPos, false);
                         }
                     }
                 }

@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
+import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class Marine extends BasicUnitMicro {
         List<Marine> marineList = UnitMicroList.getUnitSubList(Marine.class);
         //for null position do nothing, or seek for hidden structures if finishHim == true
         if (newTargetPos == null) {
-            if (Switches.finishHim) {
+            if (LocationConstants.nextEnemyBase == null) {
                 marineList.forEach(marine -> {
                     if (UnitUtils.getDistance(marine.unit.unit(), marine.targetPos) < 2) {
                         marine.targetPos = UnitUtils.getRandomPathablePos();

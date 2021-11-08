@@ -118,7 +118,7 @@ public class ArmyManager {
         manageTankRepairScvs();
 
         //if searching for last structures
-        if (attackGroundPos == null && Switches.finishHim) {
+        if (attackGroundPos == null && LocationConstants.nextEnemyBase == null) {
             searchForLastStructures();
         }
         else {
@@ -650,22 +650,11 @@ public class ArmyManager {
                 GameCache.allEnemiesList.remove(closestEnemyGround);
             }
         }
-        else if (Switches.finishHim) {
+        else if (LocationConstants.nextEnemyBase == null) {
             attackGroundPos = null; //flag to spread army
         }
         else {
-            attackGroundPos = LocationConstants.baseLocations.get(LocationConstants.baseAttackIndex);
-            //go on to next base after a banshee, viking, and raven have arrived
-            if (Bot.OBS.getVisibility(attackGroundPos) == Visibility.VISIBLE &&
-                    (GameCache.bansheeList.isEmpty() || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 3)) &&
-                    (GameCache.vikingList.size() < 3 || UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 3)) &&
-                    (GameCache.ravenList.isEmpty() || GameCache.ravenList.stream()
-                            .noneMatch(raven ->
-                                    UnitUtils.getHealthPercentage(raven) >= Strategy.RETREAT_HEALTH &&
-                                            UnitUtils.getDistance(raven, retreatPos) > 10) ||
-                            UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 3))) {
-                attackGroundPos = LocationConstants.getNextBaseAttackPos();
-            }
+            attackGroundPos = LocationConstants.nextEnemyBase.getResourceMidPoint();
         }
     }
 

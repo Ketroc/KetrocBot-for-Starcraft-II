@@ -156,9 +156,9 @@ public class EnemyUnit {
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
-                detectRange = 5f + Strategy.STATIONARY_KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                detectRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
                 threatLevel = 200;
-                airAttackRange = 5f + Strategy.STATIONARY_KITING_BUFFER; //actual range is 0.5f but effect disappears prior to it landing
+                airAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
                 groundDamage = 60;
                 airDamage = 60;
                 break;

@@ -1,6 +1,7 @@
 package com.ketroc.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -58,11 +59,11 @@ public class LocationConstants {
     public static Point2d proxyBunkerPos;
     public static Point2d proxyBunkerPos2;
 
+    public static Base nextEnemyBase;
     public static List<Point2d> baseLocations = new ArrayList<>();
     public static List<Point2d> clockBasePositions = new ArrayList<>();
     public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
-    public static int baseAttackIndex;
     public static Race opponentRace;
 
     public static void onGameStart(UnitInPool mainCC) {
@@ -74,7 +75,6 @@ public class LocationConstants {
         }
         setStructureLocations();
         setBaseLocations();
-        baseAttackIndex = LocationConstants.baseLocations.size()-2;
         setClockBaseLists();
         createBaseList(mainCC);
         setEnemyTypes();
@@ -93,32 +93,12 @@ public class LocationConstants {
     }
 
     public static void onStep() {
-        setNewEnemyBaseIndex(); //set base index of current base to hit
-    }
-
-    //returns base index of newest enemy base
-    private static void setNewEnemyBaseIndex() {
-        for (int i = 0; i< GameCache.baseList.size(); i++) {
-            Base base = GameCache.baseList.get(i);
-            if (base.isEnemyBase) {
-                baseAttackIndex = Math.min(i, baseAttackIndex);
-                return;
-            }
-        }
-    }
-
-    public static Point2d getNextBaseAttackPos() {
-        baseAttackIndex++;
-        setNewEnemyBaseIndex();
-        if (baseAttackIndex >= baseLocations.size()) {
-            Switches.finishHim = true;
-            Chat.chatWithoutSpam("Finish Him!", 120);
+        nextEnemyBase = UnitUtils.getNextEnemyBase();
+        if (nextEnemyBase == null) {
+            Chat.chatNeverRepeat("Finish Him!");
             MuleMessages.doTrollMule = true;
-            return null;
         }
-        return baseLocations.get(baseAttackIndex);
     }
-
 
     //make array map of all points within the main bases
     private static void mapMainAndNatBases() {

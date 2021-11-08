@@ -14,7 +14,6 @@ public class Switches {
     public static boolean hasCastOCSpellThisFrame;
 
     public static boolean fastDepotBarracksOpener; //hardcoded start to get bunker up in time for reaper rush
-    public static boolean finishHim; //after cycling his bases twice, start final mop up.
 
     public static boolean firstObserverSpotted;
     public static boolean firstTankSpotted;
