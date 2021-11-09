@@ -159,8 +159,9 @@ public class EnemyUnit {
                 detectRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
                 threatLevel = 200;
                 airAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
-                groundDamage = 60;
+                groundAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
                 airDamage = 60;
+                groundDamage = 60;
                 break;
 //            case NUKE_PERSISTENT:
 //                isDetector = true;

@@ -1396,7 +1396,7 @@ public class UnitUtils {
                 return enemyBases.get(i+1);
             }
         }
-        System.out.println("Bad position passed in to UnitUtils.getNextEnemyBase()");
+        //curEnemyBasePos is no longer an enemy base
         return enemyBases.get(0);
     }
 

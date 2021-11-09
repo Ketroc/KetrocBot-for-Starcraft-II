@@ -70,7 +70,7 @@ public class WorkerRushDefense {
             switch (defenseStep) {
                 case 0: //worker rush check
                     int numEnemyWorkersAttacking = (int)UnitUtils.getEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
-                            .filter(u -> UnitUtils.isInMyMainOrNat(u.unit()))
+                            .filter(u -> UnitUtils.isInMyMain(u.unit()))
                             .count();
                     if (numEnemyWorkersAttacking >= 8 &&
                             !UnitUtils.isWallComplete() &&

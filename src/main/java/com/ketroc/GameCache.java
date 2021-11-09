@@ -886,4 +886,19 @@ public class GameCache {
         }
 
     }
+
+    public static void setInitialEnemyBases() {
+        //set enemy main and nat true for isEnemyBase
+        Base enemyMain = baseList.get(GameCache.baseList.size() - 1);
+        enemyMain.isEnemyBase = true;
+        Base enemyNat = baseList.get(GameCache.baseList.size() - 2);
+        enemyNat.isEnemyBase = true;
+
+        //set 2 closest 3rd bases true for isEnemyBase
+        baseList.stream()
+                .filter(base -> !base.equals(enemyMain) && !base.equals(enemyNat))
+                .sorted(Comparator.comparing(base -> base.getCcPos().distance(enemyNat.getCcPos())))
+                .limit(2)
+                .forEach(base -> base.isEnemyBase = true);
+    }
 }

@@ -78,6 +78,7 @@ public class KetrocBot extends Bot {
 
             //build unit lists
             GameCache.onStep();
+            GameCache.setInitialEnemyBases();
 
             //set main midpoint (must be done after GameState.onStep())
             LocationConstants.setRepairBayLocation();
@@ -263,6 +264,12 @@ public class KetrocBot extends Bot {
 //                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 //                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
 
+        for (int i=0; i<GameCache.baseList.size(); i++) {
+            if (GameCache.baseList.get(i).isEnemyBase) {
+                DebugHelper.addInfoLine("enemy base index: " + i);
+                break;
+            }
+        }
         DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
         DebugHelper.addInfoLine("");
 
