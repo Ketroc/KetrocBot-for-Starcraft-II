@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.UnitTypeData;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
@@ -18,31 +19,39 @@ import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.Print;
 import com.ketroc.utils.UnitUtils;
 
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.Set;
 
 public class PurchaseStructureMorph implements Purchase {
     private static final float CANCEL_THRESHOLD = 0.4f;
 
     private Abilities morphOrAddOn;
-    private UnitInPool structure;
+    private UnitInPool productionStructure;
     private Cost cost;
 
     // ============= CONSTRUCTORS =============
-    public PurchaseStructureMorph(Abilities morphOrAddOn, Unit structure) {
-        this(morphOrAddOn, Bot.OBS.getUnit(structure.getTag()));
+    public PurchaseStructureMorph(Abilities morphOrAddOn, Unit productionStructure) {
+        this(morphOrAddOn, Bot.OBS.getUnit(productionStructure.getTag()));
     }
 
-    public PurchaseStructureMorph(Abilities morphOrAddOn, UnitInPool structure) {
+    public PurchaseStructureMorph(Abilities morphOrAddOn, UnitInPool productionStructure) {
         this.morphOrAddOn = morphOrAddOn;
-        this.structure = structure;
+        this.productionStructure = productionStructure;
         setCost();
         Print.print("Added to queue: " + this.morphOrAddOn);
     }
 
+    public PurchaseStructureMorph(Abilities morphOrAddOn) {
+        this.morphOrAddOn = morphOrAddOn;
+        setCost();
+    }
+
+
     public static void remove(Tag structureTag) {
         KetrocBot.purchaseQueue.removeIf(p ->
                 p instanceof PurchaseStructureMorph &&
-                ((PurchaseStructureMorph) p).structure.getTag().equals(structureTag));
+                ((PurchaseStructureMorph) p).productionStructure.getTag().equals(structureTag));
     }
 
 
@@ -56,12 +65,12 @@ public class PurchaseStructureMorph implements Purchase {
         this.morphOrAddOn = morphOrAddOn;
     }
 
-    public UnitInPool getStructure() {
-        return structure;
+    public UnitInPool getProductionStructure() {
+        return productionStructure;
     }
 
-    public void setStructure(UnitInPool structure) {
-        this.structure = structure;
+    public void setProductionStructure(UnitInPool productionStructure) {
+        this.productionStructure = productionStructure;
     }
 
     @Override
@@ -72,11 +81,9 @@ public class PurchaseStructureMorph implements Purchase {
     // =========== METHODS ============
 
     public PurchaseResult build() {
-        if (structure == null || !structure.isAlive()) {
-            return PurchaseResult.CANCEL;
-        }
-
-        if (structureAlreadyMorphing()) {
+        //cancel purchase is structure died or morph already in progress
+        if (productionStructure != null &&
+                (!productionStructure.isAlive() || structureAlreadyMorphing())) {
             return PurchaseResult.CANCEL;
         }
 
@@ -89,7 +96,7 @@ public class PurchaseStructureMorph implements Purchase {
         //if production under 40% and can afford if unit production is cancelled TODO: doesn't account for which cc
         if (shouldCancelPreviousOrder()) {
             Print.print("cancelled unit");
-            ActionHelper.unitCommand(structure.unit(), Abilities.CANCEL_LAST, false);
+            ActionHelper.unitCommand(productionStructure.unit(), Abilities.CANCEL_LAST, false);
             GameCache.mineralBank += 50;
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
@@ -101,14 +108,21 @@ public class PurchaseStructureMorph implements Purchase {
             return PurchaseResult.WAITING;
         }
 
+        if (productionStructure == null) {
+            selectProductionStructure();
+            if (productionStructure == null) {
+                return PurchaseResult.CANCEL;
+            }
+        }
+
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
-        if (!structure.unit().getActive().orElse(true)) {
+        if (!productionStructure.unit().getActive().orElse(true) && productionStructure.unit().getBuildProgress() == 1) {
             Print.print("start building " + this.morphOrAddOn.toString());
             Print.print("sending action " + this.morphOrAddOn);
-            ActionHelper.unitCommand(structure.unit(), this.morphOrAddOn, false);
+            ActionHelper.unitCommand(productionStructure.unit(), this.morphOrAddOn, false);
             Cost.updateBank(cost);
             if (morphOrAddOn == Abilities.MORPH_PLANETARY_FORTRESS) {
-                Base.setBaseMorphTime(structure.unit());
+                Base.setBaseMorphTime(productionStructure.unit());
             }
             return PurchaseResult.SUCCESS;
         }
@@ -119,19 +133,23 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean structureAlreadyMorphing() {
-        return ActionIssued.getCurOrder(structure).stream()
+        return ActionIssued.getCurOrder(productionStructure).stream()
                 .anyMatch(unitOrder -> unitOrder.ability == morphOrAddOn);
     }
 
     private boolean shouldCancelPreviousOrder() {
-        if (this.structure.unit().getOrders().isEmpty() ||
-                this.structure.unit().getOrders().get(0).getAbility() != Abilities.TRAIN_SCV) {
+        if (productionStructure == null) {
+            return false;
+        }
+
+        Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(productionStructure);
+        if (curOrder.isEmpty() || curOrder.get().ability != Abilities.TRAIN_SCV) {
             return false;
         }
 
         int minerals = GameCache.mineralBank;
         int gas = GameCache.gasBank;
-        UnitOrder order = this.structure.unit().getOrders().get(0);
+        UnitOrder order = this.productionStructure.unit().getOrders().get(0);
         UnitTypeData producingUnitData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(order.getAbility()));
         if (minerals + producingUnitData.getMineralCost().get() >= cost.minerals &&
                 gas + producingUnitData.getVespeneCost().get() >= cost.gas &&
@@ -178,5 +196,14 @@ public class PurchaseStructureMorph implements Purchase {
             return true;
         }
         return false;
+    }
+
+    private void selectProductionStructure() {
+        Units unitType = Bot.abilityToUnitType.get(morphOrAddOn);
+        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
+                .filter(u -> (!unitType.toString().contains("_REACTOR") && !unitType.toString().contains("_TECHLAB")) ||
+                        UnitUtils.getAddOn(u.unit()).isEmpty())
+                .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
+                .ifPresent(structure -> productionStructure = structure);
     }
 }

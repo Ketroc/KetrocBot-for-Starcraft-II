@@ -30,7 +30,7 @@ public interface Purchase {
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructureMorph &&
                     ((PurchaseStructureMorph) p).getMorphOrAddOn() == morphType &&
-                    ((PurchaseStructureMorph) p).getStructure().getTag().equals(structureTag)) {
+                    ((PurchaseStructureMorph) p).getProductionStructure().getTag().equals(structureTag)) {
                 return true;
             }
         }
@@ -68,7 +68,7 @@ public interface Purchase {
         return KetrocBot.purchaseQueue.stream()
                 .filter(purchase -> purchase instanceof PurchaseStructureMorph)
                 .map(purchase -> (PurchaseStructureMorph)purchase)
-                .anyMatch(p -> p.getStructure().getTag().equals(structureUnit.getTag()));
+                .anyMatch(p -> p.getProductionStructure().getTag().equals(structureUnit.getTag()));
     }
 
     static boolean isStructureQueued(Units unitType, Point2d pos) {

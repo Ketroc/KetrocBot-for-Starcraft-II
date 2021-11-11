@@ -557,7 +557,7 @@ public class BuildManager {
                     for (int i = 0; i < KetrocBot.purchaseQueue.size(); i++) {
                         Purchase p = KetrocBot.purchaseQueue.get(i);
                         if (p instanceof PurchaseStructureMorph) {
-                            if (((PurchaseStructureMorph) p).getStructure().getTag().equals(cc.getTag())) {
+                            if (((PurchaseStructureMorph) p).getProductionStructure().getTag().equals(cc.getTag())) {
                                 KetrocBot.purchaseQueue.remove(i);
                                 break;
                             }
@@ -665,6 +665,13 @@ public class BuildManager {
 
         //cyclone strategy (build constantly)
         if (Strategy.DO_USE_CYCLONES) {
+            if (UnitUtils.canAfford(Units.TERRAN_WIDOWMINE)) {
+                int numMines = UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true);
+                int numMinesWanted = Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) ? 3 : 1;
+                if (numMines < numMinesWanted) {
+                    return Units.TERRAN_WIDOWMINE;
+                }
+            }
             if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
                 return Units.TERRAN_CYCLONE;
             }
@@ -1257,4 +1264,3 @@ public class BuildManager {
         });
     }
 }
-

@@ -2,7 +2,6 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -80,9 +79,6 @@ public class WidowMine extends BasicUnitMicro {
         }
 
         updateTargetPos();
-        DebugHelper.drawBox(targetPos, Color.GREEN, 0.5f);
-        DebugHelper.boxUnit(unit.unit());
-        Bot.DEBUG.sendDebug();
         updateCooldown();
 
         //search for final structures

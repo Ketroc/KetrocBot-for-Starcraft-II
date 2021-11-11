@@ -74,6 +74,13 @@ public class PurchaseUpgrade implements Purchase {
         if (doDelayThisUpgrade()) {
             return PurchaseResult.WAITING;
         }
+
+        //if tech structure required
+        if (isTechRequired(upgrade)) {
+            Cost.updateBank(cost);
+            return PurchaseResult.WAITING;
+        }
+
         if (canAfford()) {
             if (productionStructure == null) {
                 selectProductionStructure();
@@ -146,17 +153,24 @@ public class PurchaseUpgrade implements Purchase {
     }
 
     private Units getRequiredStructureType() {
-        switch(upgrade) { //TODO: complete for all upgrades (that I don't currently use)
+        switch(upgrade) {
             case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
             case TERRAN_VEHICLE_WEAPONS_LEVEL1: case TERRAN_VEHICLE_WEAPONS_LEVEL2: case TERRAN_VEHICLE_WEAPONS_LEVEL3:
             case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
                 return Units.TERRAN_ARMORY;
-            case INFERNAL_PRE_IGNITERS: case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
+            case INFERNAL_PRE_IGNITERS: case CYCLONE_LOCK_ON_DAMAGE_UPGRADE: case DRILL_CLAWS: case TRANSFORMATION_SERVOS:
                 return Units.TERRAN_FACTORY_TECHLAB;
+            case TERRAN_INFANTRY_WEAPONS_LEVEL1: case TERRAN_INFANTRY_WEAPONS_LEVEL2: case TERRAN_INFANTRY_WEAPONS_LEVEL3:
+            case TERRAN_INFANTRY_ARMORS_LEVEL1: case TERRAN_INFANTRY_ARMORS_LEVEL2: case TERRAN_INFANTRY_ARMORS_LEVEL3:
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
                 return Units.TERRAN_ENGINEERING_BAY;
-            case BANSHEE_CLOAK: case BANSHEE_SPEED:
+            case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
+            case MEDIVAC_CADUCEUS_REACTOR: case LIBERATOR_AG_RANGE_UPGRADE:
                 return Units.TERRAN_STARPORT_TECHLAB;
+            case YAMATO_CANNON:
+                return Units.TERRAN_FUSION_CORE;
+            case PERSONAL_CLOAKING:
+                return Units.TERRAN_GHOST_ACADEMY;
         }
         return Units.INVALID;
     }
@@ -182,6 +196,27 @@ public class PurchaseUpgrade implements Purchase {
                 .filter(structure -> !PurchaseUpgrade.contains(structure))
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
+    }
+
+    public static boolean isTechRequired(Upgrades upgradeType) {
+        Units techStructureNeeded = null;
+        switch (upgradeType) {
+            case SMART_SERVOS: case DRILL_CLAWS:
+                techStructureNeeded = Units.TERRAN_ARMORY;
+                break;
+        }
+        if (techStructureNeeded == null) {
+            return false;
+        }
+        Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
+            if (!Purchase.isStructureQueued(techStructureNeeded) &&
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
+            }
+            return true;
+        }
+        return false;
     }
 
 

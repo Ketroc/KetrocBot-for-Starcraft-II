@@ -91,6 +91,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
             return;
         }
 
+        //TODO: below, if base+no raven available, then move on to another base/macro OC
         //2.5min without landing (land and PF now, or assign to another enemy base)
         if (Time.toSeconds(Time.nowFrames() - createdFrame) >= 150) {
             if (UnitUtils.getDistance(unit.unit(), basePos) < 20) {

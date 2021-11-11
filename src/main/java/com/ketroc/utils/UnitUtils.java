@@ -1363,12 +1363,14 @@ public class UnitUtils {
 
     public static Units getRequiredStructureType(Units unitType) {
         switch(unitType) {
-            case TERRAN_SCV:
+            case TERRAN_SCV: case TERRAN_ORBITAL_COMMAND: case TERRAN_PLANETARY_FORTRESS:
                 return Units.TERRAN_COMMAND_CENTER;
             case TERRAN_MARINE: case TERRAN_MARAUDER: case TERRAN_GHOST: case TERRAN_REAPER:
+            case TERRAN_BARRACKS_TECHLAB: case TERRAN_BARRACKS_REACTOR:
                 return Units.TERRAN_BARRACKS;
             case TERRAN_HELLION: case TERRAN_HELLION_TANK: case TERRAN_CYCLONE:
             case TERRAN_SIEGE_TANK: case TERRAN_THOR: case TERRAN_WIDOWMINE:
+            case TERRAN_FACTORY_TECHLAB: case TERRAN_FACTORY_REACTOR:
                 return Units.TERRAN_FACTORY;
             default: //starport units
                 return Units.TERRAN_STARPORT;

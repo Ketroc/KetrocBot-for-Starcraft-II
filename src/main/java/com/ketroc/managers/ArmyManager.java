@@ -3,7 +3,6 @@ package com.ketroc.managers;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -437,6 +436,7 @@ public class ArmyManager {
         }
 
         if (Strategy.MASS_MINE_OPENER && WidowMine.hasPermaCloak()) {
+            Chat.chatNeverRepeat("Go go drilly boys!");
             doOffense = true;
             return;
         }
@@ -866,8 +866,6 @@ public class ArmyManager {
                     bestTargetUnit = enemyTarget.unit();
                     //DebugHelper.draw3dBox(bestTargetUnit.getPosition().toPoint2d(), Color.RED, 0.4f);
                 }
-                Bot.DEBUG.sendDebug();
-                int w = 234;
             }
 
             //attack
