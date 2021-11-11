@@ -3,6 +3,7 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -100,13 +101,16 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
+                    return;
                 }
-                else {
+                else if (LocationConstants.opponentRace != Race.ZERG) {
                     assignToAnotherBase();
+                    return;
                 }
             }
-            else {
+            else if (LocationConstants.opponentRace != Race.ZERG) {
                 assignToAnotherBase();
+                return;
             }
         }
 
@@ -118,16 +122,14 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 safeLandingPos = calcSafeLandingPos();
                 if (safeLandingPos != null) {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
-                }
-                else {
-                    super.onStep();
+                    return;
                 }
             }
             else {
                 ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
                 addCCToBaseList();
+                return;
             }
-            return;
         }
 
         //travel micro
@@ -171,7 +173,9 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
         //go to another base if no viable landing positions
         if (landingPosList.isEmpty()) {
-            assignToAnotherBase();
+            if (LocationConstants.opponentRace != Race.ZERG) {
+                assignToAnotherBase();
+            }
         }
         //query closest valid landing position
         else {
