@@ -90,7 +90,6 @@ public class AirUnitKillSquad {
         if (raven != null) {
             //set targetPos if raven is alive
             if (raven.isAlive()) {
-                raven.targetPos = targetUnit.unit().getPosition().toPoint2d();
                 raven.targetPos = UnitUtils.getPosLeadingUnit(raven.unit.unit(), targetUnit.unit());
             }
             //remove dead raven

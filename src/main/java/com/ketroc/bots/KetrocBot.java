@@ -243,6 +243,7 @@ public class KetrocBot extends Bot {
             ArmyManager.onStep(); //decide army movements
             UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads
+            GroundUnitKillSquad.onStep(); //micro kill squads for solo enemy ground units
             Harassers.onStep();
             MuleMessages.onStep(); //make minimap troll messages with mules
             LocationConstants.onStep(); //manage which enemy base to target

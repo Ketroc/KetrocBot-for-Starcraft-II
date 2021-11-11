@@ -3,11 +3,15 @@ package com.ketroc.models;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
+import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.micro.BasicUnitMicro;
+import com.ketroc.micro.Chaser;
 import com.ketroc.micro.MicroPriority;
 import com.ketroc.micro.VikingChaser;
 import com.ketroc.utils.InfluenceMaps;
@@ -15,6 +19,7 @@ import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,10 +29,9 @@ public class GroundUnitKillSquad {
 
     public static List<GroundUnitKillSquad> enemyGroundTargets = new ArrayList<>();
 
-    private BasicUnitMicro raven;
-    private List<VikingChaser> vikings = new ArrayList<>();
+    private Chaser chaser;
+    private Chaser raven;
     private UnitInPool targetUnit;
-    private int numVikingsRequired;
 
     public GroundUnitKillSquad(UnitInPool targetUnit) {
         this.targetUnit = targetUnit;
@@ -37,16 +41,8 @@ public class GroundUnitKillSquad {
         return raven;
     }
 
-    public void setRaven(BasicUnitMicro raven) {
+    public void setRaven(Chaser raven) {
         this.raven = raven;
-    }
-
-    public List<VikingChaser> getVikings() {
-        return vikings;
-    }
-
-    public void setVikings(List<VikingChaser> vikings) {
-        this.vikings = vikings;
     }
 
     public UnitInPool getTargetUnit() {
@@ -57,96 +53,108 @@ public class GroundUnitKillSquad {
         this.targetUnit = targetUnit;
     }
 
-    public int getNumVikingsRequired() {
-        return numVikingsRequired;
+    public Chaser getChaser() {
+        return chaser;
     }
 
-    public void setNumVikingsRequired(int numVikingsRequired) {
-        this.numVikingsRequired = numVikingsRequired;
+    public void setChaser(Chaser chaser) {
+        this.chaser = chaser;
     }
-
 
     public void updateUnits() {
-        updateRaven();
-        updateVikings();
-        if (raven != null) {
+        updateChaser();
+        if (chaser != null) {
             raven.onStep();
         }
-        vikings.forEach(vikingChaser -> vikingChaser.onStep());
-        doScan();
+        if (isRavenRequired()) {
+            updateRaven();
+            if (raven != null) {
+                raven.onStep();
+            }
+        }
     }
 
-    private void doScan() {
-        if (targetUnit != null && targetUnit.isAlive() &&
-                targetUnit.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED &&
-                vikings.size() == 2 &&
-                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) &&
-                (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
-            Point2d scanPos = Position.towards(targetUnit.unit(), vikings.get(0).unit.unit(), -3.5f);
-            UnitUtils.scan(scanPos);
-            System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
+    private void updateChaser() {
+        //remove dead chasers
+        if (chaser != null && chaser.removeMe) {
+            removeChaser();
+        }
+
+        //assign new chaser
+        if (chaser == null) {
+            addChaser();
         }
     }
 
     private void updateRaven() {
-        if (raven != null) {
-            //set targetPos if raven is alive
-            if (raven.isAlive()) {
-                raven.targetPos = targetUnit.unit().getPosition().toPoint2d();
-                raven.targetPos = UnitUtils.getPosLeadingUnit(raven.unit.unit(), targetUnit.unit());
-            }
-            //remove dead raven
-            else {
-                Ignored.remove(raven.unit.getTag());
-                raven = null;
-            }
+        //remove dead raven
+        if (raven != null && raven.removeMe) {
+            removeRaven();
         }
-        //assign new raven
-        if (raven == null && isRavenRequired()) {
+
+        //assign new chaser
+        if (raven == null) {
             addRaven();
         }
     }
 
     public boolean isRavenRequired() {
-        return targetUnit.unit().getType() == Units.TERRAN_BANSHEE ||
-                targetUnit.unit().getType() == Units.PROTOSS_OBSERVER ||
-                targetUnit.unit().getType() == Units.PROTOSS_OBSERVER_SIEGED;
+        return targetUnit.unit().getType() == Units.TERRAN_GHOST ||
+                targetUnit.unit().getType() == Units.PROTOSS_DARK_TEMPLAR ||
+                targetUnit.unit().getType() == Units.ZERG_LURKER_MP; //TODO: add zerg units when burrow-tech is detected
     }
 
-    private void updateVikings() {
-        //remove dead vikings
-        vikings.forEach(vikingChaser -> {
-            if (!vikingChaser.isAlive()) {
-                Ignored.remove(vikingChaser.unit.getTag());
-            }
-        });
-        vikings.removeIf(vikingChaser -> !vikingChaser.isAlive());
+    public List<Units> getChaserTypes() {
+        switch ((Units)targetUnit.unit().getType()) {
+            case ZERG_DRONE: case PROTOSS_PROBE: case TERRAN_SCV:
+            case ZERG_ZERGLING: case ZERG_BANELING: case PROTOSS_ZEALOT:
+            case TERRAN_HELLION_TANK:
+                return List.of(Units.TERRAN_HELLION, Units.TERRAN_CYCLONE, Units.TERRAN_BANSHEE);
+            case ZERG_ROACH: case ZERG_HYDRALISK: case ZERG_QUEEN: case TERRAN_SENSOR_TOWER:
+            case PROTOSS_PYLON: case PROTOSS_SHIELD_BATTERY:
+                return List.of(Units.TERRAN_CYCLONE, Units.TERRAN_BANSHEE);
+            case ZERG_RAVAGER: case ZERG_LURKER_MP: case ZERG_SPINE_CRAWLER:
+            case ZERG_SPINE_CRAWLER_UPROOTED:
+                return List.of(Units.TERRAN_BANSHEE);
+            case ZERG_SPORE_CRAWLER_UPROOTED: case ZERG_SPORE_CRAWLER: case TERRAN_MISSILE_TURRET:
+                return List.of(Units.TERRAN_CYCLONE);
+        }
+        return Collections.emptyList();
+    }
 
-        //add new vikings up to 2 TODO: (assign different amounts of vikings for different targets?)
-        if (vikings.size() < 2) {
-            addViking();
+    private void removeChaser() {
+        Ignored.remove(chaser.unit.getTag());
+        chaser = null;
+    }
+
+    private void removeRaven() {
+        Ignored.remove(raven.unit.getTag());
+        raven = null;
+    }
+
+    private void addChaser() {
+        List<Units> validChaserTypes = getChaserTypes();
+        for (Units chaserType : validChaserTypes) {
+            List<Unit> validChasers = UnitUtils.getMyUnitsOfType(chaserType); //TODO: handle removing ignoreds from unit lists/maps in gamecache
+            if (validChasers.isEmpty()) {
+                continue;
+            }
+            Unit closestChaser = validChasers.stream()
+                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u, targetUnit.unit())))
+                    .get();
+            chaser = new Chaser(closestChaser, targetUnit);
+            Ignored.add(new IgnoredUnit(closestChaser.getTag()));
+            return;
         }
     }
 
     private void addRaven() {
-        Point2d targetPos = targetUnit.unit().getPosition().toPoint2d();
         GameCache.ravenList.stream()
-                .min(Comparator.comparing(closestRaven -> UnitUtils.getDistance(closestRaven, targetPos)))
+                .min(Comparator.comparing(closestRaven -> UnitUtils.getDistance(closestRaven, targetUnit.unit())))
                 .ifPresent(closestRaven -> {
-                    raven = new BasicUnitMicro(closestRaven, targetPos, MicroPriority.SURVIVAL);
+                    raven = new Chaser(closestRaven, targetUnit);
                     Ignored.add(new IgnoredUnit(closestRaven.getTag()));
                     GameCache.ravenList.remove(closestRaven);
-                });
-    }
-
-    private void addViking() {
-        Point2d targetPos = targetUnit.unit().getPosition().toPoint2d();
-        GameCache.vikingList.stream()
-                .min(Comparator.comparing(viking -> UnitUtils.getDistance(viking, targetPos)))
-                .ifPresent(closestViking -> {
-                    vikings.add(new VikingChaser(closestViking, targetUnit));
-                    Ignored.add(new IgnoredUnit(closestViking.getTag()));
-                    GameCache.ravenList.remove(closestViking);
                 });
     }
 
@@ -154,21 +162,24 @@ public class GroundUnitKillSquad {
         if (targetUnit != null) {
             Ignored.remove(targetUnit.getTag());
         }
+        if (chaser != null) {
+            Ignored.remove(chaser.unit.getTag());
+        }
         if (raven != null) {
             Ignored.remove(raven.unit.getTag());
         }
-        vikings.forEach(vikingChaser -> Ignored.remove(vikingChaser.unit.getTag()));
     }
 
     //cancel killsquad is target is dead, in fog (for over 4s), or protected from vikings
     private boolean shouldCancelKillSquad() {
         return !targetUnit.isAlive() ||
                 targetUnit.getLastSeenGameLoop() + 96 <= Time.nowFrames() ||
-                (!vikings.isEmpty() && vikings.stream()
-                        .allMatch(viking -> InfluenceMaps.getValue(
-                                InfluenceMaps.pointThreatToAirValue,
-                                Position.towards(targetUnit.unit(), viking.unit.unit(), 9)
-                        ) >= MAX_THREAT));
+                !targetIsSolo();
+    }
+
+    private boolean targetIsSolo() {
+        return Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.canAttack(u.unit().getType()) &&
+                UnitUtils.getDistance(u.unit(), targetUnit.unit()) < 10).isEmpty();
     }
 
 
@@ -193,12 +204,6 @@ public class GroundUnitKillSquad {
         return enemyGroundTargets.stream().anyMatch(killSquad -> killSquad.targetUnit.getTag().equals(targetTag));
     }
 
-    public static boolean containsWithNoVikings(Tag targetTag) {
-        return enemyGroundTargets.stream()
-                .anyMatch(killSquad -> killSquad.targetUnit.getTag().equals(targetTag) &&
-                        killSquad.vikings.isEmpty());
-    }
-
     public static void add(UnitInPool newTarget) {
         if (!contains(newTarget.getTag())) {
             enemyGroundTargets.add(new GroundUnitKillSquad(newTarget));
@@ -211,5 +216,20 @@ public class GroundUnitKillSquad {
                 .filter(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove))
                 .forEach(killSquad -> killSquad.removeAll());
         enemyGroundTargets.removeIf(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove));
+    }
+
+    public static boolean isValidEnemyType(Units unitType) {
+        switch (unitType) {
+            case ZERG_DRONE: case ZERG_ZERGLING: case ZERG_QUEEN:
+            case ZERG_BANELING: case ZERG_ROACH: case ZERG_RAVAGER:
+            case ZERG_HYDRALISK: case ZERG_LURKER_MP: case ZERG_SPINE_CRAWLER:
+            case ZERG_SPINE_CRAWLER_UPROOTED: case ZERG_SPORE_CRAWLER: case ZERG_SPORE_CRAWLER_UPROOTED:
+            case PROTOSS_PROBE: case PROTOSS_ZEALOT: case PROTOSS_PYLON:
+            case PROTOSS_SHIELD_BATTERY:
+            case TERRAN_SCV: case TERRAN_MISSILE_TURRET: case TERRAN_SENSOR_TOWER:
+            case TERRAN_HELLION_TANK:
+                return true;
+        }
+        return false;
     }
 }

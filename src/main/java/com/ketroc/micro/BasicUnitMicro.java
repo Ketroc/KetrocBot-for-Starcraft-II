@@ -50,7 +50,7 @@ public class BasicUnitMicro {
         this.movementSpeed = UnitUtils.getUnitSpeed(unit.unit().getType());
     }
 
-    protected boolean[][] getThreatMap() {
+    public boolean[][] getThreatMap() {
         if (this instanceof StructureFloater) {
             return InfluenceMaps.pointThreatToAirPlusBuffer;
         }
@@ -80,8 +80,6 @@ public class BasicUnitMicro {
             return;
         }
 
-        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
-
         //attack if available
         if (attackIfAvailable()) {
             return;
@@ -95,14 +93,19 @@ public class BasicUnitMicro {
         //detour if needed
         if (!isSafe() && !neverDetour()) {
             detour();
+            return;
         }
+
         //finishing step on arrival
-        else if (UnitUtils.getDistance(unit.unit(), targetPos) < 2.5f) {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) < 2.5f) {
             onArrival();
+            return;
         }
+
         //continue moving to target
-        else if (!isMovingToTargetPos()) {
+        if (!isMovingToTargetPos()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            return;
         }
     }
 
