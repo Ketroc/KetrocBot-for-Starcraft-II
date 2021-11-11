@@ -157,15 +157,12 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         return calcSafeLandingPos(inFrontOfExpansionPos);
     }
     private Point2d calcSafeLandingPos(Point2d searchOriginPos) {
-        //get position in front of enemy command structure
-        Base base = GameCache.baseList.stream()
-                .filter(b -> b.getCcPos().distance(basePos) < 1)
-                .findFirst().get();
 
         //get a list of cc positions sorted by nearest to flying cc
         List<Point2d> landingPosList = Position.getSpiralList(searchOriginPos, 8);
         landingPosList = landingPosList.stream()
                 //.filter(landingPos -> landingPos.distance(basePos) < 12) //in range for PF to kill enemy command structure
+                .filter(landingPos -> GameCache.baseList.stream().noneMatch(base -> base.getCcPos().distance(landingPos) < 5f))
                 .filter(landingPos -> UnitUtils.isPlaceable(Units.TERRAN_COMMAND_CENTER, landingPos))
                 .filter(landingPos -> InfluenceMaps.getGroundThreatToStructure(Units.TERRAN_BARRACKS, landingPos) < 4) //barracks instead of command center: is a hack to help ignore a portion of the kiting buffer of enemy units
                 //.filter(landingPos -> !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, landingPos))
