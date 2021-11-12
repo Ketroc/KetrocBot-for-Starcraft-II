@@ -1409,4 +1409,8 @@ public class UnitUtils {
                 curOrder.targetTag != null &&
                 UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(Bot.OBS.getUnit(curOrder.targetTag).unit().getType());
     }
+
+    public static boolean isEnemyUnitSolo(Unit enemyUnit) {
+        return InfluenceMaps.getValue(InfluenceMaps.pointEnemyAttackersWith10Range, enemyUnit.getPosition().toPoint2d()) < 2;
+    }
 }

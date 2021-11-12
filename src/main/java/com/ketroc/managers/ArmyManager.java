@@ -71,6 +71,7 @@ public class ArmyManager {
         setLeadTank();
         setAirTarget();
         sendAirKillSquad();
+        sendGroundKillSquad();
         setIsAttackUnitRetreating();
         setAirOrGroundTarget();
         setCloakedTarget();
@@ -715,16 +716,15 @@ public class ArmyManager {
                 .orElse(null);
     }
 
-    //snipe unprotected enemy air units that are wandering away from protection TODO: check all enemy air units, not just closest
+    //snipe unprotected enemy air units that are wandering away from protection
     private static void sendAirKillSquad() {
         if (GameCache.vikingList.isEmpty()) {
             return;
         }
 
-        GameCache.allEnemiesList.stream()
+        GameCache.allVisibleEnemiesList.stream()
                 .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
                         !enemyAirUip.unit().getHallucination().orElse(false) &&
-                        !UnitUtils.isInFogOfWar(enemyAirUip) &&
                         !Ignored.contains(enemyAirUip.getTag()) &&
                         InfluenceMaps.getValue(
                                 InfluenceMaps.pointThreatToAirValue,
@@ -733,6 +733,18 @@ public class ArmyManager {
                 .min(Comparator.comparing(enemyAirUip ->
                         UnitUtils.getDistance(enemyAirUip.unit(), LocationConstants.baseLocations.get(0))))
                 .ifPresent(enemyAirUip -> AirUnitKillSquad.add(enemyAirUip));
+    }
+
+    //peel off and snipe solo ground units
+    private static void sendGroundKillSquad() {
+        GameCache.allVisibleEnemiesList.stream()
+                .filter(enemy -> GroundUnitKillSquad.isValidEnemyType((Units)enemy.unit().getType()) &&
+                        !enemy.unit().getHallucination().orElse(false) &&
+                        !Ignored.contains(enemy.getTag()) &&
+                        UnitUtils.isEnemyUnitSolo(enemy.unit()))
+                .min(Comparator.comparing(enemyAirUip ->
+                        UnitUtils.getDistance(enemyAirUip.unit(), LocationConstants.baseLocations.get(0))))
+                .ifPresent(enemy -> GroundUnitKillSquad.add(enemy));
     }
 
     private static UnitInPool getClosestEnemyGroundUnit() {

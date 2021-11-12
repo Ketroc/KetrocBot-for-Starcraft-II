@@ -2,19 +2,11 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
-import com.ketroc.bots.Bot;
-import com.ketroc.geometry.Position;
 import com.ketroc.micro.BasicUnitMicro;
 import com.ketroc.micro.Chaser;
-import com.ketroc.micro.MicroPriority;
-import com.ketroc.micro.VikingChaser;
-import com.ketroc.utils.InfluenceMaps;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
@@ -64,7 +56,7 @@ public class GroundUnitKillSquad {
     public void updateUnits() {
         updateChaser();
         if (chaser != null) {
-            raven.onStep();
+            chaser.onStep();
         }
         if (isRavenRequired()) {
             updateRaven();
@@ -139,17 +131,20 @@ public class GroundUnitKillSquad {
             if (validChasers.isEmpty()) {
                 continue;
             }
-            Unit closestChaser = validChasers.stream()
+            validChasers.stream()
+                    .filter(u -> !Ignored.contains(u.getTag()))
                     .min(Comparator.comparing(u -> UnitUtils.getDistance(u, targetUnit.unit())))
-                    .get();
-            chaser = new Chaser(closestChaser, targetUnit);
-            Ignored.add(new IgnoredUnit(closestChaser.getTag()));
+                    .ifPresent(u -> {
+                        chaser = new Chaser(u, targetUnit);
+                        Ignored.add(new IgnoredUnit(u.getTag()));
+                    });
             return;
         }
     }
 
     private void addRaven() {
         GameCache.ravenList.stream()
+                .filter(closestRaven -> !Ignored.contains(closestRaven.getTag()))
                 .min(Comparator.comparing(closestRaven -> UnitUtils.getDistance(closestRaven, targetUnit.unit())))
                 .ifPresent(closestRaven -> {
                     raven = new Chaser(closestRaven, targetUnit);
@@ -174,12 +169,7 @@ public class GroundUnitKillSquad {
     private boolean shouldCancelKillSquad() {
         return !targetUnit.isAlive() ||
                 targetUnit.getLastSeenGameLoop() + 96 <= Time.nowFrames() ||
-                !targetIsSolo();
-    }
-
-    private boolean targetIsSolo() {
-        return Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.canAttack(u.unit().getType()) &&
-                UnitUtils.getDistance(u.unit(), targetUnit.unit()) < 10).isEmpty();
+                !UnitUtils.isEnemyUnitSolo(targetUnit.unit());
     }
 
 

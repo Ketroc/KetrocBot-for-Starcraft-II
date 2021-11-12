@@ -659,6 +659,7 @@ public class GameCache {
         InfluenceMaps.pointThreatToAirPlusBuffer = new boolean[800][800];
         InfluenceMaps.pointSupplyInSeekerRange = new float[800][800];
         InfluenceMaps.pointThreatToAirValue = new int[800][800];
+        InfluenceMaps.pointEnemyAttackersWith10Range = new int[800][800];
         InfluenceMaps.pointThreatToAir = new boolean[800][800];
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
         InfluenceMaps.pointThreatToGroundValue = new int[800][800];
@@ -698,6 +699,13 @@ public class GameCache {
                     if (distance < 15 + Strategy.KITING_BUFFER) {
                         InfluenceMaps.pointVikingsStayBack[x][y] = true;
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.21f,y/2-0.21f, z), Point.of(x/2+0.21f,y/2+0.21f, z), Color.TEAL);
+                    }
+
+                    if (enemy.unitType != Units.INVALID &&
+                            enemy.isTargettableUnit() &&
+                            (enemy.groundAttackRange > 0 || enemy.airAttackRange > 0) &&
+                            distance <= 10) {
+                        InfluenceMaps.pointEnemyAttackersWith10Range[x][y]++;
                     }
 
                     //threat level to ground

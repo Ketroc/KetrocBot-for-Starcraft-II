@@ -15,7 +15,7 @@ public class KetrocLauncher {
     public static void main(String[] args) {
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Strategy.gamePlan = GamePlan.TANK_VIKING;
+        Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
@@ -30,7 +30,7 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
-                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
+                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
 //                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()))
                 .launchStarcraft()
 

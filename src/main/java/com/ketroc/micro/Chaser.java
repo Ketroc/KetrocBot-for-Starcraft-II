@@ -1,7 +1,6 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 
 public class Chaser extends BasicUnitMicro {
@@ -19,6 +18,7 @@ public class Chaser extends BasicUnitMicro {
 
     @Override
     public void onStep() {
+        updateTargetPos();
         super.onStep();
     }
 

@@ -16,6 +16,7 @@ public class InfluenceMaps {
     public static boolean[][] pointInMarineRange;
     public static boolean[][] pointInEnemyVision;
     public static int[][] pointThreatToAirValue;
+    public static int[][] pointEnemyAttackersWith10Range;
     public static boolean[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;
     public static int[][] pointThreatToAirPlusBufferValue;
