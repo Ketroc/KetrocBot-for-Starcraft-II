@@ -1280,7 +1280,7 @@ public class UnitUtils {
     }
 
     public static boolean isAnyBaseUnderAttack() {
-        return GameCache.baseList.stream().noneMatch(base -> base.isUnderAttack());
+        return GameCache.baseList.stream().anyMatch(base -> base.isUnderAttack());
     }
 
     public static List<UnitInPool> getEnemyGroundArmyUnitsWithin(int range) {

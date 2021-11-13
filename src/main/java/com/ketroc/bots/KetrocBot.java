@@ -166,6 +166,8 @@ public class KetrocBot extends Bot {
             EnemyScan.onStep(); //remove expired enemy scans
             GameCache.onStep(); //rebuild unit cache every frame
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
+//TODO:turn on:            OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
+
 //            StructureScv.updateBank(); //update bank for build commands which haven't been given yet
             GasStealDefense.onStep(); //check for early-game gas steal and respond
             ActionErrorManager.onStep(); //handle action errors like "cannot place building"

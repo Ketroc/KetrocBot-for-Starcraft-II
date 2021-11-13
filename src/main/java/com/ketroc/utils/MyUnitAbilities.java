@@ -2,6 +2,7 @@ package com.ketroc.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.observation.AvailableAbility;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -19,12 +20,23 @@ public class MyUnitAbilities {
     public static void onStep() {
         List<Unit> myUnits = Bot.OBS.getUnits(Alliance.SELF).stream().map(UnitInPool::unit).collect(Collectors.toList());
         Bot.QUERY.getAbilitiesForUnits(myUnits, false)
-                .forEach(unitAbils -> map.put(
-                        unitAbils.getUnitTag(),
-                        unitAbils.getAbilities().stream()
-                                .map(availAbility -> (Abilities)availAbility.getAbility())
-                                .collect(Collectors.toSet())
-                ));
+                .forEach(unitAbils -> {
+                    AvailableAbility missingAbility = unitAbils.getAbilities().stream()
+                            .filter(availAbility -> availAbility.getAbility() instanceof Abilities.Other)
+                            .findFirst()
+                            .orElse(null);
+                    if (missingAbility != null) {
+                        System.out.println(missingAbility.getAbility().toString());
+                    }
+                    else {
+                        map.put(
+                                unitAbils.getUnitTag(),
+                                unitAbils.getAbilities().stream()
+                                        .map(availAbility -> (Abilities) availAbility.getAbility())
+                                        .collect(Collectors.toSet())
+                        );
+                    }
+                });
     }
 
     public static boolean isAbilityAvailable(Unit myUnit, Abilities ability) {

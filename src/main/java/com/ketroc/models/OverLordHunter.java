@@ -83,10 +83,21 @@ public class OverLordHunter {
         //barracks handling
         if (!isAborting) {
             barracksSpotting();
+            if (!isBarracksLanded()) {
+                unloadBunker();
+            }
         }
         else {
             barracksLanding();
         }
+    }
+
+    private void unloadBunker() {
+        UnitUtils.getNatBunker().ifPresent(bunker -> {
+            if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
+                ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
+            }
+        });
     }
 
     private void setOverlord() {
@@ -106,7 +117,7 @@ public class OverLordHunter {
         }
 
         //overlord is unreachable by marines
-        if (overlord != null && UnitUtils.isReachableToAttack(overlord.unit(), 5.1f)) {
+        if (overlord != null && !UnitUtils.isReachableToAttack(overlord.unit(), 5.1f)) {
             prevCheckedOverlords.put(overlord.getTag(), Time.nowFrames());
             overlord = null;
             return;
@@ -187,14 +198,19 @@ public class OverLordHunter {
 
             getClosestOverlord().ifPresent(ol -> overlordHunter = new OverLordHunter(ol));
         }
+
+        //run overlord hunting
+        if (overlordHunter != null) {
+            overlordHunter.onStep();
+        }
     }
 
     private static Optional<UnitInPool> getClosestOverlord() {
         return UnitUtils.getEnemyUnitsOfType(Units.ZERG_OVERLORD).stream()
                 .filter(ol -> !OverLordHunter.isOverlordLost(ol))
-                .filter(ol -> UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(0).getCcPos()) < 15 ||
-                        UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(1).getCcPos()) < 15 ||
-                        UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(2).getCcPos()) < 15)
+                .filter(ol -> UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(0).getCcPos()) < 20 ||
+                        UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(1).getCcPos()) < 20 ||
+                        UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(2).getCcPos()) < 20)
                 .filter(ol -> UnitUtils.isReachableToAttack(ol.unit(), 5.1f))
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.BUNKER_NATURAL)));
     }

@@ -159,9 +159,10 @@ public class ArmyManager {
     }
 
     private static void setLeadTank() {
+        Point2d leadPos = attackGroundPos != null ? attackGroundPos : LocationConstants.enemyMainBaseMidPos;
         leadTank = UnitMicroList.getUnitSubList(TankOffense.class)
                 .stream()
-                .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), attackGroundPos)))
+                .min(Comparator.comparing(tank -> UnitUtils.getDistance(tank.unit.unit(), leadPos)))
                 .map(tankOffense -> tankOffense.unit)
                 .orElse(null);
     }
@@ -437,7 +438,7 @@ public class ArmyManager {
         }
 
         if (Strategy.MASS_MINE_OPENER && WidowMine.hasPermaCloak()) {
-            Chat.chatNeverRepeat("Go go drilly boys!");
+            Chat.chatNeverRepeat("Go go drilly bois!");
             doOffense = true;
             return;
         }
@@ -893,17 +894,18 @@ public class ArmyManager {
             return;
         }
 
-        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
-            UnitMicroList.getUnitSubList(MarineBasic.class)
-                    .forEach(marine -> {
-                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
-                                OverLordHunter.overlordHunter.getOverlord().unit(),
-                                marine.unit.unit());
-                        if (reachableAttackPos != null) {
-                            marine.targetPos = reachableAttackPos;
-                        }
-                    });
-        }
+//TODO: turn on:        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
+//            UnitMicroList.getUnitSubList(MarineBasic.class)
+//                    .forEach(marine -> {
+//                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
+//                                OverLordHunter.overlordHunter.getOverlord().unit(),
+//                                marine.unit.unit());
+//                        if (reachableAttackPos != null) {
+//                            marine.targetPos = reachableAttackPos;
+//                        }
+//                    });
+//            return;
+//        }
 
         Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
         boolean enemyInBunkerRange = bunkerAtNatural.isPresent() && //bunker exists

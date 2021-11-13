@@ -100,13 +100,13 @@ public class GroundUnitKillSquad {
         switch ((Units)targetUnit.unit().getType()) {
             case ZERG_DRONE: case PROTOSS_PROBE: case TERRAN_SCV:
             case ZERG_ZERGLING: case ZERG_BANELING: case PROTOSS_ZEALOT:
-            case TERRAN_HELLION_TANK:
+            case TERRAN_REAPER: case TERRAN_HELLION_TANK:
                 return List.of(Units.TERRAN_HELLION, Units.TERRAN_CYCLONE, Units.TERRAN_BANSHEE);
             case ZERG_ROACH: case ZERG_HYDRALISK: case ZERG_QUEEN: case TERRAN_SENSOR_TOWER:
             case PROTOSS_PYLON: case PROTOSS_SHIELD_BATTERY:
                 return List.of(Units.TERRAN_CYCLONE, Units.TERRAN_BANSHEE);
             case ZERG_RAVAGER: case ZERG_LURKER_MP: case ZERG_SPINE_CRAWLER:
-            case ZERG_SPINE_CRAWLER_UPROOTED:
+            case ZERG_SPINE_CRAWLER_UPROOTED: case TERRAN_MARAUDER:
                 return List.of(Units.TERRAN_BANSHEE);
             case ZERG_SPORE_CRAWLER_UPROOTED: case ZERG_SPORE_CRAWLER: case TERRAN_MISSILE_TURRET:
                 return List.of(Units.TERRAN_CYCLONE);

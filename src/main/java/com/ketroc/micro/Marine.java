@@ -6,7 +6,6 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.LocationConstants;
@@ -33,6 +32,9 @@ public class Marine extends BasicUnitMicro {
         if (bunker != null && bunker.getBuildProgress() == 1f) {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
+        }
+        else if (UnitUtils.getDistance(unit.unit(), targetPos) > 0.5f && !isMovingToTargetPos()) {
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
 //        if (!unit.unit().getActive().orElse(true)) {
 //            ActionHelper.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
