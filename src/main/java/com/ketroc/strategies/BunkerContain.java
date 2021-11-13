@@ -194,7 +194,7 @@ public class BunkerContain {
                 barracksSpotter.targetPos = defaultSpotterPos;
             }
             //spot enemy siege tanks
-            else {  String a = "";
+            else {
                 //get closest tank within 8 - 16 range of bunker
                 Unit closestEnemyTank = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, UnitUtils.SIEGE_TANK_TYPE, bunkerPos);
                 //set targetPos to tank towards bunkerPos

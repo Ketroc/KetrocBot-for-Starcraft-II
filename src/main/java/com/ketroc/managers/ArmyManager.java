@@ -881,6 +881,18 @@ public class ArmyManager {
             return;
         }
 
+        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
+            UnitMicroList.getUnitSubList(MarineBasic.class)
+                    .forEach(marine -> {
+                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
+                                OverLordHunter.overlordHunter.getOverlord().unit(),
+                                marine.unit.unit());
+                        if (reachableAttackPos != null) {
+                            marine.targetPos = reachableAttackPos;
+                        }
+                    });
+        }
+
         Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
         boolean enemyInBunkerRange = bunkerAtNatural.isPresent() && //bunker exists
                 !UnitUtils.getEnemyTargetsInRange(bunkerAtNatural.get().unit()).isEmpty(); //enemies in range of bunker

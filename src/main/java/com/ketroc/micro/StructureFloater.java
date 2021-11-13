@@ -32,6 +32,7 @@ public class StructureFloater extends BasicUnitMicro {
         if (!doLand) {
             return;
         }
+
         if (unit.unit().getFlying().orElse(true)) {
             if (UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
