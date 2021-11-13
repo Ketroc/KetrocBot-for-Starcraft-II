@@ -113,6 +113,10 @@ public class UnitUtils {
     public static final Set<Units> OBSERVER_TYPE = new HashSet<>(Set.of(
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED));
 
+    public static final Set<Units> OVERLORD_TYPE = new HashSet<>(Set.of(
+            Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERLORD_COCOON,
+            Units.ZERG_OVERLORD_TRANSPORT, Units.ZERG_OVERSEER_SIEGED));
+
     public static final Set<Units> DETECTION_REQUIRED_TYPE = new HashSet<>(Set.of(
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.TERRAN_BANSHEE, Units.TERRAN_GHOST,
             Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
@@ -1412,5 +1416,23 @@ public class UnitUtils {
 
     public static boolean isEnemyUnitSolo(Unit enemyUnit) {
         return InfluenceMaps.getValue(InfluenceMaps.pointEnemyAttackersWith10Range, enemyUnit.getPosition().toPoint2d()) < 2;
+    }
+
+    public static Point2d getReachableAttackPos(Unit enemyUnit, Unit myUnit) {
+        int attackRange = (int)(enemyUnit.getRadius() +
+                UnitUtils.getAttackRange(
+                        myUnit,
+                        enemyUnit.getFlying().get() ? Weapon.TargetType.AIR: Weapon.TargetType.GROUND
+                ));
+        return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), attackRange).stream()
+                .filter(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= attackRange)
+                .min(Comparator.comparing(p -> UnitUtils.getDistance(myUnit, p)))
+                .orElse(null);
+    }
+
+    public static boolean isReachableToAttack(Unit enemyUnit, float attackRange) {
+        float finalAttackRange = attackRange + enemyUnit.getRadius();
+        return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), (int)Math.ceil(finalAttackRange)).stream()
+                .anyMatch(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= finalAttackRange);
     }
 }
