@@ -678,7 +678,7 @@ public class ArmyManager {
         if (Strategy.DO_OFFENSIVE_TANKS && leadTank != null) {
             attackAirPos = Position.towards(
                     leadTank.unit(),
-                    attackGroundPos,
+                    attackGroundPos != null ? attackGroundPos : LocationConstants.enemyMainBaseMidPos,
                     leadTank.unit().getType() == Units.TERRAN_SIEGE_TANK ? 8f : 4.5f
             );
             return;
