@@ -9,7 +9,6 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
-import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.models.Base;
@@ -33,7 +32,7 @@ public class ScvRush {
     private static boolean clusterNow = false;
 
     public static boolean onStep() {
-        if (KetrocBot.isDebugOn) {
+        if (DebugHelper.isDebugOn) {
             int lines = 0;
             DebugHelper.addInfoLine("clusterEnemyNodeStep: " + ScvRush.clusterTriangleStep);
             DebugHelper.addInfoLine("scvRushStep: " + ScvRush.scvRushStep);

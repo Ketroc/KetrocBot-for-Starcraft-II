@@ -34,7 +34,7 @@ public class DroneRush {
     private static long giveUpTargetFrame;
 
     public static void onStep() {
-        if (Bot.isDebugOn) {
+        if (DebugHelper.isDebugOn) {
             int lines = 0;
             Bot.DEBUG.debugTextOut("clusterEnemyNodeStep: " + DroneRush.clusterTriangleStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
             Bot.DEBUG.debugTextOut("droneRushStep: " + DroneRush.droneRushStep, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);

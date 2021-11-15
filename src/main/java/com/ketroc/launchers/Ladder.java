@@ -49,7 +49,7 @@ public class Ladder {
                 opponentId = args[i+1];
             }
         }
-        Bot bot = new KetrocBot(false, opponentId);
+        Bot bot = new KetrocBot(opponentId);
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)

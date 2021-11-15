@@ -124,7 +124,7 @@ public class GameCache {
             if (unit.getType() instanceof Units.Other) {
                 float x = unit.getPosition().getX();
                 float y = unit.getPosition().getY();
-                if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.22f,y-0.22f, Position.getZ(x, y)), Point.of(x+0.22f,y+0.22f, Position.getZ(x, y)), Color.GREEN);
+                if (DebugHelper.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.22f,y-0.22f, Position.getZ(x, y)), Point.of(x+0.22f,y+0.22f, Position.getZ(x, y)), Color.GREEN);
                 continue;
             }
             Units unitType = (Units)unit.getType();
@@ -813,7 +813,7 @@ public class GameCache {
         }
 
         //debug threat text
-        if (Bot.isDebugOn) {
+        if (DebugHelper.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
 //                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {

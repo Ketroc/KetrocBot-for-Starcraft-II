@@ -59,4 +59,10 @@ public class Time {
         long periodFrame = nowFrames() % (NUM_FRAMES_PER_MINUTE * numMinutes);
         return periodFrame < numFrames;
     }
+
+    //returns true if within first played frame of any numMinutes period
+    public static boolean periodic(int numMinutes) {
+        return periodic(numMinutes, Launcher.STEP_SIZE);
+    }
+
 }

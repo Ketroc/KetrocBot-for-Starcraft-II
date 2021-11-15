@@ -278,7 +278,7 @@ public class EnemyUnit {
             case TERRAN_VIKING_FIGHTER:
                 return 3;
             case TERRAN_LIBERATOR:
-                return 6;
+                return 2;
             case TERRAN_GHOST:
                 return 4;
             case TERRAN_AUTO_TURRET:
@@ -290,7 +290,7 @@ public class EnemyUnit {
             case TERRAN_THOR_AP:
                 return 6;
             case TERRAN_WIDOWMINE_BURROWED:
-                return 30; //TODO: what to do with that?
+                return 20; //TODO: what to do with that?
             case TERRAN_BATTLECRUISER:
                 return 8;
             case PROTOSS_SENTRY:

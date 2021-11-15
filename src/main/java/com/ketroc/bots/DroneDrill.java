@@ -41,8 +41,8 @@ public class DroneDrill extends Bot {
             Abilities.MORPH_LAIR, Abilities.BUILD_SPIRE
     ));
 
-    public DroneDrill(boolean isDebugOn, String opponentId) {
-        super(isDebugOn, opponentId);
+    public DroneDrill(String opponentId) {
+        super(opponentId);
     }
 
 

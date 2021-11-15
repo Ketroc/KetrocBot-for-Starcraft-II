@@ -30,8 +30,8 @@ public class TestingBot extends Bot {
     public UnitInPool mainCC;
     public Cyclone cyclone;
 
-    public TestingBot(boolean isDebugOn, String opponentId) {
-        super(isDebugOn, opponentId);
+    public TestingBot(String opponentId) {
+        super(opponentId);
     }
 
     @Override

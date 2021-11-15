@@ -23,7 +23,6 @@ public class Bot extends S2Agent {
     public static QueryInterface QUERY;
     public static DebugInterface DEBUG;
     public static ControlInterface CONTROL;
-    public static boolean isDebugOn;
     public static String opponentId;
     public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
     public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
@@ -32,8 +31,7 @@ public class Bot extends S2Agent {
     public static int enemyId;
     public static int maxSkippedFrames = 3; //number of frames to save prev actions
 
-    public Bot(boolean isDebugOn, String opponentId) {
-        this.isDebugOn = isDebugOn;
+    public Bot(String opponentId) {
         this.opponentId = opponentId;
     }
 

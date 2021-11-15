@@ -5,10 +5,8 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
-import com.github.ocraft.s2client.protocol.observation.ChatReceived;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
 import com.github.ocraft.s2client.protocol.score.CategoryScoreDetails;
@@ -37,8 +35,8 @@ import java.util.List;
 public class KetrocBot extends Bot {
     public static LinkedList<Purchase> purchaseQueue = new LinkedList<Purchase>();
 
-    public KetrocBot(boolean isDebugOn, String opponentId) {
-        super(isDebugOn, opponentId);
+    public KetrocBot(String opponentId) {
+        super(opponentId);
     }
 
     @Override
@@ -111,55 +109,30 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
-            for (ChatReceived chat : OBS.getChatMessages()) {
-                if (chat.getPlayerId() != OBS.getPlayerId()) {
-                    Chat.respondToBots(chat);
-                }
-            }
+            OBS.getChatMessages().stream()
+                    .filter(chat -> chat.getPlayerId() != OBS.getPlayerId())
+                    .forEach(chat -> Chat.respondToBots(chat));
 
             //first step of the game
-            if (Time.nowFrames() <= Launcher.STEP_SIZE) {
+            if (Time.at(Launcher.STEP_SIZE)) {
                 //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
                 JsonUtil.chatAllWinRates(true);
             }
+
 
 //            if (Time.nowFrames() % Launcher.STEP_SIZE != 0 ||
 //                    (Launcher.isRealTime && Time.nowFrames() < 24)) {
 //                return;
 //            }
+//            //************************************
+//            //***** DO EVERY STEPSIZE FRAME ******
+//            //************************************
 
-            //************************************
-            //***** DO EVERY STEPSIZE FRAME ******
-            //************************************
-
-            //TODO: delete - for testing
-            if (Time.at(Time.toFrames(5))) {
-                //GameCache.baseList.get(0).scvReport();
-//                Point2d pylonPos = Position.towards(LocationConstants.baseLocations.get(1), LocationConstants.baseLocations.get(0), -5);
-//                pylonPos = Position.towards(pylonPos, LocationConstants.baseLocations.get(3), -5);
-//                DEBUG.debugCreateUnit(Units.PROTOSS_PYLON, LocationConstants.BUNKER_NATURAL, myId, 1);
-//                GameCache.baseList.forEach(base -> {
-//                    DebugHelper.drawBox(base.getCcPos(), Color.WHITE, 2.5f);
-//                    DebugHelper.drawBox(base.getResourceMidPoint(), Color.WHITE, 0.3f);
-//                    base.getMineralPatches().forEach(patch -> {
-//                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
-//                    });
-//                    base.getGases().forEach(patch -> {
-//                        DebugHelper.drawLine(patch.getByNodePos(), patch.getByCCPos(), Color.GRAY);
-//                    });
-//                    base.getTurrets().forEach(turret -> {
-//                        DebugHelper.drawBox(turret.getPos(), Color.GREEN, 1f);
-//                    });
-//                });
-//                Bot.DEBUG.sendDebug();
-//                int weior = 398;
-            }
 
             if (LocationConstants.opponentRace == Race.ZERG) {
                 BileTracker.onStep();
             }
             MyUnitAbilities.onStep();
-            DebugHelper.onStep(); //reset debug status for printing info
             //PlacementMap.visualizePlacementMap();
 
             Ignored.onStep(); //free up ignored units
@@ -252,9 +225,7 @@ public class KetrocBot extends Bot {
 
             purchaseQueue.remove(toRemove);
 
-            if (isDebugOn) {
-                displayGameInfo();
-            }
+            DebugHelper.onStep();
             ACTION.sendActions();
         }
         catch (Exception e) {
@@ -262,67 +233,6 @@ public class KetrocBot extends Bot {
             Error.onException(e);
         }
     } // end onStep()
-
-    private void displayGameInfo() {
-//                    DebugHelper.addInfoLine(DEBUG.debugTextOut("Cannon Rushed: " + (CannonRushDefense.cannonRushStep != 0), Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-//                    DEBUG.debugTextOut("Safe to Expand: " + CannonRushDefense.isSafe, Point2d.of((float) 0.1, (float) ((100.0 + 20.0 * lines++) / 1080.0)), Color.WHITE, 12);
-
-        for (int i=0; i<GameCache.baseList.size(); i++) {
-            if (GameCache.baseList.get(i).isEnemyBase) {
-                DebugHelper.addInfoLine("enemy base index: " + i);
-                break;
-            }
-        }
-        DebugHelper.addInfoLine("scvs/gas: " + WorkerManager.numScvsPerGas);
-        DebugHelper.addInfoLine("");
-
-
-        for (int i = 0; i < ExpansionClearing.expoClearList.size(); i++) {
-            DebugHelper.addInfoLine("base: " + ExpansionClearing.expoClearList.get(i).expansionPos +
-                    " raven: " +
-                    (ExpansionClearing.expoClearList.get(i).raven != null
-                            ? ExpansionClearing.expoClearList.get(i).raven.unit.unit().getPosition().toPoint2d()
-                            : "none"));
-        }
-        DebugHelper.addInfoLine("# Scvs Ignored: " + Ignored.ignoredUnits.stream()
-                .filter(ignored -> OBS.getUnit(ignored.unitTag) != null)
-                .map(ignored -> OBS.getUnit(ignored.unitTag).unit().getType())
-                .filter(unitType -> unitType == Units.TERRAN_SCV)
-                .count());
-        DebugHelper.addInfoLine("# Scvs Building: " + StructureScv.scvBuildingList.stream()
-                .map(structureScv -> structureScv.getScv().unit().getType())
-                .filter(unitType -> unitType == Units.TERRAN_SCV)
-                .count());
-        DebugHelper.addInfoLine("doOffense: " + ArmyManager.doOffense);
-        DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
-        DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
-        DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
-        DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
-        if (LocationConstants.opponentRace == Race.PROTOSS) {
-            DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
-        }
-
-        UnitInPool tempest = UnitUtils.getClosestEnemyUnitOfType(Units.PROTOSS_TEMPEST, ArmyManager.retreatPos);
-        if (tempest != null) {
-            DebugHelper.addInfoLine("vikings near tempest: " + UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER,
-                    tempest.unit().getPosition().toPoint2d(), Strategy.DIVE_RANGE).size());
-        }
-
-        DebugHelper.addInfoLine("vikings wanted: " + ArmyManager.calcNumVikingsNeeded()*0.7);
-        DebugHelper.addInfoLine("Purchase Queue: " + KetrocBot.purchaseQueue.size());
-        DebugHelper.addInfoLine("Switches.enemyCanProduceAir: " + Switches.enemyCanProduceAir);
-        if (ArmyManager.attackGroundPos != null) {
-            DebugHelper.draw3dBox(ArmyManager.attackGroundPos, Color.YELLOW, 0.6f);
-        }
-        for (int i = 0; i < purchaseQueue.size() && i < 5; i++) {
-            DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
-        }
-
-//        DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
-//        DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
-//        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
-        DEBUG.sendDebug();
-    }
 
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {

@@ -1013,7 +1013,10 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .filter(gas -> gas.getRefinery() != null && gas.getRefinery().getBuildProgress() == 1f && gas.getScvs().size() < 3)
+                .filter(gas -> gas.getRefinery() != null &&
+                        gas.getRefinery().getBuildProgress() == 1f &&
+                        gas.getRefinery().getVespeneContents().orElse(0) > 0 &&
+                        gas.getScvs().size() < 3)
                 .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos) + (gas.getScvs().size() >= 2 ? 1000 : 0)))
                 .orElse(null);
     }
@@ -1021,7 +1024,10 @@ public class Base {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .filter(gas -> gas.getScvs().size() < WorkerManager.numScvsPerGas)
+                .filter(gas -> gas.getRefinery() != null &&
+                        gas.getRefinery().getBuildProgress() == 1f &&
+                        gas.getRefinery().getVespeneContents().orElse(0) > 0 &&
+                        gas.getScvs().size() < WorkerManager.numScvsPerGas)
                 .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos)))
                 .orElse(null);
     }

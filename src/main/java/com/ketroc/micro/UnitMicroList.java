@@ -1,9 +1,8 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.protocol.unit.Tag;
-import com.ketroc.models.IgnoredUnit;
 import com.ketroc.models.Ignored;
-import com.ketroc.utils.Time;
+import com.ketroc.models.IgnoredUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,7 @@ public class UnitMicroList {
     public static void onStep() {
         long microStartTime = System.currentTimeMillis();
         unitMicroList.forEach(BasicUnitMicro::onStep);
-//        if (Time.nowFrames() % 1344 == 0) { //once a minute
+//        if (Time.nowFrames() % Time.NUM_FRAMES_PER_MINUTE == 0) { //once a minute
 //            System.out.println("num cyclones micro'ing = " + UnitMicroList.getUnitSubList(Cyclone.class).size());
 //            System.out.println("num units micro'ing = " + unitMicroList.size());
 //            System.out.println("time taken (ms) = " + (System.currentTimeMillis() - microStartTime));

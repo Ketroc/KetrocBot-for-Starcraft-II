@@ -8,14 +8,18 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
+import com.ketroc.utils.DebugHelper;
 
 import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
+        DebugHelper.doTestingSpawns = true;
+        DebugHelper.isDebugOn = false;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
+        Strategy.DO_BANSHEE_HARASS = false;
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
@@ -29,7 +33,7 @@ public class KetrocLauncher {
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")),
+                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot( "")),
                         S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()),
 //                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")))
