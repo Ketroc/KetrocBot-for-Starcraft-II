@@ -2,7 +2,6 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -12,7 +11,10 @@ import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.utils.*;
+import com.ketroc.utils.ActionHelper;
+import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.Time;
+import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -160,7 +162,7 @@ public class HellionHarasser extends Hellion {
     @Override
     protected void setTargetPos() {
         //flee from closest cyclone, if locked on
-        if (unit.unit().getBuffs().contains(Buffs.LOCK_ON)) {
+        if (hasLockOnBuff()) {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, unit.unit().getPosition().toPoint2d());
             if (nearestCyclone != null) {
                 targetPos = Position.towards(unit.unit().getPosition().toPoint2d(), nearestCyclone.getPosition().toPoint2d(), -4);

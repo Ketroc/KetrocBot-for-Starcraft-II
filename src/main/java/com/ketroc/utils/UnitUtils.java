@@ -1435,4 +1435,8 @@ public class UnitUtils {
         return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), (int)Math.ceil(finalAttackRange)).stream()
                 .anyMatch(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= finalAttackRange);
     }
+
+    public static Point2d getBehindBunkerPos() {
+        return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 1.9f);
+    }
 }

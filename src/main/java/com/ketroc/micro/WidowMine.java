@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
@@ -23,12 +24,14 @@ public class WidowMine extends BasicUnitMicro {
     public static int fireFrames = 22 + Launcher.STEP_SIZE;
     public long lastAttackFrame;
     public long lastManualTargetFrame;
+    public float prevSafeHealth; //health value before entering threat area
     public UnitInPool lastManualTarget;
     public Base offenseTargetBase;
 
     public WidowMine(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
         offenseTargetBase = LocationConstants.nextEnemyBase;
+        prevSafeHealth = unit.getHealth().orElse(90f);
     }
 
     public WidowMine(UnitInPool unit, Point2d targetPos) {
@@ -59,12 +62,20 @@ public class WidowMine extends BasicUnitMicro {
             if (offenseTargetBase == null) {
                 offenseTargetBase = UnitUtils.getNextEnemyBase();
             }
+            else if (isAtEnemyBasePos() && getTargets().isEmpty()) {
+                offenseTargetBase = UnitUtils.getNextEnemyBase(offenseTargetBase.getCcPos());
+            }
             if (offenseTargetBase != null) {
                 targetPos = offenseTargetBase.getResourceMidPoint();
                 return;
             }
         }
         super.updateTargetPos();
+
+        //adjustment to be in front of bunker instead of behind
+        if (!ArmyManager.doOffense && targetPos.equals(UnitUtils.getBehindBunkerPos())) {
+            targetPos = Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), -3f);
+        }
     }
 
     @Override
@@ -73,7 +84,13 @@ public class WidowMine extends BasicUnitMicro {
             onDeath();
             return;
         }
+        micro();
+        if (isSafe() || (isBurrowed() && !isDetected())) {
+            prevSafeHealth = unit.unit().getHealth().orElse(0f);
+        }
+    }
 
+    private void micro() {
         if (isBusy()) {
             return;
         }
@@ -88,20 +105,30 @@ public class WidowMine extends BasicUnitMicro {
         }
 
         if (!isBurrowed()) {
-            if (!isSafe()) {
-                if (!isDetected()) {
+            boolean isSafe = isSafe();
+            List<UnitInPool> targets = getTargets();
+
+            if (isSafe) {
+                boolean isATargetWithin3Range = targets.stream().anyMatch(target -> UnitUtils.getDistance(target.unit(), unit.unit()) <= 3);
+                if (isATargetWithin3Range && !isOnCooldown()) {
                     burrow();
                     return;
                 }
-                if (unit.unit().getBuffs().contains(Buffs.LOCK_ON)) {
-                    retreatFromLockOn();
+                moveToTargetPos();
+                return;
+            }
+
+            if (!isSafe && (isOnCooldown() || inThreatOfDying())) {
+                if (!isDetected()) {
+                    burrow();
                     return;
                 }
                 detour();
                 return;
             }
-            //unburrowed and safe
-            if (isAtTargetPosition() || (!isOnCooldown() && !getTargets().isEmpty())) {
+
+            //====== Otherwise (!isSafe && !inThreatOfDying && !onCooldown) =======
+            if (!targets.isEmpty()) {
                 burrow();
                 return;
             }
@@ -118,7 +145,7 @@ public class WidowMine extends BasicUnitMicro {
 
         // can't shoot && (it's unsafe || it wants to move forward)
         if (bestTarget == null &&
-                ((!isSafe() && isDetected()) || (isSafePlusBuffer() && !isAtTargetPosition()))) {
+                ((!isSafe() && isDetected()) || (isSafePlusBuffer() && !isAtTargetPos()))) {
             unburrow();
             return;
         }
@@ -126,13 +153,23 @@ public class WidowMine extends BasicUnitMicro {
             attack(bestTarget);
             return;
         }
-        if (isAtEnemyBasePos() && getTargets().isEmpty()) { //arrival at enemy base with no targets left
-            offenseTargetBase = UnitUtils.getNextEnemyBase(offenseTargetBase.getCcPos());
-        }
         //does nothing when burrowed at targetPos, or burrowed hiding on cooldown for safety
     }
 
-    private boolean isAtTargetPosition() {
+    private boolean inThreatOfDying() {
+        if (hasLockOnBuff()) {
+            return true;
+        }
+        float health = unit.unit().getHealth().orElse(0f);
+        if (health != prevSafeHealth) {
+            return true;
+        }
+
+        int damageThreat = InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, unit.unit().getPosition().toPoint2d());
+        return health < (hasFastBurrow() ? damageThreat : damageThreat * 2);
+    }
+
+    private boolean isAtTargetPos() {
         return UnitUtils.getDistance(unit.unit(), targetPos) < (isBurrowed() ? 4 : 2.5);
     }
 
@@ -182,7 +219,7 @@ public class WidowMine extends BasicUnitMicro {
 
     @Override
     protected boolean isSafe(Point2d p) { //TODO: splash effects like storm, ravager bile
-        if (unit.unit().getBuffs().contains(Buffs.LOCK_ON)) {
+        if (hasLockOnBuff()) {
             return false;
         }
 
@@ -194,7 +231,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     protected boolean isSafePlusBuffer(Point2d p) { //TODO: splash effects like storm, ravager bile
-        if (unit.unit().getBuffs().contains(Buffs.LOCK_ON)) {
+        if (hasLockOnBuff()) {
             return false;
         }
 
@@ -218,7 +255,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     public boolean isDetected() {
-        if (UnitUtils.hasDecloakBuff(unit.unit()) || (isBurrowed() && unit.unit().getBuffs().contains(Buffs.LOCK_ON))) {
+        if (UnitUtils.hasDecloakBuff(unit.unit()) || (isBurrowed() && hasLockOnBuff())) {
             return true;
         }
         if (!hasPermaCloak() && getCooldownRemaining() > burrowFrames) { //if burrowing doesn't grant cloak
@@ -254,6 +291,10 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     protected void moveToTargetPos() {
+        if (isAtTargetPos()) {
+            burrow();
+            return;
+        }
         ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
     }
 

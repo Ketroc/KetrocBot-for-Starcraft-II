@@ -558,7 +558,7 @@ public class ArmyManager {
         if (!UnitUtils.isWallUnderAttack() &&
                 ((Strategy.NUM_BASES_TO_OC >= 2 && GameCache.baseList.get(1).isMyBase()) ||
                 UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 1))) {
-            return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 3);
+            return UnitUtils.getBehindBunkerPos();
         }
         //protect main ramp
         return LocationConstants.insideMainWall;
@@ -929,8 +929,7 @@ public class ArmyManager {
 
         //if bunker in production, wait behind bunker
         if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
-            Point2d behindBunkerPos = Position.towards(LocationConstants.BUNKER_NATURAL, LocationConstants.baseLocations.get(1), 1.9f);
-            MarineBasic.setTargetPos(behindBunkerPos);
+            MarineBasic.setTargetPos(UnitUtils.getBehindBunkerPos());
             return;
         }
 

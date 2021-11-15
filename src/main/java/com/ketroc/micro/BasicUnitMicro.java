@@ -180,6 +180,10 @@ public class BasicUnitMicro {
                 target.getTag().equals(order.get().targetTag);
     }
 
+    protected boolean hasLockOnBuff() {
+        return unit.unit().getBuffs().contains(Buffs.LOCK_ON);
+    }
+
     //selects target based on cost:health ratio
     public UnitInPool selectTarget() {
         UnitInPool selectedTarget = selectTarget(false);

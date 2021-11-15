@@ -83,7 +83,6 @@ public class ExpansionClearing {
                     //cast autoturret
                     if (turretPos != null) {
                         castAutoturret(turretPos);
-                        Chat.chat("EC: turret cast - special case");
                         return false;
                     }
                 }
@@ -99,7 +98,6 @@ public class ExpansionClearing {
                 Point2d centerPoint = getCenterPoint();
                 if (centerPoint != null) {
                     if (raven.unit.unit().getEnergy().orElse(0f) < 50) {
-                        Chat.chat("EC: turret needed. swap out raven");
                         addRaven();
                         return false;
                     }
@@ -108,7 +106,6 @@ public class ExpansionClearing {
                     //cast autoturret
                     if (turretPos != null) {
                         castAutoturret(turretPos);
-                        Chat.chat("EC: turret cast");
                     }
                 }
                 //check if base is cleared of obstructions
@@ -126,7 +123,6 @@ public class ExpansionClearing {
         else if (!turret.isAlive()) {
             removeTurret();
             raven.targetPos = expansionPos;
-            Chat.chat("EC: turret expired");
         }
 
         //move raven on turret and wait for it to expire
@@ -200,7 +196,6 @@ public class ExpansionClearing {
                 .orElse(null);
         if (turret != null) {
             Ignored.add(new IgnoredUnit(turret.getTag()));
-            Chat.chat("EC: turret is placed");
         }
 
         //cancel turret if it didn't place
@@ -209,7 +204,6 @@ public class ExpansionClearing {
                 turretCastFrame + 72 < Time.nowFrames()) {
             removeTurret();
             raven.targetPos = expansionPos;
-            Chat.chat("EC: turret didn't place");
         }
     }
 

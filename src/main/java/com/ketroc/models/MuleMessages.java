@@ -58,15 +58,15 @@ public class MuleMessages {
 
     public static void checkIfGameIsWon() {
         if (Bot.OBS.getFoodUsed() > 165 && Base.numEnemyBases() <= 4 && Bot.OBS.getFoodUsed() > UnitUtils.getEnemySupply() + 110) {
-            if (Bot.OBS.getMinerals() + Bot.OBS.getVespene() > 4000) {
-                Chat.chatNeverRepeat("I wonder if I can convert my minerals and gas into bitcoin");
-            }
-            else {
+            if (Bot.OBS.getMinerals() > 6000) {
+                Chat.chatNeverRepeat("I wonder if I can convert my minerals into bitcoin");
+            } else if (Bot.OBS.getVespene() > 6000) {
+                Chat.chatNeverRepeat("I wonder if I can convert my gas into bitcoin");
+            } else {
                 Chat.chatNeverRepeat(Chat.WINNING_BM_CHAT);
             }
             MuleMessages.doTrollMule = true;
-        }
-        else {
+        } else {
             MuleMessages.doTrollMule = false;
         }
     }

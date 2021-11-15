@@ -42,9 +42,10 @@ public class Chat {
 
     public static final List<String> WINNING_BM_CHAT = new ArrayList<>(List.of(
             "This is where Larva would start playing with his feet",
-            "Just GG out.  I'm not going to crash--                            0x6F09844E FATAL ERROR!",
-            "Ya give up, or ya thirsty for more?",
-            "KET REKT!"
+            "Just GG out.  I'm not going to crash--                              0x6F09844E FATAL ERROR!",
+            "Shouldn't we be fast-forwarding by now?"
+            //"Ya give up, or ya thirsty for more?",
+            //"KET REKT!"
     ));
 
     public static final List<String> LOSING_BM_CHAT = new ArrayList<>(List.of(
