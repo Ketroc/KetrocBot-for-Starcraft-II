@@ -392,6 +392,9 @@ public class KetrocBot extends Bot {
         }
 
         switch ((Units)unit.getType()) {
+            case TERRAN_AUTO_TURRET:
+                PlacementMap.makeUnavailable(unit);
+                break;
             case TERRAN_SIEGE_TANK:
                 if (BunkerContain.proxyBunkerLevel == 2) {
                     BunkerContain.onTankCreated(unitInPool);
@@ -429,7 +432,7 @@ public class KetrocBot extends Bot {
             Alliance alliance = unit.getAlliance();
 
             //make available non-flying structures
-            if (UnitUtils.isStructure(unit.getType()) &&
+            if ((UnitUtils.isStructure(unit.getType()) || unit.getType() == Units.TERRAN_AUTO_TURRET) &&
                     !unit.getFlying().orElse(true) &&
                     !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
                 PlacementMap.makeAvailable(unit);

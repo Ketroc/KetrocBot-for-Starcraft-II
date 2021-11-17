@@ -135,6 +135,7 @@ public class ExpansionClearing {
     private void castAutoturret(Point2d turretPos) {
         raven.targetPos = turretPos;
         ActionHelper.unitCommand(raven.unit.unit(), Abilities.EFFECT_AUTO_TURRET, turretPos, false);
+        //PlacementMap.makeUnavailable(Units.TERRAN_AUTO_TURRET, turretPos);
         turretCastFrame = Time.nowFrames();
         isTurretActive = true;
     }

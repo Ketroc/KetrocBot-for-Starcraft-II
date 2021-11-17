@@ -3,11 +3,9 @@ package com.ketroc;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
@@ -122,9 +120,7 @@ public class GameCache {
             }
 
             if (unit.getType() instanceof Units.Other) {
-                float x = unit.getPosition().getX();
-                float y = unit.getPosition().getY();
-                if (DebugHelper.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x-0.22f,y-0.22f, Position.getZ(x, y)), Point.of(x+0.22f,y+0.22f, Position.getZ(x, y)), Color.GREEN);
+                DebugHelper.boxUnit(unit);
                 continue;
             }
             Units unitType = (Units)unit.getType();

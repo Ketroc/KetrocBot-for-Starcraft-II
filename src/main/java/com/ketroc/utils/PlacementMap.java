@@ -59,16 +59,17 @@ public class PlacementMap {
     public static void onGameStart() {
         //LocationConstants.FACTORIES.clear();//TODO: delete
         initializeMap(false);
-        setColumn();
-        populateMainBase3x3WithAddonPos(buildColumn, true);
-        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-            replaceFactoriesWithCommandCenters();
-        }
-        populateMainBase3x3Pos(buildColumn, true);
-        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-            topUp3x3List();
-            populateDepotPos();
-        }
+//TODO:bring back - this is code to find main base positions
+//        setColumn();
+//        populateMainBase3x3WithAddonPos(buildColumn, true);
+//        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+//            replaceFactoriesWithCommandCenters();
+//        }
+//        populateMainBase3x3Pos(buildColumn, true);
+//        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
+//            topUp3x3List();
+//            populateDepotPos();
+//        }
 
         //visualizePlacementMap();
         //create2CellColumns();
@@ -117,6 +118,10 @@ public class PlacementMap {
         Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) ||
                         UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType()))
                 .forEach(node -> makeUnAvailableResourceNode(node));
+
+        //remove all xel naga towers to the placement grid
+        Bot.OBS.getUnits(Alliance.NEUTRAL, u -> u.unit().getType() == Units.NEUTRAL_XELNAGA_TOWER)
+                .forEach(xelTower -> makeUnavailable(xelTower.unit()));
 
         //remove start CC from to placement grid
         makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());

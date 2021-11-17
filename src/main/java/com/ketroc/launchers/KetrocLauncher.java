@@ -14,8 +14,8 @@ import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
-        DebugHelper.doTestingSpawns = true;
-        DebugHelper.isDebugOn = false;
+        DebugHelper.doTestingSpawns = false;
+        DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
@@ -39,7 +39,7 @@ public class KetrocLauncher {
 //                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")))
                 .launchStarcraft()
 
-                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
@@ -58,7 +58,7 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("PillarsOfGold506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Submarine506.SC2Map")));
 
-//                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));

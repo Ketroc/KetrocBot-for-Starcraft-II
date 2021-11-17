@@ -641,16 +641,16 @@ public class ArmyManager {
         if (closestEnemyGround != null) {
             attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
             attackUnit = closestEnemyGround.unit();
-            //TODO: below is hack to "hopefully" handle unknown bug of air units getting stuck on unchanging attackPos
-            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
-                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
-                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
-                Chat.tag("PHANTOM_UNIT");
-                Print.print("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
-                Print.print("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
-                Print.print("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
-                GameCache.allEnemiesList.remove(closestEnemyGround);
-            }
+//            //TODO: below is hack to "hopefully" handle unknown bug of air units getting stuck on unchanging attackPos
+//            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
+//                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
+//                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
+//                Chat.tag("PHANTOM_UNIT");
+//                Print.print("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
+//                Print.print("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
+//                Print.print("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
+//                GameCache.allEnemiesList.remove(closestEnemyGround);
+//            }
         }
         else if (LocationConstants.nextEnemyBase == null) {
             attackGroundPos = null; //flag to spread army
@@ -1504,9 +1504,14 @@ public class ArmyManager {
     private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
 
         //wait for raven to auto-turret before giving a new command, if auto-turret pos is still in range of enemies
-        if (UnitUtils.getOrder(raven) == Abilities.EFFECT_AUTO_TURRET &&
-                !UnitUtils.getEnemyTargetsNear(ActionIssued.getCurOrder(raven).get().targetPos, 7).isEmpty()) {
-            return;
+        Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(raven);
+        if (curOrder.stream().anyMatch(order -> order.ability == Abilities.EFFECT_AUTO_TURRET)) {
+            if (!UnitUtils.getEnemyTargetsNear(curOrder.get().targetPos, 7).isEmpty()) {
+                return;
+            }
+            else {
+                //PlacementMap.makeAvailable(Units.TERRAN_AUTO_TURRET, curOrder.get().targetPos);
+            }
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
@@ -1673,6 +1678,7 @@ public class ArmyManager {
         if (placementList.contains(true)) {
             Point2d placementPos = posList.get(placementList.indexOf(true));
             ActionHelper.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
+            //PlacementMap.makeUnavailable(Units.TERRAN_AUTO_TURRET, placementPos);
             turretsCast++;
             return true;
         }

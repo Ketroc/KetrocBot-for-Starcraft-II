@@ -648,7 +648,7 @@ public class UnitUtils {
                 return StructureSize._3x3;
             case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT: case TERRAN_TECHLAB: case TERRAN_BARRACKS_TECHLAB:
             case TERRAN_FACTORY_TECHLAB: case TERRAN_STARPORT_TECHLAB: case TERRAN_REACTOR: case TERRAN_BARRACKS_REACTOR:
-            case TERRAN_FACTORY_REACTOR: case TERRAN_STARPORT_REACTOR:
+            case TERRAN_FACTORY_REACTOR: case TERRAN_STARPORT_REACTOR: case TERRAN_AUTO_TURRET: case NEUTRAL_XELNAGA_TOWER:
                 return StructureSize._2x2;
             default: //case TERRAN_SENSOR_TOWER:
                 return StructureSize._1x1;
@@ -1407,10 +1407,12 @@ public class UnitUtils {
     }
 
     //only valid to use on speed-mining scv, that has an order, and isn't carrying resources
+    //identifies mining scvs that were bumped and are now following the cc
     public static boolean isMiningScvStuck(Unit scv) {
         ActionIssued curOrder = ActionIssued.getCurOrder(scv).get();
         return curOrder.ability == Abilities.MOVE &&
                 curOrder.targetTag != null &&
+                Bot.OBS.getUnit(curOrder.targetTag) != null &&
                 UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN.contains(Bot.OBS.getUnit(curOrder.targetTag).unit().getType());
     }
 
@@ -1438,5 +1440,17 @@ public class UnitUtils {
 
     public static Point2d getBehindBunkerPos() {
         return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 1.9f);
+    }
+
+    public static boolean isDestructible(UnitInPool uip) {
+        return isDestructible(uip.unit());
+    }
+
+    public static boolean isDestructible(Unit unit) {
+        return isDestructible((Units)unit.getType());
+    }
+
+    public static boolean isDestructible(Units unitType) {
+        return unitType.toString().contains("_DESTRUCTIBLE");
     }
 }

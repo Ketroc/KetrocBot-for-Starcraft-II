@@ -119,7 +119,7 @@ public class WidowMine extends BasicUnitMicro {
             }
 
             if (!isSafe && (isOnCooldown() || inThreatOfDying())) {
-                if (!isDetected()) {
+                if (!isDetected() || (!targets.isEmpty() && !isOnCooldown())) {
                     burrow();
                     return;
                 }

@@ -40,7 +40,7 @@ public class DebugHelper {
         if (!isDebugOn) {
             return;
         }
-        displayGameInfo();
+        //displayGameInfo();
         Bot.DEBUG.sendDebug();
         lineNum = 0;
     }
@@ -144,19 +144,6 @@ public class DebugHelper {
 //        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
     }
 
-
-    public static void drawBox(Point2d pos, Color color, float radius) {
-        if (!isDebugOn) {
-            return;
-        }
-        float z = Bot.OBS.terrainHeight(pos) + 0.2f;
-        float x = pos.getX();
-        float y = pos.getY();
-        Bot.DEBUG.debugBoxOut(Point.of(x-radius,y-radius, z),
-                Point.of(x+radius,y+radius, z),
-                color);
-    }
-
     public static void drawRect(float top, float bottom, float left, float right, Color color) {
         if (!isDebugOn) {
             return;
@@ -225,6 +212,10 @@ public class DebugHelper {
     }
 
     public static void drawBox(float x, float y, Color color, float radius) {
+        drawBox(x, y, color, radius, true);
+    }
+
+    public static void drawBox(float x, float y, Color color, float radius, boolean atTerrainLevel) {
         if (!isDebugOn) {
             return;
         }
@@ -234,6 +225,24 @@ public class DebugHelper {
                 color
         );
     }
+
+    public static void drawBox(Point2d pos, Color color, float radius) {
+        drawBox(pos, color, radius, true);
+    }
+
+
+    public static void drawBox(Point2d pos, Color color, float radius, boolean isAtTerrainLevel) {
+        if (!isDebugOn) {
+            return;
+        }
+        float z = Bot.OBS.terrainHeight(pos) + 0.2f;
+        float x = pos.getX();
+        float y = pos.getY();
+        Bot.DEBUG.debugBoxOut(Point.of(x-radius,y-radius, z),
+                Point.of(x+radius,y+radius, z),
+                color);
+    }
+
 
     public static void drawText(String text, Point2d pos, Color color) {
         drawText(text, pos, color, TEXT_SIZE);
@@ -273,4 +282,22 @@ public class DebugHelper {
         }
         draw3dBox(unit.getPosition().toPoint2d(), Color.GREEN, 0.5f);
     }
+
+    public static void gridTheMap() {
+        boolean isDebugOnSave = isDebugOn;
+        isDebugOn = true;
+        for (int x = LocationConstants.MIN_X; x<LocationConstants.MAX_X; x++) {
+            for (int y = LocationConstants.MIN_Y; y < LocationConstants.MAX_Y; y++) {
+                if (Bot.OBS.isPathable(Point2d.of(x, y))) {
+                    drawBox(x, y, Color.GRAY, 0.5f);
+                    if (Bot.OBS.terrainHeight(Point2d.of(x - 0.2f, y + 0.2f)) + 2 > Bot.OBS.terrainHeight(Point2d.of(x, y))) {
+                        drawText(x + ",\n" + y, x - 0.2f, y + 0.2f, Color.WHITE, 8);
+                    }
+                }
+            }
+        }
+        Bot.DEBUG.sendDebug();
+        isDebugOn = isDebugOnSave;
+    }
+
 }
