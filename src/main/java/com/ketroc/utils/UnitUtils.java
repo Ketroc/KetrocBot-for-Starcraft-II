@@ -364,9 +364,6 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return 0;
         }
-        if (WIDOW_MINE_TYPE.contains(unit.getType())) {
-            return 5 + unit.getRadius();
-        }
         switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
                 attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
@@ -380,6 +377,11 @@ public class UnitUtils {
             case PROTOSS_ORACLE:
                 if (targetType == Weapon.TargetType.GROUND && unit.getBuffs().contains(Buffs.ORACLE_WEAPON)) {
                     attackRange = 4;
+                }
+                break;
+            case ZERG_BANELING: case ZERG_BANELING_BURROWED:
+                if (targetType == Weapon.TargetType.GROUND) {
+                    attackRange = 2; //real range is 0.25 (2.2splash)
                 }
                 break;
             default:

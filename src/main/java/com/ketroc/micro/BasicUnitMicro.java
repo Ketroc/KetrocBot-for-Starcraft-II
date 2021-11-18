@@ -64,6 +64,9 @@ public class BasicUnitMicro {
                     return InfluenceMaps.pointInMarineRange;
             }
         }
+        if (priority == MicroPriority.SURVIVAL && unit.unit().getType() == Units.TERRAN_SCV) {
+            return InfluenceMaps.pointThreatToGroundPlusBuffer;
+        }
         if (isGround) {
             return InfluenceMaps.pointThreatToGround;
         }
