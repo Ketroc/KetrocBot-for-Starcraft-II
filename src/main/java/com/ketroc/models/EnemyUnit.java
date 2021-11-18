@@ -310,7 +310,7 @@ public class EnemyUnit {
             case PROTOSS_DISRUPTOR_PHASED:
                 return 30;
             case PROTOSS_ORACLE:
-                return 3;
+                return 4;
             case PROTOSS_PHOENIX:
                 return 5;
             case PROTOSS_ARCHON:

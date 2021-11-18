@@ -124,7 +124,7 @@ public class PlacementMap {
                 .forEach(xelTower -> makeUnavailable(xelTower.unit()));
 
         //remove all destructible neutral units from the placement grid TODO: fix shapes of rocks
-        Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.isDestructible(u.unit()))
+        Bot.OBS.getUnits(Alliance.NEUTRAL, u -> u.unit().getType() instanceof Units && UnitUtils.isDestructible(u.unit()))
                 .forEach(destructible -> makeUnavailable(destructible.unit()));
 
         //remove start CC from to placement grid
