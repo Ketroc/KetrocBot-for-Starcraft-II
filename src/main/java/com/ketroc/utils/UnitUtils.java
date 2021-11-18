@@ -657,8 +657,14 @@ public class UnitUtils {
 
     public static StructureSize getSize(Unit structure) {
         float structureSize = structure.getRadius();
-        if (structureSize > 2.25) {
+        if (structureSize > 2.75) {
+            return StructureSize._6x6;
+        }
+        else if (structureSize > 2.25) {
             return StructureSize._5x5;
+        }
+        else if (structureSize > 1.75) {
+            return StructureSize._4x4;
         }
         else if (structureSize > 1.25) {
             return StructureSize._3x3;

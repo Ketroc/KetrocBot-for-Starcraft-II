@@ -1478,7 +1478,7 @@ public class ArmyManager {
 
     //is outnumbered if enemy has 20% more vikings in total, than I have in nearby vikings
     private static boolean isOutnumberedInVikings() {
-        if (LocationConstants.opponentRace != Race.TERRAN) {
+        if (LocationConstants.opponentRace != Race.TERRAN || attackAirPos == null) {
             return false;
         }
 

@@ -44,7 +44,7 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
 
 
 //                .startGame(LocalMap.of(Paths.get("AscensiontoAiurLE.SC2Map")));
@@ -58,7 +58,7 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("PillarsOfGold506.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Submarine506.SC2Map")));
 
-                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("AcropolisLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DiscoBloodbathLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("Ephemeron.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("EphemeronLE.SC2Map")));

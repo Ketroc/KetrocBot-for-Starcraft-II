@@ -114,14 +114,18 @@ public class PlacementMap {
             }
         }
 
-        //remove all mineral patches to the placement grid
+        //remove all mineral patches from the placement grid
         Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) ||
                         UnitUtils.GAS_GEYSER_TYPE.contains(u.unit().getType()))
                 .forEach(node -> makeUnAvailableResourceNode(node));
 
-        //remove all xel naga towers to the placement grid
+        //remove all xel naga towers from the placement grid
         Bot.OBS.getUnits(Alliance.NEUTRAL, u -> u.unit().getType() == Units.NEUTRAL_XELNAGA_TOWER)
                 .forEach(xelTower -> makeUnavailable(xelTower.unit()));
+
+        //remove all destructible neutral units from the placement grid TODO: fix shapes of rocks
+        Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.isDestructible(u.unit()))
+                .forEach(destructible -> makeUnavailable(destructible.unit()));
 
         //remove start CC from to placement grid
         makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());
@@ -191,56 +195,121 @@ public class PlacementMap {
     }
 
     public static void change2x1(Point2d pos, boolean doMakeAvailable) {
-        placementMap[(int)pos.getX() - 1][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY()] = doMakeAvailable;
+        int x = (int) pos.getX();
+        int y = (int) pos.getY();
+        placementMap[x-1][y] = doMakeAvailable;
+        placementMap[x][y] = doMakeAvailable;
     }
 
     public static void change1x1(Point2d pos, boolean doMakeAvailable) {
-        placementMap[(int)pos.getX()][(int)pos.getY()] = doMakeAvailable;
+        int x = (int)pos.getX();
+        int y = (int)pos.getY();
+        placementMap[x][y] = doMakeAvailable;
     }
 
     private static void change2x2(Point2d pos, boolean doMakeAvailable) {
-        placementMap[(int)pos.getX() - 1][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 1][(int)pos.getY()-1] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY()-1] = doMakeAvailable;
-
+        int x = (int)pos.getX();
+        int y = (int)pos.getY();
+        placementMap[x-1][y] = doMakeAvailable;
+        placementMap[x][y] = doMakeAvailable;
+        placementMap[x-1][y-1] = doMakeAvailable;
+        placementMap[x][y-1] = doMakeAvailable;
     }
 
     private static void change3x3(Point2d pos, boolean doMakeAvailable) {
+        int x = (int)pos.getX();
+        int y = (int)pos.getY();
         change1x1(pos, doMakeAvailable);
-        placementMap[(int)pos.getX() - 1][(int)pos.getY() - 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 1][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 1][(int)pos.getY() + 1] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY() - 1] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY() + 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 1][(int)pos.getY() - 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 1][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 1][(int)pos.getY() + 1] = doMakeAvailable;
+        placementMap[x-1][y-1] = doMakeAvailable;
+        placementMap[x-1][y] = doMakeAvailable;
+        placementMap[x-1][y+1] = doMakeAvailable;
+        placementMap[x][y-1] = doMakeAvailable;
+        placementMap[x][y+1] = doMakeAvailable;
+        placementMap[x+1][y-1] = doMakeAvailable;
+        placementMap[x+1][y] = doMakeAvailable;
+        placementMap[x+1][y+1] = doMakeAvailable;
+    }
+
+    private static void change4x4(Point2d pos, boolean doMakeAvailable) { //x-2 -> x+1, y-2 -> y+1
+        int x = (int)pos.getX();
+        int y = (int)pos.getY();
+        change2x2(pos, doMakeAvailable);
+
+        placementMap[x-2][y+1] = doMakeAvailable;
+        placementMap[x-1][y+1] = doMakeAvailable;
+        placementMap[x][y+1] = doMakeAvailable;
+        placementMap[x+1][y+1] = doMakeAvailable;
+
+        placementMap[x-2][y] = doMakeAvailable;
+        placementMap[x+1][y] = doMakeAvailable;
+
+        placementMap[x-2][y-1] = doMakeAvailable;
+        placementMap[x+1][y-1] = doMakeAvailable;
+
+        placementMap[x-2][y-2] = doMakeAvailable;
+        placementMap[x-1][y-2] = doMakeAvailable;
+        placementMap[x][y-2] = doMakeAvailable;
+        placementMap[x+1][y-2] = doMakeAvailable;
     }
 
     private static void change5x5(Point2d pos, boolean doMakeAvailable) {
+        int x = (int) pos.getX();
+        int y = (int) pos.getY();
         change3x3(pos, doMakeAvailable);
-        placementMap[(int)pos.getX() - 2][(int)pos.getY() - 2] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 2][(int)pos.getY() - 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 2][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 2][(int)pos.getY() + 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() - 2][(int)pos.getY() + 2] = doMakeAvailable;
+        placementMap[x-2][y-2] = doMakeAvailable;
+        placementMap[x-2][y-1] = doMakeAvailable;
+        placementMap[x-2][y] = doMakeAvailable;
+        placementMap[x-2][y+1] = doMakeAvailable;
+        placementMap[x-2][y+2] = doMakeAvailable;
 
-        placementMap[(int)pos.getX() + 2][(int)pos.getY() - 2] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 2][(int)pos.getY() - 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 2][(int)pos.getY()] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 2][(int)pos.getY() + 1] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 2][(int)pos.getY() + 2] = doMakeAvailable;
+        placementMap[x+2][y-2] = doMakeAvailable;
+        placementMap[x+2][y-1] = doMakeAvailable;
+        placementMap[x+2][y] = doMakeAvailable;
+        placementMap[x+2][y+1] = doMakeAvailable;
+        placementMap[x+2][y+2] = doMakeAvailable;
 
-        placementMap[(int)pos.getX() - 1][(int)pos.getY() - 2] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY() - 2] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 1][(int)pos.getY() - 2] = doMakeAvailable;
+        placementMap[x-1][y-2] = doMakeAvailable;
+        placementMap[x][y-2] = doMakeAvailable;
+        placementMap[x+1][y-2] = doMakeAvailable;
 
-        placementMap[(int)pos.getX() - 1][(int)pos.getY() + 2] = doMakeAvailable;
-        placementMap[(int)pos.getX()][(int)pos.getY() + 2] = doMakeAvailable;
-        placementMap[(int)pos.getX() + 1][(int)pos.getY() + 2] = doMakeAvailable;
+        placementMap[x-1][y+2] = doMakeAvailable;
+        placementMap[x][y+2] = doMakeAvailable;
+        placementMap[x+1][y+2] = doMakeAvailable;
     }
+
+    private static void change6x6(Point2d pos, boolean doMakeAvailable) { //x-3 -> x+2, y-4 -> y+2
+        int x = (int) pos.getX();
+        int y = (int) pos.getY();
+        change4x4(pos, doMakeAvailable);
+
+        placementMap[x-3][y+2] = doMakeAvailable;
+        placementMap[x-2][y+2] = doMakeAvailable;
+        placementMap[x-1][y+2] = doMakeAvailable;
+        placementMap[x][y+2] = doMakeAvailable;
+        placementMap[x+1][y+2] = doMakeAvailable;
+        placementMap[x+2][y+2] = doMakeAvailable;
+
+        placementMap[x-3][y+1] = doMakeAvailable;
+        placementMap[x+2][y+1] = doMakeAvailable;
+
+        placementMap[x-3][y] = doMakeAvailable;
+        placementMap[x+2][y] = doMakeAvailable;
+
+        placementMap[x-3][y-1] = doMakeAvailable;
+        placementMap[x+2][y-1] = doMakeAvailable;
+
+        placementMap[x-3][y-2] = doMakeAvailable;
+        placementMap[x+2][y-2] = doMakeAvailable;
+
+        placementMap[x-3][y-3] = doMakeAvailable;
+        placementMap[x-2][y-3] = doMakeAvailable;
+        placementMap[x-1][y-3] = doMakeAvailable;
+        placementMap[x][y-3] = doMakeAvailable;
+        placementMap[x+1][y-3] = doMakeAvailable;
+        placementMap[x+2][y-3] = doMakeAvailable;
+    }
+
+
     public static void makeAvailable2x1(Point2d pos) {
         change2x1(pos, true);
     }
@@ -273,12 +342,28 @@ public class PlacementMap {
         change3x3(pos, false);
     }
 
+    public static void makeAvailable4x4(Point2d pos) {
+        change4x4(pos, true);
+    }
+
+    public static void makeUnavailable4x4(Point2d pos) {
+        change4x4(pos, false);
+    }
+
     public static void makeAvailable5x5(Point2d pos) {
         change5x5(pos, true);
     }
 
     public static void makeUnavailable5x5(Point2d pos) {
         change5x5(pos, false);
+    }
+
+    public static void makeAvailable6x6(Point2d pos) {
+        change6x6(pos, true);
+    }
+
+    public static void makeUnavailable6x6(Point2d pos) {
+        change6x6(pos, false);
     }
 
     public static void makeUnavailable(Unit structure) {
@@ -295,8 +380,14 @@ public class PlacementMap {
                     makeUnavailable2x2(getAddOnPos(structure.getPosition().toPoint2d()));
                 }
                 break;
+            case _4x4:
+                makeUnavailable4x4(structure.getPosition().toPoint2d());
+                break;
             case _5x5:
                 makeUnavailable5x5(structure.getPosition().toPoint2d());
+                break;
+            case _6x6:
+                makeUnavailable6x6(structure.getPosition().toPoint2d());
                 break;
         }
     }
@@ -315,8 +406,14 @@ public class PlacementMap {
                     makeUnavailable2x2(getAddOnPos(pos));
                 }
                 break;
+            case _4x4:
+                makeUnavailable4x4(pos);
+                break;
             case _5x5:
                 makeUnavailable5x5(pos);
+                break;
+            case _6x6:
+                makeUnavailable6x6(pos);
                 break;
         }
     }
@@ -336,8 +433,14 @@ public class PlacementMap {
             case _3x3:
                 makeAvailable3x3(structure.getPosition().toPoint2d());
                 break;
+            case _4x4:
+                makeAvailable4x4(structure.getPosition().toPoint2d());
+                break;
             case _5x5:
                 makeAvailable5x5(structure.getPosition().toPoint2d());
+                break;
+            case _6x6:
+                makeAvailable6x6(structure.getPosition().toPoint2d());
                 break;
         }
     }
