@@ -165,8 +165,7 @@ public class BasicUnitMicro {
         Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
         return order.isPresent() &&
                 order.get().targetPos != null &&
-                order.get().targetPos.distance(targetPos) < 0.5 ;
-
+                order.get().targetPos.distance(targetPos) < 0.5f;
     }
 
     protected boolean isAttackingTarget(Tag targetTag) {
@@ -295,8 +294,8 @@ public class BasicUnitMicro {
                 if (i > 200 && !changedDirectionRecently()) {
                     toggleDodgeClockwise();
                 }
-                //add 5degrees more angle as buffer, to account for chasing units
-                i += 5;
+                //add 1degree more angle as buffer, to account for chasing units
+                i += 1;
                 angle = (isDodgeClockwise) ? i : (i * -1);
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
                 return Position.towards(detourPos, unit.unit(), unit.unit().getRadius());

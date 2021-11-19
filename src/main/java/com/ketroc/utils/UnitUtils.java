@@ -441,7 +441,15 @@ public class UnitUtils {
 
     public static boolean canMove(Unit unit) {
         return !unit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) &&
+                !unit.getBuffs().contains(Buffs.NEURAL_PARASITE) &&
                 Bot.OBS.getUnitTypeData(false).get(unit.getType()).getMovementSpeed().orElse(0f) > 0f;
+    }
+
+    public static boolean canCast(Unit unit) {
+        return !unit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) &&
+                !unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
+                !unit.getBuffs().contains(Buffs.NEURAL_PARASITE) &&
+                unit.getEnergy().isPresent();
     }
 
     public static Unit getClosestEnemyOfType(Units unitType, Point2d pos) {
@@ -1460,5 +1468,9 @@ public class UnitUtils {
 
     public static boolean isDestructible(Units unitType) {
         return unitType.toString().contains("_DESTRUCTIBLE");
+    }
+
+    public static float getRange(Unit unit1, Unit unit2) {
+        return getDistance(unit1, unit2) - unit1.getRadius() - unit2.getRadius();
     }
 }

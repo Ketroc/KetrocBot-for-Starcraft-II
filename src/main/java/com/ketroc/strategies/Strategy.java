@@ -172,6 +172,9 @@ public class Strategy {
     private static void applyOpponentSpecificTweaks() {
         switch (KetrocBot.opponentId) {
 //        switch ("496ce221-f561-42c3-af4b-d3da4490c46e") { //RStrelok
+            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+                BuildManager.openingStarportUnits.add(Abilities.TRAIN_MEDIVAC); //TODO: for testing medivac scv healer
+                break;
             case "2540c0f3-238f-40a7-9c39-2e4f3dca2e2f": //sharkbot
                 DO_BANSHEE_HARASS = false;
                 break;

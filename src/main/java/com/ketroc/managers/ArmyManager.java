@@ -111,6 +111,11 @@ public class ArmyManager {
             UnitMicroList.add(new WidowMine(mine, LocationConstants.insideMainWall));
         });
 
+        //TODO: this is a temporary test
+        UnitUtils.getMyUnitsOfType(Units.TERRAN_MEDIVAC).forEach(medivac -> {
+            UnitMicroList.add(new MedivacScvHealer(medivac, LocationConstants.REPAIR_BAY));
+        });
+
         //repair station
         manageRepairBay();
 
@@ -610,7 +615,10 @@ public class ArmyManager {
 
     public static int getNumRepairBayUnits() {
         return Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
-            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER || u.unit().getType() == Units.TERRAN_BANSHEE || u.unit().getType() == Units.TERRAN_RAVEN) &&
+            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER ||
+                    u.unit().getType() == Units.TERRAN_BANSHEE ||
+                    u.unit().getType() == Units.TERRAN_MEDIVAC ||
+                    u.unit().getType() == Units.TERRAN_RAVEN) &&
                     UnitUtils.getHealthPercentage(u.unit()) < 100 &&
                     UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 2.5;
         }).size();

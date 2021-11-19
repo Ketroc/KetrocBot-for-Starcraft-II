@@ -14,12 +14,17 @@ import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
-        DebugHelper.doTestingSpawns = false;
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
         Strategy.DO_BANSHEE_HARASS = false;
+
+        Race oppRace = Race.PROTOSS;
+        Difficulty oppDiff = Difficulty.CHEAT_INSANE;
+        AiBuild oppBuild = AiBuild.MACRO;
+
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
@@ -34,7 +39,7 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot( "")),
-                        S2Coordinator.createComputer(Race.ZERG, Difficulty.CHEAT_INSANE, AiBuild.MACRO))
+                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()),
 //                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot(true, "")))
                 .launchStarcraft()

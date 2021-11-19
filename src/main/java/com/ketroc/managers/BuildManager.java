@@ -590,6 +590,12 @@ public class BuildManager {
         if (!UnitUtils.isAnyBarracksIdle()) {
             return;
         }
+
+        //stop using barracks when I have 2+ factories/starports
+        if (GameCache.factoryList.size() + GameCache.starportList.size() >= 2) {
+            return;
+        }
+
         //save minerals for factory/starport production
         if (GameCache.gasBank > 75 && (UnitUtils.isAnyFactoryIdle() || UnitUtils.isAnyStarportIdle())) {
             return;

@@ -75,7 +75,7 @@ public class KetrocBot extends Bot {
             DebugHelper.onGameStart();
 
             //build unit lists
-            GameCache.onStep();
+            GameCache.onGameStart();
             GameCache.setInitialEnemyBases();
 
             //set main midpoint (must be done after GameState.onStep())
@@ -253,14 +253,7 @@ public class KetrocBot extends Bot {
                         }
                         else {
                             //set rally
-                            Point2d barracksRally;
-                            Point2d bunkerPos = Purchase.getPositionOfQueuedStructure(Units.TERRAN_BUNKER);
-                            if (bunkerPos != null) {
-                                barracksRally = Position.towards(bunkerPos, unit, 2f);
-                            } else {
-                                barracksRally = LocationConstants.insideMainWall;
-                            }
-                            ActionHelper.unitCommand(unit, Abilities.SMART, barracksRally, false);
+                            ActionHelper.unitCommand(unit, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
                         }
 
                         //get OC
@@ -378,12 +371,16 @@ public class KetrocBot extends Bot {
     }
 
     @Override
-    public void onUnitCreated(UnitInPool unitInPool) {
+    public void onUnitCreated(UnitInPool uip) {
         if (Time.nowFrames() == 1) { //hack so this is never called on game start (since it does and doesn't depending on how it run)
             return;
         }
 
-        Unit unit = unitInPool.unit();
+        if (uip.unit().getAlliance() == Alliance.SELF) {
+            GameCache.allMyUnitsSet.add(uip);
+        }
+
+        Unit unit = uip.unit();
         if (unit.getType() instanceof Units.Other) {
             System.out.println("****************************************************************");
             System.out.println("Units.Other type for in Ketrocbot.onUnitCreated:" + OBS.getUnitTypeData(false).get(unit.getType()).getName());
@@ -397,7 +394,7 @@ public class KetrocBot extends Bot {
                 break;
             case TERRAN_SIEGE_TANK:
                 if (BunkerContain.proxyBunkerLevel == 2) {
-                    BunkerContain.onTankCreated(unitInPool);
+                    BunkerContain.onTankCreated(uip);
                 }
                 break;
             case TERRAN_CYCLONE:
@@ -405,7 +402,7 @@ public class KetrocBot extends Bot {
                 break;
             case TERRAN_MARINE:
                 if (BunkerContain.proxyBunkerLevel > 0) {
-                    BunkerContain.onMarineCreated(unitInPool);
+                    BunkerContain.onMarineCreated(uip);
                 }
                 break;
             case TERRAN_SCV:
@@ -414,7 +411,7 @@ public class KetrocBot extends Bot {
                         UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
                         UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
                     if (!Switches.fastDepotBarracksOpener || Bot.OBS.getFoodWorkers() != 13 || Time.nowSeconds() > 15) { //don't add first created scv if needed for depot
-                        WorkerManager.sendScvsToMine(unitInPool);
+                        WorkerManager.sendScvsToMine(uip);
                     }
                 }
                 break;
@@ -426,10 +423,14 @@ public class KetrocBot extends Bot {
     }
 
     @Override
-    public void onUnitDestroyed(UnitInPool unitInPool) { //TODO: this is called for enemy player too
+    public void onUnitDestroyed(UnitInPool uip) { //TODO: this is called for enemy player too
         try {
-            Unit unit = unitInPool.unit();
+            Unit unit = uip.unit();
             Alliance alliance = unit.getAlliance();
+
+            if (alliance == Alliance.SELF) {
+                GameCache.allMyUnitsSet.remove(uip);
+            }
 
             //make available non-flying structures
             if ((UnitUtils.isStructure(unit.getType()) || unit.getType() == Units.TERRAN_AUTO_TURRET) &&
@@ -527,7 +528,7 @@ public class KetrocBot extends Bot {
             }
         }
         catch (Exception e) {
-            Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
+            Print.print(uip.unit().getType() + " at " + uip.unit().getPosition().toPoint2d());
             Error.onException(e);
         }
     }

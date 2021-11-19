@@ -58,6 +58,7 @@ public class GameCache {
     public static final List<UnitInPool> allVisibleEnemiesList = new ArrayList<>();
     public static final Map<Units, List<Unit>> allVisibleEnemiesMap = new HashMap<>();
     public static final List<UnitInPool> allEnemiesList = new ArrayList<>(); //tracks units in fog of war too
+    public static final Set<UnitInPool> allMyUnitsSet = new HashSet<>();
     public static final Map<Units, List<UnitInPool>> allEnemiesMap = new HashMap<>();
     public static final List<Unit> enemyAttacksAir = new ArrayList<>();
     public static final List<Unit> enemyIsGround = new ArrayList<>();
@@ -69,6 +70,11 @@ public class GameCache {
     public static Unit defaultRallyNode;
     public static List<Unit> wallStructures = new ArrayList<>();
     public static List<Unit> burningStructures = new ArrayList<>();
+
+    public static void onGameStart() throws Exception {
+        allMyUnitsSet.addAll(Bot.OBS.getUnits(Alliance.SELF));
+        onStep();
+    }
 
 
     public static void onStep() throws Exception {
@@ -110,7 +116,6 @@ public class GameCache {
                 !enemy.isAlive() ||
                 enemy.getLastSeenGameLoop() + Time.toFrames(75) < Time.nowFrames()); //75s memory to clean up uncleared units
 
-//                                                                                                                                            if (!Launcher.isRealTime) return;
         for (UnitInPool unitInPool: Bot.OBS.getUnits()) {
             Unit unit = unitInPool.unit();
 
