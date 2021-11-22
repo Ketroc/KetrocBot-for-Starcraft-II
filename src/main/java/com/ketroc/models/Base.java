@@ -338,7 +338,7 @@ public class Base {
         if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, scv.unit().getPosition().toPoint2d())) {
             return true;
         }
-        else if (UnitUtils.myUnitWithinOneShotThreat(scv.unit())) {
+        else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
             List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                     UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));

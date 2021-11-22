@@ -484,26 +484,10 @@ public class ArmyManager {
             }
             return;
         }
-        boolean oldDoOffense = doOffense;
         doOffense = GameCache.bansheeList.size() +
                 (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.75) +
                 (GameCache.ravenList.size() * 0.34) >= 6 &&
                 !isOutnumberedInVikings();
-        if (doOffense != oldDoOffense) {
-            Chat.chatWithoutSpam((doOffense ? "Attack Mode." : "Defense Mode.") + "  Army score: = " + (GameCache.bansheeList.size() +
-                    (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.75) +
-                    (GameCache.ravenList.size() * 0.34)), 30);
-            if (LocationConstants.opponentRace == Race.TERRAN) {
-                Chat.chatWithoutSpam("My frontline vikings: " +
-                        GameCache.vikingList.stream()
-                                .filter(viking -> UnitUtils.getDistance(viking, attackAirPos) < 20 &&
-                                        UnitUtils.getHealthPercentage(viking) > Strategy.RETREAT_HEALTH).count() +
-                        "  Enemy vikings: " +
-                        UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).stream()
-                                .filter(enemyViking -> enemyViking.getLastSeenGameLoop() + Time.toFrames(5) > Time.nowFrames()).count(), 30);
-            }
-            //KetrocBot.printCurrentGameInfo();
-        }
     }
 
     private static void ravenMicro() {

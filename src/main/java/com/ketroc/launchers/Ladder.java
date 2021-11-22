@@ -57,7 +57,7 @@ public class Ladder {
                 .setStepSize(Launcher.STEP_SIZE)
                 .setShowCloaked(true)
                 .setShowBurrowed(true)
-                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot))
+                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot, "Ketroc"))
                 .connectToLadder()
                 .joinGame();
 

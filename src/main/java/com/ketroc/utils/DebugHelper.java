@@ -39,7 +39,7 @@ public class DebugHelper {
         if (!isDebugOn) {
             return;
         }
-        //displayGameInfo();
+        displayGameInfo();
         Bot.DEBUG.sendDebug();
         lineNum = 0;
     }
@@ -67,7 +67,10 @@ public class DebugHelper {
             Bot.DEBUG.sendDebug();
         }
 
-//        if (Time.at(Time.toFrames(5))) {
+        if (Time.at(Time.toFrames(5))) {
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST_ACADEMY, LocationConstants.mainBaseMidPos, Bot.myId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_FACTORY, LocationConstants.mainBaseMidPos, Bot.myId, 1);
+//            Bot.DEBUG.debugGiveAllResources();
 //            //GameCache.baseList.get(0).scvReport();
 //                Point2d pylonPos = Position.towards(LocationConstants.baseLocations.get(1), LocationConstants.baseLocations.get(0), -5);
 //                pylonPos = Position.towards(pylonPos, LocationConstants.baseLocations.get(3), -5);
@@ -85,8 +88,14 @@ public class DebugHelper {
 //                        DebugHelper.drawBox(turret.getPos(), Color.GREEN, 1f);
 //                    });
 //                });
-//                Bot.DEBUG.sendDebug();
-//        }
+//            Bot.DEBUG.sendDebug();
+        }
+
+        if (Time.at(Time.toFrames(6))) {
+//            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_GHOST_ACADEMY)
+//                    .forEach(u -> ActionHelper.unitCommand(u.unit(), Abilities.BUILD_NUKE, false));
+//            Bot.DEBUG.sendDebug();
+        }
     }
 
     private static void displayGameInfo() {

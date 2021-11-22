@@ -3,10 +3,12 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.UnitAttribute;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.*;
 
@@ -41,7 +43,20 @@ public class MedivacScvHealer extends BasicUnitMicro {
                         Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getAttributes().contains(UnitAttribute.BIOLOGICAL))
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
                 .orElse(null);
-        targetPos = targetUip != null ? targetUip.unit().getPosition().toPoint2d() : LocationConstants.REPAIR_BAY;
+        if (targetUip != null) {
+            targetPos = targetUip.unit().getPosition().toPoint2d();
+        } else if (ArmyManager.attackGroundPos == null) {
+            targetPos = LocationConstants.REPAIR_BAY;
+        } else {
+            Point2d forwardBioPos = GameCache.allMyUnitsSet.stream()
+                    .filter(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getAttributes().contains(UnitAttribute.BIOLOGICAL))
+                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), ArmyManager.attackGroundPos)))
+                    .map(u -> u.unit().getPosition().toPoint2d())
+                    .orElse(LocationConstants.REPAIR_BAY);
+            if (forwardBioPos.distance(targetPos) > 3) {
+                targetPos = forwardBioPos;
+            }
+        }
     }
 
     private boolean shouldRepair() {
@@ -83,7 +98,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
             }
         }
         //boost out of danger
-        if (canBoost() && InfluenceMaps.getValue(InfluenceMaps.pointDamageToAirValue, unit.unit().getPosition().toPoint2d()) >=
+        if (canBoost() && InfluenceMaps.getValue(InfluenceMaps.pointDamageToAirValue, unit.unit().getPosition().toPoint2d()) * 2 >=
                 unit.unit().getHealth().orElse(0f)) {
             castBoost();
         }
@@ -116,5 +131,24 @@ public class MedivacScvHealer extends BasicUnitMicro {
 
     private boolean canHeal() {
         return unit.unit().getEnergy().orElse(0f) >= 5 && UnitUtils.canCast(unit.unit());
+    }
+
+    public static boolean needAnother() {
+        if (UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, true) >= 3) {
+            return false;
+        }
+        return numInjuredScvs() >= 6 && isAllMedivacsDry();
+    }
+
+    private static long numInjuredScvs() {
+        return GameCache.allMyUnitsSet.stream()
+                .filter(u -> u.unit().getType() == Units.TERRAN_SCV && u.unit().getHealth().orElse(0f) < 45f)
+                .count();
+    }
+
+    private static boolean isAllMedivacsDry() {
+        return UnitUtils.numInProductionOfType(Units.TERRAN_MEDIVAC) == 0 &&
+                GameCache.allMyUnitsSet.stream().noneMatch(u -> u.unit().getType() == Units.TERRAN_MEDIVAC &&
+                        u.unit().getEnergy().orElse(0f) > 10);
     }
 }

@@ -1079,14 +1079,24 @@ public class UnitUtils {
                 (LocationConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos));
     }
 
-    public static boolean myUnitWithinOneShotThreat(Unit myUnit) {
-        return myUnitWithinOneShotThreat(myUnit, myUnit.getPosition().toPoint2d());
+    public static boolean myUnitWithin1ShotThreat(Unit myUnit) {
+        return myUnitWithin1ShotThreat(myUnit, myUnit.getPosition().toPoint2d());
     }
 
-    public static boolean myUnitWithinOneShotThreat(Unit myUnit, Point2d pos) {
+    public static boolean myUnitWithin1ShotThreat(Unit myUnit, Point2d pos) {
         boolean isGround = !myUnit.getFlying().orElse(true);
         int[][] threatMap = isGround ? InfluenceMaps.pointDamageToGroundValue : InfluenceMaps.pointDamageToAirValue;
         return myUnit.getHealth().orElse(0f) < InfluenceMaps.getValue(threatMap, pos);
+    }
+
+    public static boolean myUnitWithin2ShotThreat(Unit myUnit) {
+        return myUnitWithin2ShotThreat(myUnit, myUnit.getPosition().toPoint2d());
+    }
+
+    public static boolean myUnitWithin2ShotThreat(Unit myUnit, Point2d pos) {
+        boolean isGround = !myUnit.getFlying().orElse(true);
+        int[][] threatMap = isGround ? InfluenceMaps.pointDamageToGroundValue : InfluenceMaps.pointDamageToAirValue;
+        return myUnit.getHealth().orElse(0f) < InfluenceMaps.getValue(threatMap, pos)*2;
     }
 
     public static boolean canOneShotEnemy(Unit myUnit, Unit enemyUnit) {

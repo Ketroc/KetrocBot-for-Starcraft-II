@@ -9,7 +9,6 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
-import com.ketroc.managers.BuildManager;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.Print;
@@ -107,19 +106,18 @@ public class PurchaseUpgrade implements Purchase {
 
     //prioritize producing army units over certain upgrades
     private boolean doDelayThisUpgrade() {
-        return ((LOW_PRIORITY_UPGRADES.contains(upgrade) || !hasEnoughRelatedArmyUnits()) &&
-                Bot.OBS.getFoodUsed() < 197 &&
-                !BuildManager.isAllProductionStructuresBusy());
+        return LOW_PRIORITY_UPGRADES.contains(upgrade) &&
+                (!hasEnoughRelatedArmyUnits() || Bot.OBS.getFoodUsed() < 197);
     }
 
     private boolean hasEnoughRelatedArmyUnits() {
         switch (upgrade) { //TODO: complete for all upgrades (that I don't currently use)
             case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
-                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 1;
+                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
                 return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
             case BANSHEE_SPEED: //case BANSHEE_CLOAK:
-                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
+                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 2;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
                 return UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) >= 1;
         }

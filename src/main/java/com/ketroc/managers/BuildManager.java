@@ -24,10 +24,7 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.utils.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BuildManager {
@@ -591,8 +588,10 @@ public class BuildManager {
             return;
         }
 
-        //stop using barracks when I have 2+ factories/starports
-        if (GameCache.factoryList.size() + GameCache.starportList.size() >= 2) {
+        //stop making marines when I have 2+ factories/starports, and bunker doesn't need filling
+        if (GameCache.factoryList.size() + GameCache.starportList.size() >= 2 &&
+                (UnitUtils.getNatBunker().isEmpty() ||
+                        UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) >= Strategy.MAX_MARINES)) {
             return;
         }
 
@@ -726,9 +725,16 @@ public class BuildManager {
     }
 
     private static boolean isHellionsNeeded() {
-        return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
-                UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                        (LocationConstants.opponentRace == Race.ZERG ? 2 : 0);
+        switch (LocationConstants.opponentRace) {
+            case ZERG:
+                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                        UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2;
+            case PROTOSS:
+                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                        UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ADEPT).size();
+            default:
+                return false;
+        }
     }
 
     public static void liftFactory(Unit factory) {
@@ -789,6 +795,9 @@ public class BuildManager {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
                 }
                 else if (UnitUtils.canAfford(unitType)) {
+                    if (unitToProduce == Abilities.TRAIN_MEDIVAC) {
+                        Chat.tag("MEDIVAC");
+                    }
                     ActionHelper.unitCommand(starportUip.unit(), unitToProduce, false);
                     if (!openingStarportUnits.isEmpty()) {
                         openingStarportUnits.remove(0);
@@ -848,6 +857,10 @@ public class BuildManager {
         //get required vikings
         if (numVikings < vikingsRequired) {
             return Abilities.TRAIN_VIKING_FIGHTER;
+        }
+
+        if (MedivacScvHealer.needAnother()) {
+            return Abilities.TRAIN_MEDIVAC;
         }
 
         //get a solid base viking count if tank count is large
@@ -951,10 +964,16 @@ public class BuildManager {
                 !freeUpOffensiveLib()) {
             return Abilities.TRAIN_LIBERATOR;
         }
+
         //get 1 raven for observers
         if (numRavens == 0 && numBanshees > 0 && numVikings > 0 && !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_OBSERVER).isEmpty()) {
             return Abilities.TRAIN_RAVEN;
         }
+
+        if (MedivacScvHealer.needAnother()) {
+            return Abilities.TRAIN_MEDIVAC;
+        }
+
         //get required ravens after army has 15 core units
         if (numRavens < ravensRequired && numBanshees + numVikings + numCyclones + numTanks >= 15) {
             return Abilities.TRAIN_RAVEN;
@@ -1040,12 +1059,16 @@ public class BuildManager {
                 (isAllProductionStructuresActive(Units.TERRAN_FACTORY) || doPrioritizeStarportUnits());
     }
 
+    //not busy structure = idle || 50%+ done building a tech lab || 80%+ done build a unit
     private static boolean isAllProductionStructuresActive(Units structureType) {
         return Bot.OBS.getUnits(Alliance.SELF, u ->
-                u.unit().getType() == structureType &&
-                        (u.unit().getOrders().isEmpty() ||
-                                u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB ||
-                                u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.8f)).isEmpty();
+                u.unit().getType() == structureType && (
+                        u.unit().getOrders().isEmpty() || (
+                                u.unit().getOrders().get(0).getAbility() == Abilities.BUILD_TECHLAB &&
+                                UnitUtils.getAddOn(u.unit()).stream().anyMatch(addOn -> addOn.unit().getBuildProgress() > 0.6f)
+                        ) ||
+                        u.unit().getOrders().get(0).getProgress().orElse(0f) > 0.8f
+                )).isEmpty();
     }
 
     private static void addCCToPurchaseQueue() {
