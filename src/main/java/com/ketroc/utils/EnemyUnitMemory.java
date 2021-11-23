@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.models.EnemyUnit;
+import com.ketroc.models.EnemyMappingUnit;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,7 +27,7 @@ public class EnemyUnitMemory {
     }
 
     private static void mapEnemyUnits() {
-        enemyUnitMemory.forEach(enemy -> GameCache.enemyMappingList.add(new EnemyUnit(enemy.unit())));
+        enemyUnitMemory.forEach(enemy -> GameCache.enemyMappingList.add(new EnemyMappingUnit(enemy.unit())));
         if (Time.nowFrames() % Time.NUM_FRAMES_PER_MINUTE == 0) { //once a minute
             Print.print("enemy mapping list size: " + GameCache.enemyMappingList.size());
         }

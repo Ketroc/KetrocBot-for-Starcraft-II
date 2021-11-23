@@ -53,7 +53,7 @@ public class Infestor {
 
         //map incoming fungals
         incomingFungalList.stream()
-                .forEach(fungal -> GameCache.enemyMappingList.add(new EnemyUnit(fungal.position, true)));
+                .forEach(fungal -> GameCache.enemyMappingList.add(new EnemyMappingFungal(fungal.position)));
 
 
     }

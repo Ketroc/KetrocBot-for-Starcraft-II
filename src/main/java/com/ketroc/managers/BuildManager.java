@@ -672,7 +672,9 @@ public class BuildManager {
         if (Strategy.DO_USE_CYCLONES) {
             if (UnitUtils.canAfford(Units.TERRAN_WIDOWMINE)) {
                 int numMines = UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true);
-                int numMinesWanted = Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) ? 3 : 1;
+                int numMinesWanted = Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) ?
+                        3 :
+                        LocationConstants.opponentRace == Race.ZERG ? 1 : 0;
                 if (numMines < numMinesWanted) {
                     return Units.TERRAN_WIDOWMINE;
                 }

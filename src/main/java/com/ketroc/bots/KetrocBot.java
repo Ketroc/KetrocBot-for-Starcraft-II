@@ -561,15 +561,17 @@ public class KetrocBot extends Bot {
     }
 
     @Override
-    public void onUnitEnterVision(UnitInPool unitInPool) {
-        Unit unit = unitInPool.unit();
+    public void onUnitEnterVision(UnitInPool uip) {
+        Unit unit = uip.unit();
         //make unavailable non-flying enemy structures
         if (unit.getAlliance() == Alliance.ENEMY &&
                 UnitUtils.isStructure(unit.getType()) &&
                 !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
             PlacementMap.makeUnavailable(unit);
         }
-        //TODO: add neutral doodads like rocks and xelnaga towers to unavailable
+        if (uip.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT) {
+            AdeptShadeTracker.add(uip);
+        }
     }
 
     @Override

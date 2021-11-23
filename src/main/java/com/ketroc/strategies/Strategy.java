@@ -62,11 +62,11 @@ public class Strategy {
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
-    public static final float BANSHEE_RANGE = 6.1f; //range in which banshee will be given the command to attack
-    public static final float MARINE_RANGE = 5.1f; //range in which marine will be given the command to attack
-    public static final float HELLION_RANGE = 5.1f; //range in which hellion will be given the command to attack
+    public static final float BANSHEE_RANGE = 6.05f; //range in which banshee will be given the command to attack
+    public static final float MARINE_RANGE = 5.05f; //range in which marine will be given the command to attack
+    public static final float HELLION_RANGE = 5.05f; //range in which hellion will be given the command to attack
     public static float RAVEN_CAST_RANGE = 10f;
-    public static final float VIKING_RANGE = 9.1f; //range in which viking will be given the command to attack
+    public static final float VIKING_RANGE = 9.05f; //range in which viking will be given the command to attack
     public static final int MIN_GAS_FOR_REFINERY = 1; //only build a refinery on this vespian node if it has at least this much gas
     public static int DIVE_RANGE = 12;
     public static final int TEMPEST_DIVE_RANGE = 23;
@@ -521,9 +521,6 @@ public class Strategy {
                 useCyclonesAdjustments();
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
-                BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
-                BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
-                BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
                 break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();

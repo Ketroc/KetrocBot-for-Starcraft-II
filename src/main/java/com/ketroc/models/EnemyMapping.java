@@ -1,14 +1,14 @@
 package com.ketroc.models;
 
-import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.data.Buffs;
+import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.UnitUtils;
 
-public class EnemyUnit {
+public class EnemyMapping {
     public static float CYCLONE_AIR_ATTACK_RANGE = 3.5f;
     public static float CYCLONE_GROUND_ATTACK_RANGE = 4.5f;
 
@@ -26,7 +26,7 @@ public class EnemyUnit {
     public boolean isTumor;
     public boolean isInProgress;
     public float detectRange;
-    public float visionRange;
+    public float sightRange;
     public float groundAttackRange;
     public float airAttackRange;
     public int threatLevel;
@@ -36,163 +36,15 @@ public class EnemyUnit {
     public boolean isPersistentDamage;
     public float maxRange; //used to determine what portion of the grid to loop through
 
-    public EnemyUnit(Unit enemy) {
-        unitType = (Units)enemy.getType();
-        x = enemy.getPosition().getX();
-        y = enemy.getPosition().getY();
-        UnitTypeData unitTypeData = Bot.OBS.getUnitTypeData(false).get(enemy.getType());
-        supply = unitTypeData.getFoodRequired().orElse(0f);
-        canMove = unitTypeData.getMovementSpeed().orElse(0f) > 0;
-        isAir = enemy.getFlying().orElse(false);
-        isTumor = UnitUtils.CREEP_TUMOR_TYPES.contains(enemy.getType());
-        isInProgress = enemy.getBuildProgress() > 0 && enemy.getBuildProgress() < 0.95f;
-        if (isInProgress) {
-            threatLevel = 0;
-            detectRange = 0;
-            airAttackRange = 0;
-            groundAttackRange = 0;
-
-        }
-        else {
-            threatLevel = getThreatValue((Units) enemy.getType());
-            groundDamage = getGroundDamage((Units) enemy.getType());
-            airDamage = getAirDamage((Units) enemy.getType());
-            detectRange = getDetectionRange(enemy);
-            visionRange = UnitUtils.getVisionRange(enemy);
-            airAttackRange = UnitUtils.getAirAttackRange(enemy);
-            groundAttackRange = UnitUtils.getGroundAttackRange(enemy);
-        }
-
-        float kitingBuffer = getKitingBuffer(enemy);
-        if (groundAttackRange != 0) {
-            groundAttackRange += kitingBuffer;
-        }
-        if (airAttackRange != 0) {
-            airAttackRange += kitingBuffer;
-        }
-        if (detectRange != 0) {
-            detectRange += kitingBuffer;
-        }
-        pfTargetLevel = getPFTargetValue(enemy);
-        isDetector = detectRange > 0f;
-        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()); //any unit that costs supply and is not a worker
-//        isArmy = supply > 0 && !UnitUtils.WORKER_TYPE.contains(enemy.getType()) || //any unit that costs supply and is not a worker
-//                        (Strategy.WALL_OFF_IMMEDIATELY &&
-//                                UnitUtils.getEnemyUnitsOfType(UnitUtils.WORKER_TYPE).size() > 5 &&
-//                                Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
-        isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
-        switch ((Units)enemy.getType()) {
-            case PROTOSS_PHOENIX: case PROTOSS_COLOSSUS:
-                airAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
-                break;
-            case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: case TERRAN_PLANETARY_FORTRESS: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
-            case ZERG_MUTALISK: //giving more kiting range since it's fast
-                if (airAttackRange != 0) {
-                    airAttackRange++;
-                }
-                if (groundAttackRange != 0) {
-                    groundAttackRange++;
-                }
-                break;
-            case TERRAN_MARINE: case PROTOSS_SENTRY: case PROTOSS_HIGH_TEMPLAR: //lessen buffer on units banshees should kite anyhow
-                airAttackRange -= 0.5f;
-                break;
-            case TERRAN_CYCLONE: //lessen attack range of cyclones assuming they will only lock on
-                airAttackRange = CYCLONE_AIR_ATTACK_RANGE;
-                groundAttackRange = CYCLONE_GROUND_ATTACK_RANGE;
-                break;
-            case PROTOSS_TEMPEST:
-                isTempest = true;
-                break;
-        }
-        calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
-    }
-
-    public EnemyUnit(Unit friendly, boolean isParasitic) {
-        unitType = Units.INVALID;
-        x = friendly.getPosition().getX();
-        y = friendly.getPosition().getY();
-        isPersistentDamage = true;
-        isDetector = true;
-        detectRange = 3f + Strategy.KITING_BUFFER;
-        airAttackRange = 3f + Strategy.KITING_BUFFER;
-        threatLevel = 200;
-        airDamage = 120;
-        calcMaxRange();
-    }
-
-    public EnemyUnit(Point2d pos, boolean isFungal) {
-        unitType = Units.INVALID;
-        x = pos.getX();
-        y = pos.getY();
-        isDetector = true;
-        isEffect = true;
-        detectRange = 3.5f;
-        groundAttackRange = 3.5f;
-        groundDamage = 30;
-        airDamage = 30;
-        airAttackRange = 3.5f;
-        maxRange = 3.5f;
-        threatLevel = 200;
-    }
-
-    public EnemyUnit(EffectLocations effect) {
-        unitType = Units.INVALID;
-        isEffect = true;
-        isPersistentDamage = true;
-        Point2d position = effect.getPositions().iterator().next();
-        x = position.getX();
-        y = position.getY();
-        switch ((Effects)effect.getEffect()) {
-            case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
-            case LIBERATOR_TARGET_MORPH_PERSISTENT:
-                threatLevel = 200;
-                groundAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
-                groundDamage = 75;
-                break;
-            case SCANNER_SWEEP:
-                isDetector = true;
-                detectRange = 13f + Strategy.STATIONARY_KITING_BUFFER;
-                break;
-            case RAVAGER_CORROSIVE_BILE_CP:
-                isDetector = true;
-                detectRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
-                threatLevel = 200;
-                airAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
-                groundAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
-                airDamage = 60;
-                groundDamage = 60;
-                break;
-//            case NUKE_PERSISTENT:
-//                isDetector = true;
-//                detectRange = effect.getRadius().get() + kitingBuffer;
-//                threatLevel = 200;
-//                airAttackRange = effect.getRadius().get() + kitingBuffer;
-//                groundAttackRange = airAttackRange;
-//                damage = 300;
-//                break;
-            case PSI_STORM_PERSISTENT:
-                isDetector = true;
-                detectRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
-                threatLevel = 200;
-                airAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
-                groundAttackRange = airAttackRange;
-                groundDamage = 80;
-                airDamage = 80;
-                break;
-        }
-        calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
-    }
-
-    private int getGroundDamage(Units unitType) {
+    protected int getGroundDamage(Units unitType) {
         return getDamage(unitType, Weapon.TargetType.AIR);
     }
 
-    private int getAirDamage(Units unitType) {
+    protected int getAirDamage(Units unitType) {
         return getDamage(unitType, Weapon.TargetType.GROUND);
     }
 
-    private int getDamage(Units unitType, Weapon.TargetType excludeTargetType) {
+    protected int getDamage(Units unitType, Weapon.TargetType excludeTargetType) {
         if (unitType.toString().contains("CHANGELING")) {
             return 0;
         }
@@ -204,16 +56,16 @@ public class EnemyUnit {
                 .intValue();
     }
 
-    private float getKitingBuffer(Unit enemy) {
+    protected float getKitingBuffer(Unit enemy) {
         return (!UnitUtils.canMove(enemy) || (groundAttackRange > 0 && groundAttackRange < 2)) ?
                 Strategy.STATIONARY_KITING_BUFFER :
                 Strategy.KITING_BUFFER;
     }
 
-    private float getDetectionRange(Unit enemy) {
+    protected float getDetectionRange(Unit enemy) {
         float range = enemy.getDetectRange().orElse(0f);
         if (range == 0f) { //handle snapshots of detectors
-            switch ((Units)enemy.getType()) {
+            switch (unitType) {
                 case PROTOSS_PHOTON_CANNON: case TERRAN_MISSILE_TURRET: case ZERG_SPORE_CRAWLER:
                     range = 11;
                     break;
@@ -225,27 +77,21 @@ public class EnemyUnit {
         return range;
     }
 
-    private void calcMaxRange() {
+    protected void calcMaxRange() {
         //viking stay back range if tempests are out or mass raven strat
-        if ((unitType == Units.TERRAN_VIKING_FIGHTER && !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) ||
-                (unitType == Units.TERRAN_RAVEN && Strategy.MASS_RAVENS)) {
+        if (Strategy.MASS_RAVENS || !UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) {
             maxRange = 15 + Strategy.KITING_BUFFER;
             return;
         }
 
         //set the largest range of air attack, ground attack, detection, viking range, and banshee range
-        maxRange = Math.max(airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER, groundAttackRange);
+        maxRange = Math.max(airAttackRange + Strategy.RAVEN_DISTANCING_BUFFER, groundAttackRange + Strategy.RAVEN_DISTANCING_BUFFER);
+        maxRange = Math.max(maxRange, sightRange);
         maxRange = Math.max(maxRange, detectRange);
         if (isAir) {
             maxRange = Math.max(maxRange, Strategy.VIKING_RANGE);
-        }
-        else {
-            if (isDetector) { //spell effects (any turrets/spores/cannons)
-                maxRange = Math.max(maxRange, Strategy.BANSHEE_RANGE);
-            }
-            else {
-                maxRange = Math.max(maxRange, 13); //13 for GameCache.pointGroundUnitWithin13
-            }
+        } else {
+            maxRange = Math.max(maxRange, 13); //13 for GameCache.pointGroundUnitWithin13
         }
     }
 
@@ -364,7 +210,14 @@ public class EnemyUnit {
     }
 
     public static int getPFTargetValue(Unit enemy) {
-        switch ((Units)enemy.getType()) {
+        if (enemy.getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
+            return 0;
+        }
+        return getPFTargetValue((Units)enemy.getType());
+    }
+
+    public static int getPFTargetValue(Units enemyType) {
+        switch (enemyType) {
             case TERRAN_SCV:
                 return 3;
             case TERRAN_MARINE:
@@ -404,9 +257,6 @@ public class EnemyUnit {
             case PROTOSS_COLOSSUS:
                 return 3;
             case PROTOSS_IMMORTAL:
-                if (enemy.getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
-                    return 0;
-                }
                 return 15;
             case PROTOSS_HIGH_TEMPLAR:
                 return 15;

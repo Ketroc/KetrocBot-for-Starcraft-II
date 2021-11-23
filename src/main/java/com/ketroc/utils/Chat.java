@@ -152,8 +152,10 @@ public class Chat {
 
     public static void tag(String tag) {
         if (!Launcher.isRealTime && tag != null && !tag.equals("")) {
-            usedTags.add(tag);
-            chatNeverRepeat("Tag:ket" + tag, ActionChat.Channel.BROADCAST);
+            if (usedTags.contains(tag)) {
+                usedTags.add(tag);
+                chat("Tag:" + Time.nowClock() + "_" + tag);
+            }
         }
     }
 

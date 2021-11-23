@@ -62,6 +62,8 @@ public class BasicUnitMicro {
                     return InfluenceMaps.enemyInVikingRange;
                 case TERRAN_MARINE:
                     return InfluenceMaps.pointInMarineRange;
+                case TERRAN_HELLION:
+                    return InfluenceMaps.pointInHellionRange;
             }
         }
         if (priority == MicroPriority.SURVIVAL && unit.unit().getType() == Units.TERRAN_SCV) {

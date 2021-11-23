@@ -745,7 +745,8 @@ public class ArmyManager {
                 .filter(u -> u.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
                         !u.unit().getFlying().orElse(false) && //ground unit
                         (!GameCache.ravenList.isEmpty() || u.unit().getDisplayType() != DisplayType.HIDDEN) && //TODO: handle with scan?
-                        !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) &&
+                        (!UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) ||
+                                u.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT && AdeptShadeTracker.shouldTargetShade(u)) &&
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                         !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u ->
@@ -1195,34 +1196,40 @@ public class ArmyManager {
 
     public static void giveHellionCommand(Unit hellion) {
         ArmyCommands lastCommand = getCurrentCommand(hellion);
-        boolean isUnsafe = InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d());
+        boolean isUnsafe = (attackUnit == null || !attackUnit.getType().toString().contains("ADEPT")) ?
+                InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d()) :
+                false;
         boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointInHellionRange, hellion.getPosition().toPoint2d());
         boolean canAttack = UnitUtils.isWeaponAvailable(hellion) &&
                 InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, hellion.getPosition().toPoint2d()) < 200;
 
+        //shoot when available
+        if (canAttack && isInHellionRange) {
+            //attack
+            if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
+            return;
+        }
+
         //always flee if locked on by cyclone
         if (hellion.getBuffs().contains(Buffs.LOCK_ON)) {
             retreatUnitFromCyclone(hellion);
+            return;
         }
-        //shoot when available
-        else if (canAttack && isInHellionRange) {
-            //attack
-            if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
-        }
-        else if (isUnsafe) {
+
+        if (isUnsafe) {
             //retreat
             new BasicUnitMicro(hellion, retreatPos, MicroPriority.SURVIVAL).onStep();
+            return;
         }
-        else {
-            if (isInHellionRange) {
-                //retreat
-                if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(hellion);
-            }
-            else {
-                //attack
-                if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
-            }
+
+        if (isInHellionRange) {
+            //retreat
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(hellion);
+            return;
         }
+
+        //attack
+        if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
     }
 
     public static void giveBansheeCommand(Unit banshee) {

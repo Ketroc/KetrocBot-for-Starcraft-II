@@ -64,7 +64,7 @@ public class GameCache {
     public static final List<Unit> enemyIsGround = new ArrayList<>();
     public static final List<Unit> enemyIsAir = new ArrayList<>();
     public static final List<Unit> enemyDetector = new ArrayList<>();
-    public static final List<EnemyUnit> enemyMappingList = new ArrayList<>();
+    public static final List<EnemyMapping> enemyMappingList = new ArrayList<>();
 
     public static final Map<Units, List<Unit>> allMyUnitsMap = new HashMap<>(); //ignore my structures with buildProgress < 1
     public static Unit defaultRallyNode;
@@ -133,7 +133,7 @@ public class GameCache {
 
             //treat parasitic'ed unit as an enemy to dodge
             if (unit.getBuffs().contains(Buffs.PARASITIC_BOMB)) {
-                enemyMappingList.add(new EnemyUnit(unit, true));
+                enemyMappingList.add(new EnemyMappingParasitic(unit));
             }
             switch (alliance) {
                 case SELF:
@@ -461,17 +461,22 @@ public class GameCache {
                     case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
                     case LIBERATOR_TARGET_MORPH_PERSISTENT:
 //                    case NUKE_PERSISTENT:
-                        enemyMappingList.add(new EnemyUnit(effect));
+                        enemyMappingList.add(new EnemyMappingEffect(effect));
                         break;
                 }
             }
         }
 
         //add biles
-        BileTracker.activeBiles.forEach(bile -> enemyMappingList.add(new EnemyUnit(bile.getEffect())));
+        BileTracker.activeBiles.forEach(bile -> enemyMappingList.add(new EnemyMappingEffect(bile.getEffect())));
+
+        //add adept shades that about to jump
+        AdeptShadeTracker.activeShades.stream()
+                .filter(shade -> shade.doConsiderThreat())
+                .forEach(shade -> enemyMappingList.add(new EnemyMappingShade(shade.getShadeUip().unit())));
 
         //add scans to enemyMappingList
-        EnemyScan.enemyScanSet.stream().forEach(enemyScan -> enemyMappingList.add(new EnemyUnit(enemyScan.scanEffect)));
+        EnemyScan.enemyScanSet.stream().forEach(enemyScan -> enemyMappingList.add(new EnemyMappingEffect(enemyScan.scanEffect)));
 
         //add all enemies to the enemyMappingList (include enemies that entered fog within last 5sec)
         //TODO: include snapshot units like cannons and high ground marines
@@ -485,12 +490,12 @@ public class GameCache {
         allEnemiesList.stream()
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemyMappingPredicate)
-                .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
+                .forEach(enemy -> enemyMappingList.add(new EnemyMappingUnit(enemy.unit())));
         Ignored.ignoredUnits.stream()
                 .map(ignored -> Bot.OBS.getUnit(ignored.unitTag))
                 .filter(u -> u != null && u.isAlive() && u.unit().getAlliance() == Alliance.ENEMY)
                 .filter(enemyMappingPredicate)
-                .forEach(enemy -> enemyMappingList.add(new EnemyUnit(enemy.unit())));
+                .forEach(enemy -> enemyMappingList.add(new EnemyMappingUnit(enemy.unit())));
 
         //add siege tanks and lurkers that are no longer visible
         EnemyUnitMemory.onStep();
@@ -675,7 +680,7 @@ public class GameCache {
         InfluenceMaps.pointRaiseDepots = new boolean[800][800];
         InfluenceMaps.pointVikingsStayBack = new boolean[800][800];
 
-        for (EnemyUnit enemy : enemyMappingList) {
+        for (EnemyMapping enemy : enemyMappingList) {
             //only look at box of max range around the enemy
             int xStart = Math.max(InfluenceMaps.toMapCoord(enemy.x - enemy.maxRange), xMin);
             int yStart = Math.max(InfluenceMaps.toMapCoord(enemy.y - enemy.maxRange), yMin);
@@ -753,7 +758,7 @@ public class GameCache {
                         //DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.25f);
                     }
                     //sight range
-                    if (distance <= enemy.visionRange &&
+                    if (distance <= enemy.sightRange &&
                             (enemy.isAir || Bot.OBS.terrainHeight(Point2d.of(enemy.x, enemy.y)) + 1 > Bot.OBS.terrainHeight(Point2d.of(x/2f, y/2f)))) {
                         InfluenceMaps.pointInEnemyVision[x][y] = true;
                         //DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);

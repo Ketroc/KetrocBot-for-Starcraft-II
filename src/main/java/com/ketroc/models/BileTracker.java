@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class BileTracker {
-    public static final int BILE_DURATION = 50;
+    public static final int BILE_DURATION = 49;
     public static Set<BileTracker> activeBiles = new HashSet<>();
 
     private long endFrame;
@@ -36,6 +36,10 @@ public class BileTracker {
         this.effect = effect;
     }
 
+    public boolean isExpired() {
+        return endFrame <= Time.nowFrames();
+    }
+
     public static void onStep() {
         //add new biles
         Bot.OBS.getEffects().stream()
@@ -44,6 +48,6 @@ public class BileTracker {
                 .forEach(effect -> activeBiles.add(new BileTracker(effect)));
 
         //remove expired biles
-        activeBiles.removeIf(bile -> bile.getEndFrame() <= Time.nowFrames());
+        activeBiles.removeIf(bile -> bile.isExpired());
     }
 }
