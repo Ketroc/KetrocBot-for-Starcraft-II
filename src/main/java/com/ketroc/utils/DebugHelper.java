@@ -16,7 +16,6 @@ import com.ketroc.geometry.Rectangle;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.micro.ExpansionClearing;
-import com.ketroc.models.Base;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.StructureScv;
 import com.ketroc.strategies.Strategy;
@@ -47,7 +46,10 @@ public class DebugHelper {
 
     private static void testingStuff() {
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("5:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("4:00") && Time.periodic(1)) {
+//            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
+//                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_ADEPT, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 5);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_HYDRALISK, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 4);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_LURKER_MP, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_BROODLORD, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
@@ -60,10 +62,7 @@ public class DebugHelper {
 //                    .forEach(banshee -> {
 //                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
 //                    });
-//            Bot.DEBUG.sendDebug();
 
-            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
-                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
             Bot.DEBUG.sendDebug();
         }
 

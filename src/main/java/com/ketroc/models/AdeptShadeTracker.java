@@ -6,6 +6,7 @@ import com.ketroc.GameCache;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public class AdeptShadeTracker {
 
     public AdeptShadeTracker(UnitInPool shadeUip) {
         this.shadeUip = shadeUip;
-        boolean shadeCreatedInVision = GameCache.allVisibleEnemiesMap.get(Units.PROTOSS_ADEPT).stream()
+        boolean shadeCreatedInVision = GameCache.allVisibleEnemiesMap.getOrDefault(Units.PROTOSS_ADEPT, Collections.emptyList()).stream()
                 .anyMatch(adept -> UnitUtils.getDistance(adept, shadeUip.unit()) < 1.5f);
         this.endFrame = Time.nowFrames() + (int)(shadeCreatedInVision ? SHADE_DURATION : SHADE_DURATION * 0.8f); //remove 20% of shade duration if I didn't see it get created
     }
