@@ -65,8 +65,8 @@ public class AdeptShadeTracker {
     }
 
     public static void onStep() {
-        //remove shades that expired, were cancelled, or went into the fog and past the allotted max time
-        activeShades.removeIf(shade -> !shade.hasExpired());
+        //remove shades that died, expired, were cancelled, or went into the fog and past the allotted max time
+        activeShades.removeIf(shade -> shade.hasExpired());
     }
 
     public static boolean contains(UnitInPool shadeEnteredVision) {
