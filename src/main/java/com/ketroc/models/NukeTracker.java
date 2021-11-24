@@ -27,7 +27,7 @@ public class NukeTracker {
     private long startFrame;
     private EffectLocations effect;
     private boolean isRavenAssigned;
-    private Optional<UnitInPool> nukeGhost; //TODO: check for movement to narrow down a list of ghosts
+    private Optional<UnitInPool> nukeGhost = Optional.empty(); //TODO: check for movement to narrow down a list of ghosts
 
     public NukeTracker(EffectLocations effect) {
         this.effect = effect;
