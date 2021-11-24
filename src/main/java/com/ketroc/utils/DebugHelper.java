@@ -49,7 +49,7 @@ public class DebugHelper {
         if (Time.nowFrames() > Time.toFrames("5:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_ADEPT, LocationConstants.mainBaseMidPos, Bot.enemyId, 5);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_ADEPT, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 10);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_HYDRALISK, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 4);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_LURKER_MP, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_BROODLORD, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);

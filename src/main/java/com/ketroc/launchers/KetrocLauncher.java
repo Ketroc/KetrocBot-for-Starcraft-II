@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 public class KetrocLauncher {
     public static void main(String[] args) {
         DebugHelper.doTestingSpawns = true;
-        DebugHelper.isDebugOn = false;
+        DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Race oppRace = Race.PROTOSS;

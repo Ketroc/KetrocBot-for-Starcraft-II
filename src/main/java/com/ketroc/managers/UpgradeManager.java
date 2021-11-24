@@ -108,7 +108,7 @@ public class UpgradeManager {
     }
 
     private static void checkFactoryTechLabs() {
-        //don't start blue flame until 1 banshee in production
+        //don't start blue flame until 4 total hellions exist
         if (!Strategy.DO_USE_HELLIONS && UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0) {
             Strategy.DO_USE_HELLIONS = true;
             PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);

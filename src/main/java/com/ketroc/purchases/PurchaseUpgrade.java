@@ -107,7 +107,8 @@ public class PurchaseUpgrade implements Purchase {
     //prioritize producing army units over certain upgrades
     private boolean doDelayThisUpgrade() {
         return LOW_PRIORITY_UPGRADES.contains(upgrade) &&
-                (!hasEnoughRelatedArmyUnits() || Bot.OBS.getFoodUsed() < 197);
+                !hasEnoughRelatedArmyUnits() &&
+                Bot.OBS.getFoodUsed() < 197;
     }
 
     private boolean hasEnoughRelatedArmyUnits() {
