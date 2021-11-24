@@ -108,7 +108,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
         Unit closestEnemyThreat = UnitUtils.getClosestEnemyThreat(unit.unit());
         if (closestEnemyThreat != null &&
                 closestEnemyThreat.getType() == Units.PROTOSS_PHOENIX &&
-                UnitUtils.getDistance(closestEnemyThreat, unit.unit()) < 5) {
+                UnitUtils.getDistance(closestEnemyThreat, unit.unit()) < 7.5f) {
             if (canBoost()) {
                 castBoost();
             }
