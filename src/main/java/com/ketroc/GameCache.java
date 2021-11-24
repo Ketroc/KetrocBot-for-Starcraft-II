@@ -3,6 +3,7 @@ package com.ketroc;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
@@ -447,7 +448,7 @@ public class GameCache {
             defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
         }
 
-        //loop through effects
+        //loop through effects (bile and nukes handled separately)
         for (EffectLocations effect : Bot.OBS.getEffects()) {
             if (effect.getAlliance().orElse(Alliance.SELF) == Alliance.ENEMY) {
                 switch ((Effects) effect.getEffect()) {
@@ -456,11 +457,9 @@ public class GameCache {
                             EnemyScan.add(effect);
                         }
                         break;
-//                    case RAVAGER_CORROSIVE_BILE_CP:
                     case PSI_STORM_PERSISTENT:
                     case LIBERATOR_TARGET_MORPH_DELAY_PERSISTENT:
                     case LIBERATOR_TARGET_MORPH_PERSISTENT:
-//                    case NUKE_PERSISTENT:
                         enemyMappingList.add(new EnemyMappingEffect(effect));
                         break;
                 }
@@ -491,11 +490,16 @@ public class GameCache {
                 //filter to all visible enemies and non-visible tempests that have entered the fog within the last 5sec
                 .filter(enemyMappingPredicate)
                 .forEach(enemy -> enemyMappingList.add(new EnemyMappingUnit(enemy.unit())));
+
         Ignored.ignoredUnits.stream()
                 .map(ignored -> Bot.OBS.getUnit(ignored.unitTag))
                 .filter(u -> u != null && u.isAlive() && u.unit().getAlliance() == Alliance.ENEMY)
                 .filter(enemyMappingPredicate)
                 .forEach(enemy -> enemyMappingList.add(new EnemyMappingUnit(enemy.unit())));
+
+        NukeTracker.activeNukes.stream()
+                .filter(nuke -> nuke.doConsiderThreat())
+                .forEach(nuke -> enemyMappingList.add(new EnemyMappingEffect(nuke.getEffect())));
 
         //add siege tanks and lurkers that are no longer visible
         EnemyUnitMemory.onStep();
@@ -825,9 +829,9 @@ public class GameCache {
         if (DebugHelper.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-//                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
-//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
-//                    }
+                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
+                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
+                    }
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }

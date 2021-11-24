@@ -36,9 +36,9 @@ public class EnemyMappingEffect extends EnemyMapping {
                 break;
             case NUKE_PERSISTENT:
                 isDetector = true;
-                detectRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
+                detectRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 1 to make room for all units to get out of range
                 threatLevel = 200;
-                airAttackRange = effect.getRadius().get() + Strategy.STATIONARY_KITING_BUFFER;
+                airAttackRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 1 to make room for all units to get out of range
                 groundAttackRange = airAttackRange;
                 airDamage = 300;
                 groundDamage = 300;

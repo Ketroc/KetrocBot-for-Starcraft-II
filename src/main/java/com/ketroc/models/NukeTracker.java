@@ -22,6 +22,7 @@ import java.util.Set;
 public class NukeTracker {
     public static final int NUKE_DURATION = 319;
     public static final int NUKE_EFFECT_DURATION = 300;
+    public static final int THREAT_AT = 224;
     public static Set<NukeTracker> activeNukes = new HashSet<>();
 
     private long startFrame;
@@ -61,7 +62,12 @@ public class NukeTracker {
 
     //time (in seconds) until nuke cannot be cancelled
     public float cancelTimeRemaining() {
-        return (NukeTracker.NUKE_EFFECT_DURATION - (Time.nowFrames() - startFrame)) / 22.4f - 0.5f; //0.5s allotted for projectile time
+        return (NUKE_EFFECT_DURATION - (Time.nowFrames() - startFrame)) / 22.4f - 0.5f; //0.5s allotted for projectile time
+    }
+
+    //consider a threat as it's about to expire/jump
+    public boolean doConsiderThreat() {
+        return Time.nowFrames() - startFrame > THREAT_AT;
     }
 
     public static void onStep() {

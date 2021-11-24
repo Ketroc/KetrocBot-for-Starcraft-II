@@ -51,7 +51,6 @@ public class EnemyDebugTestBot extends S2Agent {
             debug().debugCreateUnit(Units.TERRAN_GHOST, Point2d.of(100, 100), myId, 1);
             debug().debugCreateUnit(Units.TERRAN_GHOST_ACADEMY, Point2d.of(100, 100), myId, 1);
             debug().debugCreateUnit(Units.TERRAN_FACTORY, Point2d.of(100, 100), myId, 1);
-            debug().debugGiveAllResources().debugFastBuild();
         }
 
 //        if (at(1320)) {
