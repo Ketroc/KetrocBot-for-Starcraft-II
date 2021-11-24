@@ -117,8 +117,8 @@ public class MedivacScvHealer extends BasicUnitMicro {
                 targetPos = myClosestAA.getPosition().toPoint2d();
                 if (!isMovingToTargetPos()) {
                     ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
-                    return;
                 }
+                return;
             }
         }
 
