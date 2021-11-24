@@ -29,16 +29,27 @@ public class UpgradeManager {
 
     public static List<Upgrades> armoryUpgradeList = new ArrayList<>(airUpgrades);
 
-    public static final List<Upgrades> allUpgrades = new ArrayList<>(List.of(
+    public static final List<Upgrades> airThenMechUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
-            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3,
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3));
+
+    public static final List<Upgrades> mechThenAirUpgrades = new ArrayList<>(List.of(
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3));
 
     public static final List<Upgrades> mechAttackUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,

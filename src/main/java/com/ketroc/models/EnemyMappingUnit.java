@@ -19,12 +19,11 @@ public class EnemyMappingUnit extends EnemyMapping {
         isAir = enemy.getFlying().orElse(false);
         isTumor = UnitUtils.CREEP_TUMOR_TYPES.contains(unitType);
         isInProgress = enemy.getBuildProgress() > 0 && enemy.getBuildProgress() < 0.95f;
-        if (isInProgress) {
+        if (isInProgress || isUnpoweredCannon(enemy)) {
             threatLevel = 0;
             detectRange = 0;
             airAttackRange = 0;
             groundAttackRange = 0;
-
         }
         else {
             threatLevel = getThreatValue(unitType);
@@ -79,6 +78,12 @@ public class EnemyMappingUnit extends EnemyMapping {
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
+    }
+
+    private boolean isUnpoweredCannon(Unit enemy) {
+        return unitType == Units.PROTOSS_PHOTON_CANNON &&
+                !UnitUtils.isSnapshot(enemy) &&
+                !enemy.getPowered().orElse(true);
     }
 
 }

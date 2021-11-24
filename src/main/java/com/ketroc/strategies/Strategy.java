@@ -519,11 +519,13 @@ public class Strategy {
                 break;
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
                 MAX_MARINES = 4;
                 break;
             case BUNKER_CONTAIN_WEAK:
@@ -572,6 +574,7 @@ public class Strategy {
         switch (gamePlan) {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
                 MASS_MINE_OPENER = true;
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
@@ -593,10 +596,7 @@ public class Strategy {
                 useCyclonesAdjustments();
                 DO_BANSHEE_HARASS = false;
                 DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
-                UpgradeManager.armoryUpgradeList = new ArrayList<>();
-                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechArmorUpgrades);
-                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
-                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airAttackUpgrades);
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = false;
                 PRIORITIZE_EXPANDING = true;
@@ -1040,7 +1040,7 @@ public class Strategy {
     }
 
     public static void useTanksAdjustments() {
-        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
+        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
         MAX_MARINES = Math.min(3, MAX_MARINES);
         MIN_BANSHEES = 0;
         DO_OFFENSIVE_TANKS = true;
@@ -1048,7 +1048,7 @@ public class Strategy {
     }
 
     public static void useTankVikingAdjustments() {
-        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.allUpgrades);
+        UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
         //UpgradeManager.starportUpgradeList.clear();
 
         MAX_MARINES = 4;
