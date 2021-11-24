@@ -152,7 +152,7 @@ public class Chat {
 
     public static void tag(String tag) {
         if (!Launcher.isRealTime && tag != null && !tag.equals("")) {
-            if (usedTags.contains(tag)) {
+            if (!usedTags.contains(tag)) {
                 usedTags.add(tag);
                 chat("Tag:" + Time.nowClock() + "_" + tag);
             }
