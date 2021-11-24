@@ -167,9 +167,6 @@ public class MedivacScvHealer extends BasicUnitMicro {
     }
 
     public static boolean needAnother() {
-        if (UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, true) >= 3) {
-            return false;
-        }
         return numInjuredScvs() >= 6 && isAllMedivacsDry();
     }
 
