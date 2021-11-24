@@ -101,17 +101,14 @@ public class ArmyManager {
             }
         }
 
-        //TODO: this is a temporary test
         UnitUtils.getMyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
             UnitMicroList.add(new Cyclone(cyclone, LocationConstants.insideMainWall));
         });
 
-        //TODO: this is a temporary test
         UnitUtils.getMyUnitsOfType(Units.TERRAN_WIDOWMINE).forEach(mine -> {
             UnitMicroList.add(new WidowMine(mine, LocationConstants.insideMainWall));
         });
 
-        //TODO: this is a temporary test
         UnitUtils.getMyUnitsOfType(Units.TERRAN_MEDIVAC).forEach(medivac -> {
             UnitMicroList.add(new MedivacScvHealer(medivac, LocationConstants.REPAIR_BAY));
         });

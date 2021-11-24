@@ -135,6 +135,9 @@ public class KetrocBot extends Bot {
                 case PROTOSS:
                     AdeptShadeTracker.onStep();
                     break;
+                case TERRAN:
+                    NukeTracker.onStep();
+                    break;
             }
             MyUnitAbilities.onStep();
             //PlacementMap.visualizePlacementMap();
