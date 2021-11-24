@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
@@ -129,8 +128,13 @@ public class KetrocBot extends Bot {
 //            //************************************
 
 
-            if (LocationConstants.opponentRace == Race.ZERG) {
-                BileTracker.onStep();
+            switch (LocationConstants.opponentRace) {
+                case ZERG:
+                    BileTracker.onStep();
+                    break;
+                case PROTOSS:
+                    AdeptShadeTracker.onStep();
+                    break;
             }
             MyUnitAbilities.onStep();
             //PlacementMap.visualizePlacementMap();

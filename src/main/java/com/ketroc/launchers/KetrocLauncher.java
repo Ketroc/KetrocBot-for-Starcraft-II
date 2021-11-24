@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
-        DebugHelper.doTestingSpawns = false;
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = false;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
