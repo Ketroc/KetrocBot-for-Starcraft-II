@@ -49,12 +49,12 @@ public class AdeptShadeTracker {
 
     //consider a threat as it's about to expire/jump
     public boolean doConsiderThreat() {
-        return framesFromComplete() < THREAT_FRAMES;
+        return !UnitUtils.isInFogOfWar(shadeUip) && framesFromComplete() < THREAT_FRAMES;
     }
 
     //consider a threat as it's about to expire/jump
     public boolean doConsiderTarget() {
-        return framesFromComplete() < TARGET_FRAMES;
+        return !UnitUtils.isInFogOfWar(shadeUip) && framesFromComplete() < TARGET_FRAMES;
     }
 
     public long framesFromComplete() {
