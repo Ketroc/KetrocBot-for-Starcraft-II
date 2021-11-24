@@ -3,7 +3,6 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -108,10 +107,24 @@ public class Harassers {
             }
         }
         if (ArmyManager.doOffense) {
-            if (UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size() >
-                    UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 +
-                            (LocationConstants.opponentRace == Race.ZERG ? 2 : 0)) {
-                addHellion();
+            int numHellions = UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size();
+            if (numHellions == 0) {
+                return;
+            }
+            switch (LocationConstants.opponentRace) {
+                case ZERG:
+                    if (numHellions > UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2) {
+                        addHellion();
+                    }
+                    break;
+                case PROTOSS:
+                    if (numHellions > UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ADEPT).size() + 2) {
+                        addHellion();
+                    }
+                    break;
+                case TERRAN:
+                    addHellion();
+                    break;
             }
         }
         else {
