@@ -10,6 +10,7 @@ import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.micro.RavenMatrixer;
 import com.ketroc.micro.UnitMicroList;
+import com.ketroc.utils.Chat;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
@@ -88,7 +89,10 @@ public class NukeTracker {
                         .min(Comparator.comparing(raven -> RavenMatrixer.minTimeToMatrix(raven, nuke.nukeGhost.get().unit())))
                         .filter(raven -> RavenMatrixer.minTimeToMatrix(raven, nuke.nukeGhost.get().unit()) <
                                 nuke.cancelTimeRemaining())
-                        .ifPresent(raven -> UnitMicroList.add(new RavenMatrixer(raven, nuke.nukeGhost.get())));
+                        .ifPresent(raven -> {
+                            UnitMicroList.add(new RavenMatrixer(raven, nuke.nukeGhost.get()));
+                            Chat.tag("MATRIX_GHOST");
+                        });
             }
         }
     }

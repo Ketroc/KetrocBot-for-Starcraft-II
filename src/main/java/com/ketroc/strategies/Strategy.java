@@ -381,6 +381,14 @@ public class Strategy {
                         GamePlan.TANK_VIKING,
                         GamePlan.MARINE_RUSH
                 ));
+            case "ee6dc754-ee07-4243-8b92-4e648f58912b": //ChaosBot TODO: for testing anti-nuke code
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING
+                ));
+            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIBot TODO: for testing anti-nuke code
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING
+                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.ONE_BASE_TANK_VIKING,
