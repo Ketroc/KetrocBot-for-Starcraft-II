@@ -696,7 +696,10 @@ public class GameCache {
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
                         if (enemy.isArmy ||
                                 doCloseWallToAllUnits() ||
-                                (UnitUtils.WORKER_TYPE.contains(enemy.unitType)) && UnitUtils.getEnemyGroundArmyUnitsWithin(11).size() > 1) {
+                                (UnitUtils.WORKER_TYPE.contains(enemy.unitType)) &&
+                                        UnitUtils.getEnemyGroundArmyUnitsNearby(Point2d.of(x/2f, y/2f), 11).stream()
+                                                .filter(u -> UnitUtils.canMove(u.unit()))
+                                                .count() > 1) {
                             InfluenceMaps.pointRaiseDepots[x][y] = true;
                         }
                         //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);

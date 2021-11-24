@@ -512,8 +512,7 @@ public class ArmyManager {
                         !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) && //ignore eggs/autoturrets/etc
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
                         u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
-                        !u.unit().getHallucination().orElse(false) && //ignore hallucs
-                        !UnitUtils.isInFogOfWar(u)) //ignore units in the fog
+                        !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .map(UnitInPool::unit)
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u, groundAttackersMidPoint)))
@@ -1196,7 +1195,7 @@ public class ArmyManager {
 
     public static void giveHellionCommand(Unit hellion) {
         ArmyCommands lastCommand = getCurrentCommand(hellion);
-        boolean isUnsafe = (attackUnit == null || !attackUnit.getType().toString().contains("ADEPT")) ?
+        boolean isUnsafe = !isVsOnlyAdepts() ?
                 InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d()) :
                 false;
         boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointInHellionRange, hellion.getPosition().toPoint2d());
@@ -1230,6 +1229,11 @@ public class ArmyManager {
 
         //attack
         if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
+    }
+
+    private static boolean isVsOnlyAdepts() {
+        return attackUnit != null && UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 3).stream()
+                .noneMatch(u -> UnitUtils.canAttack(u.unit().getType()) && !u.unit().getType().toString().contains("ADEPT"));
     }
 
     public static void giveBansheeCommand(Unit banshee) {
