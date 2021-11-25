@@ -142,7 +142,7 @@ public class UnitUtils {
             Units.TERRAN_FUSION_CORE, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
             Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG,
             Units.PROTOSS_STARGATE, Units.PROTOSS_FLEET_BEACON, Units.PROTOSS_TEMPEST,
-            Units.PROTOSS_ORACLE,Units.PROTOSS_ORACLE_STASIS_TRAP, Units.PROTOSS_VOIDRAY,
+            Units.PROTOSS_ORACLE, Units.PROTOSS_ORACLE_STASIS_TRAP, Units.PROTOSS_VOIDRAY,
             Units.ZERG_SPIRE, Units.ZERG_GREATER_SPIRE, Units.ZERG_MUTALISK,
             Units.ZERG_CORRUPTOR, Units.ZERG_BROODLORD, Units.ZERG_BROODLORD_COCOON));
 
@@ -210,8 +210,7 @@ public class UnitUtils {
         if (includeProducing) {
             if (isStructure(unitType)) {
                 numUnits += numStructuresProducingOrQueued(unitType);
-            }
-            else {
+            } else {
                 numUnits += numInProductionOfType(unitType);
             }
         }
@@ -231,8 +230,7 @@ public class UnitUtils {
             if (includeProducing) {
                 if (isStructure(unitType)) {
                     numUnits += numStructuresProducingOrQueued(unitType);
-                }
-                else {
+                } else {
                     numUnits += numInProductionOfType(unitType);
                 }
             }
@@ -257,7 +255,7 @@ public class UnitUtils {
 
     public static boolean canAfford(Units unitType, int minerals, int gas, int supply) {
         UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unitType);
-        int mineralCost =  unitData.getMineralCost().orElse(0);
+        int mineralCost = unitData.getMineralCost().orElse(0);
         int gasCost = unitData.getVespeneCost().orElse(0);
         int supplyCost = unitData.getFoodRequired().orElse(0f).intValue();
         switch (unitType) {
@@ -269,7 +267,6 @@ public class UnitUtils {
     }
 
 
-
     public static boolean isUnitTypesNearby(Alliance alliance, Units unitType, Point2d position, float distance) {
         return !getUnitsNearbyOfType(alliance, unitType, position, distance).isEmpty();
     }
@@ -278,9 +275,8 @@ public class UnitUtils {
         try {
             return Bot.OBS.getUnits(alliance, unit ->
                     unit.unit().getType() == unitType &&
-                    UnitUtils.getDistance(unit.unit(), position) < distance);
-        }
-        catch (Exception e) {
+                            UnitUtils.getDistance(unit.unit(), position) < distance);
+        } catch (Exception e) {
             Error.onException(e);
         }
         return new ArrayList<>();
@@ -304,9 +300,9 @@ public class UnitUtils {
                         ActionIssued.getCurOrder(scv).stream()
                                 .anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
                                         repairTarget.getTag().equals(curAction.targetTag)) ||
-                        scv.getOrders().stream() //TODO: try without this?? (realtime issue??)
-                                .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
-                                        repairTarget.getTag().equals(order.getTargetedUnitTag().orElse(null))))
+                                scv.getOrders().stream() //TODO: try without this?? (realtime issue??)
+                                        .anyMatch(order -> order.getAbility() == Abilities.EFFECT_REPAIR &&
+                                                repairTarget.getTag().equals(order.getTargetedUnitTag().orElse(null))))
                 .count();
     }
 
@@ -323,23 +319,23 @@ public class UnitUtils {
         if (GameCache.wallStructures.contains(unit)) {
             if (structureHealth > 75) {
                 return (Strategy.WALL_OFF_IMMEDIATELY) ? 2 : 1;
-            }
-            else {
+            } else {
                 return (Strategy.WALL_OFF_IMMEDIATELY) ? 3 : 2;
             }
         }
-        switch ((Units)unit.getType()) {
+        switch ((Units) unit.getType()) {
             case TERRAN_COMMAND_CENTER:
                 if (UnitUtils.getOrder(unit) != Abilities.MORPH_PLANETARY_FORTRESS) {
                     return 1;
                 } //else continue into PF case
             case TERRAN_PLANETARY_FORTRESS:
-                return 2 * (int)Math.ceil((100 - structureHealth)/10) + 1; //90-100% = 1scv, 80-90% = 3scvs, 70-80% = 5scvs, etc
+                return 2 * (int) Math.ceil((100 - structureHealth) / 10) + 1; //90-100% = 1scv, 80-90% = 3scvs, 70-80% = 5scvs, etc
             case TERRAN_MISSILE_TURRET:
                 return (InfluenceMaps.getThreatToStructure(unit) != 0 ||
                         InfluenceMaps.getValue(InfluenceMaps.enemyInMissileTurretRange, unit.getPosition().toPoint2d()))
                         ? 6 : 0;
-            case TERRAN_LIBERATOR_AG: case TERRAN_SIEGE_TANK_SIEGED:
+            case TERRAN_LIBERATOR_AG:
+            case TERRAN_SIEGE_TANK_SIEGED:
                 return 2;
             case TERRAN_BUNKER:
                 return 3;
@@ -364,14 +360,18 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return 0;
         }
-        switch ((Units)unit.getType()) { //these types do not have a Weapon in the api
+        switch ((Units) unit.getType()) { //these types do not have a Weapon in the api
             case TERRAN_BUNKER:
                 attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
                 break;
-            case TERRAN_BATTLECRUISER: case PROTOSS_HIGH_TEMPLAR: case PROTOSS_VOIDRAY: case TERRAN_CYCLONE:
+            case TERRAN_BATTLECRUISER:
+            case PROTOSS_HIGH_TEMPLAR:
+            case PROTOSS_VOIDRAY:
+            case TERRAN_CYCLONE:
                 attackRange = 6;
                 break;
-            case PROTOSS_SENTRY: case TERRAN_WIDOWMINE_BURROWED:
+            case PROTOSS_SENTRY:
+            case TERRAN_WIDOWMINE_BURROWED:
                 attackRange = 5;
                 break;
             case PROTOSS_ORACLE:
@@ -379,9 +379,22 @@ public class UnitUtils {
                     attackRange = 4;
                 }
                 break;
-            case ZERG_BANELING: case ZERG_BANELING_BURROWED:
+            case ZERG_BANELING:
+            case ZERG_BANELING_BURROWED:
                 if (targetType == Weapon.TargetType.GROUND) {
                     attackRange = 2; //real range is 0.25 (2.2splash)
+                }
+                break;
+            case TERRAN_PLANETARY_FORTRESS:
+                if (targetType == Weapon.TargetType.GROUND) {
+                    attackRange = (unit.getAlliance() == Alliance.SELF &&
+                            Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) ? 7 : 6;
+                }
+                break;
+            case TERRAN_MISSILE_TURRET:
+                if (targetType == Weapon.TargetType.AIR) {
+                    attackRange = (unit.getAlliance() == Alliance.SELF &&
+                            Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) ? 8 : 7;
                 }
                 break;
             default:
@@ -408,7 +421,7 @@ public class UnitUtils {
     }
 
     public static float getDistance(Unit unit1, Point2d point) {
-        return (float)unit1.getPosition().toPoint2d().distance(point);
+        return (float) unit1.getPosition().toPoint2d().distance(point);
     }
 
     public static List<Unit> toUnitList(List<UnitInPool> unitInPoolList) {
@@ -561,7 +574,7 @@ public class UnitUtils {
 
     public static void queueUpAttackOfEveryBase(List<Unit> units) {
         ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(2), false);
-        for (int i=3; i<LocationConstants.baseLocations.size(); i++) {
+        for (int i = 3; i < LocationConstants.baseLocations.size(); i++) {
             Point2d basePos = LocationConstants.baseLocations.get(i);
             ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(i), true);
         }
@@ -571,8 +584,11 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return false;
         }
-        switch ((Units)unit.getType()) {
-            case TERRAN_WIDOWMINE_BURROWED: case ZERG_BANELING: case ZERG_BANELING_BURROWED: case PROTOSS_DISRUPTOR_PHASED:
+        switch ((Units) unit.getType()) {
+            case TERRAN_WIDOWMINE_BURROWED:
+            case ZERG_BANELING:
+            case ZERG_BANELING_BURROWED:
+            case PROTOSS_DISRUPTOR_PHASED:
                 return true;
             case TERRAN_BUNKER:
                 return !Strategy.DO_IGNORE_BUNKERS;
@@ -585,7 +601,7 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return false;
         }
-        switch ((Units)unit.getType()) {
+        switch ((Units) unit.getType()) {
             case TERRAN_WIDOWMINE_BURROWED:
                 return true;
             case TERRAN_BUNKER:
@@ -607,8 +623,7 @@ public class UnitUtils {
                 .orElse(null);
         if (mineralPatches == null) {
             return null;
-        }
-        else {
+        } else {
             return mineralPatches.get(0);
         }
     }
@@ -649,16 +664,36 @@ public class UnitUtils {
 
     public static StructureSize getSize(Units structureType) {
         switch (structureType) {
-            case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND: case TERRAN_PLANETARY_FORTRESS:
-            case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_ORBITAL_COMMAND_FLYING:
+            case TERRAN_COMMAND_CENTER:
+            case TERRAN_ORBITAL_COMMAND:
+            case TERRAN_PLANETARY_FORTRESS:
+            case TERRAN_COMMAND_CENTER_FLYING:
+            case TERRAN_ORBITAL_COMMAND_FLYING:
                 return StructureSize._5x5;
-            case TERRAN_ENGINEERING_BAY: case TERRAN_BARRACKS: case TERRAN_BUNKER: case TERRAN_ARMORY: case TERRAN_FACTORY:
-            case TERRAN_STARPORT: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY: case TERRAN_BARRACKS_FLYING:
-            case TERRAN_FACTORY_FLYING: case TERRAN_STARPORT_FLYING:
+            case TERRAN_ENGINEERING_BAY:
+            case TERRAN_BARRACKS:
+            case TERRAN_BUNKER:
+            case TERRAN_ARMORY:
+            case TERRAN_FACTORY:
+            case TERRAN_STARPORT:
+            case TERRAN_FUSION_CORE:
+            case TERRAN_GHOST_ACADEMY:
+            case TERRAN_BARRACKS_FLYING:
+            case TERRAN_FACTORY_FLYING:
+            case TERRAN_STARPORT_FLYING:
                 return StructureSize._3x3;
-            case TERRAN_MISSILE_TURRET: case TERRAN_SUPPLY_DEPOT: case TERRAN_TECHLAB: case TERRAN_BARRACKS_TECHLAB:
-            case TERRAN_FACTORY_TECHLAB: case TERRAN_STARPORT_TECHLAB: case TERRAN_REACTOR: case TERRAN_BARRACKS_REACTOR:
-            case TERRAN_FACTORY_REACTOR: case TERRAN_STARPORT_REACTOR: case TERRAN_AUTO_TURRET: case NEUTRAL_XELNAGA_TOWER:
+            case TERRAN_MISSILE_TURRET:
+            case TERRAN_SUPPLY_DEPOT:
+            case TERRAN_TECHLAB:
+            case TERRAN_BARRACKS_TECHLAB:
+            case TERRAN_FACTORY_TECHLAB:
+            case TERRAN_STARPORT_TECHLAB:
+            case TERRAN_REACTOR:
+            case TERRAN_BARRACKS_REACTOR:
+            case TERRAN_FACTORY_REACTOR:
+            case TERRAN_STARPORT_REACTOR:
+            case TERRAN_AUTO_TURRET:
+            case NEUTRAL_XELNAGA_TOWER:
                 return StructureSize._2x2;
             default: //case TERRAN_SENSOR_TOWER:
                 return StructureSize._1x1;
@@ -669,20 +704,15 @@ public class UnitUtils {
         float structureSize = structure.getRadius();
         if (structureSize > 2.75) {
             return StructureSize._6x6;
-        }
-        else if (structureSize > 2.25) {
+        } else if (structureSize > 2.25) {
             return StructureSize._5x5;
-        }
-        else if (structureSize > 1.75) {
+        } else if (structureSize > 1.75) {
             return StructureSize._4x4;
-        }
-        else if (structureSize > 1.25) {
+        } else if (structureSize > 1.25) {
             return StructureSize._3x3;
-        }
-        else if (structureSize > 0.75) {
+        } else if (structureSize > 0.75) {
             return StructureSize._2x2;
-        }
-        else {
+        } else {
             return StructureSize._1x1;
         }
     }
@@ -717,9 +747,8 @@ public class UnitUtils {
     }
 
     public static List<UnitInPool> getEnemyTargetsInRange(Unit unit, Predicate<UnitInPool> targetFilter) {
-        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                        ((enemy.unit().getFlying().orElse(true) &&
-                                getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> ((enemy.unit().getFlying().orElse(true) &&
+                        getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
                         (!enemy.unit().getFlying().orElse(true) &&
                                 getDistance(enemy.unit(), unit) <= getGroundAttackRange(unit) + enemy.unit().getRadius())) &&
                         !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
@@ -732,6 +761,22 @@ public class UnitUtils {
                 collect(Collectors.toList());
     }
 
+    public static Optional<UnitInPool> getNeutralTargetInRange(Unit unit) {
+        return getNeutralTargetInRange(unit, target -> true);
+    }
+
+    public static Optional<UnitInPool> getNeutralTargetInRange(Unit unit, Predicate<UnitInPool> targetFilter) {
+        return Bot.OBS.getUnits(Alliance.NEUTRAL, neutralUip -> ((neutralUip.unit().getFlying().orElse(true) &&
+                        getDistance(neutralUip.unit(), unit) <= getAirAttackRange(unit) + neutralUip.unit().getRadius()) ||
+                        (!neutralUip.unit().getFlying().orElse(true) &&
+                                getDistance(neutralUip.unit(), unit) <= getGroundAttackRange(unit) + neutralUip.unit().getRadius())) &&
+                        neutralUip.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        !UnitUtils.isSnapshot(neutralUip.unit()) &&
+                        neutralUip.unit().getHealth().orElse(0f) > 0f)
+                .stream()
+                .filter(targetFilter)
+                .findFirst();
+    }
 
     public static List<UnitInPool> getEnemyTargetsNear(Unit unit, float range) {
         return getEnemyTargetsNear(unit.getPosition().toPoint2d(), range);
@@ -753,17 +798,17 @@ public class UnitUtils {
     public static List<UnitInPool> getEnemyGroundTargetsNear(Point2d pos, float range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 !enemy.unit().getFlying().orElse(true) &&
-                !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !enemy.unit().getHallucination().orElse(false) &&
-                !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                getDistance(enemy.unit(), pos) <= range);
+                        !IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        !enemy.unit().getHallucination().orElse(false) &&
+                        !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        getDistance(enemy.unit(), pos) <= range);
     }
 
     public static Abilities getOrder(Unit unit) {
         Ability curOrder = ActionIssued.getCurOrder(unit).map(actionIssued -> actionIssued.ability).orElse(null);
         if (curOrder instanceof Abilities) {
-            return (Abilities)curOrder;
+            return (Abilities) curOrder;
         }
         return null;
     }
@@ -778,9 +823,9 @@ public class UnitUtils {
 
     public static Unit getEnemyInRange(Unit myUnit) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                !enemy.unit().getHallucination().orElse(false) &&
-                        (myUnit.getFlying().orElse(false) ? getAirAttackRange(enemy.unit()) : getGroundAttackRange(enemy.unit()))
-                                > UnitUtils.getDistance(myUnit, enemy.unit()))
+                        !enemy.unit().getHallucination().orElse(false) &&
+                                (myUnit.getFlying().orElse(false) ? getAirAttackRange(enemy.unit()) : getGroundAttackRange(enemy.unit()))
+                                        > UnitUtils.getDistance(myUnit, enemy.unit()))
                 .stream()
                 .findFirst()
                 .map(UnitInPool::unit)
@@ -793,9 +838,9 @@ public class UnitUtils {
 
     public static Unit getClosestEnemyThreat(Point2d pos, boolean isThreatToAir) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                !enemy.unit().getHallucination().orElse(false) &&
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        isThreatToAir ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
+                        !enemy.unit().getHallucination().orElse(false) &&
+                                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                                isThreatToAir ? canAttackAir(enemy.unit()) : canAttackGround(enemy.unit()))
                 .stream()
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), pos)))
                 .map(UnitInPool::unit)
@@ -807,29 +852,41 @@ public class UnitUtils {
             return null;
         }
         switch (unitType) {
-            case TERRAN_SUPPLY_DEPOT_LOWERED: case TERRAN_SUPPLY_DEPOT:
+            case TERRAN_SUPPLY_DEPOT_LOWERED:
+            case TERRAN_SUPPLY_DEPOT:
                 return SUPPLY_DEPOT_TYPE;
-            case TERRAN_COMMAND_CENTER_FLYING: case TERRAN_COMMAND_CENTER:
+            case TERRAN_COMMAND_CENTER_FLYING:
+            case TERRAN_COMMAND_CENTER:
                 return COMMAND_STRUCTURE_TYPE_TERRAN;
-            case TERRAN_ORBITAL_COMMAND_FLYING: case TERRAN_ORBITAL_COMMAND:
+            case TERRAN_ORBITAL_COMMAND_FLYING:
+            case TERRAN_ORBITAL_COMMAND:
                 return ORBITAL_COMMAND_TYPE;
-            case TERRAN_BARRACKS_FLYING: case TERRAN_BARRACKS:
+            case TERRAN_BARRACKS_FLYING:
+            case TERRAN_BARRACKS:
                 return BARRACKS_TYPE;
-            case TERRAN_FACTORY_FLYING: case TERRAN_FACTORY:
+            case TERRAN_FACTORY_FLYING:
+            case TERRAN_FACTORY:
                 return FACTORY_TYPE;
-            case TERRAN_STARPORT_FLYING: case TERRAN_STARPORT:
+            case TERRAN_STARPORT_FLYING:
+            case TERRAN_STARPORT:
                 return STARPORT_TYPE;
-            case TERRAN_HELLION_TANK: case TERRAN_HELLION:
+            case TERRAN_HELLION_TANK:
+            case TERRAN_HELLION:
                 return HELLION_TYPE;
-            case TERRAN_WIDOWMINE_BURROWED: case TERRAN_WIDOWMINE:
+            case TERRAN_WIDOWMINE_BURROWED:
+            case TERRAN_WIDOWMINE:
                 return WIDOW_MINE_TYPE;
-            case TERRAN_SIEGE_TANK_SIEGED: case TERRAN_SIEGE_TANK:
+            case TERRAN_SIEGE_TANK_SIEGED:
+            case TERRAN_SIEGE_TANK:
                 return SIEGE_TANK_TYPE;
-            case TERRAN_THOR_AP: case TERRAN_THOR:
+            case TERRAN_THOR_AP:
+            case TERRAN_THOR:
                 return THOR_TYPE;
-            case TERRAN_VIKING_ASSAULT: case TERRAN_VIKING_FIGHTER:
+            case TERRAN_VIKING_ASSAULT:
+            case TERRAN_VIKING_FIGHTER:
                 return VIKING_TYPE;
-            case TERRAN_LIBERATOR_AG: case TERRAN_LIBERATOR:
+            case TERRAN_LIBERATOR_AG:
+            case TERRAN_LIBERATOR:
                 return LIBERATOR_TYPE;
         }
         return Set.of(unitType);
@@ -940,23 +997,23 @@ public class UnitUtils {
     public static List<UnitInPool> getIdleScvs() {
         return Bot.OBS.getUnits(Alliance.SELF, scv ->
                 scv.unit().getType() == Units.TERRAN_SCV &&
-                ActionIssued.getCurOrder(scv).isEmpty() &&
-                !Ignored.contains(scv.getTag()) &&
-                !Base.isMining(scv));
+                        ActionIssued.getCurOrder(scv).isEmpty() &&
+                        !Ignored.contains(scv.getTag()) &&
+                        !Base.isMining(scv));
     }
 
     public static boolean isEnemyEnteringDetection(Unit enemy) {
         return !Bot.OBS.getUnits(Alliance.SELF, u ->
                 (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
-                u.unit().getBuildProgress() == 1 &&
-                UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
+                        u.unit().getBuildProgress() == 1 &&
+                        UnitUtils.getDistance(u.unit(), enemy) < 10 && UnitUtils.getDistance(u.unit(), enemy) > 9.6).isEmpty(); // > 9.6 is to handle halluc phoenix in range of a missile turret as it completes which registers as a false positive
     }
 
     public static boolean isInMyDetection(Point2d pos) {
         return !Bot.OBS.getUnits(Alliance.SELF, u ->
                 (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
-                u.unit().getBuildProgress() == 1 &&
-                UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
+                        u.unit().getBuildProgress() == 1 &&
+                        UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
     }
 
     public static int numScvs(boolean includeProducing) {
@@ -1019,15 +1076,15 @@ public class UnitUtils {
         float structureRadius = getStructureRadius(structureType) - 0.05f;
         float x = structurePos.getX();
         float y = structurePos.getY();
-        Point2d top = Point2d.of(x, y+structureRadius);
-        Point2d bottom = Point2d.of(x, y-structureRadius);
-        Point2d left = Point2d.of(x-structureRadius, y);
-        Point2d right = Point2d.of(x+structureRadius, y);
+        Point2d top = Point2d.of(x, y + structureRadius);
+        Point2d bottom = Point2d.of(x, y - structureRadius);
+        Point2d left = Point2d.of(x - structureRadius, y);
+        Point2d right = Point2d.of(x + structureRadius, y);
         Point2d center = structurePos;
-        Point2d topLeft = Point2d.of(x-structureRadius, y+structureRadius);
-        Point2d topRight = Point2d.of(x+structureRadius, y+structureRadius);
-        Point2d botLeft = Point2d.of(x-structureRadius, y-structureRadius);
-        Point2d botRight = Point2d.of(x+structureRadius, y-structureRadius);
+        Point2d topLeft = Point2d.of(x - structureRadius, y + structureRadius);
+        Point2d topRight = Point2d.of(x + structureRadius, y + structureRadius);
+        Point2d botLeft = Point2d.of(x - structureRadius, y - structureRadius);
+        Point2d botRight = Point2d.of(x + structureRadius, y - structureRadius);
 
         return Bot.OBS.isPlacable(topLeft) && Bot.OBS.isPlacable(top) && Bot.OBS.isPlacable(topRight) &&
                 Bot.OBS.isPlacable(left) && Bot.OBS.isPlacable(center) && Bot.OBS.isPlacable(right) &&
@@ -1125,7 +1182,7 @@ public class UnitUtils {
         myDamage -= enemyArmor + enemyArmorUpgradeLevel;
         myDamage *= myWeapon.getAttacks();
 
-        return (int)Math.ceil(enemyUnit.getHealth().orElse(9999f) / myDamage);
+        return (int) Math.ceil(enemyUnit.getHealth().orElse(9999f) / myDamage);
     }
 
     public static Optional<Weapon> getWeapon(Unit attackingUnit, Unit targetUnit) {
@@ -1161,7 +1218,7 @@ public class UnitUtils {
 
     public static int numScansAvailable() {
         return getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
-                .mapToInt(oc -> (int)(oc.getEnergy().orElse(1f) / 50))
+                .mapToInt(oc -> (int) (oc.getEnergy().orElse(1f) / 50))
                 .sum();
     }
 
@@ -1177,8 +1234,8 @@ public class UnitUtils {
 
     public static boolean requiresDetection(Unit enemy) {
         return enemy.getDisplayType() == DisplayType.HIDDEN ||
-                        UnitUtils.DETECTION_REQUIRED_TYPE.contains((Units)enemy.getType()) ||
-                        enemy.getType().toString().endsWith("_BURROWED");
+                UnitUtils.DETECTION_REQUIRED_TYPE.contains((Units) enemy.getType()) ||
+                enemy.getType().toString().endsWith("_BURROWED");
     }
 
     public static float getEnemySupply() {
@@ -1210,7 +1267,7 @@ public class UnitUtils {
             UnitOrder curOrder = structure.getOrders().get(0);
             String addOnType = curOrder.getAbility() == Abilities.BUILD_TECHLAB ? "TECHLAB" : "REACTOR";
             return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType().toString().contains(addOnType) &&
-                    UnitUtils.getDistance(u.unit(), getAddonPos(structure)) < 1)
+                            UnitUtils.getDistance(u.unit(), getAddonPos(structure)) < 1)
                     .stream()
                     .findFirst();
         }
@@ -1236,7 +1293,7 @@ public class UnitUtils {
         //include time of units in purchase queue for this structure
         int timeForQueuedUnits = KetrocBot.purchaseQueue.stream()
                 .filter(purchase -> purchase instanceof PurchaseUnit)
-                .map(purchase -> (PurchaseUnit)purchase)
+                .map(purchase -> (PurchaseUnit) purchase)
                 .filter(purchaseUnit -> purchaseUnit.getProductionStructure() != null &&
                         purchaseUnit.getProductionStructure().getTag().equals(structure.getTag()))
                 .mapToInt(purchaseUnit -> secondsToProduce(purchaseUnit.getUnitType()))
@@ -1244,7 +1301,7 @@ public class UnitUtils {
 
         // if under construction
         if (structure.getBuildProgress() != 1) {
-            return timeForQueuedUnits + (int)(secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
+            return timeForQueuedUnits + (int) (secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
         }
 
         //TODO: include structure morphs (command centers)
@@ -1260,7 +1317,7 @@ public class UnitUtils {
             // if currently training a unit
             if (curOrder.getProgress().isPresent() && curOrder.getAbility().toString().contains("TRAIN")) {
                 Units unitTypeInProduction = Bot.abilityToUnitType.get(curOrder.getAbility());
-                return timeForQueuedUnits + (int)(secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
+                return timeForQueuedUnits + (int) (secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
             }
 
             // if currently building an add-on
@@ -1268,16 +1325,15 @@ public class UnitUtils {
                 UnitInPool addOn = getAddOn(structure).orElse(null);
                 if (addOn == null) {
                     return timeForQueuedUnits + secondsToProduce(addOn.unit().getType());
-                }
-                else {
-                    return timeForQueuedUnits + (int)(secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
+                } else {
+                    return timeForQueuedUnits + (int) (secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
                 }
             }
 
             // if currently researching an upgrade
             else if (curOrder.getAbility().toString().contains("RESEARCH")) {
                 Upgrades upgradeInProduction = Bot.abilityToUpgrade.get(curOrder.getAbility());
-                return (int)(secondsToProduce(upgradeInProduction) * (1 - curOrder.getProgress().get()));
+                return (int) (secondsToProduce(upgradeInProduction) * (1 - curOrder.getProgress().get()));
             }
         }
         return 0;
@@ -1298,8 +1354,7 @@ public class UnitUtils {
     public static int secondsToProduce(Abilities ability) {
         if (ability.toString().startsWith("BUILD")) {
             return secondsToProduce(Bot.abilityToUnitType.get(ability));
-        }
-        else {
+        } else {
             return secondsToProduce(Bot.abilityToUpgrade.get(ability));
         }
     }
@@ -1320,8 +1375,8 @@ public class UnitUtils {
     public static List<UnitInPool> getEnemyGroundArmyUnitsNearby(Point2d origin, int range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 !u.unit().getFlying().orElse(true) &&
-                canAttack(u.unit().getType()) &&
-                UnitUtils.getDistance(u.unit(), origin) < range);
+                        canAttack(u.unit().getType()) &&
+                        UnitUtils.getDistance(u.unit(), origin) < range);
     }
 
     public static boolean isExpansionNeeded() {
@@ -1336,7 +1391,7 @@ public class UnitUtils {
         }
 
         //check facing angle to tell if unit is retreating
-        float facing = (float)Math.toDegrees(enemyUnit.getFacing());
+        float facing = (float) Math.toDegrees(enemyUnit.getFacing());
         float attackAngle = Position.getAngle(enemyUnit.getPosition().toPoint2d(), myUnitPos);
         float angleDiff = Position.getAngleDifference(facing, attackAngle);
         return angleDiff > 100;
@@ -1344,19 +1399,19 @@ public class UnitUtils {
 
     public static Optional<UnitInPool> getNatBunker() {
         return Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
-                getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
-                ActionIssued.getCurOrder(bunker).stream()
-                        .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
-        .stream()
-        .findFirst();
+                        getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
+                        ActionIssued.getCurOrder(bunker).stream()
+                                .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
+                .stream()
+                .findFirst();
     }
 
     public static Set<Unit> getRepairBayTargets(Point2d repairBayPos) {
         return Bot.OBS.getUnits(Alliance.SELF, u ->
                         (UnitUtils.REPAIR_BAY_TYPES.contains(u.unit().getType()) ||
                                 (!Strategy.DO_OFFENSIVE_TANKS && UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType()))) &&
-                        UnitUtils.getDistance(u.unit(), repairBayPos) <= 4 &&
-                        UnitUtils.getHealthPercentage(u.unit()) < 100)
+                                UnitUtils.getDistance(u.unit(), repairBayPos) <= 4 &&
+                                UnitUtils.getHealthPercentage(u.unit()) < 100)
                 .stream()
                 .map(UnitInPool::unit)
                 .collect(Collectors.toSet());
@@ -1366,17 +1421,21 @@ public class UnitUtils {
         if (isCarryingResources(scv.unit())) {
             ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_RETURN, false);
             ActionHelper.unitCommand(scv.unit(), Abilities.STOP, true);
-        }
-        else {
+        } else {
             ActionHelper.unitCommand(scv.unit(), Abilities.STOP, false);
         }
     }
 
     public static boolean requiresTechLab(Units unitType) {
-        switch(unitType) {
-            case TERRAN_MARAUDER: case TERRAN_GHOST:
-            case TERRAN_CYCLONE: case TERRAN_SIEGE_TANK: case TERRAN_THOR:
-            case TERRAN_BANSHEE: case TERRAN_RAVEN: case TERRAN_BATTLECRUISER:
+        switch (unitType) {
+            case TERRAN_MARAUDER:
+            case TERRAN_GHOST:
+            case TERRAN_CYCLONE:
+            case TERRAN_SIEGE_TANK:
+            case TERRAN_THOR:
+            case TERRAN_BANSHEE:
+            case TERRAN_RAVEN:
+            case TERRAN_BATTLECRUISER:
                 return true;
             default:
                 return false;
@@ -1400,15 +1459,26 @@ public class UnitUtils {
     }
 
     public static Units getRequiredStructureType(Units unitType) {
-        switch(unitType) {
-            case TERRAN_SCV: case TERRAN_ORBITAL_COMMAND: case TERRAN_PLANETARY_FORTRESS:
+        switch (unitType) {
+            case TERRAN_SCV:
+            case TERRAN_ORBITAL_COMMAND:
+            case TERRAN_PLANETARY_FORTRESS:
                 return Units.TERRAN_COMMAND_CENTER;
-            case TERRAN_MARINE: case TERRAN_MARAUDER: case TERRAN_GHOST: case TERRAN_REAPER:
-            case TERRAN_BARRACKS_TECHLAB: case TERRAN_BARRACKS_REACTOR:
+            case TERRAN_MARINE:
+            case TERRAN_MARAUDER:
+            case TERRAN_GHOST:
+            case TERRAN_REAPER:
+            case TERRAN_BARRACKS_TECHLAB:
+            case TERRAN_BARRACKS_REACTOR:
                 return Units.TERRAN_BARRACKS;
-            case TERRAN_HELLION: case TERRAN_HELLION_TANK: case TERRAN_CYCLONE:
-            case TERRAN_SIEGE_TANK: case TERRAN_THOR: case TERRAN_WIDOWMINE:
-            case TERRAN_FACTORY_TECHLAB: case TERRAN_FACTORY_REACTOR:
+            case TERRAN_HELLION:
+            case TERRAN_HELLION_TANK:
+            case TERRAN_CYCLONE:
+            case TERRAN_SIEGE_TANK:
+            case TERRAN_THOR:
+            case TERRAN_WIDOWMINE:
+            case TERRAN_FACTORY_TECHLAB:
+            case TERRAN_FACTORY_REACTOR:
                 return Units.TERRAN_FACTORY;
             default: //starport units
                 return Units.TERRAN_STARPORT;
@@ -1427,13 +1497,13 @@ public class UnitUtils {
             return null;
         }
         if (curEnemyBasePos == null || //no cur base
-                enemyBases.get(enemyBases.size()-1).getCcPos().distance(curEnemyBasePos) < 1) { //cur base = enemy main
+                enemyBases.get(enemyBases.size() - 1).getCcPos().distance(curEnemyBasePos) < 1) { //cur base = enemy main
             return enemyBases.get(0);
         }
         //otherwise get the next newest enemy base
-        for (int i=0; i<enemyBases.size(); i++) {
+        for (int i = 0; i < enemyBases.size(); i++) {
             if (enemyBases.get(i).getCcPos().distance(curEnemyBasePos) < 1) {
-                return enemyBases.get(i+1);
+                return enemyBases.get(i + 1);
             }
         }
         //curEnemyBasePos is no longer an enemy base
@@ -1455,10 +1525,10 @@ public class UnitUtils {
     }
 
     public static Point2d getReachableAttackPos(Unit enemyUnit, Unit myUnit) {
-        int attackRange = (int)(enemyUnit.getRadius() +
+        int attackRange = (int) (enemyUnit.getRadius() +
                 UnitUtils.getAttackRange(
                         myUnit,
-                        enemyUnit.getFlying().get() ? Weapon.TargetType.AIR: Weapon.TargetType.GROUND
+                        enemyUnit.getFlying().get() ? Weapon.TargetType.AIR : Weapon.TargetType.GROUND
                 ));
         return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), attackRange).stream()
                 .filter(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= attackRange)
@@ -1468,7 +1538,7 @@ public class UnitUtils {
 
     public static boolean isReachableToAttack(Unit enemyUnit, float attackRange) {
         float finalAttackRange = attackRange + enemyUnit.getRadius();
-        return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), (int)Math.ceil(finalAttackRange)).stream()
+        return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), (int) Math.ceil(finalAttackRange)).stream()
                 .anyMatch(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= finalAttackRange);
     }
 
@@ -1481,14 +1551,35 @@ public class UnitUtils {
     }
 
     public static boolean isDestructible(Unit unit) {
-        return isDestructible((Units)unit.getType());
+        return isDestructible((Units) unit.getType());
     }
 
     public static boolean isDestructible(Units unitType) {
-        return unitType.toString().contains("_DESTRUCTIBLE");
+        String unitName = unitType.toString();
+        return (unitName.contains("_DESTRUCTIBLE") || unitName.contains("_COLLAPSIBLE")) &&
+                //TODO: remove below when I can handle rectangular and diagonal layouts
+                !unitName.contains("_VERTICAL") && !unitName.contains("_HORIZONTAL") && !unitName.contains("_DIAGONAL");
     }
 
     public static float getRange(Unit unit1, Unit unit2) {
         return getDistance(unit1, unit2) - unit1.getRadius() - unit2.getRadius();
+    }
+
+    //TODO: consider damage upgrades and armor upgrades
+    //TODO: include abilities like widow mine and baneling attack
+    public static float getDps(Unit unit, Unit target) {
+        UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unit.getType());
+        UnitTypeData targetData = Bot.OBS.getUnitTypeData(false).get(target.getType());
+        Weapon unitWeapon = UnitUtils.getWeapon(unit, target).orElse(null);
+        if (unitWeapon == null) {
+            return 0;
+        }
+        float weaponDmg = unitWeapon.getDamage();
+        weaponDmg += unitWeapon.getDamageBonuses().stream()
+                .filter(damageBonus -> targetData.getAttributes().stream()
+                        .anyMatch(attrib -> attrib.equals(damageBonus.getAttribute())))
+                .mapToDouble(DamageBonus::getBonus)
+                .sum();
+        return weaponDmg / unitWeapon.getSpeed();
     }
 }

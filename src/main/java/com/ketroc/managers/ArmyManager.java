@@ -804,85 +804,51 @@ public class ArmyManager {
     }
 
 
-    //1shot banes outside of range
-    //prefer 1shots
-    //focus down immortals that don't have barrier
-    //consider splash?
-    //consider turret turning?
-    //attack neutral plates if no target remains
-    //--attack only when onCooldown to prevent extra spinning
     public static void pfTargetting() {
         List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
-                        UnitUtils.isWeaponAvailable(unit) &&
-                        InfluenceMaps.getValue(InfluenceMaps.pointGroundUnitWithin13, unit.getPosition().toPoint2d()))
+                        (unit.getWeaponCooldown().orElse(0f) > 0.2 || //keep target to tell turret rotation complete
+                                unit.getWeaponCooldown().orElse(0f) == 0))
                 .collect(Collectors.toList());
 
-        for (Unit pf : pfList) {
-            float range;
-            float x_pf = pf.getPosition().getX();
-            float y_pf = pf.getPosition().getY();
+        pfList.forEach(pf -> getBestPfTarget(pf)
+                .ifPresent(u -> ActionHelper.unitCommand(pf, Abilities.ATTACK, u.unit(), false)));
+    }
 
-            //pf range + 2.5 for PF radius +1 for hisec
-            if (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
-                range = 9.5f;
-            } else {
-                range = 8.5f;
-            }
+    private static Optional<UnitInPool> getBestPfTarget(Unit pf) {
+        float pfRange = pf.getRadius() +
+                (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 7 : 6);
+        return UnitUtils.getEnemyTargetsInRange(pf).stream()
+                .max(Comparator.comparing(target -> getPfTargetValue(pf, target)))
+                .or(() -> UnitUtils.getNeutralTargetInRange(pf));
+    }
 
-            int xMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getX();
-            int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
-            int yMin = 0; //(int) LocationConstants.SCREEN_BOTTOM_LEFT.getY();
-            int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
-            int xStart = Math.max(Math.round(2 * (x_pf - range)), xMin);
-            int yStart = Math.max(Math.round(2 * (y_pf - range)), yMin);
-            int xEnd = Math.min(Math.round(2 * (x_pf + range)), xMax);
-            int yEnd = Math.min(Math.round(2 * (y_pf + range)), yMax);
-
-
-            //get x,y of max value
-            int bestValueX = -1;
-            int bestValueY = -1;
-            int bestValue = 0;
-            for (int x = xStart; x <= xEnd; x++) {
-                for (int y = yStart; y <= yEnd; y++) {
-                    if (InfluenceMaps.pointPFTargetValue[x][y] > bestValue &&
-                            Position.distance(x / 2f, y / 2f, x_pf, y_pf) < range) {
-                        bestValueX = x;
-                        bestValueY = y;
-                        bestValue = InfluenceMaps.pointPFTargetValue[x][y];
-
-                    }
-                }
-            }
-
-            Unit bestTargetUnit = null;
-            if (bestValue == 0) {
-                if (LocationConstants.opponentRace == Race.ZERG) {
-                    bestTargetUnit = UnitUtils.getClosestUnitOfType(Alliance.ENEMY, Units.ZERG_CHANGELING_MARINE, pf.getPosition().toPoint2d());
-                }
-            } else {
-                Point2d bestTargetPos = Point2d.of(bestValueX / 2f, bestValueY / 2f);
-                //DebugHelper.draw3dBox(bestTargetPos, Color.YELLOW, 0.5f);
-                //get enemy Unit near bestTargetPos
-                UnitInPool enemyTarget = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        UnitUtils.getDistance(pf, bestTargetPos) < 9.5f && !enemy.unit().getFlying().orElse(false))
-                        .stream()
-                        .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), bestTargetPos)))
-                        .orElse(null);
-
-                if (enemyTarget != null) {
-                    bestTargetUnit = enemyTarget.unit();
-                    //DebugHelper.draw3dBox(bestTargetUnit.getPosition().toPoint2d(), Color.RED, 0.4f);
-                }
-            }
-
-            //attack
-            if (bestTargetUnit != null) {
-                ActionHelper.unitCommand(pf, Abilities.ATTACK, bestTargetUnit, false);
-            }
+    private static int getPfTargetValue(Unit pf, UnitInPool target) {
+        int targetValue = 0;
+        //min value immortals with barrier, disabled units, or banes in detonate range
+        if (target.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER) ||
+                !UnitUtils.canAttack(target.unit().getType()) ||
+                (target.unit().getType().toString().contains("BANELING") && UnitUtils.getDistance(pf, target.unit()) < 5)) {
+            return 1;
         }
+        float targetHealth = target.unit().getHealth().orElse(9999f) +
+                target.unit().getShield().orElse(0f);
+        if (targetHealth <= 36) {
+            targetValue += 1000;
+        } else if (targetHealth <= 72) {
+            targetValue += 100;
+        }
+
+        float dps = Math.max(10, UnitUtils.getDps(target.unit(), pf));
+        if (target.unit().getType().toString().contains("BANELING")) {
+            dps = 80;
+        }
+        targetValue += (int)(dps * 3);
+        targetValue += 20 * UnitUtils.getEnemyGroundTargetsNear(target.unit().getPosition().toPoint2d(), 2).size()-1;
+        UnitTypeData targetData = Bot.OBS.getUnitTypeData(false).get(target.unit().getType());
+        targetValue += targetData.getMineralCost().orElse(0) / 10 +
+                targetData.getVespeneCost().orElse(0) / 5;
+        return targetValue;
     }
 
     private static void positionMarines() {
