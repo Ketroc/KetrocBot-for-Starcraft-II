@@ -95,6 +95,15 @@ public class BasicUnitMicro {
             return;
         }
 
+        //flee from closest cyclone, if locked on
+        if (hasLockOnBuff()) {
+            Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, unit.unit().getPosition().toPoint2d());
+            if (nearestCyclone != null) {
+                targetPos = Position.towards(unit.unit().getPosition().toPoint2d(), nearestCyclone.getPosition().toPoint2d(), -4);
+                return;
+            }
+        }
+
         //detour if needed
         if (!isSafe() && !neverDetour()) {
             detour();
