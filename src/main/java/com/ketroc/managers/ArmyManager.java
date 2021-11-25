@@ -803,6 +803,14 @@ public class ArmyManager {
         }
     }
 
+
+    //1shot banes outside of range
+    //prefer 1shots
+    //focus down immortals that don't have barrier
+    //consider splash?
+    //consider turret turning?
+    //attack neutral plates if no target remains
+    //--attack only when onCooldown to prevent extra spinning
     public static void pfTargetting() {
         List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
