@@ -24,6 +24,7 @@ public class KetrocLauncher {
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.TANK_VIKING;
         Strategy.DO_BANSHEE_HARASS = false;
+        Strategy.NO_TURRETS = true;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)

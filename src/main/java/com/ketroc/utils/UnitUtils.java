@@ -999,6 +999,9 @@ public class UnitUtils {
         if (unitType.toString().contains("CHANGELING")) {
             return false;
         }
+        if (unitType == Units.TERRAN_BUNKER && !Strategy.DO_IGNORE_BUNKERS) {
+            return true;
+        }
         return !Bot.OBS.getUnitTypeData(false).get(unitType)
                 .getWeapons().isEmpty();
     }
@@ -1187,7 +1190,12 @@ public class UnitUtils {
     public static float getVisibleEnemySupplyInMyMainorNat() {
         return (float) GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> UnitUtils.isInMyMainOrNat(enemy.unit()))
-                .mapToDouble(enemy -> Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType()).getFoodRequired().orElse(0f))
+                .mapToDouble(enemy -> {
+                    if (enemy.unit().getType() == Units.TERRAN_BUNKER && enemy.unit().getBuildProgress() == 1) {
+                        return 4;
+                    }
+                    return Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType()).getFoodRequired().orElse(0f);
+                })
                 .sum();
     }
 

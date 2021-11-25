@@ -56,7 +56,7 @@ public class NukeTracker {
     }
 
     public boolean isCancelled() {
-        return startFrame + NUKE_EFFECT_DURATION <= Time.nowFrames() &&
+        return Time.nowFrames() <= startFrame + NUKE_EFFECT_DURATION &&
                 !Bot.OBS.getEffects().contains(effect);
     }
 
