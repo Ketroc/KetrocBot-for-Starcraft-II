@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.bots.EnemyDebugTestBot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
@@ -15,14 +14,14 @@ import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
-        DebugHelper.doTestingSpawns = false;
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.TERRAN;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.TANK_VIKING;
+        Strategy.gamePlan = GamePlan.BANSHEE;
         Strategy.DO_BANSHEE_HARASS = false;
         Strategy.NO_TURRETS = true;
 
@@ -39,10 +38,10 @@ public class KetrocLauncher {
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
-//                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
-//                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
-                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
-                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")))
+                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
+                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
+//                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
+//                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")))
 //                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
                 .launchStarcraft()
 

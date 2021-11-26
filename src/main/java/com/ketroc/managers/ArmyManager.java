@@ -807,7 +807,7 @@ public class ArmyManager {
     public static void pfTargetting() {
         List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
-                        (unit.getWeaponCooldown().orElse(0f) > 0.2 || //keep target to tell turret rotation complete
+                        (unit.getWeaponCooldown().orElse(0f) > 8 || //keep target to tell turret rotation complete
                                 unit.getWeaponCooldown().orElse(0f) == 0))
                 .collect(Collectors.toList());
 
@@ -816,8 +816,6 @@ public class ArmyManager {
     }
 
     private static Optional<UnitInPool> getBestPfTarget(Unit pf) {
-        float pfRange = pf.getRadius() +
-                (Bot.OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING) ? 7 : 6);
         return UnitUtils.getEnemyTargetsInRange(pf).stream()
                 .max(Comparator.comparing(target -> getPfTargetValue(pf, target)))
                 .or(() -> UnitUtils.getNeutralTargetInRange(pf));

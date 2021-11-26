@@ -28,7 +28,7 @@ public class NukeTracker {
     private long startFrame;
     private EffectLocations effect;
     private boolean isRavenAssigned;
-    private Optional<UnitInPool> nukeGhost = Optional.empty(); //TODO: check for movement to narrow down a list of ghosts
+    private Optional<UnitInPool> nukeGhost = Optional.empty(); //TODO: make list of ghosts and narrow down by if ghosts move
 
     public NukeTracker(EffectLocations effect) {
         this.effect = effect;
@@ -80,7 +80,7 @@ public class NukeTracker {
         //remove expired and cancelled nukes
         activeNukes.removeIf(nuke -> nuke.isExpired() || nuke.isCancelled());
 
-        //assign raven to interrupt ghost
+        //assign raven to interrupt ghost TODO: this will only matrix the closest ghost and only if its not in fog
         for (NukeTracker nuke : activeNukes) {
             if (nuke.isRavenAssigned) {
                 continue;
@@ -106,7 +106,7 @@ public class NukeTracker {
     //find closest ghost in range (cloaked ghost preference)
     public Optional<UnitInPool> getNukeGhost() {
         Point2d nukePos = effect.getPositions().iterator().next();
-        return GameCache.allEnemiesMap.get(Units.TERRAN_GHOST).stream()
+        return UnitUtils.getEnemyUnitsOfType(Units.TERRAN_GHOST).stream()
                 .filter(ghost -> UnitUtils.getDistance(ghost.unit(), nukePos) - ghost.unit().getRadius() <= 12)
                 .min(Comparator.comparing(ghost -> UnitUtils.getDistance(ghost.unit(), nukePos) +
                         (ghost.unit().getCloakState().get() == CloakState.NOT_CLOAKED ? 10 : 0)));

@@ -3,7 +3,6 @@ package com.ketroc;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
@@ -829,9 +828,9 @@ public class GameCache {
         if (DebugHelper.isDebugOn) {
             for (int x = xMin+1; x <= xMax-1; x++) {
                 for (int y = yMin+1; y <= yMax-1; y++) {
-                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
-                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
-                    }
+//                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
+//                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
+//                    }
 //                    if (InfluenceMaps.pointThreatToAir[x][y] && InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.RED, 0.25f);
 //                    }

@@ -49,11 +49,10 @@ public class DebugHelper {
         if (Time.nowFrames() > Time.toFrames("5:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_ADEPT, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 10);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_HYDRALISK, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 4);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_LURKER_MP, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_BROODLORD, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_OVERSEER, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_IMMORTAL, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_BANELING, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 4);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_STALKER, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 7);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_OBSERVER, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
 //                    .forEach(cyclone -> {
 //                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());

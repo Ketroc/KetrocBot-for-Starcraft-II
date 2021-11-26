@@ -772,7 +772,8 @@ public class UnitUtils {
                                 getDistance(neutralUip.unit(), unit) <= getGroundAttackRange(unit) + neutralUip.unit().getRadius())) &&
                         neutralUip.unit().getDisplayType() == DisplayType.VISIBLE &&
                         !UnitUtils.isSnapshot(neutralUip.unit()) &&
-                        neutralUip.unit().getHealth().orElse(0f) > 0f)
+                        neutralUip.unit().getHealth().orElse(0f) > 0f &&
+                        neutralUip.unit().getHealth().orElse(0f) < 10000f)
                 .stream()
                 .filter(targetFilter)
                 .findFirst();
