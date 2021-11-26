@@ -1211,14 +1211,14 @@ public class ArmyManager {
         int y = InfluenceMaps.toMapCoord(banshee.getPosition().getY());
         boolean isUnsafe = (Switches.isDivingTempests) ?
                 false :
-                InfluenceMaps.pointThreatToAirValue[x][y] > 2 || InfluenceMaps.pointDamageToGroundValue[x][y] > banshee.getHealth().orElse(150f);
+                InfluenceMaps.pointThreatToAirValue[x][y] > 2 || InfluenceMaps.pointDamageToAirValue[x][y] > banshee.getHealth().orElse(150f);
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke() &&
                 UnitUtils.isRepairBaySafe();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
         boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
         boolean canAttack = UnitUtils.isWeaponAvailable(banshee) && InfluenceMaps.pointThreatToAirValue[x][y] < 200;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
-        boolean canCloak = banshee.getEnergy().orElse(0f) > Strategy.ENERGY_BEFORE_CLOAKING &&
+        boolean canCloak = banshee.getEnergy().orElse(0f) > 25 &&
                 Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK);
         boolean isParasitic = banshee.getBuffs().contains(Buffs.PARASITIC_BOMB); //TODO: parasitic bomb run sideways
         boolean hasDecloakBuff = UnitUtils.hasDecloakBuff(banshee);
@@ -1262,7 +1262,7 @@ public class ArmyManager {
                     if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(banshee);
                 }
             }
-            else if (canCloak && !hasDecloakBuff) {
+            else if (canCloak && !hasDecloakBuff && UnitUtils.getHealthPercentage(banshee) < 99) {
                 //cloak
                 ActionHelper.unitCommand(banshee, Abilities.BEHAVIOR_CLOAK_ON_BANSHEE, false);
             }
@@ -1287,7 +1287,7 @@ public class ArmyManager {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
         }
         //go to repair bay when waiting on cloak and not needed for defense
-        else if (isWaitingForCloak(canCloak, cloakState) && !isAnyBaseUnderAttack) {
+        else if (isWaitingForCloak(banshee) && !isAnyBaseUnderAttack) {
             //retreat
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(banshee);
         }
@@ -1336,9 +1336,10 @@ public class ArmyManager {
         }
     }
 
-    private static boolean isWaitingForCloak(boolean canCloak, CloakState cloakState) {
-        return !Strategy.MASS_RAVENS && !canCloak && cloakState != CloakState.CLOAKED_ALLIED;
-        //not mass ravens AND can't cloak AND not cloaked
+    private static boolean isWaitingForCloak(Unit banshee) {
+        return Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
+                banshee.getCloakState().orElse(CloakState.CLOAKED_ALLIED) != CloakState.CLOAKED_ALLIED &&
+                banshee.getEnergy().orElse(0f) > Strategy.ENERGY_TO_SAVE;
     }
 
     private static ArmyCommands getCurrentCommand(Unit unit) {

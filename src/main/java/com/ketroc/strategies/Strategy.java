@@ -60,7 +60,7 @@ public class Strategy {
     public static final float STATIONARY_KITING_BUFFER = 1.55f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
     public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
-    public static final float ENERGY_BEFORE_CLOAKING = 80f; //don't cloak banshee if their energy is under this value
+    public static final float ENERGY_TO_SAVE = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
     public static final float BANSHEE_RANGE = 6.05f; //range in which banshee will be given the command to attack
     public static final float MARINE_RANGE = 5.05f; //range in which marine will be given the command to attack
