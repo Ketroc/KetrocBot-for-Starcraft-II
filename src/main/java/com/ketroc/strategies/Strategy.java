@@ -184,10 +184,8 @@ public class Strategy {
                 NO_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
-                MASS_MINE_OPENER = true;
                 break;
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                MASS_MINE_OPENER = true;
                 break;
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_DIVE_MOBILE_DETECTORS = false;
@@ -455,7 +453,8 @@ public class Strategy {
         if (Launcher.isRealTime) { // TvP vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
                     GamePlan.BANSHEE,
-                    GamePlan.BANSHEE_CYCLONE
+                    GamePlan.BANSHEE_CYCLONE,
+                    GamePlan.MASS_MINE_OPENER
             ));
             if (Math.random() < 0.5) {
                 humansGamePlans.add(GamePlan.MARINE_RUSH);
@@ -488,7 +487,8 @@ public class Strategy {
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN,
                         GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.RAVEN_CYCLONE
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.MASS_MINE_OPENER
                 ));
         }
     }
@@ -586,6 +586,9 @@ public class Strategy {
         }
 
         switch (gamePlan) {
+            case MASS_MINE_OPENER:
+                MASS_MINE_OPENER = true;
+                //no break
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
@@ -1071,10 +1074,9 @@ public class Strategy {
         MIN_BANSHEES = 0;
         MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_VIKING_FIGHTER);
-        BuildManager.openingStarportUnits.add(Abilities.TRAIN_RAVEN);
+        BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
+        BuildManager.openingStarportUnits.add(Units.TERRAN_RAVEN);
+        BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
     }
 
     private static void setReaperBlockWall() {

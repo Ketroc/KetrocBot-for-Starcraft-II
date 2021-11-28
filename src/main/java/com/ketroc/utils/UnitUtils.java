@@ -371,6 +371,11 @@ public class UnitUtils {
                 attackRange = 6;
                 break;
             case PROTOSS_SENTRY:
+            case TERRAN_WIDOWMINE:
+                if (unit.getAlliance() == Alliance.SELF) {
+                    attackRange = 5;
+                }
+                break;
             case TERRAN_WIDOWMINE_BURROWED:
                 attackRange = 5;
                 break;

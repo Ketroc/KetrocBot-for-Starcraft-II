@@ -13,5 +13,6 @@ public enum GamePlan {
     MARINE_RUSH,
     SCV_RUSH,
     RAVEN_CYCLONE,
+    MASS_MINE_OPENER,
     NONE;
 }

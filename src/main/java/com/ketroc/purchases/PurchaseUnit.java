@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.managers.BuildManager;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.UnitUtils;
@@ -20,6 +21,8 @@ public class PurchaseUnit implements Purchase {
 
     public PurchaseUnit(Units unitType) {
         this.unitType = unitType;
+        BuildManager.openingStarportUnits.remove(unitType);
+        BuildManager.openingFactoryUnits.remove(unitType);
         setCost();
     }
 

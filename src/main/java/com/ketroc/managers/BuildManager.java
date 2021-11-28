@@ -35,7 +35,7 @@ public class BuildManager {
             Abilities.BUILD_SENSOR_TOWER
     );
     private static boolean isMuleSpamming;
-    public static List<Abilities> openingStarportUnits = new ArrayList<>();
+    public static List<Units> openingStarportUnits = new ArrayList<>();
     public static List<Units> openingFactoryUnits = new ArrayList<>();
 
     public static void onStep() {
@@ -810,7 +810,7 @@ public class BuildManager {
     public static Abilities tankVikingDecideStarportUnit() { //never max out without a raven
         //first build hardcoded starport units
         if (!openingStarportUnits.isEmpty()) {
-            return openingStarportUnits.get(0);
+            return (Abilities)Bot.OBS.getUnitTypeData(false).get(openingStarportUnits.get(0)).getAbility().orElse(Abilities.INVALID);
         }
 
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
@@ -874,7 +874,7 @@ public class BuildManager {
     public static Abilities decideStarportUnit() {
         //first build hardcoded starport units
         if (!openingStarportUnits.isEmpty()) {
-            return openingStarportUnits.get(0);
+            return (Abilities)Bot.OBS.getUnitTypeData(false).get(openingStarportUnits.get(0)).getAbility().orElse(Abilities.INVALID);
         }
 
         int numBanshees = UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true);
