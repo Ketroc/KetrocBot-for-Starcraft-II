@@ -757,8 +757,26 @@ public class UnitUtils {
                         enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                         !UnitUtils.isSnapshot(enemy.unit()))
                 .stream()
-                .filter(targetFilter).
-                collect(Collectors.toList());
+                .filter(targetFilter)
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<UnitInPool> getIgnoredTargetInRange(Unit unit) {
+        return getIgnoredTargetInRange(unit, target -> true);
+    }
+
+    public static Optional<UnitInPool> getIgnoredTargetInRange(Unit unit, Predicate<UnitInPool> targetFilter) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> ((enemy.unit().getFlying().orElse(true) &&
+                        getDistance(enemy.unit(), unit) <= getAirAttackRange(unit) + enemy.unit().getRadius()) ||
+                        (!enemy.unit().getFlying().orElse(true) &&
+                                getDistance(enemy.unit(), unit) <= getGroundAttackRange(unit) + enemy.unit().getRadius())) &&
+                        IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        !UNTARGETTABLES.contains(enemy.unit().getType()) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        !UnitUtils.isSnapshot(enemy.unit()))
+                .stream()
+                .filter(targetFilter)
+                .findFirst();
     }
 
     public static Optional<UnitInPool> getNeutralTargetInRange(Unit unit) {

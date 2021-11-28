@@ -34,6 +34,9 @@ public class WorkerRushDefense2 {
 //            });
 
         //TODO: move first depot to wall (in case it's on reaper wall vs scv rush)
+        //build 1st depot on wall
+        Purchase.removeFirst(Units.TERRAN_SUPPLY_DEPOT);
+        KetrocBot.purchaseQueue.add(0, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
 
         //build eng bay on wall
         Purchase.removeFirst(Units.TERRAN_ENGINEERING_BAY);

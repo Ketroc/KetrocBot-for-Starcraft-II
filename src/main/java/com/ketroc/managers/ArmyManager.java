@@ -818,6 +818,7 @@ public class ArmyManager {
     private static Optional<UnitInPool> getBestPfTarget(Unit pf) {
         return UnitUtils.getEnemyTargetsInRange(pf).stream()
                 .max(Comparator.comparing(target -> getPfTargetValue(pf, target)))
+                .or(() -> UnitUtils.getIgnoredTargetInRange(pf))
                 .or(() -> UnitUtils.getNeutralTargetInRange(pf));
     }
 
@@ -826,7 +827,7 @@ public class ArmyManager {
         //min value immortals with barrier, disabled units, or banes in detonate range
         if (target.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER) ||
                 !UnitUtils.canAttack(target.unit().getType()) ||
-                (target.unit().getType().toString().contains("BANELING") && UnitUtils.getDistance(pf, target.unit()) < 5)) {
+                (target.unit().getType().toString().contains("BANELING") && UnitUtils.getDistance(pf, target.unit()) < 5.2)) { //bane range = 2.2, pf radius = 2.5, bane radius = ??
             return 1;
         }
         float targetHealth = target.unit().getHealth().orElse(9999f) +
@@ -855,18 +856,18 @@ public class ArmyManager {
             return;
         }
 
-//TODO: turn on:        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
-//            UnitMicroList.getUnitSubList(MarineBasic.class)
-//                    .forEach(marine -> {
-//                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
-//                                OverLordHunter.overlordHunter.getOverlord().unit(),
-//                                marine.unit.unit());
-//                        if (reachableAttackPos != null) {
-//                            marine.targetPos = reachableAttackPos;
-//                        }
-//                    });
-//            return;
-//        }
+        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
+            UnitMicroList.getUnitSubList(MarineBasic.class)
+                    .forEach(marine -> {
+                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
+                                OverLordHunter.overlordHunter.getOverlord().unit(),
+                                marine.unit.unit());
+                        if (reachableAttackPos != null) {
+                            marine.targetPos = reachableAttackPos;
+                        }
+                    });
+            return;
+        }
 
         Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
         boolean enemyInBunkerRange = bunkerAtNatural.isPresent() && //bunker exists

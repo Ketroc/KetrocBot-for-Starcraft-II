@@ -117,10 +117,14 @@ public class PurchaseUpgrade implements Purchase {
                 return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
                 return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
-            case BANSHEE_SPEED: //case BANSHEE_CLOAK:
+            case BANSHEE_CLOAK:
+                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
+            case BANSHEE_SPEED:
                 return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 2;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
-                return UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) >= 1;
+                return UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) >= 2 ||
+                        (UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) +
+                        UnitUtils.numMyUnits(Units.TERRAN_MISSILE_TURRET, true) >= 1);
         }
         return true;
     }
@@ -197,6 +201,11 @@ public class PurchaseUpgrade implements Purchase {
                 .ifPresent(structure -> productionStructure = structure);
     }
 
+
+    //******************************************
+    //************ STATIC METHODS **************
+    //******************************************
+
     public static boolean isTechRequired(Upgrades upgradeType) {
         Units techStructureNeeded = null;
         switch (upgradeType) {
@@ -218,11 +227,6 @@ public class PurchaseUpgrade implements Purchase {
         return false;
     }
 
-
-    //******************************************
-    //************ STATIC METHODS **************
-    //******************************************
-
     public static void add(Upgrades newUpgrade) {
         if (!Purchase.isUpgradeQueued(newUpgrade) && !Bot.OBS.getUpgrades().contains(newUpgrade)) {
             KetrocBot.purchaseQueue.add(new PurchaseUpgrade(newUpgrade));
@@ -241,5 +245,4 @@ public class PurchaseUpgrade implements Purchase {
                         ((PurchaseUpgrade) purchase).getProductionStructure() != null &&
                         ((PurchaseUpgrade) purchase).getProductionStructure().getTag().equals(structure.getTag()));
     }
-
 }

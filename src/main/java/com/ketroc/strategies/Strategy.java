@@ -11,6 +11,7 @@ import com.ketroc.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.gson.GameResult;
 import com.ketroc.gson.JsonUtil;
 import com.ketroc.gson.Opponent;
 import com.ketroc.launchers.Launcher;
@@ -183,10 +184,10 @@ public class Strategy {
                 NO_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
-                MASS_MINE_OPENER = false;
+                MASS_MINE_OPENER = true;
                 break;
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                MASS_MINE_OPENER = false;
+                MASS_MINE_OPENER = true;
                 break;
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_DIVE_MOBILE_DETECTORS = false;
@@ -386,6 +387,11 @@ public class Strategy {
                         GamePlan.TANK_VIKING
                 ));
             case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIBot TODO: for testing anti-nuke code
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING
+                ));
+            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return new HashSet<>(Set.of(
                         GamePlan.TANK_VIKING
                 ));
@@ -1136,12 +1142,12 @@ public class Strategy {
         }
 
         //don't lose to worker rush twice TODO: turn on for tournaments
-//        GameResult prevGameResult = opponentRecords.getPrevGameResult();
-//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
-//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-//            Strategy.WALL_OFF_IMMEDIATELY = true;
-//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
-//        }
+        GameResult prevGameResult = opponentRecords.getPrevGameResult();
+        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
+            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+            Strategy.WALL_OFF_IMMEDIATELY = true;
+            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+        }
         return gamePlan;
     }
 

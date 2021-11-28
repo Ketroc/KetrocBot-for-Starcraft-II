@@ -2,11 +2,8 @@ package com.ketroc.bots;
 
 import com.github.ocraft.s2client.bot.S2Agent;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Effects;
-import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
-import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.launchers.Launcher;
 
 public class EnemyDebugTestBot extends S2Agent {
@@ -47,11 +44,11 @@ public class EnemyDebugTestBot extends S2Agent {
     @Override
     public void onStep() {
 
-        if (at(100)) {
-            debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(100, 100), enemyId, 1);
-            debug().debugCreateUnit(Units.TERRAN_GHOST_ACADEMY, Point2d.of(100, 100), myId, 1);
-            debug().debugCreateUnit(Units.TERRAN_FACTORY, Point2d.of(100, 100), myId, 1);
-        }
+//        if (at(100)) {
+//            debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(100, 100), enemyId, 1);
+//            debug().debugCreateUnit(Units.TERRAN_GHOST_ACADEMY, Point2d.of(100, 100), myId, 1);
+//            debug().debugCreateUnit(Units.TERRAN_FACTORY, Point2d.of(100, 100), myId, 1);
+//        }
 
 //        if (at(1320)) {
 //            observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV)
@@ -62,17 +59,17 @@ public class EnemyDebugTestBot extends S2Agent {
 //            debug().debugCreateUnit(Units.TERRAN_MARINE, marinePos, myId, 1);
 //        }
 
-        if (nukeStartFrame == 0 && observation().getEffects().stream().anyMatch(effect -> effect.getEffect() == Effects.NUKE_PERSISTENT)) {
-            nukeStartFrame = observation().getGameLoop();
-        }
-
-        if (nukeStartFrame != 0 && nukeEffectEndFrame == 0 && observation().getEffects().stream().noneMatch(effect -> effect.getEffect() == Effects.NUKE_PERSISTENT)) {
-            nukeEffectEndFrame = observation().getGameLoop();
-        }
-
-        if (nukeEndFrame == 0 && observation().getUnits(Alliance.SELF).stream().anyMatch(u -> u.unit().getHealth().get() < u.unit().getHealthMax().get())) {
-            nukeEndFrame = observation().getGameLoop();
-        }
+//        if (nukeStartFrame == 0 && observation().getEffects().stream().anyMatch(effect -> effect.getEffect() == Effects.NUKE_PERSISTENT)) {
+//            nukeStartFrame = observation().getGameLoop();
+//        }
+//
+//        if (nukeStartFrame != 0 && nukeEffectEndFrame == 0 && observation().getEffects().stream().noneMatch(effect -> effect.getEffect() == Effects.NUKE_PERSISTENT)) {
+//            nukeEffectEndFrame = observation().getGameLoop();
+//        }
+//
+//        if (nukeEndFrame == 0 && observation().getUnits(Alliance.SELF).stream().anyMatch(u -> u.unit().getHealth().get() < u.unit().getHealthMax().get())) {
+//            nukeEndFrame = observation().getGameLoop();
+//        }
 
         actions().sendActions();
         debug().sendDebug();

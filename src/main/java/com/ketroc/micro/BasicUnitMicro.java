@@ -421,20 +421,16 @@ public class BasicUnitMicro {
         if (ArmyManager.attackGroundPos != null) {
             if (canAttackAir && canAttackGround) {
                 targetPos = ArmyManager.attackEitherPos;
-            }
-            else if (canAttackAir) {
+            } else if (canAttackAir) {
                 targetPos = ArmyManager.attackAirPos;
-            }
-            else {
+            } else {
                 targetPos = ArmyManager.attackGroundPos;
             }
-        }
-        else { //find last structures with random reachable positions
-            if (UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
-                do {
-                    targetPos = Bot.OBS.getGameInfo().findRandomLocation();
-                } while (isGround && !Bot.OBS.isPathable(targetPos));
-            }
+        //find last structures with random reachable positions
+        } else if (targetPos != null && UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
+            do {
+                targetPos = Bot.OBS.getGameInfo().findRandomLocation();
+            } while (isGround && !Bot.OBS.isPathable(targetPos));
         }
     }
 

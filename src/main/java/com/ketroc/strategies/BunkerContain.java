@@ -898,7 +898,8 @@ public class BunkerContain {
 
     public static void onFactoryLift() {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(UnitUtils.getMyUnitsOfType(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
+        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING));
+        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR));
     }
 
     public static void onEngineeringBayComplete(UnitInPool engBay) {

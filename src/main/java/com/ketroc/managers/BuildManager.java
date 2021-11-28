@@ -74,8 +74,7 @@ public class BuildManager {
                 if (numTanks < 4) {
                     buildFactoryUnitsLogic();
                 }
-            }
-            else {
+            } else {
                 //build factory units
                 if (numTanks < 12) {
                     buildFactoryUnitsLogic();
@@ -84,8 +83,7 @@ public class BuildManager {
                 //build starport units
                 buildStarportUnitsLogic();
             }
-        }
-        else {
+        } else {
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
@@ -300,11 +298,8 @@ public class BuildManager {
         //build after 4th base started TODO: get armories earlier and smarter
         if (!Strategy.techBuilt &&
                 ((ArmyManager.doOffense && BunkerContain.proxyBunkerLevel == 0) || Base.numMyBases() >= 4)) {
-            List<Unit> engBayList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ENGINEERING_BAY);
-            if (!engBayList.isEmpty()) {
-                KetrocBot.purchaseQueue.add(
-                        new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR, Bot.OBS.getUnit(engBayList.get(0).getTag())));
-            }
+            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING));
+            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR));
             int numArmories = UnitUtils.numMyUnits(Units.TERRAN_ARMORY, true);
             if (!UpgradeManager.airAttackUpgrades.isEmpty() && numArmories-- < 1) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
@@ -670,16 +665,13 @@ public class BuildManager {
 
         //cyclone strategy (build constantly)
         if (Strategy.DO_USE_CYCLONES) {
-            if (UnitUtils.canAfford(Units.TERRAN_WIDOWMINE)) {
-                int numMines = UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true);
-                int numMinesWanted = Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) ?
-                        3 :
-                        LocationConstants.opponentRace == Race.ZERG ? 1 : 0;
-                if (numMines < numMinesWanted) {
-                    return Units.TERRAN_WIDOWMINE;
-                }
+            if (Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) &&
+                    UnitUtils.canAfford(Units.TERRAN_WIDOWMINE) &&
+                    UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true) < 3) {
+                return Units.TERRAN_WIDOWMINE;
             }
-            if (UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
+            if (UnitUtils.canAfford(Units.TERRAN_CYCLONE) &&
+                    UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) < 10) {
                 return Units.TERRAN_CYCLONE;
             }
         }
@@ -1022,6 +1014,10 @@ public class BuildManager {
                     Base.numAvailableBases() > 0 ||
                     UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
                 addCCToPurchaseQueue();
+                if (UnitUtils.numMyUnits(Units.TERRAN_ENGINEERING_BAY, true) == 0 &&
+                        UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, true) + 1 == Strategy.NUM_BASES_TO_OC) {
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+                }
             }
         }
     }

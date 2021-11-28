@@ -52,7 +52,7 @@ public class NukeTracker {
     }
 
     public boolean isExpired() {
-        return startFrame + NUKE_DURATION <= Time.nowFrames();
+        return Time.nowFrames() > startFrame + NUKE_DURATION;
     }
 
     public boolean isCancelled() {

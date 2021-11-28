@@ -16,7 +16,10 @@ import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class OverLordHunter {
     public static OverLordHunter overlordHunter;
@@ -51,14 +54,9 @@ public class OverLordHunter {
         isAborting = aborting;
     }
 
-    public OverLordHunter(UnitInPool overlord) {
+    public OverLordHunter(UnitInPool overlord, UnitInPool barracks) {
         this.overlord = overlord;
-        barracks = Bot.OBS.getUnits(Alliance.SELF, u ->
-                        UnitUtils.BARRACKS_TYPE.contains(u.unit().getType()) &&
-                        !Ignored.contains(u.getTag()))
-                .stream()
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), overlord.unit())))
-                .orElse(null);
+        this.barracks = barracks;
     }
 
     public void onStep() {
@@ -109,7 +107,7 @@ public class OverLordHunter {
         //can't find overlord
         if (overlord != null &&
                 barracks != null &&
-                UnitUtils.getDistance(barracks.unit(), overlord.unit()) < 1 &&
+                UnitUtils.getDistance(barracks.unit(), overlord.unit()) < 0.1f &&
                 overlord.getLastSeenGameLoop() != Time.nowFrames()) {
             prevCheckedOverlords.put(overlord.getTag(), Time.nowFrames());
             overlord = null;
@@ -162,17 +160,18 @@ public class OverLordHunter {
     }
 
     private void barracksLanding() {
-        StructureFloater barracksSpotter = getBarracksFloater();
+        StructureFloater barracksLander = getBarracksFloater();
 
-        //lift barracks when marine production is idle
-        if (barracksSpotter == null) {
+        //send barracks to land
+        if (barracksLander == null) {
             Point2d landingPos = LocationConstants._3x3Structures.remove(0);
             UnitMicroList.add(new StructureFloater(barracks, landingPos, true));
         }
     }
 
     private boolean isBarracksLanded() {
-        return barracks.unit().getType() == Units.TERRAN_BARRACKS;
+        return barracks.unit().getType() == Units.TERRAN_BARRACKS ||
+                UnitUtils.getOrder(barracks.unit()) == Abilities.LAND;
     }
 
     //ready when natural has PF or bunker
@@ -195,8 +194,13 @@ public class OverLordHunter {
                 isReadyToHunt() &&
                 UnitUtils.numMyUnits(Units.TERRAN_MARINE, false) > 0 &&
                 UnitUtils.numMyUnits(UnitUtils.BARRACKS_TYPE, false) > 0) {
-
-            getClosestOverlord().ifPresent(ol -> overlordHunter = new OverLordHunter(ol));
+            getClosestOverlord().ifPresent(ol -> {
+                Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.BARRACKS_TYPE.contains(u.unit().getType()) &&
+                                !Ignored.contains(u.getTag()))
+                        .stream()
+                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), ol.unit())))
+                        .ifPresent(barracks -> overlordHunter = new OverLordHunter(ol, barracks));
+            });
         }
 
         //run overlord hunting

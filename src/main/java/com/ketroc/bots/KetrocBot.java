@@ -146,7 +146,7 @@ public class KetrocBot extends Bot {
             EnemyScan.onStep(); //remove expired enemy scans
             GameCache.onStep(); //rebuild unit cache every frame
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
-//TODO:turn on:            OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
+            OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
 
 //            StructureScv.updateBank(); //update bank for build commands which haven't been given yet
             GasStealDefense.onStep(); //check for early-game gas steal and respond
@@ -549,11 +549,6 @@ public class KetrocBot extends Bot {
 
 
         switch((Upgrades)upgrade) {
-            case TERRAN_BUILDING_ARMOR:
-                if (!OBS.getUpgrades().contains(Upgrades.HISEC_AUTO_TRACKING)) {
-                    purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, OBS.getUnit(GameCache.allMyUnitsMap.get(Units.TERRAN_ENGINEERING_BAY).get(0).getTag())));
-                }
-                break;
             case LIBERATOR_AG_RANGE_UPGRADE:
                 Liberator.castRange = 8;
                 break;
