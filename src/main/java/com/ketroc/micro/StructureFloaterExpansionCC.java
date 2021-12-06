@@ -62,7 +62,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
         //Post-Landed code
         if (!unit.unit().getFlying().orElse(true) &&
-                !unit.unit().getActive().get() &&
+                UnitUtils.getOrder(unit.unit()) == null &&
                 Time.nowFrames() > createdFrame + 192) { //don't PF before floating
             //if landed not on position
             if (safeLandingPos != null && basePos.distance(safeLandingPos) > 1) {

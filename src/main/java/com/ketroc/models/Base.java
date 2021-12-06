@@ -196,6 +196,28 @@ public class Base {
                 .count();
     }
 
+    public int numGasScvs() {
+        return numGasScvs(scv -> true);
+    }
+
+    public int numGasScvs(Predicate<UnitInPool> scvFilter) {
+        return (int)gases.stream()
+                .flatMap(gas -> gas.getScvs().stream())
+                .filter(scvFilter)
+                .count();
+    }
+
+    public int numAvailableGasScvs() {
+        return numAvailableGasScvs(scv -> true);
+    }
+
+    public int numAvailableGasScvs(Predicate<UnitInPool> scvFilter) {
+        return (int)gases.stream()
+                .flatMap(gas -> gas.getAvailableScvs().stream())
+                .filter(scvFilter)
+                .count();
+    }
+
     public List<UnitInPool> getMineralScvs() {
         return mineralPatches.stream()
                 .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
@@ -316,7 +338,7 @@ public class Base {
 
                 //mine normally if 3 scvs
                 else if (gas.getScvs().size() >= 3 || gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH) {
-                    if (!scv.unit().getActive().orElse(true)) {
+                    if (UnitUtils.getOrder(scv.unit()) == null) {
                         ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, gas.getRefinery(), false);
                     }
                 }
@@ -712,7 +734,18 @@ public class Base {
         return getGases().stream()
                 .filter(gas -> gas.getRefinery() != null &&
                         gas.getScvs().size() >
-                        (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas))
+                                (gas.getRefinery().getType() == Units.TERRAN_REFINERY_RICH ? 3 : WorkerManager.numScvsPerGas))
+                .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
+                .map(gas -> gas.getAndReleaseScv(scvFilter));
+    }
+
+    public Optional<UnitInPool> getScvFromGas() {
+        return getScvFromGas(scv -> true);
+    }
+
+    public Optional<UnitInPool> getScvFromGas(Predicate<UnitInPool> scvFilter) {
+        return getGases().stream()
+                .filter(gas -> gas.getRefinery() != null && !gas.getAvailableScvs().isEmpty())
                 .min(Comparator.comparing(gas -> gas.getNode().getVespeneContents().orElse(0)))
                 .map(gas -> gas.getAndReleaseScv(scvFilter));
     }

@@ -391,7 +391,7 @@ public class Strategy {
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
+                        GamePlan.ONE_BASE_TANK_VIKING
                 ));
             default:
                 return new HashSet<>(Set.of(
@@ -412,11 +412,17 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvPGamePlans() {
         if (Launcher.isRealTime) { // TvP vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.BANSHEE,
-                    GamePlan.BANSHEE_CYCLONE,
-                    GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                    GamePlan.BUNKER_CONTAIN_WEAK
+                    GamePlan.BANSHEE_CYCLONE
             ));
+            if (Math.random() < 0.8) {
+                humansGamePlans.add(GamePlan.ONE_BASE_BANSHEE_CYCLONE);
+            }
+            if (Math.random() < 0.6) {
+                humansGamePlans.add(GamePlan.BUNKER_CONTAIN_WEAK);
+            }
+            if (Math.random() < 0.5) {
+                humansGamePlans.add(GamePlan.BANSHEE);
+            }
             if (Math.random() < 0.5) {
                 humansGamePlans.add(GamePlan.MARINE_RUSH);
             }
@@ -477,7 +483,12 @@ public class Strategy {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE_CYCLONE
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.MASS_MINE_OPENER
+                ));
+            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE
                 ));
             default:
                 return new HashSet<>(Set.of(
@@ -534,6 +545,7 @@ public class Strategy {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 break;
@@ -973,10 +985,6 @@ public class Strategy {
     }
 
     public static int getMaxScvs() {
-        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-            return 100;
-        }
-
         //if no minerals left on the map
         if (GameCache.defaultRallyNode == null) {
             return 6;
@@ -1093,10 +1101,6 @@ public class Strategy {
             }
         }
         else {
-            if (!LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-                LocationConstants.extraDepots.addAll(LocationConstants.reaperBlockDepots);
-                LocationConstants._3x3Structures.addAll(LocationConstants.reaperBlock3x3s);
-            }
             if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE ||
                     gamePlan == GamePlan.MARINE_RUSH ||
                     Strategy.NUM_BASES_TO_OC > 1) {

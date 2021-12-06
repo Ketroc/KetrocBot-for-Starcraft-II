@@ -62,14 +62,10 @@ public class PlacementMap {
 //TODO:bring back - this is code to find main base positions
 //        setColumn();
 //        populateMainBase3x3WithAddonPos(buildColumn, true);
-//        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-//            replaceFactoriesWithCommandCenters();
-//        }
+//        replaceFactoriesWithCommandCenters();
 //        populateMainBase3x3Pos(buildColumn, true);
-//        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-//            topUp3x3List();
-//            populateDepotPos();
-//        }
+//        topUp3x3List();
+//        populateDepotPos();
 
         //visualizePlacementMap();
         //create2CellColumns();
@@ -566,9 +562,7 @@ public class PlacementMap {
                         makeUnavailable(Units.TERRAN_FACTORY, pos);
                         if (isColumnSet) {
                             DebugHelper.drawText(num3x3WithAddons + "", pos, Color.RED, 14);
-                            if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-                                LocationConstants.FACTORIES.add(pos);
-                            }
+                            LocationConstants.FACTORIES.add(pos);
                         }
                     }
                 }
@@ -604,9 +598,7 @@ public class PlacementMap {
                         if (doVisualize) {
                             visualize3x3(pos);
                         }
-                        if (LocationConstants.MAP.equals(MapNames.ICE_AND_CHROME506)) {
-                            LocationConstants._3x3Structures.add(pos);
-                        }
+                        LocationConstants._3x3Structures.add(pos);
                         num3x3s++;
                         makeUnavailable(Units.TERRAN_ARMORY, pos);
                     }

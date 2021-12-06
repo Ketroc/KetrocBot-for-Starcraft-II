@@ -105,7 +105,7 @@ public class BuildManager {
         //TODO: below is hacky test code for marine rush
         if (Strategy.MARINE_ALLIN) {
             GameCache.barracksList.stream()
-                    .filter(rax -> !rax.unit().getActive().orElse(true))
+                    .filter(rax -> UnitUtils.getOrder(rax.unit()) == null)
                     .forEach(rax -> {
                         int marineCount = UnitUtils.numMyUnits(Units.TERRAN_MARINE, true);
                         if (marineCount < Strategy.MAX_MARINES && Bot.OBS.getMinerals() >= 50) {
@@ -352,7 +352,7 @@ public class BuildManager {
 
     private static void ccActivityLogic() {
         for (Unit cc : GameCache.ccList) {
-            if (cc.getBuildProgress() == 1.0f && !cc.getActive().get()) {
+            if (cc.getBuildProgress() == 1.0f && UnitUtils.getOrder(cc) == null) {
                 switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
@@ -596,7 +596,7 @@ public class BuildManager {
         }
 
         Unit barracks = GameCache.barracksList.stream()
-                .filter(u -> !u.unit().getActive().get())
+                .filter(u -> UnitUtils.getOrder(u.unit()) == null)
                 .findFirst().get().unit();
 
         // make marines if wall under attack
@@ -624,7 +624,7 @@ public class BuildManager {
     private static void buildFactoryUnitsLogic() {
         for (UnitInPool factoryUip : GameCache.factoryList) {
             Unit factory = factoryUip.unit();
-            if (factory.getActive().get() ||
+            if (UnitUtils.getOrder(factory) != null ||
                     PurchaseUnit.contains(factoryUip) ||
                     UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1) {
                 continue;
@@ -658,7 +658,7 @@ public class BuildManager {
             return openingFactoryUnits.get(0);
         }
 
-        //1 hellion for every 4 zerglings
+        //1 hellion for every 4 zerglings / 1 adept
         if (isHellionsNeeded()) {
             return Units.TERRAN_HELLION;
         }
@@ -695,9 +695,9 @@ public class BuildManager {
         //build hellion if too gas starved for other factory units
         if (GameCache.gasBank < 75 &&
                 (LocationConstants.opponentRace != Race.TERRAN || Base.numMyBases() >= 3) &&
-                UnitUtils.canAfford(Units.TERRAN_HELLION) &&
+                UnitUtils.canAfford(Units.TERRAN_WIDOWMINE) &&
                 !UnitUtils.isExpansionNeeded()) {
-            return Units.TERRAN_HELLION;
+            return Units.TERRAN_WIDOWMINE;
         }
 
         return null;
@@ -737,9 +737,14 @@ public class BuildManager {
             return;
         }
 
+        System.out.println("in liftFactory() - factory complete");
         //cancel add-on
-        if (factory.getActive().orElse(true)) {
-            ActionHelper.unitCommand(factory, Abilities.CANCEL_LAST, false);
+        if (UnitUtils.getOrder(factory) != null) {
+            System.out.println("in liftFactory() - has Order");
+            if (!factory.getOrders().isEmpty()) {
+                System.out.println("in liftFactory() - unit order list isn't empty");
+                ActionHelper.unitCommand(factory, Abilities.CANCEL_LAST, false);
+            }
             return;
         }
 
@@ -770,7 +775,7 @@ public class BuildManager {
 
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starportUip : GameCache.starportList) {
-            if (!starportUip.unit().getActive().get() || PurchaseUnit.contains(starportUip)) {
+            if (UnitUtils.getOrder(starportUip.unit()) == null || PurchaseUnit.contains(starportUip)) {
                 Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING ||
                         Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
                         (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) ?
@@ -973,10 +978,6 @@ public class BuildManager {
             return Abilities.TRAIN_RAVEN;
         }
 
-        if (MapNames.ICE_AND_CHROME506.equals(LocationConstants.MAP)) {
-            return null;
-        }
-
         //otherwise banshee
         return (Strategy.DEFAULT_STARPORT_UNIT == Abilities.TRAIN_BANSHEE && GameCache.bansheeList.size() >= Strategy.MAX_BANSHEES) ?
             Abilities.TRAIN_RAVEN :
@@ -1038,10 +1039,6 @@ public class BuildManager {
     }
 
     private static void buildStarportLogic() {
-        if (MapNames.ICE_AND_CHROME506.equals(LocationConstants.MAP) && UnitUtils.numMyUnits(Units.TERRAN_STARPORT, true) > 0) {
-            return;
-        }
-
         if (!LocationConstants.STARPORTS.isEmpty() &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT)) {
@@ -1053,7 +1050,7 @@ public class BuildManager {
     }
 
     public static boolean isAllProductionStructuresBusy() {
-        return (isAllProductionStructuresActive(Units.TERRAN_STARPORT) || MapNames.ICE_AND_CHROME506.equals(LocationConstants.MAP)) &&
+        return isAllProductionStructuresActive(Units.TERRAN_STARPORT) &&
                 (isAllProductionStructuresActive(Units.TERRAN_FACTORY) || doPrioritizeStarportUnits());
     }
 
@@ -1284,7 +1281,7 @@ public class BuildManager {
 
     public static void endCycloneProduction() {
         GameCache.factoryList.forEach(factory -> {
-            if (factory.unit().getActive().orElse(false)) {
+            if (UnitUtils.getOrder(factory.unit()) != null) {
                 ActionHelper.unitCommand(factory.unit(), Abilities.CANCEL, false);
 
             }

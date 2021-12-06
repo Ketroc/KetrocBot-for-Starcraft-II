@@ -311,9 +311,6 @@ public class KetrocBot extends Bot {
                             BunkerContain.onFactoryComplete();
                         }
                         else {
-                            if (!MapNames.ICE_AND_CHROME506.equals(LocationConstants.MAP)) {
-                                ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
-                            }
 //                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_OFFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
 //                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
 //                            }

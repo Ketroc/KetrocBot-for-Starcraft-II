@@ -440,7 +440,7 @@ public class ArmyManager {
         }
 
         if (Strategy.MASS_MINE_OPENER && WidowMine.hasPermaCloak()) {
-            Chat.chatNeverRepeat("Go go drilly bois!");
+            Chat.chatNeverRepeatInvisToHuman("Go go drilly bois!");
             doOffense = true;
             return;
         }

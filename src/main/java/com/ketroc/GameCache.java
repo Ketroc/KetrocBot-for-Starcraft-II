@@ -896,7 +896,7 @@ public class GameCache {
         //make a starport available and purchase a raven
         Optional<Unit> starport = UnitUtils.getEmergencyProductionStructure(Units.TERRAN_RAVEN);
         if (starport.isPresent()) {
-            if (starport.get().getActive().orElse(false)) {
+            if (UnitUtils.getOrder(starport.get()) != null) {
                 ActionHelper.unitCommand(starport.get(), Abilities.CANCEL_LAST, false);
             }
             KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_RAVEN, starport.get()));

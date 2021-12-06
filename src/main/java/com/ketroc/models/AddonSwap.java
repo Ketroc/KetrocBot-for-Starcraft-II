@@ -89,14 +89,14 @@ public class AddonSwap {
     }
 
     private void land(UnitInPool structure, Point2d structurePos) {
-        if (!structure.unit().getActive().orElse(true) &&
+        if (UnitUtils.getOrder(structure.unit()) == null &&
                 structure.unit().getFlying().get()) {
             ActionHelper.unitCommand(structure.unit(), Abilities.LAND, structurePos, false);
         }
     }
 
     private void lift(UnitInPool structure, Point2d structurePos) {
-        if (!structure.unit().getActive().orElse(true) &&
+        if (UnitUtils.getOrder(structure.unit()) == null &&
                 !structure.unit().getFlying().get() &&
                 UnitUtils.getDistance(structure.unit(), structurePos) < 1) {
             ActionHelper.unitCommand(structure.unit(), Abilities.LIFT, false);

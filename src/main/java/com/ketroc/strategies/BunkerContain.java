@@ -147,7 +147,7 @@ public class BunkerContain {
             }
             //if not using factory for tanks
             if (factory != null && factorySwap == null) {
-                if (!factory.unit().getActive().orElse(true)) {
+                if (UnitUtils.getOrder(factory.unit()) == null) {
                     if ((tank1 == null || tank2 == null)) {
                         //buildTanks();
                     }
@@ -172,7 +172,7 @@ public class BunkerContain {
 
         }
         if (barracks != null && factorySwap == null) {
-            if (!barracks.unit().getActive().orElse(true)) {
+            if (UnitUtils.getOrder(barracks.unit()) == null) {
                 if (getMarineCount() < marinesNeeded) {
                     buildMarines();
                     return;
@@ -320,7 +320,7 @@ public class BunkerContain {
     private static void buildTanks() {
         if (!GameCache.factoryList.isEmpty()) {
             Unit factory = GameCache.factoryList.get(0).unit();
-            if (!factory.getActive().get()) {
+            if (UnitUtils.getOrder(factory) == null) {
                 if (factory.getAddOnTag().isPresent()) {
                     //2 tanks per expansion base
                     if (GameCache.siegeTankList.size() < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1)) &&

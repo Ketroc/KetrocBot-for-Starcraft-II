@@ -25,7 +25,7 @@ public class IgnoredMineralWallScv extends Ignored {
             addScv();
             return true;
         }
-        else if (!scv.unit().getActive().orElse(true)) {
+        else if (UnitUtils.getOrder(scv.unit()) == null) {
             return true;
         }
         return false;

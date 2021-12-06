@@ -1229,15 +1229,15 @@ public class UnitUtils {
     }
 
     public static boolean isAnyStarportIdle() {
-        return GameCache.starportList.stream().anyMatch(u -> !u.unit().getActive().get());
+        return GameCache.starportList.stream().anyMatch(u -> UnitUtils.getOrder(u.unit()) == null);
     }
 
     public static boolean isAnyFactoryIdle() {
-        return GameCache.factoryList.stream().anyMatch(u -> !u.unit().getActive().get());
+        return GameCache.factoryList.stream().anyMatch(u -> UnitUtils.getOrder(u.unit()) == null);
     }
 
     public static boolean isAnyBarracksIdle() {
-        return GameCache.barracksList.stream().anyMatch(u -> !u.unit().getActive().get());
+        return GameCache.barracksList.stream().anyMatch(u -> UnitUtils.getOrder(u.unit()) == null);
     }
 
     public static int numScansAvailable() {
@@ -1331,7 +1331,7 @@ public class UnitUtils {
         //TODO: include structure morphs (command centers)
 
         //if available now
-        if (!structure.getActive().orElse(true)) {
+        if (UnitUtils.getOrder(structure) == null) {
             return timeForQueuedUnits;
         }
 

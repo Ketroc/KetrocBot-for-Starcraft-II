@@ -89,8 +89,7 @@ public class PurchaseUpgrade implements Purchase {
             }
 
             //if structure not producing upgrade
-            if (!productionStructure.unit().getActive().orElse(true) &&
-                    productionStructure.unit().getBuildProgress() == 1) {
+            if (UnitUtils.getOrder(productionStructure.unit()) == null && productionStructure.unit().getBuildProgress() == 1) {
                 Print.print("sending action " + upgrade);
                 Ability upgradeAbility = getUpgradeAbility();
                 ActionHelper.unitCommand(productionStructure.unit(), upgradeAbility, false);

@@ -20,7 +20,6 @@ import com.ketroc.utils.Print;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.Set;
 
 public class PurchaseStructureMorph implements Purchase {
@@ -116,7 +115,7 @@ public class PurchaseStructureMorph implements Purchase {
         }
 
         //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
-        if (!productionStructure.unit().getActive().orElse(true) && productionStructure.unit().getBuildProgress() == 1) {
+        if (productionStructure.unit().getBuildProgress() == 1 && UnitUtils.getOrder(productionStructure.unit()) == null) {
             Print.print("start building " + this.morphOrAddOn.toString());
             Print.print("sending action " + this.morphOrAddOn);
             ActionHelper.unitCommand(productionStructure.unit(), this.morphOrAddOn, false);
@@ -138,21 +137,17 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean shouldCancelPreviousOrder() {
-        if (productionStructure == null) {
+        if (productionStructure == null || productionStructure.unit().getOrders().isEmpty()) {
+            return false;
+        }
+        UnitOrder order = productionStructure.unit().getOrders().get(0);
+        if (order.getAbility() != Abilities.TRAIN_SCV) {
             return false;
         }
 
-        Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(productionStructure);
-        if (curOrder.isEmpty() || curOrder.get().ability != Abilities.TRAIN_SCV) {
-            return false;
-        }
-
-        int minerals = GameCache.mineralBank;
-        int gas = GameCache.gasBank;
-        UnitOrder order = this.productionStructure.unit().getOrders().get(0);
         UnitTypeData producingUnitData = Bot.OBS.getUnitTypeData(false).get(Bot.abilityToUnitType.get(order.getAbility()));
-        if (minerals + producingUnitData.getMineralCost().get() >= cost.minerals &&
-                gas + producingUnitData.getVespeneCost().get() >= cost.gas &&
+        if (GameCache.mineralBank + producingUnitData.getMineralCost().get() >= cost.minerals &&
+                GameCache.gasBank + producingUnitData.getVespeneCost().get() >= cost.gas &&
                 order.getProgress().get() < CANCEL_THRESHOLD) {
             return true;
         }

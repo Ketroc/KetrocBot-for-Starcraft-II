@@ -200,9 +200,7 @@ public class ExpansionClearing {
         }
 
         //cancel turret if it didn't place
-        else if (!raven.unit.unit().getActive().orElse(true) &&
-                ActionIssued.getCurOrder(raven.unit).isEmpty() &&
-                turretCastFrame + 72 < Time.nowFrames()) {
+        else if (UnitUtils.getOrder(raven.unit.unit()) == null && turretCastFrame + 72 < Time.nowFrames()) {
             removeTurret();
             raven.targetPos = expansionPos;
         }

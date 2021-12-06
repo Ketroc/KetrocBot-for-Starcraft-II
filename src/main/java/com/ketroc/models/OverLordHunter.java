@@ -141,7 +141,7 @@ public class OverLordHunter {
 
         //lift barracks when marine production is idle
         if (barracksSpotter == null) {
-            if (!barracks.unit().getActive().get()) {
+            if (UnitUtils.getOrder(barracks.unit()) == null) {
                 UnitMicroList.add(new StructureFloater(barracks, overlord.unit().getPosition().toPoint2d(), false));
                 LocationConstants._3x3Structures.add(0, Position.toHalfPoint(barracks.unit().getPosition().toPoint2d()));
             }

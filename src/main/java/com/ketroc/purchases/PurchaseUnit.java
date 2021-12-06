@@ -73,8 +73,8 @@ public class PurchaseUnit implements Purchase {
                 selectProductionStructure();
             }
             if (productionStructure != null &&
-                    !productionStructure.unit().getActive().orElse(true) &&
                     productionStructure.unit().getBuildProgress() == 1 &&
+                    UnitUtils.getOrder(productionStructure.unit()) == null &&
                     (!UnitUtils.requiresTechLab(unitType) || isAddOnComplete())) {
                 ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);

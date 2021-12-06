@@ -141,7 +141,7 @@ public class CcManager {
 
     private static void ccActivityLogic() {
         for (Unit cc : GameCache.ccList) {
-            if (cc.getBuildProgress() == 1.0f && !cc.getActive().get()) {
+            if (cc.getBuildProgress() == 1.0f && UnitUtils.getOrder(cc) == null) {
                 switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {

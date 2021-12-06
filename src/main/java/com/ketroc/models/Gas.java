@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Gas {
     private Unit node;
@@ -155,7 +156,14 @@ public class Gas {
     }
 
     public boolean isScvEnteringGas(UnitInPool scv) {
-        return UnitUtils.getDistance(scv.unit(), nodePos) < 2.9 && !UnitUtils.isCarryingResources(scv.unit());
+        return UnitUtils.getDistance(scv.unit(), nodePos) < 3.5 && !UnitUtils.isCarryingResources(scv.unit());
+    }
+
+    //excludes scvs that are about to enter the gas
+    public List<UnitInPool> getAvailableScvs() {
+        return scvs.stream()
+                .filter(scv -> !isScvEnteringGas(scv))
+                .collect(Collectors.toList());
     }
 
     public void harvestMicro(Unit scv) {

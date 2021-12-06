@@ -111,7 +111,7 @@ public class JsonUtil {
             Gson gson = new Gson();
             Path filePath = getPathForCurrentOpponentJson();
             Opponent opp = getOpponentRecords(gson, filePath);
-            Chat.chatNeverRepeatInvisToHuman(opp.toString());
+            Chat.chatNeverRepeat(opp.toString());
             if (doLog) {
                 System.out.println(opp);
             }

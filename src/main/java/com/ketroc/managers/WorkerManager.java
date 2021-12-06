@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 public class WorkerManager {
     public static int numScvsPerGas = 3;
-    public static Map<UnitInPool, Long> idleWorkers = new HashMap<>();
+    public static List<UnitInPool> idleScvs;
 
     public static void onStep() {
 //        //TODO: for testing - breakpoint when worker stays idle
@@ -152,8 +152,7 @@ public class WorkerManager {
                         ActionHelper.giveScvCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, false);
                     }
                 }
-            }
-            else {
+            } else {
                 for (int i=0; i<numScvsToAdd; i++) {
                     UnitInPool repairScv;
                     if (GameCache.wallStructures.contains(unitToRepair)) {
@@ -161,8 +160,7 @@ public class WorkerManager {
                                 unitToRepair.getPosition().toPoint2d(),
                                 scv -> UnitUtils.isInMyMain(scv.unit())
                         );
-                    }
-                    else {
+                    } else {
                         repairScv = WorkerManager.getScv(unitToRepair.getPosition().toPoint2d());
                     }
                     if (repairScv == null) {
@@ -302,20 +300,36 @@ public class WorkerManager {
 
     @Nullable
     public static UnitInPool getScv(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
+        //find closest idle scv
+        UnitInPool scv = idleScvs.stream()
+                .filter(scvFilter)
+                .min(Comparator.comparing(idleScv -> UnitUtils.getDistance(idleScv.unit(), targetPos)))
+                .orElse(null);
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+            return scv;
+        }
+
         //find closest distance-mining scv
-        UnitInPool scv = GameCache.baseList.stream()
+        scv = GameCache.baseList.stream()
                 .filter(base -> base.hasDistanceMiningScv(scvFilter))
                 .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
                 .flatMap(base -> base.getDistanceMiningScv(targetPos))
                 .orElse(null);
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+            return scv;
+        }
 
         //find closest mineral-oversaturated scv
-        if (scv == null) {
-            scv = GameCache.baseList.stream()
-                    .filter(base -> base.hasOverSaturatedMineral(scvFilter))
-                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
-                    .flatMap(base -> base.getScvFromOversaturatedMineral(scvFilter))
-                    .orElse(null);
+        scv = GameCache.baseList.stream()
+                .filter(base -> base.hasOverSaturatedMineral(scvFilter))
+                .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+                .flatMap(base -> base.getScvFromOversaturatedMineral(scvFilter))
+                .orElse(null);
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+            return scv;
         }
 
 
@@ -323,27 +337,41 @@ public class WorkerManager {
         // - oversaturated gas scvs will still get freed up if needed for mining elsewhere
         // - FIXME: should we also turn off distance-mining scvs and min-oversaturated scvs for the same reason?
         //find closest gas-oversaturated scv
-//        if (scv == null) {
-//            scv = GameCache.baseList.stream()
-//                    .filter(base -> base.hasOverSaturatedGas(scvFilter))
-//                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
-//                    .flatMap(base -> base.getScvFromOversaturatedGas(scvFilter))
-//                    .orElse(null);
-//        }
-
-        //find closest mineral-mining scv
-        if (scv == null) {
-            scv = GameCache.baseList.stream()
-                    .filter(base -> base.numMineralScvs(scvFilter) > 0)
-                    .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
-                    .flatMap(base -> base.getScvFromSmallestPatch(scvFilter))
-                    .orElse(null);
-        }
-
+        scv = GameCache.baseList.stream()
+                .filter(base -> base.hasOverSaturatedGas(scvFilter))
+                .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+                .flatMap(base -> base.getScvFromOversaturatedGas(scvFilter))
+                .orElse(null);
         if (scv != null) {
             Base.releaseScv(scv.unit());
+            Chat.chat("Gas scv taken at " + scv.unit().getPosition().toPoint2d());
+            return scv;
         }
-        return scv;
+
+        //find closest mineral-mining scv
+        scv = GameCache.baseList.stream()
+                .filter(base -> base.numMineralScvs(scvFilter) > 0)
+                .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+                .flatMap(base -> base.getScvFromSmallestPatch(scvFilter))
+                .orElse(null);
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+            return scv;
+        }
+
+        //find closest gas-mining scv
+        scv = GameCache.baseList.stream()
+                .filter(base -> base.numAvailableGasScvs(scvFilter) > 0)
+                .min(Comparator.comparing(base -> base.getCcPos().distance(targetPos)))
+                .flatMap(base -> base.getScvFromGas(scvFilter))
+                .orElse(null);
+        if (scv != null) {
+            Base.releaseScv(scv.unit());
+            Chat.chat("Gas scv taken at " + scv.unit().getPosition().toPoint2d());
+            return scv;
+        }
+
+        return null;
     }
 
     public static boolean isMiningMinerals(UnitInPool scv) {
@@ -375,7 +403,7 @@ public class WorkerManager {
         saturateGases();
 
         // get all idle scvs
-        List<UnitInPool> idleScvs = UnitUtils.getIdleScvs();
+        idleScvs = UnitUtils.getIdleScvs();
 
         sendScvsToMine(idleScvs);
 
