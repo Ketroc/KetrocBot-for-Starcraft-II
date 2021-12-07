@@ -737,12 +737,9 @@ public class BuildManager {
             return;
         }
 
-        System.out.println("in liftFactory() - factory complete");
         //cancel add-on
         if (UnitUtils.getOrder(factory) != null) {
-            System.out.println("in liftFactory() - has Order");
             if (!factory.getOrders().isEmpty()) {
-                System.out.println("in liftFactory() - unit order list isn't empty");
                 ActionHelper.unitCommand(factory, Abilities.CANCEL_LAST, false);
             }
             return;

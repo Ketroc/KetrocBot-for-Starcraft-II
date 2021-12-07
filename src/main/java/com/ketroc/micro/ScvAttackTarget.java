@@ -2,20 +2,15 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.bots.Bot;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.models.Base;
-import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.DebugHelper;
-import com.ketroc.utils.LocationConstants;
 import com.ketroc.utils.UnitUtils;
-
-import java.util.Comparator;
+import io.vertx.codegen.annotations.Nullable;
 
 /*
     This scv object will attack a target until it dies or flees the main&nat area
@@ -98,6 +93,7 @@ public class ScvAttackTarget extends Scv {
         }
     }
 
+    @Nullable
     private static UnitInPool getNewScv(Point2d targetPos) {
         return WorkerManager.getScv(targetPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
     }

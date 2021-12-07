@@ -599,6 +599,9 @@ public class BunkerContain {
                     UnitUtils.returnAndStopScv(oldScv);
                 }
                 UnitInPool newScv = WorkerManager.getScv(LocationConstants.proxyBunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
+                if (newScv == null) {
+                    return;
+                }
                 Base.releaseScv(newScv.unit());
                 Ignored.remove(oldScv.getTag());
                 Ignored.add(new IgnoredUnit(newScv.getTag()));
@@ -613,6 +616,9 @@ public class BunkerContain {
 
     public static void addNewRepairScv() {
         UnitInPool newScv = WorkerManager.getScv(bunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
+        if (newScv == null) {
+            return;
+        }
         addRepairScv(newScv);
         ActionHelper.unitCommand(newScv.unit(), Abilities.MOVE, bunkerPos, false);
         UnitUtils.patrolInPlace(newScv.unit(), bunkerPos);
