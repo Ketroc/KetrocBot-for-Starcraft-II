@@ -807,7 +807,7 @@ public class ArmyManager {
     public static void pfTargetting() {
         List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
-                        (unit.getWeaponCooldown().orElse(0f) > 8 || //keep target to tell turret rotation complete
+                        (unit.getWeaponCooldown().orElse(0f) > 8 || //keep target to let turret rotation complete
                                 unit.getWeaponCooldown().orElse(0f) == 0))
                 .collect(Collectors.toList());
 

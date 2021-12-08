@@ -15,14 +15,13 @@ import java.nio.file.Paths;
 public class KetrocLauncher {
     public static void main(String[] args) {
         DebugHelper.doTestingSpawns = false;
-        DebugHelper.isDebugOn = false;
+        DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Race oppRace = Race.TERRAN;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
         Strategy.gamePlan = GamePlan.ONE_BASE_TANK_VIKING;
-
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -78,5 +77,4 @@ public class KetrocLauncher {
         s2Coordinator.quit();
 
     }
-
 }

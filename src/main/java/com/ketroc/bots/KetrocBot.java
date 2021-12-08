@@ -371,58 +371,66 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUnitIdle(UnitInPool unitInPool) {
-        //WorkerManager.onUnitIdle(unitInPool);
+        try {
+            //WorkerManager.onUnitIdle(unitInPool);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onUnitCreated(UnitInPool uip) {
-        if (Time.nowFrames() == 1) { //hack so this is never called on game start (since it does and doesn't depending on how it run)
-            return;
-        }
+        try {
+            if (Time.nowFrames() == 1) { //hack so this is never called on game start (since it does and doesn't depending on how it run)
+                return;
+            }
 
-        if (uip.unit().getAlliance() == Alliance.SELF) {
-            GameCache.allMyUnitsSet.add(uip);
-        }
+            if (uip.unit().getAlliance() == Alliance.SELF) {
+                GameCache.allMyUnitsSet.add(uip);
+            }
 
-        Unit unit = uip.unit();
-        if (unit.getType() instanceof Units.Other) {
-            System.out.println("****************************************************************");
-            System.out.println("Units.Other type for in Ketrocbot.onUnitCreated:" + OBS.getUnitTypeData(false).get(unit.getType()).getName());
-            System.out.println("****************************************************************");
-            return;
-        }
+            Unit unit = uip.unit();
+            if (unit.getType() instanceof Units.Other) {
+                System.out.println("****************************************************************");
+                System.out.println("Units.Other type for in Ketrocbot.onUnitCreated:" + OBS.getUnitTypeData(false).get(unit.getType()).getName());
+                System.out.println("****************************************************************");
+                return;
+            }
 
-        switch ((Units)unit.getType()) {
-            case TERRAN_AUTO_TURRET:
-                PlacementMap.makeUnavailable(unit);
-                break;
-            case TERRAN_SIEGE_TANK:
-                if (BunkerContain.proxyBunkerLevel == 2) {
-                    BunkerContain.onTankCreated(uip);
-                }
-                break;
-            case TERRAN_CYCLONE:
-                Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_LOCK_ON);
-                break;
-            case TERRAN_MARINE:
-                if (BunkerContain.proxyBunkerLevel > 0) {
-                    BunkerContain.onMarineCreated(uip);
-                }
-                break;
-            case TERRAN_SCV:
-                //ignore scvs that exited the refinery as they are considered "created"
-                if (OBS.getUnits(Alliance.SELF, u ->
-                        UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
-                        UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
-                    if (!Switches.fastDepotBarracksOpener || Bot.OBS.getFoodWorkers() != 13 || Time.nowSeconds() > 15) { //don't add first created scv if needed for depot
-                        WorkerManager.sendScvsToMine(uip);
+            switch ((Units) unit.getType()) {
+                case TERRAN_AUTO_TURRET:
+                    PlacementMap.makeUnavailable(unit);
+                    break;
+                case TERRAN_SIEGE_TANK:
+                    if (BunkerContain.proxyBunkerLevel == 2) {
+                        BunkerContain.onTankCreated(uip);
                     }
-                }
-                break;
-            case TERRAN_FACTORY:
-                //set rally on factories to left side
-                Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
-                break;
+                    break;
+                case TERRAN_CYCLONE:
+                    Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_LOCK_ON);
+                    break;
+                case TERRAN_MARINE:
+                    if (BunkerContain.proxyBunkerLevel > 0) {
+                        BunkerContain.onMarineCreated(uip);
+                    }
+                    break;
+                case TERRAN_SCV:
+                    //ignore scvs that exited the refinery as they are considered "created"
+                    if (OBS.getUnits(Alliance.SELF, u ->
+                            UnitUtils.REFINERY_TYPE.contains(u.unit().getType()) &&
+                                    UnitUtils.getDistance(u.unit(), unit) < 3.5f).isEmpty()) {
+                        if (!Switches.fastDepotBarracksOpener || Bot.OBS.getFoodWorkers() != 13 || Time.nowSeconds() > 15) { //don't add first created scv if needed for depot
+                            WorkerManager.sendScvsToMine(uip);
+                        }
+                    }
+                    break;
+                case TERRAN_FACTORY:
+                    //set rally on factories to left side
+                    Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -539,64 +547,86 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onUpgradeCompleted(Upgrade upgrade) {
-        Print.print(upgrade + " finished at: " + Time.nowClock());
+        try {
+            Print.print(upgrade + " finished at: " + Time.nowClock());
 
-        //add to list of completed upgrades
-        GameCache.upgradesCompleted.add((Upgrades)upgrade);
+            //add to list of completed upgrades
+            GameCache.upgradesCompleted.add((Upgrades) upgrade);
 
-
-        switch((Upgrades)upgrade) {
-            case LIBERATOR_AG_RANGE_UPGRADE:
-                Liberator.castRange = 8;
-                break;
-            case TERRAN_SHIP_WEAPONS_LEVEL1: case TERRAN_SHIP_WEAPONS_LEVEL2: case TERRAN_SHIP_WEAPONS_LEVEL3:
-            case TERRAN_VEHICLE_WEAPONS_LEVEL1: case TERRAN_VEHICLE_WEAPONS_LEVEL2: case TERRAN_VEHICLE_WEAPONS_LEVEL3:
-            case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2: case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
-            case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
-                UpgradeManager.updateUpgradeList(upgrade);
-                break;
+            switch ((Upgrades) upgrade) {
+                case LIBERATOR_AG_RANGE_UPGRADE:
+                    Liberator.castRange = 8;
+                    break;
+                case TERRAN_SHIP_WEAPONS_LEVEL1:
+                case TERRAN_SHIP_WEAPONS_LEVEL2:
+                case TERRAN_SHIP_WEAPONS_LEVEL3:
+                case TERRAN_VEHICLE_WEAPONS_LEVEL1:
+                case TERRAN_VEHICLE_WEAPONS_LEVEL2:
+                case TERRAN_VEHICLE_WEAPONS_LEVEL3:
+                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1:
+                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2:
+                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
+                case BANSHEE_CLOAK:
+                case BANSHEE_SPEED:
+                case RAVEN_CORVID_REACTOR:
+                    UpgradeManager.updateUpgradeList(upgrade);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 
     @Override
     public void onUnitEnterVision(UnitInPool uip) {
-        Unit unit = uip.unit();
-        //make unavailable non-flying enemy structures
-        if (unit.getAlliance() == Alliance.ENEMY &&
-                UnitUtils.isStructure(unit.getType()) &&
-                !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
-            PlacementMap.makeUnavailable(unit);
-        }
-        if (uip.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT) {
-            AdeptShadeTracker.add(uip);
+        try {
+            Unit unit = uip.unit();
+            //make unavailable non-flying enemy structures
+            if (unit.getAlliance() == Alliance.ENEMY &&
+                    UnitUtils.isStructure(unit.getType()) &&
+                    !UnitUtils.GAS_STRUCTURE_TYPES.contains(unit.getType())) {
+                PlacementMap.makeUnavailable(unit);
+            }
+            if (uip.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT) {
+                AdeptShadeTracker.add(uip);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void onNydusDetected() { //called when you hear the scream
-        Chat.tag("vs_Nydus");
-        GameResult.setNydusRushed(); //TODO: temp for Spiny
+        try {
+            Chat.tag("vs_Nydus");
+            GameResult.setNydusRushed(); //TODO: temp for Spiny
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onNuclearLaunchDetected() { //called when you hear "nuclear launch detected"
-        Chat.tag("vs_Nuke");
+        try {
+            Chat.tag("vs_Nuke");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onGameEnd() {
-        Cyclone.cycloneKillReport();
-        recordGameResult();
-
-        CategoryScoreDetails lostMinerals = OBS.getScore().getDetails().getLostMinerals();
-        if (lostMinerals.getArmy() + lostMinerals.getEconomy() +
-                lostMinerals.getTechnology() + lostMinerals.getUpgrade() + lostMinerals.getNone() == 0) {
-            Chat.tag("PERFECT_GAME");
-        }
-        Print.print("opponentId = " + opponentId);
-        GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
         try {
+            Cyclone.cycloneKillReport();
+            recordGameResult();
+
+            CategoryScoreDetails lostMinerals = OBS.getScore().getDetails().getLostMinerals();
+            if (lostMinerals.getArmy() + lostMinerals.getEconomy() +
+                    lostMinerals.getTechnology() + lostMinerals.getUpgrade() + lostMinerals.getNone() == 0) {
+                Chat.tag("PERFECT_GAME");
+            }
+            Print.print("opponentId = " + opponentId);
+            GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Exception e) {
             e.printStackTrace();

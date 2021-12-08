@@ -3,6 +3,7 @@ package com.ketroc;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
@@ -71,13 +72,13 @@ public class GameCache {
     public static List<Unit> wallStructures = new ArrayList<>();
     public static List<Unit> burningStructures = new ArrayList<>();
 
-    public static void onGameStart() throws Exception {
+    public static void onGameStart() {
         allMyUnitsSet.addAll(Bot.OBS.getUnits(Alliance.SELF));
         onStep();
     }
 
 
-    public static void onStep() throws Exception {
+    public static void onStep() {
         mineralBank = Bot.OBS.getMinerals();
         gasBank = Bot.OBS.getVespene();
         freeSupply = Bot.OBS.getFoodCap() - Bot.OBS.getFoodUsed();
@@ -514,7 +515,7 @@ public class GameCache {
 
     } //end onStep()
 
-    private static void updateDiverStatus() throws Exception { //TODO: make method callable with unit type rather than hardcoded viking and banshee
+    private static void updateDiverStatus() { //TODO: make method callable with unit type rather than hardcoded viking and banshee
         // === banshees ===
         //find dive target
         if (Switches.bansheeDiveTarget == null) {
@@ -650,7 +651,7 @@ public class GameCache {
         return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_VIKING_FIGHTER && UnitUtils.getDistance(tempest, u.unit()) < 8).isEmpty();
     }
 
-    public static void buildInfluenceMap() throws Exception {
+    public static void buildInfluenceMap() {
         int xMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_X);
         int xMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_X);
         int yMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_Y);
@@ -843,10 +844,11 @@ public class GameCache {
 //                    if (InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
 //                    }
-//                    if (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y]) {
-//                        DebugHelper.drawBox(x/2f, y/2f, Color.WHITE, 0.24f);
-//                        DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
-//                    }
+                    if (PlacementMap.isPlaceable(Point2d.of(x/2f, y/2f), false) &&
+                            (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y])) {
+                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
+                        //DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
+                    }
 //                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
 //                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
 //                    }
@@ -873,15 +875,15 @@ public class GameCache {
                 UnitMicroList.getUnitSubList(MarineBasic.class).size() < MarineAllIn.MIN_MARINES_TO_ATTACK);
     }
 
-    public static boolean inDetectionRange(int x1, int y1, Unit enemy) throws Exception {
+    public static boolean inDetectionRange(int x1, int y1, Unit enemy) {
         return inRange(x1, y1, enemy.getPosition().getX(), enemy.getPosition().getY(), enemy.getDetectRange().orElse(0f));
     }
 
-    public static boolean inAirAttackRange(int x1, int y1, Unit enemy) throws Exception { //TODO: figure out logic for if enemy has a range upgrade (I believe info is not provided by api)
+    public static boolean inAirAttackRange(int x1, int y1, Unit enemy) { //TODO: figure out logic for if enemy has a range upgrade (I believe info is not provided by api)
         return inRange(x1, y1, enemy.getPosition().getX(), enemy.getPosition().getY(), UnitUtils.getAirAttackRange(enemy));
     }
 
-    public static boolean inRange(int x1, int y1, float x2, float y2, float range) throws Exception {
+    public static boolean inRange(int x1, int y1, float x2, float y2, float range) {
         float width = Math.abs(x2 - x1);
         float height = Math.abs(y2 - y1);
         return Math.sqrt(width*width + height*height) < range;
