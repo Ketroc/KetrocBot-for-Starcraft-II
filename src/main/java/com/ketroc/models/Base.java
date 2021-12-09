@@ -981,11 +981,18 @@ public class Base {
     }
 
     public static boolean isMining(UnitInPool scv) {
+        return isMiningMinerals(scv) || isMiningGas(scv);
+    }
+
+    public static boolean isMiningMinerals(UnitInPool scv) {
         return GameCache.baseList.stream()
-                    .flatMap(base -> base.getMineralPatches().stream())
-                    .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
-                    .anyMatch(u -> scv.getTag().equals(u.getTag())) ||
-                GameCache.baseList.stream()
+                .flatMap(base -> base.getMineralPatches().stream())
+                .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
+                .anyMatch(u -> scv.getTag().equals(u.getTag()));
+    }
+
+    public static boolean isMiningGas(UnitInPool scv) {
+        return GameCache.baseList.stream()
                         .flatMap(base -> base.getGases().stream())
                         .flatMap(gas -> gas.getScvs().stream())
                         .anyMatch(u -> scv.getTag().equals(u.getTag()));

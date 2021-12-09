@@ -36,6 +36,11 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.out.println("In DefaultUncaughtExceptionHandler");
+            e.printStackTrace();
+        });
+        
         String opponentId = null;
         for (int i=0; i<args.length; i++) {
             String arg = args[i];

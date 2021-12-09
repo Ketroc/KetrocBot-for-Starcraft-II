@@ -14,14 +14,19 @@ import java.nio.file.Paths;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
-        DebugHelper.doTestingSpawns = false;
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.out.println("In DefaultUncaughtExceptionHandler");
+            e.printStackTrace();
+        });
+
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.TERRAN;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
-        Strategy.gamePlan = GamePlan.ONE_BASE_TANK_VIKING;
+        Strategy.gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)

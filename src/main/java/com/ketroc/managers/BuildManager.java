@@ -648,7 +648,7 @@ public class BuildManager {
         }
     }
 
-    private static Units decideFactoryUnit() {
+    public static Units decideFactoryUnit() {
         if (Strategy.MASS_MINE_OPENER) {
             return Units.TERRAN_WIDOWMINE;
         }

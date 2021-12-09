@@ -40,7 +40,12 @@ public class KetrocBot extends Bot {
 
     @Override
     public void onAlert(Alert alert) {
+        try {
 
+        }
+        catch (Throwable e) {
+            Error.onException(e);
+        }
     }
 
     @Override
@@ -95,7 +100,7 @@ public class KetrocBot extends Bot {
             DEBUG.sendDebug();
             ACTION.sendActions();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             Error.onException(e);
         }
     }
@@ -235,7 +240,7 @@ public class KetrocBot extends Bot {
             DebugHelper.onStep();
             ACTION.sendActions();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             Print.print("Bot.onStep() error");
             Error.onException(e);
         }
@@ -363,7 +368,7 @@ public class KetrocBot extends Bot {
                 }
             }
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             Print.print(unitInPool.unit().getType() + " at " + unitInPool.unit().getPosition().toPoint2d());
             Error.onException(e);
         }
@@ -373,8 +378,8 @@ public class KetrocBot extends Bot {
     public void onUnitIdle(UnitInPool unitInPool) {
         try {
             //WorkerManager.onUnitIdle(unitInPool);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -429,8 +434,8 @@ public class KetrocBot extends Bot {
                     Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
                     break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -539,7 +544,7 @@ public class KetrocBot extends Bot {
                 }
             }
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             Print.print(uip.unit().getType() + " at " + uip.unit().getPosition().toPoint2d());
             Error.onException(e);
         }
@@ -572,8 +577,8 @@ public class KetrocBot extends Bot {
                     UpgradeManager.updateUpgradeList(upgrade);
                     break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -590,8 +595,8 @@ public class KetrocBot extends Bot {
             if (uip.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT) {
                 AdeptShadeTracker.add(uip);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -600,8 +605,8 @@ public class KetrocBot extends Bot {
         try {
             Chat.tag("vs_Nydus");
             GameResult.setNydusRushed(); //TODO: temp for Spiny
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -609,8 +614,8 @@ public class KetrocBot extends Bot {
     public void onNuclearLaunchDetected() { //called when you hear "nuclear launch detected"
         try {
             Chat.tag("vs_Nuke");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
@@ -628,8 +633,8 @@ public class KetrocBot extends Bot {
             Print.print("opponentId = " + opponentId);
             GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            Error.onException(e);
         }
     }
 
