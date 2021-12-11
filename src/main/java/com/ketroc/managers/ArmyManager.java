@@ -1483,9 +1483,6 @@ public class ArmyManager {
             if (!UnitUtils.getEnemyTargetsNear(curOrder.get().targetPos, 7).isEmpty()) {
                 return;
             }
-            else {
-                //PlacementMap.makeAvailable(Units.TERRAN_AUTO_TURRET, curOrder.get().targetPos);
-            }
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
@@ -1514,46 +1511,55 @@ public class ArmyManager {
         //always flee if locked on by cyclone
         if (raven.getBuffs().contains(Buffs.LOCK_ON)) {
             retreatUnitFromCyclone(raven);
-            //if (lastCommand != ArmyCommands.RETREAT) armyGoingHome.add(raven);
+            return;
         }
 
         //fly to enemy main if parasitic'ed
-        else if (isParasitic) {
+        if (isParasitic) {
             ActionHelper.unitCommand(raven, Abilities.MOVE, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-1), false);
+            return;
         }
 
         //stay in repair bay if not on offensive or under 100% health
-        else if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && UnitUtils.getDistance(raven, retreatPos) < 3) {
+        if (canRepair && UnitUtils.getHealthPercentage(raven) < 100 && UnitUtils.getDistance(raven, retreatPos) < 3) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
+            return;
         }
 
         //go home to repair if low TODO: kite first
-        else if (canRepair && UnitUtils.getHealthPercentage(raven) < healthToRepair) {
-//            if (!doCastTurrets) || !doAutoTurretOnRetreat(raven)) {
+        if (canRepair && UnitUtils.getHealthPercentage(raven) < healthToRepair) {
+            if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
+            return;
+        }
+
+        if (Strategy.ARCHON_MASS_RAVEN) { //no other micro as it's the job of the archon player
+            if (!raven.getSelected().orElse(false) && !raven.getActive().orElse(true)) { //send home if not human-controlled
                 if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
-//            }
+            }
+            return;
         }
 
         //go home to repair if mass raven strategy and no energy for autoturrets
-        else if (Strategy.MASS_RAVENS && UnitUtils.getHealthPercentage(raven) < 100 &&
+        if (Strategy.MASS_RAVENS && UnitUtils.getHealthPercentage(raven) < 100 &&
                 raven.getEnergy().orElse(0f) < 35) {
             if (lastCommand != ArmyCommands.HOME) armyGoingHome.add(raven);
+            return;
         }
 
         //back up if in range
-        else if (isUnsafe || inRange) {
+        if (isUnsafe || inRange) {
             if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
                 if (!Strategy.DO_MATRIX || !castMatrix(raven)) {
                     if (!doCastTurrets || !doAutoTurret(raven, turretTarget)) {
-//                        if (isUnsafe) {
-                            kiteBackAirUnit(raven, lastCommand);
-//                        }
+                        kiteBackAirUnit(raven, lastCommand);
                     }
                 }
             }
+            return;
         }
+
         //go forward if not in range
-        else if (lastCommand != ArmyCommands.ATTACK) {
+        if (lastCommand != ArmyCommands.ATTACK) {
             if (attackCloakedPos != null) {
                 armyDetectorAttacking.add(raven);
             }
@@ -1563,6 +1569,7 @@ public class ArmyManager {
             else {
                 armyAirAttacking.add(raven);
             }
+            return;
         }
     }
 

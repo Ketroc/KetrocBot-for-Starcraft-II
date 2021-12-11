@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.bots.Bot;
+import com.ketroc.strategies.Strategy;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -55,6 +56,7 @@ public class Ladder {
             }
         }
         Bot bot = new KetrocBot(opponentId);
+        String playerName = Strategy.ARCHON_MASS_RAVEN ? "Archon" : "Ketroc";
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
                 .setRawAffectsSelection(false)
@@ -62,7 +64,7 @@ public class Ladder {
                 .setStepSize(Launcher.STEP_SIZE)
                 .setShowCloaked(true)
                 .setShowBurrowed(true)
-                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot, "Ketroc"))
+                .setParticipants(S2Coordinator.createParticipant(Race.TERRAN, bot, playerName))
                 .connectToLadder()
                 .joinGame();
 

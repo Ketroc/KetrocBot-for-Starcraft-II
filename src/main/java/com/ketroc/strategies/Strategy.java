@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
 import com.ketroc.Switches;
@@ -29,6 +28,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
+    public static boolean ARCHON_MASS_RAVEN; //turn on for playing mass raven in archon mode
+
     public static final int NUM_OFFENSE_SCVS = 4;
     public static int NUM_BASES_TO_OC = 1;
     public static boolean WALL_OFF_IMMEDIATELY;
@@ -104,16 +105,16 @@ public class Strategy {
     public static int MAX_BANSHEES = 20;
 
     public static void onGameStart() {
-        //Launcher.STEP_SIZE = 2; //(KetrocBot.isRealTime) ? 4 : 2;
+        if (ARCHON_MASS_RAVEN) {
+            Strategy.gamePlan = GamePlan.RAVEN;
+            Chat.chat("play with me");
+        }
+
         getGameStrategyChoice();
 
         if (DO_MATRIX && !DO_SEEKER_MISSILE) {
             RAVEN_CAST_RANGE = 9f;
         }
-//
-//        if (ANTI_NYDUS_BUILD) {
-//            antiNydusBuild();
-//        }
     }
 
     public static void onStep() {
@@ -604,7 +605,6 @@ public class Strategy {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
-                MASS_MINE_OPENER = true;
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;
@@ -1015,24 +1015,6 @@ public class Strategy {
         }
 
         return 90;
-    }
-
-    public static void antiNydusBuild() {
-        //rax after depot, 2nd depot after cc since cc is late, earlier 2nd gas
-        KetrocBot.purchaseQueue.add(1, KetrocBot.purchaseQueue.remove(3));
-        KetrocBot.purchaseQueue.add(4, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.extraDepots.remove(LocationConstants.extraDepots.size()-1)));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-
-        //get closest STARPORTS position
-        Point2d closestStarportPos = LocationConstants.STARPORTS.stream()
-                .min(Comparator.comparing(starportPos -> starportPos.distance(LocationConstants.MID_WALL_3x3)))
-                .get();
-
-        //build rax at closest position
-        ((PurchaseStructure) KetrocBot.purchaseQueue.get(1)).setPosition(closestStarportPos);
-
-        //save MID_WALL_3X3 for barracks' later position
-        LocationConstants._3x3Structures.remove(0);
     }
 
     public static void setRaceStrategies() {

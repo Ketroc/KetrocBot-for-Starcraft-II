@@ -53,6 +53,7 @@ public class BuildOrder {
                     //KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SCV, GameCache.baseList.get(0).getCc()));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     if (!LocationConstants.FACTORIES.isEmpty()) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
                         LocationConstants.FACTORIES.clear();
@@ -61,7 +62,6 @@ public class BuildOrder {
                     if (Strategy.MAX_MARINES > 0) {
                         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
                     }
-                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
 
                     //finish reaper wall first
                     if (!Strategy.NO_RAMP_WALL) {

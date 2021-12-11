@@ -19,14 +19,14 @@ public class KetrocLauncher {
             e.printStackTrace();
         });
 
-        DebugHelper.doTestingSpawns = true;
-        DebugHelper.isDebugOn = true;
+        DebugHelper.doTestingSpawns = false;
+        DebugHelper.isDebugOn = false;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.PROTOSS;
+        Race oppRace = Race.ZERG;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
-        Strategy.gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        Strategy.gamePlan = GamePlan.RAVEN;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -47,8 +47,8 @@ public class KetrocLauncher {
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("RomanticideAIE.SC2Map")));
