@@ -37,7 +37,7 @@ public class IgnoredMineralWallScv extends Ignored {
         }
         Unit mineral = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
         if (mineral != null && UnitUtils.getDistance(mineral, LocationConstants.baseLocations.get(0)) < 50) {
-            UnitInPool scv = WorkerManager.getScv(mineral.getPosition().toPoint2d());
+            UnitInPool scv = WorkerManager.getScvEmptyHands(mineral.getPosition().toPoint2d());
             if (scv != null) {
                 add(new IgnoredMineralWallScv(scv.getTag()));
                 ActionHelper.unitCommand(scv.unit(), Abilities.SMART, mineral, false);

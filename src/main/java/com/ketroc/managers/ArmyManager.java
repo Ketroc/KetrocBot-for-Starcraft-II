@@ -194,7 +194,7 @@ public class ArmyManager {
                         UnitUtils.getHealthPercentage(tankOffense.unit.unit()) < 99)) {
             int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
             for (int i=0; i<numScvsToAdd; i++) {
-                UnitInPool closestAvailableScv = WorkerManager.getScv(
+                UnitInPool closestAvailableScv = WorkerManager.getScvEmptyHands(
                         tankList.get(0).unit.unit().getPosition().toPoint2d());
                 if (closestAvailableScv == null) {
                     return;
@@ -615,7 +615,7 @@ public class ArmyManager {
         List<UnitInPool> repairScvs = new ArrayList<>();
 
         for (int i=0; i<numScvsToSend; i++) {
-            UnitInPool scv = WorkerManager.getScv(LocationConstants.REPAIR_BAY);
+            UnitInPool scv = WorkerManager.getScvEmptyHands(LocationConstants.REPAIR_BAY);
             if (scv == null) {
                 return repairScvs;
             }

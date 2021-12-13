@@ -229,7 +229,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);
             }
             if (scv == null) {
-                UnitInPool availableScv = WorkerManager.getScv(this.position);
+                UnitInPool availableScv = WorkerManager.getScvEmptyHands(this.position);
                 if (availableScv == null) {
                     Print.print("cancelled " + structureType + " because no scv available");
                     makePositionAvailableAgain(position);
@@ -274,7 +274,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                         if (StructureScv.scvBuildingList.stream()
                                 .noneMatch(scv -> scv.buildAbility == Abilities.BUILD_REFINERY && scv.structurePos.distance(gas.getNodePos()) < 1)) {
                             this.position = gas.getNodePos();
-                            UnitInPool scv = WorkerManager.getScv(this.position);
+                            UnitInPool scv = WorkerManager.getScvEmptyHands(this.position);
                             if (scv == null) {
                                 return PurchaseResult.WAITING;
                             }

@@ -57,7 +57,7 @@ public class CannonRushDefense {
                     //attack with scvs
                     int numScvsToSend = scvTarget.numScvs - scvTarget.getScvList().size();
                     for (int i = 0; i < numScvsToSend; i++) {
-                        UnitInPool newScv = WorkerManager.getScv(scvTarget.targetUnit.unit().getPosition().toPoint2d());
+                        UnitInPool newScv = WorkerManager.getScvEmptyHands(scvTarget.targetUnit.unit().getPosition().toPoint2d());
                         if (newScv == null) {
                             break;
                         }

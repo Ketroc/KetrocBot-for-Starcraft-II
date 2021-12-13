@@ -123,15 +123,8 @@ public class KetrocBot extends Bot {
                 JsonUtil.chatAllWinRates(true);
             }
 
-
-//            if (Time.nowFrames() % Launcher.STEP_SIZE != 0 ||
-//                    (Launcher.isRealTime && Time.nowFrames() < 24)) {
-//                return;
-//            }
-//            //************************************
-//            //***** DO EVERY STEPSIZE FRAME ******
-//            //************************************
-
+            MyUnitAbilities.onStepStart();
+            WorkerManager.onStepStart(); //fix workers, make refineries
 
             switch (LocationConstants.opponentRace) {
                 case ZERG:
@@ -144,7 +137,6 @@ public class KetrocBot extends Bot {
                     NukeTracker.onStep();
                     break;
             }
-            MyUnitAbilities.onStep();
             //PlacementMap.visualizePlacementMap();
 
             Ignored.onStep(); //free up ignored units
@@ -226,7 +218,6 @@ public class KetrocBot extends Bot {
             //Strategy.onStep(); //effect game strategy
             UpgradeManager.onStep();
             BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
-            WorkerManager.onStep(); //fix workers, make refineries
             ArmyManager.onStep(); //decide army movements
             UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads
@@ -419,6 +410,9 @@ public class KetrocBot extends Bot {
                         BunkerContain.onMarineCreated(uip);
                     }
                     break;
+                case TERRAN_RAVEN:
+                    //TODO: add to control group 1 - ActionUi needs to be made accessible in ocraft
+                    break;
                 case TERRAN_SCV:
                     //ignore scvs that exited the refinery as they are considered "created"
                     if (OBS.getUnits(Alliance.SELF, u ->
@@ -508,7 +502,7 @@ public class KetrocBot extends Bot {
                             case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                                 //remove from base defense tank
                                 for (Base base : GameCache.baseList) {
-                                    for (DefenseUnitPositions tankPos : base.getTanks()) {
+                                    for (DefenseUnitPositions tankPos : base.getTurrets()) {
                                         if (tankPos.getUnit() != null && unit.getTag().equals(tankPos.getUnit().getTag())) {
                                             tankPos.setUnit(null, base);
                                         }

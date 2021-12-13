@@ -94,7 +94,7 @@ public class ActionErrorManager {
                     //scv got stuck en route, TODO: or location unreachable by any scv
                     else {
                         //switch scv
-                        UnitInPool oneScv = WorkerManager.getScv(structureScv.structurePos);
+                        UnitInPool oneScv = WorkerManager.getScvEmptyHands(structureScv.structurePos);
                         if (oneScv != null) {
                             structureScv.setScv(oneScv);
                         }

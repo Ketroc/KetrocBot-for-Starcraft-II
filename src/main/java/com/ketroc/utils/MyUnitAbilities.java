@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class MyUnitAbilities {
     public static Map<Tag, Set<Abilities>> map = new HashMap<>();
 
-    public static void onStep() {
+    public static void onStepStart() {
         List<Unit> myUnits = Bot.OBS.getUnits(Alliance.SELF).stream().map(UnitInPool::unit).collect(Collectors.toList());
         Bot.QUERY.getAbilitiesForUnits(myUnits, false)
                 .forEach(unitAbils -> {

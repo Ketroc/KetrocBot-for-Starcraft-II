@@ -96,8 +96,8 @@ public class BunkerContain {
 
         // ========= SCVS ===========
         if (Time.at(160)) {
-            Unit scv = WorkerManager.getScv(LocationConstants.extraDepots.get(0)).unit();
-            ActionHelper.giveScvCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
+            Unit scv = WorkerManager.getScvEmptyHands(LocationConstants.extraDepots.get(0)).unit();
+            ActionHelper.unitCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure) KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
@@ -370,8 +370,13 @@ public class BunkerContain {
 
     private static void sendScoutScvs() {
         if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(23)) {
-            scoutScvs.add(WorkerManager.getScv(LocationConstants.BUNKER_NATURAL));
-            scoutScvs.add(WorkerManager.getScv(LocationConstants.BUNKER_NATURAL));
+            while (scoutScvs.size() < 2) {
+                UnitInPool newScv = WorkerManager.getScvEmptyHands(LocationConstants.BUNKER_NATURAL);
+                if (newScv == null) {
+                    return;
+                }
+                scoutScvs.add(newScv);
+            }
             if (!LocationConstants.MAP.contains("Golden Wall") && !LocationConstants.MAP.contains("Blackburn")) {
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
                 ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
@@ -390,7 +395,7 @@ public class BunkerContain {
             }
             isScoutScvsSent = true;
         }
-        else if (!scoutScvs.isEmpty()) {
+        else if (scoutScvs.size() < 2) {
             //if proxy barracks found
             if (Time.nowFrames() < Time.toFrames("3:00")) {
                 List<UnitInPool> enemyBarracks = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BARRACKS);

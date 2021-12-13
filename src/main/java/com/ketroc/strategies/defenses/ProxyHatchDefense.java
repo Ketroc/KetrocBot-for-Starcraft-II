@@ -8,9 +8,6 @@ import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.utils.*;
 
-import java.util.Comparator;
-import java.util.List;
-
 public class ProxyHatchDefense {
     public static boolean isProxyHatch;
     public static UnitInPool hatchery;
@@ -22,7 +19,7 @@ public class ProxyHatchDefense {
                 Point2d hatcheryPos = hatchery.unit().getPosition().toPoint2d();
                 int numScvs = 6 + (int)(hatchery.unit().getBuildProgress() * 10);
                 for (int i=0; i<numScvs; i++) {
-                    UnitInPool scv = WorkerManager.getScv(hatcheryPos);
+                    UnitInPool scv = WorkerManager.getScvEmptyHands(hatcheryPos);
                     if (scv == null) {
                         break;
                     }

@@ -1,13 +1,11 @@
 package com.ketroc.utils;
 
-import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.launchers.Launcher;
-import com.ketroc.models.Base;
 
 import java.util.List;
 import java.util.Set;
@@ -129,36 +127,5 @@ public class ActionHelper {
             });
         }
         Bot.ACTION.unitCommand(unitSet, ability, targetUnit, isQueued);
-    }
-
-
-    public static void giveScvCommand(Unit scv, Abilities ability, boolean isQueued) {
-        Base.releaseScv(scv);
-        ActionHelper.unitCommand(scv, ability, isQueued);
-    }
-
-    public static void giveScvCommand(Unit scv, Abilities ability, Point2d targetPos, boolean isQueued) {
-        Base.releaseScv(scv);
-        ActionHelper.unitCommand(scv, ability, targetPos, isQueued);
-    }
-
-    public static void giveScvCommand(Unit scv, Abilities ability, Unit targetUnit, boolean isQueued) {
-        Base.releaseScv(scv);
-        ActionHelper.unitCommand(scv, ability, targetUnit, isQueued);
-    }
-
-    public static void giveScvCommand(List<Unit> scvList, Abilities ability, Unit targetUnit, boolean isQueued) {
-        scvList.forEach(scv -> Base.releaseScv(scv));
-        ActionHelper.unitCommand(scvList, ability, targetUnit, isQueued);
-    }
-
-    public static void giveScvCommand(List<Unit> scvs, Abilities ability, boolean isQueued) {
-        scvs.forEach(scv -> Base.releaseScv(scv));
-        ActionHelper.unitCommand(scvs, ability, isQueued);
-    }
-
-    public static void giveScvCommand(List<Unit> scvs, Abilities ability, Point2d targetPos, boolean isQueued) {
-        scvs.forEach(scv -> Base.releaseScv(scv));
-        ActionHelper.unitCommand(scvs, ability, targetPos, isQueued);
     }
 }

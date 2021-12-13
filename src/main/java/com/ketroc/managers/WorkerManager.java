@@ -38,25 +38,7 @@ public class WorkerManager {
     public static int numScvsPerGas = 3;
     public static List<UnitInPool> idleScvs;
 
-    public static void onStep() {
-//        //TODO: for testing - breakpoint when worker stays idle
-//        idleWorkers.entrySet().removeIf(entry -> !entry.getKey().unit().getOrders().isEmpty() ||
-//                StructureScv.isScvProducing(entry.getKey().unit()));
-//        List<UnitInPool> inProductionStructures = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.isStructure(u.unit().getType()) && u.unit().getBuildProgress() < 1f);
-//        Bot.OBS.getUnits(Alliance.SELF, scv ->
-//                        scv.unit().getType() == Units.TERRAN_SCV &&
-//                        scv.unit().getOrders().isEmpty() &&
-//                        inProductionStructures.stream()
-//                                .noneMatch(structure -> UnitUtils.getDistance(structure.unit(), scv.unit()) < 3.5f))
-//                .forEach(scv -> idleWorkers.putIfAbsent(scv, Time.nowFrames()));
-//        idleWorkers.forEach((scv, frame) -> {
-//            if (frame + 48 < Time.nowFrames()) {
-//                DebugHelper.boxUnit(scv.unit());
-//                Bot.DEBUG.sendDebug();
-//            }
-//        });
-
-
+    public static void onStepStart() {
         repairLogic();
         fixOverSaturation();
         setNumScvsPerGas();
@@ -146,10 +128,10 @@ public class WorkerManager {
                         break;
                     }
                     if (pfBase != null && scvNotBehindPF(repairScv.unit(), pfBase)) {
-                        ActionHelper.giveScvCommand(repairScv.unit(), Abilities.MOVE, behindPFPos, false);
-                        ActionHelper.giveScvCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, true);
+                        ActionHelper.unitCommand(repairScv.unit(), Abilities.MOVE, behindPFPos, false);
+                        ActionHelper.unitCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, true);
                     } else {
-                        ActionHelper.giveScvCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, false);
+                        ActionHelper.unitCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, false);
                     }
                 }
             } else {
@@ -161,12 +143,12 @@ public class WorkerManager {
                                 scv -> UnitUtils.isInMyMain(scv.unit())
                         );
                     } else {
-                        repairScv = WorkerManager.getScv(unitToRepair.getPosition().toPoint2d());
+                        repairScv = WorkerManager.getScvEmptyHands(unitToRepair.getPosition().toPoint2d());
                     }
                     if (repairScv == null) {
                         return;
                     }
-                    ActionHelper.giveScvCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, false);
+                    ActionHelper.unitCommand(repairScv.unit(), Abilities.EFFECT_REPAIR_SCV, unitToRepair, false);
                 }
             }
         }
@@ -221,34 +203,6 @@ public class WorkerManager {
     private static boolean scvNotBehindPF(Unit unit, Base pfBase) {
         return UnitUtils.getDistance(unit, pfBase.getCcPos()) + 1.5 < UnitUtils.getDistance(unit, pfBase.getResourceMidPoint());
     }
-//
-//    private static UnitInPool getScvForRepairing(Unit unitToRepair, int numScvsToAdd) {
-//        //only choose scvs inside the wall within 20 distance
-//        if (GameCache.wallStructures.contains(unitToRepair) && !isRangedEnemyNearby()) {
-//            availableScvs = UnitUtils.toUnitList(Bot.OBS.getUnits(Alliance.SELF, u ->
-//                    u.unit().getType() == Units.TERRAN_SCV &&
-//                            Math.abs(u.unit().getPosition().getZ() - unitToRepair.getPosition().getZ()) < 1 && //same elevation as wall
-//                            UnitUtils.getDistance(u.unit(), unitToRepair) < 30 &&
-//                            (ActionIssued.getCurOrder(u).isEmpty() || isMiningMinerals(u))));
-//        }
-////                        if (GameState.burningStructures.contains(unit) || GameState.wallStructures.contains(unit)) {
-////                            //only send if safe
-////                            //TODO: make threat to ground gridmap to check against (replace above if statement for wall structures)
-////                        }
-//        else if (unitToRepair.getType() == Units.TERRAN_PLANETARY_FORTRESS) {
-//            availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d(), 10));
-//        }
-//        else {
-//            availableScvs = UnitUtils.toUnitList(getAvailableScvs(unitToRepair.getPosition().toPoint2d()));
-//        }
-//
-//        //sort by closest scvs then sublist
-//        availableScvs = availableScvs.stream()
-//                .sorted(Comparator.comparing(scv -> UnitUtils.getDistance(scv, unitToRepair)))
-//                .limit(Math.max(0, Math.min(availableScvs.size()-1, numScvsToAdd)))
-//                .collect(Collectors.toList());
-//        return availableScvs;
-//    }
 
     private static boolean isRangedEnemyNearby() {
         return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) > 0;
@@ -291,6 +245,16 @@ public class WorkerManager {
                 (natBase.getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS ||
                         UnitUtils.getOrder(natBase.getCc().unit()) == Abilities.MORPH_PLANETARY_FORTRESS ||
                         Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS));
+    }
+
+    @Nullable
+    public static UnitInPool getScvEmptyHands(Point2d targetPos) {
+        return getScvEmptyHands(targetPos, scv -> true);
+    }
+
+    @Nullable
+    public static UnitInPool getScvEmptyHands(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
+        return getScv(targetPos, scvFilter.and(scv -> !UnitUtils.isCarryingResources(scv.unit())));
     }
 
     @Nullable
@@ -449,6 +413,8 @@ public class WorkerManager {
         if (!idleScvs.isEmpty()) {
             idleScvs.forEach(Base::distanceMineScv);
         }
+
+        //TODO: distance mine to unsafe locations if numScvs > maxScvs (make them fearless??)
     }
 
     //make oversaturation scvs available to handle normal saturation everywhere
