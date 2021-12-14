@@ -1340,7 +1340,7 @@ public class ArmyManager {
     private static boolean isWaitingForCloak(Unit banshee) {
         return Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
                 banshee.getCloakState().orElse(CloakState.CLOAKED_ALLIED) != CloakState.CLOAKED_ALLIED &&
-                banshee.getEnergy().orElse(0f) > Strategy.ENERGY_TO_SAVE;
+                banshee.getEnergy().orElse(0f) < Strategy.ENERGY_TO_SAVE;
     }
 
     private static ArmyCommands getCurrentCommand(Unit unit) {

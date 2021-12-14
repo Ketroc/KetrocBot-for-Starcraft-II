@@ -30,6 +30,8 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class GameCache {
+    public static long nanoTimestamp;
+
 
     public static int mineralBank;
     public static int gasBank;
@@ -512,8 +514,7 @@ public class GameCache {
 
         //update lists of vikings and banshees that are to dive on detectors
         updateDiverStatus();
-
-    } //end onStep()
+    }
 
     private static void updateDiverStatus() { //TODO: make method callable with unit type rather than hardcoded viking and banshee
         // === banshees ===
@@ -652,6 +653,9 @@ public class GameCache {
     }
 
     public static void buildInfluenceMap() {
+        if (Time.periodic(1)) {
+            nanoTimestamp = System.nanoTime();
+        }
         int xMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_X);
         int xMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_X);
         int yMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_Y);
@@ -694,7 +698,7 @@ public class GameCache {
             //loop through box
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
-                    float distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
+                    double distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
                     //depot raising
                     if (!enemy.isAir && enemy.canMove &&
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
@@ -867,7 +871,9 @@ public class GameCache {
 //            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
         }
 
-
+        if (Time.periodic(1)) {
+            System.out.println("Build map time: " + (System.nanoTime() - nanoTimestamp) + "ns, numEnemymappings: " + enemyMappingList.size());
+        }
     }
 
     private static boolean doCloseWallToAllUnits() {

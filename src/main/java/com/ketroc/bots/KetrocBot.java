@@ -184,7 +184,6 @@ public class KetrocBot extends Bot {
             BunkerContain.onStep();
             MarineAllIn.onStep();
             EnemyManager.onStep();
-
             GameCache.baseList.forEach(Base::onStep); //clearing bases that have just dried up or died
             GameCache.baseList.forEach(base -> base.onStepEnd()); //speed mining
 
@@ -235,7 +234,7 @@ public class KetrocBot extends Bot {
             Print.print("Bot.onStep() error");
             Error.onException(e);
         }
-    } // end onStep()
+    }
 
     public void onBuildingConstructionComplete(UnitInPool unitInPool) {
         try {

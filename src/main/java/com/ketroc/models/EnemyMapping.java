@@ -90,7 +90,7 @@ public class EnemyMapping {
         maxRange = Math.max(maxRange, detectRange);
         if (isAir) {
             maxRange = Math.max(maxRange, Strategy.VIKING_RANGE);
-        } else {
+        } else if (isTargettableUnit()) {
             maxRange = Math.max(maxRange, 13); //13 for GameCache.pointGroundUnitWithin13
         }
     }

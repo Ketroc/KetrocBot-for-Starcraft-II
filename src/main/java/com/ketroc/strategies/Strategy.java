@@ -1122,7 +1122,7 @@ public class Strategy {
         opponentRecords.filterToGamePlans(gamePlans);
 
         //play 4 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1); //TODO: FOR TESTING - 4);
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
 
         //pick the winningest strategy (exclude most recent loss strategy)
         if (gamePlan == GamePlan.NONE) {

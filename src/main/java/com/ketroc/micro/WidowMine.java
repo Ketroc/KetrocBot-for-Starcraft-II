@@ -20,13 +20,15 @@ import java.util.Optional;
 public class WidowMine extends BasicUnitMicro {
     public static final int COOLDOWN = 650; //cooldown in frames
     public static final int REPAIR_AT = 50;
+    public static final int SAFE_FRAMES = 72;
     public static int burrowFrames = 56 + Launcher.STEP_SIZE;
     public static int fireFrames = 22 + Launcher.STEP_SIZE;
-    public long lastAttackFrame;
-    public long lastManualTargetFrame;
-    public float prevSafeHealth; //health value before entering threat area
-    public UnitInPool lastManualTarget;
-    public Base offenseTargetBase;
+    private long lastAttackFrame;
+    private long lastManualTargetFrame;
+    private float prevSafeHealth; //health value before entering threat area
+    private long isSafeEndFrame = -1;
+    private UnitInPool lastManualTarget;
+    private Base offenseTargetBase;
 
     public WidowMine(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
@@ -143,9 +145,14 @@ public class WidowMine extends BasicUnitMicro {
             bestTarget = getBestTarget();
         }
 
-        // can't shoot && (it's unsafe || it wants to move forward)
-        if (bestTarget == null &&
-                ((!isSafe() && isDetected()) || (isSafePlusBuffer() && !isAtTargetPos()))) {
+        // can't shoot/no targets && it's unsafe
+        if (bestTarget == null && !isSafe() && isDetected()) {
+            unburrow();
+            return;
+        }
+
+        // can't shoot/no targets && safe to move forward
+        if (bestTarget == null && !isAtTargetPos() && isSafePlusBuffer() && hasPassedSafeCheck()) {
             unburrow();
             return;
         }
@@ -230,12 +237,26 @@ public class WidowMine extends BasicUnitMicro {
         return this.isSafePlusBuffer(unit.unit().getPosition().toPoint2d());
     }
 
-    protected boolean isSafePlusBuffer(Point2d p) { //TODO: splash effects like storm, ravager bile
+    protected boolean isSafePlusBuffer(Point2d p) {
         if (hasLockOnBuff()) {
             return false;
         }
 
-        return !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, p);
+        boolean isSafe = !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, p);
+        if (!isSafe) {
+            isSafeEndFrame = -1;
+        } else if (!isDoingSafeCheck()) { //start new 3sec safety check
+            isSafeEndFrame = Time.nowFrames() + SAFE_FRAMES;
+        }
+        return isSafe;
+    }
+
+    protected boolean isDoingSafeCheck() {  //during 3sec safe check (+1sec buffer)
+        return Time.nowFrames() < isSafeEndFrame + 24;
+    }
+
+    protected boolean hasPassedSafeCheck() {  //passed safe check for 3sec
+        return isSafeEndFrame != -1 && Time.nowFrames() >= isSafeEndFrame;
     }
 
     public boolean isOnCooldown() {

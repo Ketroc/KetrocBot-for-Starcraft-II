@@ -293,10 +293,14 @@ public class Position {
         return Bot.OBS.terrainHeight(p) + 0.3f;
     }
 
-    public static float distance(float x1, float y1, float x2, float y2) {
-        float width = Math.abs(x2 - x1);
-        float height = Math.abs(y2 - y1);
-        return (float)Math.sqrt(width*width + height*height);
+    public static double distance(float x1, float y1, float x2, float y2) {
+        return Math.hypot(x2 - x1, y2 - y1);
+    }
+
+    public static float distanceSquared(float x1, float y1, float x2, float y2) {
+        float width = x2 - x1;
+        float height = y2 - y1;
+        return width*width + height*height;
     }
 
     public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos) {

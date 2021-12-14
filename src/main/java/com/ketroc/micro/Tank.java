@@ -88,7 +88,7 @@ public class Tank extends BasicUnitMicro {
         int bestValue = 0;
         for (int x = xStart; x <= xEnd; x++) {
             for (int y = yStart; y <= yEnd; y++) {
-                float distance = Position.distance(x / 2f, y / 2f, xTank, yTank);
+                double distance = Position.distance(x / 2f, y / 2f, xTank, yTank);
                 if (InfluenceMaps.pointPFTargetValue[x][y] > bestValue &&
                         distance < range && distance > 4f) {
                     bestValueX = x;
