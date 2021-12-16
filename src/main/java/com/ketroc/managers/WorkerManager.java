@@ -26,6 +26,7 @@ import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.strategies.defenses.WorkerRushDefense;
+import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
 import io.vertx.codegen.annotations.Nullable;
 
@@ -43,7 +44,7 @@ public class WorkerManager {
         fixOverSaturation();
         setNumScvsPerGas();
         buildRefineryLogic();
-        defendWorkerHarass(); //TODO: this method break scvrush micro
+        //defendWorkerHarass(); //TODO: testing - off while testing WorkerDefense3 (off forever as WorkerRushDefense3 can handle single workers)
         preventMulesFromDyingWithMineralsInHand();
     }
 
@@ -79,7 +80,8 @@ public class WorkerManager {
     private static void defendWorkerHarass() {
         if (Strategy.WALL_OFF_IMMEDIATELY ||
                 CannonRushDefense.cannonRushStep != 0 ||
-                WorkerRushDefense.defenseStep > 0) {
+                WorkerRushDefense.defenseStep > 0 ||
+                WorkerRushDefense3.isWorkerRushed) {
             return;
         }
 
@@ -483,11 +485,11 @@ public class WorkerManager {
     }
 
     public static void setNumScvsPerGas() {
-        //skip logic until there are at least 2 refineries
-//        int numRefineries = UnitUtils.numMyUnits(UnitUtils.REFINERY_TYPE, false);
-//        if (numRefineries <= 1) {
-//            return;
-//        }
+        //no gas income while defending worker rush
+        if (WorkerRushDefense3.isWorkerRushed) {
+            numScvsPerGas = 0;
+            return;
+        }
 
         //max gas with Tank_Viking and BunkerContain TvT
         if ((Strategy.gamePlan == GamePlan.TANK_VIKING || BunkerContain.proxyBunkerLevel == 2) &&
@@ -508,32 +510,45 @@ public class WorkerManager {
 //            return;
 //        }
 
-        int mins = GameCache.mineralBank;
+        int minerals = GameCache.mineralBank;
         int gas = GameCache.gasBank;
-        if (numScvsPerGas == 1) {
-            if (gasBankRatio() < 0.6) {
-                numScvsPerGas = 2;
-            }
-        }
-        else if (numScvsPerGas == 2) {
-            //if late game with bank, or if >3:1 mins:gas, then max gas income
-            if (mins > 3100 || (mins > 300 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) && gasBankRatio() < 0.3)) {
-                numScvsPerGas = 3;
-            }
-            //go to 1 in gas
-            else if (gas > 700 && gasBankRatio() > 0.75) {
-                numScvsPerGas = 1;
-            }
-        }
-        else if (numScvsPerGas == 3) {
-            if (gas > mins + 3000 || (
-                    mins < 2750 &&
-                    gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
-                    gasBankRatio() > 0.5 &&
-                    StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2
-            )) {
-                numScvsPerGas = 2;
-            }
+        float mineralRate = Bot.OBS.getScore().getDetails().getCollectionRateMinerals();
+        float gasRate = Bot.OBS.getScore().getDetails().getCollectionRateVespene();
+
+        switch (numScvsPerGas) {
+            case 0:
+                if (mineralRate > 0 && minerals > 50 && gasBankRatio() < 0.4) {
+                    numScvsPerGas = 1;
+                }
+                break;
+            case 1:
+                if (gasBankRatio() < 0.6) {
+                    numScvsPerGas = 2;
+                }
+                else if (minerals < 500 && mineralRate == 0) {
+                    numScvsPerGas = 0;
+                }
+                break;
+            case 2:
+                //if late game with bank, or if >3:1 mins:gas, then max gas income
+                if (minerals > 3100 || (minerals > 300 && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) && gasBankRatio() < 0.3)) {
+                    numScvsPerGas = 3;
+                }
+                //go to 1 in gas
+                else if (gas > 700 && gasBankRatio() > 0.75) {
+                    numScvsPerGas = 1;
+                }
+                break;
+            case 3:
+                if (gas > minerals + 3000 || (
+                        minerals < 2750 &&
+                        gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
+                        gasBankRatio() > 0.5 &&
+                        StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2
+                )) {
+                    numScvsPerGas = 2;
+                }
+                break;
         }
     }
 

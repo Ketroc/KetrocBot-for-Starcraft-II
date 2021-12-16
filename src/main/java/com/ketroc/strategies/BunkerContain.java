@@ -264,7 +264,7 @@ public class BunkerContain {
 
     private static Point2d getEnemyPos() {
         Point2d enemyNat = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2);
-        Point2d enemyRamp = LocationConstants.pointOnEnemyRamp;
+        Point2d enemyRamp = LocationConstants.enemyRampPos;
         float distance = (float) enemyRamp.distance(enemyNat) /
                 ((LocationConstants.opponentRace == Race.TERRAN) ? 7 : 3);
         return Position.towards(enemyRamp, enemyNat, distance);

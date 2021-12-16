@@ -20,6 +20,7 @@ import com.ketroc.models.Gas;
 import com.ketroc.models.StructureScv;
 import com.ketroc.strategies.BunkerContain;
 import com.ketroc.strategies.Strategy;
+import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
 
 import java.util.*;
@@ -261,6 +262,11 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public PurchaseResult buildRefinery() {
+        if (WorkerRushDefense3.isWorkerRushed) { //no building gas during worker rush
+            Cost.updateBank(cost);
+            return PurchaseResult.WAITING;
+        }
+
         Abilities buildAction = (Abilities)structureData.getAbility().get();
         for (Base base : GameCache.baseList) {
             if (base.isMyBase() && base.isComplete(0.55f)) {

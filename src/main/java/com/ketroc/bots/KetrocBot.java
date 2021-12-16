@@ -155,22 +155,24 @@ public class KetrocBot extends Bot {
             FlyingCC.onStep(); //move flying CCs
 
             //print report of current game state
-//                if (Time.nowFrames() % Time.toFrames("2:00") == 0) { //every 5min
-//                    printCurrentGameInfo();
-//                }
+            if (Time.periodic(2)) { //every 2min
+                printCurrentGameInfo();
+            }
 
             //update status of scvs building structures
             StructureScv.checkScvsActivelyBuilding();
 
             //don't build up during probe rush
-            if (!Strategy.WALL_OFF_IMMEDIATELY) {
-                if (WorkerRushDefense.onStep()) {
-                    return;
-                }
-            }
-            else {
-                WorkerRushDefense2.onStep();
-            }
+            WorkerRushDefense3.onStep();
+//            if (!Strategy.WALL_OFF_IMMEDIATELY) { TODO: testing -turned off blind counter
+////                if (WorkerRushDefense.onStep()) {
+////                    return;
+////                }
+//                WorkerRushDefense3.onStep();
+//            }
+//            else {
+//                WorkerRushDefense2.onStep();
+//            }
 
             //scv rush opener
             if (!Switches.scvRushComplete) {
@@ -548,9 +550,6 @@ public class KetrocBot extends Bot {
         try {
             Print.print(upgrade + " finished at: " + Time.nowClock());
 
-            //add to list of completed upgrades
-            GameCache.upgradesCompleted.add((Upgrades) upgrade);
-
             switch ((Upgrades) upgrade) {
                 case LIBERATOR_AG_RANGE_UPGRADE:
                     Liberator.castRange = 8;
@@ -710,5 +709,29 @@ public class KetrocBot extends Bot {
             Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + OBS.getVisibility(base.getCcPos()).toString());
         }
         Print.print("\n\n");
+
+        Print.print("Ignored.ignoredUnits");
+        Print.print("====================");
+        Ignored.ignoredUnits.forEach(ignored -> {
+            UnitInPool unit = Bot.OBS.getUnit(ignored.unitTag);
+            if (unit == null) {
+                Print.print("null unit: " + ignored.unitTag);
+            }
+            else {
+                Print.print(unit.unit().getAlliance() + " " +
+                        unit.unit().getType() + " " +
+                        unit.unit().getPosition() + ": " +
+                        ignored.unitTag);
+            }
+        });
+        Print.print("\n\n");
+
+        Print.print("UnitMicroList.unitMicroList");
+        Print.print("===========================");
+        UnitMicroList.unitMicroList.forEach(micro -> {
+            Print.print(micro.getClass().toString() + " " +
+                    micro.unit.unit().getType() + " " +
+                    micro.unit.unit().getPosition());
+        });
     }
 }

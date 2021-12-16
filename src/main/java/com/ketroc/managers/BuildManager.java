@@ -65,7 +65,7 @@ public class BuildManager {
         if (Strategy.gamePlan == GamePlan.TANK_VIKING ||
                 Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
                 (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) {
-            int numTanks = UnitMicroList.getUnitSubList(TankOffense.class).size();
+            int numTanks = UnitMicroList.numOfUnitClass(TankOffense.class);
             if (numTanks > 2 && doPrioritizeStarportUnits()) {
                 //build starport units
                 buildStarportUnitsLogic();
@@ -148,7 +148,7 @@ public class BuildManager {
         int numVikingsNeeded = ArmyManager.calcNumVikingsNeeded();
         numVikingsNeeded += Math.min(6, (int)(numVikingsNeeded*0.5)); //get up to 6 more than needed
         numVikingsNeeded = Math.max(5, numVikingsNeeded); //maintain at least 5 vikings
-        return Math.max(numVikingsNeeded, UnitMicroList.getUnitSubList(TankOffense.class).size()*2); //2 per tank minimum
+        return Math.max(numVikingsNeeded, UnitMicroList.numOfUnitClass(TankOffense.class)*2); //2 per tank minimum
     }
 
     private static void spamMulesOnEnemyBase() {
@@ -365,7 +365,7 @@ public class BuildManager {
                                     //send to a random enemy base
                                     expansionBasePos = UnitUtils.getRandomUnownedBasePos();
                                     if (expansionBasePos != null) {
-                                        if (GameCache.gasBank > 1500 && UnitMicroList.getUnitSubList(StructureFloaterExpansionCC.class).size()
+                                        if (GameCache.gasBank > 1500 && UnitMicroList.numOfUnitClass(StructureFloaterExpansionCC.class)
                                                 < Base.numEnemyBases() * 2) {
                                             floatCCForPfHarass(cc, expansionBasePos);
                                         }
@@ -860,7 +860,7 @@ public class BuildManager {
         }
 
         //get a solid base viking count if tank count is large
-        if (numRavens >= 2 && numVikings < UnitMicroList.getUnitSubList(TankOffense.class).size()) {
+        if (numRavens >= 2 && numVikings < UnitMicroList.numOfUnitClass(TankOffense.class)) {
             return Abilities.TRAIN_VIKING_FIGHTER;
         }
 

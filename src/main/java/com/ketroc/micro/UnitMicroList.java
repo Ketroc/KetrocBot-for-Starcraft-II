@@ -12,13 +12,9 @@ public class UnitMicroList {
     public static List<BasicUnitMicro> unitMicroList = new ArrayList<>();
 
     public static void onStep() {
-        long microStartTime = System.currentTimeMillis();
-        unitMicroList.forEach(BasicUnitMicro::onStep);
-//        if (Time.nowFrames() % Time.NUM_FRAMES_PER_MINUTE == 0) { //once a minute
-//            System.out.println("num cyclones micro'ing = " + UnitMicroList.getUnitSubList(Cyclone.class).size());
-//            System.out.println("num units micro'ing = " + unitMicroList.size());
-//            System.out.println("time taken (ms) = " + (System.currentTimeMillis() - microStartTime));
-//        }
+        unitMicroList.stream()
+                .filter(basicUnitMicro -> !basicUnitMicro.removeMe)
+                .forEach(BasicUnitMicro::onStep);
 
         List<Tag> removeList = unitMicroList.stream()
                 .filter(basicUnitMicro -> basicUnitMicro.removeMe)
@@ -34,12 +30,7 @@ public class UnitMicroList {
 
     public static void remove(Tag microUnitTag) {
         Ignored.remove(microUnitTag);
-        for (int i=0; i<unitMicroList.size(); i++) { //remove first entry only
-            if (unitMicroList.get(i).unit.getTag().equals(microUnitTag)) {
-                unitMicroList.remove(i);
-                return;
-            }
-        }
+        unitMicroList.removeIf(basicUnitMicro -> basicUnitMicro.unit.getTag().equals(microUnitTag));
     }
 
     public static <T extends BasicUnitMicro> void removeAll(Class<T> cls) {
@@ -54,5 +45,11 @@ public class UnitMicroList {
                 .filter(basicUnit -> cls.isInstance(basicUnit))
                 .map(basicUnit -> cls.cast(basicUnit))
                 .collect(Collectors.toList());
+    }
+
+    public static <T extends BasicUnitMicro> int numOfUnitClass(Class<T> cls) {
+        return (int)unitMicroList.stream()
+                .filter(basicUnit -> cls.isInstance(basicUnit))
+                .count();
     }
 }

@@ -192,14 +192,14 @@ public class ArmyManager {
         if ((doOffense && !tankList.isEmpty()) ||
                 tankList.stream().anyMatch(tankOffense -> tankOffense.unit.isAlive() &&
                         UnitUtils.getHealthPercentage(tankOffense.unit.unit()) < 99)) {
-            int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.getUnitSubList(ScvRepairer.class).size();
+            int numScvsToAdd = Strategy.NUM_OFFENSE_SCVS - UnitMicroList.numOfUnitClass(ScvTankSupporter.class);
             for (int i=0; i<numScvsToAdd; i++) {
                 UnitInPool closestAvailableScv = WorkerManager.getScvEmptyHands(
                         tankList.get(0).unit.unit().getPosition().toPoint2d());
                 if (closestAvailableScv == null) {
                     return;
                 }
-                UnitMicroList.add(new ScvRepairer(closestAvailableScv));
+                UnitMicroList.add(new ScvTankSupporter(closestAvailableScv));
             }
         }
     }
@@ -464,7 +464,7 @@ public class ArmyManager {
         //TODO: testing cyclones
         //move out with 5 core attack units (with at least 1 air unit)
         if (Strategy.DO_USE_CYCLONES) {
-            doOffense = UnitMicroList.getUnitSubList(Cyclone.class).size() + GameCache.bansheeList.size() + GameCache.ravenList.size() > 5 &&
+            doOffense = UnitMicroList.numOfUnitClass(Cyclone.class) + GameCache.bansheeList.size() + GameCache.ravenList.size() > 5 &&
                     (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty());
             return;
         }
@@ -482,7 +482,7 @@ public class ArmyManager {
             return;
         }
         doOffense = GameCache.bansheeList.size() +
-                (UnitMicroList.getUnitSubList(TankOffense.class).size() * 0.75) +
+                (UnitMicroList.numOfUnitClass(TankOffense.class) * 0.75) +
                 (GameCache.ravenList.size() * 0.34) >= 6 &&
                 !isOutnumberedInVikings();
     }
@@ -587,26 +587,27 @@ public class ArmyManager {
             if (numScvsToSend > 0) {
                 List<UnitInPool> repairScvs = getRepairBayScvs(numScvsToSend);
                 repairScvs.stream().forEach(scv -> {
-                    UnitMicroList.add(new RepairBayScv(scv));
+                    UnitMicroList.add(new ScvRepairBayMain(scv));
                 });
             }
         }
     }
 
+    //get number of injured army units in dock
     public static int getNumRepairBayUnits() {
-        return Bot.OBS.getUnits(Alliance.SELF, u -> { //get number of injured army units in dock
-            return (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER ||
-                    u.unit().getType() == Units.TERRAN_BANSHEE ||
-                    u.unit().getType() == Units.TERRAN_MEDIVAC ||
-                    u.unit().getType() == Units.TERRAN_RAVEN) &&
-                    UnitUtils.getHealthPercentage(u.unit()) < 100 &&
-                    UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 2.5;
-        }).size();
+        return Bot.OBS.getUnits(Alliance.SELF, u ->
+                (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER ||
+                u.unit().getType() == Units.TERRAN_BANSHEE ||
+                u.unit().getType() == Units.TERRAN_MEDIVAC ||
+                u.unit().getType() == Units.TERRAN_RAVEN) &&
+                UnitUtils.getHealthPercentage(u.unit()) < 100 &&
+                UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 2.5)
+        .size();
     }
 
     private static int getNumRepairingScvs() {
         return (int)UnitMicroList.unitMicroList.stream()
-                .filter(basicUnitMicro -> basicUnitMicro instanceof RepairBayScv)
+                .filter(basicUnitMicro -> basicUnitMicro instanceof ScvRepairBayMain)
                 .count();
 
     }
@@ -726,6 +727,9 @@ public class ArmyManager {
 
     //peel off and snipe solo ground units
     private static void sendGroundKillSquad() {
+        if (Bot.OBS.getFoodArmy() < 4) { //so that enemy workers aren't ignored at start of game
+            return;
+        }
         GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> GroundUnitKillSquad.isValidEnemyType((Units)enemy.unit().getType()) &&
                         !enemy.unit().getHallucination().orElse(false) &&

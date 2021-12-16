@@ -43,7 +43,7 @@ public class MarineAllIn {
         //attack enemy natural then enemy main
         attackPoints = new ArrayList<>(List.of(
                 GameCache.baseList.get(GameCache.baseList.size()-2).getResourceMidPoint(),
-                LocationConstants.pointOnEnemyRamp,
+                LocationConstants.enemyRampPos,
                 GameCache.baseList.get(GameCache.baseList.size()-1).getResourceMidPoint()
         ));
     }
@@ -73,7 +73,7 @@ public class MarineAllIn {
 //    }
 
     private static void setInitialBuildUp() {
-        if (isInitialBuildUp && UnitMicroList.getUnitSubList(MarineOffense.class).size() >= MIN_MARINES_TO_ATTACK) {
+        if (isInitialBuildUp && UnitMicroList.numOfUnitClass(MarineOffense.class) >= MIN_MARINES_TO_ATTACK) {
             isInitialBuildUp = false;
             //Marine.setTargetPos(LocationConstants.insideMainWall);
         }

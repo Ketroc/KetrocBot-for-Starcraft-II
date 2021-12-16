@@ -154,7 +154,7 @@ public class CcManager {
                                     //send to a random enemy base
                                     expansionBasePos = UnitUtils.getRandomUnownedBasePos();
                                     if (expansionBasePos != null) {
-                                        if (GameCache.gasBank > 1500 && UnitMicroList.getUnitSubList(StructureFloaterExpansionCC.class).size()
+                                        if (GameCache.gasBank > 1500 && UnitMicroList.numOfUnitClass(StructureFloaterExpansionCC.class)
                                                 < Base.numEnemyBases() * 2) {
                                             floatCCForPfHarass(cc, expansionBasePos);
                                         }

@@ -1,13 +1,11 @@
 package com.ketroc.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
-import com.ketroc.Switches;
 import com.ketroc.geometry.Position;
 import com.ketroc.models.*;
 import com.ketroc.strategies.Strategy;
@@ -29,7 +27,7 @@ public class LocationConstants {
     public static Point2d enemyMainBaseMidPos;
     public static final List<Point2d> muleLetterPosList = new ArrayList<>();  //TODO: confirm top-left corner of letter
     public static Point2d myRampPos;
-    public static Point2d pointOnEnemyRamp;
+    public static Point2d enemyRampPos;
 
 
     public static boolean isTopSpawn;
@@ -134,7 +132,7 @@ public class LocationConstants {
                 else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyMainBase[x][y] = true;
                     if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(enemyNatPos) < 15) {
-                        pointOnEnemyRamp = Point2d.of(x/2, y/2);
+                        enemyRampPos = Point2d.of(x/2, y/2);
                     }
                 }
                 else if (thisPos.distance(natPos) < 13 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
@@ -3036,7 +3034,7 @@ public class LocationConstants {
 
             BUNKER_NATURAL = Point2d.of(44.5f, 104.5f);
             FACTORIES.add(Point2d.of(41.5f, 121.5f));
-            FACTORIES.add(Point2d.of(32.5f, 118.5f)); //TODO: test if it gets stuck
+            FACTORIES.add(Point2d.of(32.5f, 118.5f));
 
             STARPORTS.add(Point2d.of(20.5f, 122.5f));
             STARPORTS.add(Point2d.of(23.5f, 118.5f));

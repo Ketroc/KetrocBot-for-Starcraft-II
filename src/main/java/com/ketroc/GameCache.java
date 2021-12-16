@@ -3,7 +3,6 @@ package com.ketroc;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.action.ActionChat;
 import com.github.ocraft.s2client.protocol.data.*;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.EffectLocations;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
@@ -30,14 +29,12 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class GameCache {
-    public static long nanoTimestamp;
+    public static long milliTimestamp;
 
 
     public static int mineralBank;
     public static int gasBank;
     public static int freeSupply;
-
-    public static final List<Upgrades> upgradesCompleted = new ArrayList<>(); //completed upgrades
 
     public static final List<Unit> ccList = new ArrayList<>();
     public static final List<UnitInPool> barracksList = new ArrayList<>();
@@ -405,25 +402,6 @@ public class GameCache {
             }
 
             //set default rally node for any base
-            //TODO: remove - for debugging
-            if (base.getCc() == null) {
-                Print.print("error on GameCache::387");
-            }
-            Unit cc = base.getCc().unit();
-            if (cc.getAssignedHarvesters().isEmpty()) {
-                Print.print("error on GameCache::391");
-                Print.print("base index: " + baseList.indexOf(base));
-                Print.print("base.getCcPos() = " + base.getCcPos());
-                Print.print("cc.getType() = " + cc.getType());
-                Print.print("cc.getBuildProgress() = " + cc.getBuildProgress());
-                Print.print("FlyingCC.flyingCCs.size() = " + FlyingCC.flyingCCs.size());
-                Print.print("base.isEnemyBase = " + base.isEnemyBase);
-                Print.print("base.getCc() == null?: " + (base.getCc() == null));
-
-            }
-            if (cc.getIdealHarvesters().isEmpty()) {
-                Print.print("error on GameCache::414");
-            }
             if (!base.getMineralPatchUnits().isEmpty()) {
                 if (defaultRallyNode == null) {
                     defaultRallyNode = base.getRallyNode();
@@ -654,7 +632,7 @@ public class GameCache {
 
     public static void buildInfluenceMap() {
         if (Time.periodic(1)) {
-            nanoTimestamp = System.nanoTime();
+            milliTimestamp = System.currentTimeMillis();
         }
         int xMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_X);
         int xMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_X);
@@ -687,6 +665,15 @@ public class GameCache {
         InfluenceMaps.pointGroundUnitWithin13 = new boolean[800][800];
         InfluenceMaps.pointRaiseDepots = new boolean[800][800];
         InfluenceMaps.pointVikingsStayBack = new boolean[800][800];
+        long milliDistance = 0;
+        long milli1 = 0;
+        long milli1_5 = 0;
+        long milli2 = 0;
+        long milli3 = 0;
+        long milli4 = 0;
+        long milli5 = 0;
+        long milli6 = 0;
+        long milli7 = 0;
 
         for (EnemyMapping enemy : enemyMappingList) {
             //only look at box of max range around the enemy
@@ -698,24 +685,44 @@ public class GameCache {
             //loop through box
             for (int x = xStart; x <= xEnd; x++) {
                 for (int y = yStart; y <= yEnd; y++) {
+
+                    if (Time.periodic(1)) {
+                        milliDistance -= System.currentTimeMillis();
+                    }
+
                     double distance = Position.distance(x/2f, y/2f, enemy.x, enemy.y);
+
+                    if (Time.periodic(1)) {
+                        milliDistance += System.currentTimeMillis();
+                        milli1 -= System.currentTimeMillis();
+                    }
+
                     //depot raising
                     if (!enemy.isAir && enemy.canMove &&
                             distance < Strategy.DISTANCE_RAISE_DEPOT) {
-                        if (enemy.isArmy ||
-                                doCloseWallToAllUnits() ||
-                                (UnitUtils.WORKER_TYPE.contains(enemy.unitType)) &&
-                                        UnitUtils.getEnemyGroundArmyUnitsNearby(Point2d.of(x/2f, y/2f), 11).stream()
-                                                .filter(u -> UnitUtils.canMove(u.unit()))
-                                                .count() > 1) {
+                        if (enemy.isArmy || doCloseWallToAllUnits()) {
+//remove for being slow (it raised depot vs workers if enemy army was also nearby)
+//                                || (UnitUtils.WORKER_TYPE.contains(enemy.unitType)) &&
+//                                        UnitUtils.getEnemyGroundArmyUnitsNearby(Point2d.of(x/2f, y/2f), 11).stream()
+//                                                .filter(u -> UnitUtils.canMove(u.unit()))
+//                                                .count() > 1) {
                             InfluenceMaps.pointRaiseDepots[x][y] = true;
                         }
-                        //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.32f,y/2-0.32f, z), Point.of(x/2+0.32f,y/2+0.32f, z), Color.WHITE);
                     }
+
+                    if (Time.periodic(1)) {
+                        milli1 += System.currentTimeMillis();
+                        milli1_5 -= System.currentTimeMillis();
+                    }
+
                     //viking keeping distance vs tempests
                     if (distance < 15 + Strategy.KITING_BUFFER) {
                         InfluenceMaps.pointVikingsStayBack[x][y] = true;
-                        //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.21f,y/2-0.21f, z), Point.of(x/2+0.21f,y/2+0.21f, z), Color.TEAL);
+                    }
+
+                    if (Time.periodic(1)) {
+                        milli1_5 += System.currentTimeMillis();
+                        milli2 -= System.currentTimeMillis();
                     }
 
                     if (enemy.unitType != Units.INVALID &&
@@ -736,6 +743,11 @@ public class GameCache {
                         }
                     }
 
+                    if (Time.periodic(1)) {
+                        milli2 += System.currentTimeMillis();
+                        milli3 -= System.currentTimeMillis();
+                    }
+
                     //ground threat range + extra buffer
                     if (enemy.groundAttackRange != 0 &&
                             distance < enemy.groundAttackRange + (enemy.canMove ? Strategy.RAVEN_DISTANCING_BUFFER : 0)) {
@@ -750,6 +762,12 @@ public class GameCache {
                         InfluenceMaps.pointDamageToAirValue[x][y] += enemy.airDamage;
                     }
 
+                    if (Time.periodic(1)) {
+                        milli3 += System.currentTimeMillis();
+                        milli4 -= System.currentTimeMillis();
+                    }
+
+
                     //air threat range + extra buffer
                     if (enemy.airAttackRange != 0 &&
                             distance < enemy.airAttackRange + (enemy.canMove ? Strategy.RAVEN_DISTANCING_BUFFER : 0)) {
@@ -763,6 +781,12 @@ public class GameCache {
                         InfluenceMaps.pointSupplyInSeekerRange[x][y] += enemy.supply;
                     }
 
+                    if (Time.periodic(1)) {
+                        milli4 += System.currentTimeMillis();
+                        milli5 -= System.currentTimeMillis();
+                    }
+
+
                     //detection
                     if (enemy.isDetector && distance < enemy.detectRange) {
                         InfluenceMaps.pointDetected[x][y] = true;
@@ -774,6 +798,12 @@ public class GameCache {
                         InfluenceMaps.pointInEnemyVision[x][y] = true;
                         //DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.25f);
                     }
+
+                    if (Time.periodic(1)) {
+                        milli5 += System.currentTimeMillis();
+                        milli6 -= System.currentTimeMillis();
+                    }
+
                     //autoturret cast range
                     if (distance < Strategy.RAVEN_CAST_RANGE && !UnitUtils.IGNORED_TARGETS.contains(enemy.unitType) && !enemy.isTumor) {
                         InfluenceMaps.pointInRavenCastRange[x][y] = true;
@@ -783,6 +813,12 @@ public class GameCache {
                     if (distance < Strategy.MARINE_RANGE && !enemy.isEffect && enemy.isTargettableUnit()) {
                         InfluenceMaps.pointInMarineRange[x][y] = true;
                     }
+
+                    if (Time.periodic(1)) {
+                        milli6 += System.currentTimeMillis();
+                        milli7 -= System.currentTimeMillis();
+                    }
+
 
                     if (enemy.isAir) {
 
@@ -809,7 +845,7 @@ public class GameCache {
                         }
 
                         //threat to air from ground
-                        float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 10 : enemy.airAttackRange;
+                        float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 9 : enemy.airAttackRange;
                         if (distance < airAttackRange) {
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
                         }
@@ -825,14 +861,32 @@ public class GameCache {
                             //if (Bot.isDebugOn) Bot.DEBUG.debugBoxOut(Point.of(x/2-0.15f,y/2-0.15f, z), Point.of(x/2+0.15f,y/2+0.15f, z), Color.GREEN);
                         }
                     }
+
+                    if (Time.periodic(1)) {
+                        milli7 += System.currentTimeMillis();
+                    }
+
                 }
             }
         }
 
+        if (Time.periodic(1)) {
+            System.out.println("Build map time: " + (System.currentTimeMillis() - milliTimestamp) + "ms, numEnemyMappings: " + enemyMappingList.size());
+            System.out.println("milliDistance = " + milliDistance);
+            System.out.println("milli1 = " + milli1);
+            System.out.println("milli1_5 = " + milli1_5);
+            System.out.println("milli2 = " + milli2);
+            System.out.println("milli3 = " + milli3);
+            System.out.println("milli4 = " + milli4);
+            System.out.println("milli5 = " + milli5);
+            System.out.println("milli6 = " + milli6);
+            System.out.println("milli7 = " + milli7);
+        }
+
         //debug threat text
-        if (DebugHelper.isDebugOn) {
-            for (int x = xMin+1; x <= xMax-1; x++) {
-                for (int y = yMin+1; y <= yMax-1; y++) {
+//        if (DebugHelper.isDebugOn) {
+//            for (int x = xMin+1; x <= xMax-1; x++) {
+//                for (int y = yMin+1; y <= yMax-1; y++) {
 //                    if (InfluenceMaps.pointDamageToGroundValue[x][y] > 0) {
 //                        DebugHelper.drawText(String.valueOf(InfluenceMaps.pointDamageToGroundValue[x][y]),x / 2f, y / 2f, Color.RED);
 //                    }
@@ -848,16 +902,16 @@ public class GameCache {
 //                    if (InfluenceMaps.pointDetected[x][y]) {
 //                        DebugHelper.drawBox(x / 2f, y / 2f, Color.BLUE, 0.25f);
 //                    }
-                    if (PlacementMap.isPlaceable(Point2d.of(x/2f, y/2f), false) &&
-                            (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y])) {
-                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
-                        //DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
-                    }
+//                    if (PlacementMap.isPlaceable(Point2d.of(x/2f, y/2f), false) &&
+//                            (InfluenceMaps.pointInNat[x][y] || InfluenceMaps.pointInEnemyNat[x][y])) {
+//                        DebugHelper.drawBox(x/2f, y/2f, Color.GRAY, 0.24f);
+//                        //DebugHelper.drawText(x/2f + ",\n" + y/2f, x/2f, y/2f, Color.WHITE, 8);
+//                    }
 //                    if (InfluenceMaps.pointInMainBase[x][y] || InfluenceMaps.pointInEnemyMainBase[x][y]) {
 //                        DebugHelper.drawBox(x/2f, y/2f, Color.BLUE, 0.24f);
 //                    }
-                }
-            }
+//                }
+//            }
 //            float x = LocationConstants.mainBaseMidPos.getX();
 //            float y = LocationConstants.mainBaseMidPos.getY();
 //            float z = Position.getZ(x, y);
@@ -869,16 +923,12 @@ public class GameCache {
 //            z = Position.getZ(x, y);
 //            Bot.DEBUG.debugBoxOut(Point.of(x-0.1f,y-0.1f, z), Point.of(x+0.1f,y+0.1f, z), Color.BLUE);
 //            Bot.DEBUG.debugBoxOut(Point.of(x-0.2f,y-0.2f, z), Point.of(x+0.2f,y+0.2f, z), Color.BLUE);
-        }
-
-        if (Time.periodic(1)) {
-            System.out.println("Build map time: " + (System.nanoTime() - nanoTimestamp) + "ns, numEnemymappings: " + enemyMappingList.size());
-        }
+//        }
     }
 
     private static boolean doCloseWallToAllUnits() {
         return Strategy.WALL_OFF_IMMEDIATELY || (Strategy.gamePlan == GamePlan.MARINE_RUSH &&
-                UnitMicroList.getUnitSubList(MarineBasic.class).size() < MarineAllIn.MIN_MARINES_TO_ATTACK);
+                UnitMicroList.numOfUnitClass(MarineBasic.class) < MarineAllIn.MIN_MARINES_TO_ATTACK);
     }
 
     public static boolean inDetectionRange(int x1, int y1, Unit enemy) {

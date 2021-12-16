@@ -198,7 +198,7 @@ public class StructureScv {
     //free up and stop scv
     //remove StructureScv from scvBuildingList
     public static boolean cancelProduction(Units type) {
-        for (int i = 0; i< scvBuildingList.size(); i++) {
+        for (int i = 0; i<scvBuildingList.size(); i++) {
             StructureScv scv = scvBuildingList.get(i);
             if (scv.structureType == type) {
                 //cancel structure

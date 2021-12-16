@@ -421,10 +421,10 @@ public class BasicUnitMicro {
         if (ArmyManager.attackGroundPos != null) {
             if (canAttackAir && canAttackGround) {
                 targetPos = ArmyManager.attackEitherPos;
-            } else if (canAttackAir) {
-                targetPos = ArmyManager.attackAirPos;
-            } else {
+            } else if (canAttackGround) {
                 targetPos = ArmyManager.attackGroundPos;
+            } else {
+                targetPos = ArmyManager.attackAirPos;
             }
         //find last structures with random reachable positions
         } else if (targetPos != null && UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives

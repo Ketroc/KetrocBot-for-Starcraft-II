@@ -260,13 +260,13 @@ public class Base {
             Set<Unit> repairBayTargets = getRepairBayTargets();
             if (!repairBayTargets.isEmpty()) {
                 Point2d repairBayPos = inFrontPos();
-                int numRepairScvs = (int) UnitMicroList.getUnitSubList(RepairBayScv2.class).stream()
+                int numRepairScvs = (int) UnitMicroList.getUnitSubList(ScvRepairBay.class).stream()
                         .filter(repairBayScv -> repairBayScv.repairBayPos.equals(repairBayPos))
                         .count();
                 List<UnitInPool> availableMineralScvs = getAvailableMineralScvs();
                 while (numRepairScvs < 4 && !availableMineralScvs.isEmpty()) {
                     UnitInPool newRepairScv = availableMineralScvs.remove(0);
-                    UnitMicroList.add(new RepairBayScv2(newRepairScv, repairBayPos));
+                    UnitMicroList.add(new ScvRepairBay(newRepairScv, repairBayPos));
                     numRepairScvs++;
                 }
             }
@@ -278,8 +278,8 @@ public class Base {
             mineralPatch.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
-                    //DebugHelper.drawBox(mineralPatch.getByNode(), Color.RED, 0.2f);
-                    //DebugHelper.drawBox(mineralPatch.getByCC(), Color.RED, 0.2f);
+//                    DebugHelper.drawBox(mineralPatch.getByNodePos(), Color.RED, 0.2f);
+//                    DebugHelper.drawBox(mineralPatch.getByCCPos(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
                     return;
                 }
@@ -324,8 +324,8 @@ public class Base {
             gas.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
-                    //DebugHelper.drawBox(gas.getByNode(), Color.RED, 0.2f);
-                    //DebugHelper.drawBox(gas.getByCC(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(gas.getByNodePos(), Color.RED, 0.2f);
+                    //DebugHelper.drawBox(gas.getByCCPos(), Color.RED, 0.2f);
                     new BasicUnitMicro(scv, gas.getNodePos(), MicroPriority.SURVIVAL).onStep();
                 }
 
@@ -357,7 +357,7 @@ public class Base {
 
     private boolean shouldFlee(UnitInPool scv) {
         //flee to any danger if distance mining
-        if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, scv.unit().getPosition().toPoint2d())) {
+        if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, scv.unit().getPosition().toPoint2d())) {
             return true;
         }
         else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
