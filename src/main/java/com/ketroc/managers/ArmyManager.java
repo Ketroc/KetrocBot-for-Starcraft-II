@@ -3,7 +3,6 @@ package com.ketroc.managers;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
@@ -893,6 +892,11 @@ public class ArmyManager {
             return;
         }
 
+        if (UnitMicroList.numOfUnitClass(ScvDefender.class) > 0 && ArmyManager.attackGroundPos != null) {
+            MarineBasic.setTargetPos(ArmyManager.attackGroundPos);
+            return;
+        }
+
         //if bunker in production, wait behind bunker
         if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
             MarineBasic.setTargetPos(UnitUtils.getBehindBunkerPos());
@@ -1483,10 +1487,10 @@ public class ArmyManager {
 
         //wait for raven to auto-turret before giving a new command, if auto-turret pos is still in range of enemies
         Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(raven);
-        if (curOrder.stream().anyMatch(order -> order.ability == Abilities.EFFECT_AUTO_TURRET)) {
-            if (!UnitUtils.getEnemyTargetsNear(curOrder.get().targetPos, 7).isEmpty()) {
-                return;
-            }
+        if (curOrder.stream().anyMatch(order -> order.ability == Abilities.EFFECT_AUTO_TURRET) &&
+                !UnitUtils.getEnemyTargetsNear(curOrder.get().targetPos, 7).isEmpty() &&
+                !UnitUtils.isEnemyGroundUnitsNearby(curOrder.get().targetPos, 1)) {
+            return;
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
@@ -1495,17 +1499,7 @@ public class ArmyManager {
                 : (Strategy.MASS_RAVENS ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer);
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
 
-        //if maxed on mass raven, let them turret more aggressively
-//        if (GameCache.ravenList.size() > 15 &&
-//                (Bot.OBS.getFoodUsed() > 190 || GameCache.gasBank > 3000) &&
-//                //raven.getEnergy().orElse(0f) > 195) {
-//                raven.getEnergy().orElse(0f) > Strategy.AUTOTURRET_AT_ENERGY) {
-//            isUnsafe = false; //FIXME: testing aggressive autoturretting to prevent tie games
-//            Chat.tag("AGGRESSIVE_RAVENS");
-//        }
         Optional<UnitInPool> turretTarget = getRavenTurretTarget(raven);
-        //boolean inRange = InfluenceMaps.getValue(InfluenceMaps.pointInRavenCastRange, raven.getPosition().toPoint2d());
-        //boolean inRange = attackUnit != null && UnitUtils.getDistance(attackUnit, raven) < Strategy.RAVEN_CAST_RANGE;
         boolean inRange = turretTarget.isPresent();
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke() &&
                 UnitUtils.isRepairBaySafe();
@@ -1624,54 +1618,59 @@ public class ArmyManager {
     }
 
     private static boolean castAutoTurret(Unit raven, Unit enemyTarget) {
-        //see how close we can safely cast from
-        Point2d ravenPos = raven.getPosition().toPoint2d();
-        Point2d enemyTargetPos = enemyTarget.getPosition().toPoint2d();
-        float distanceToTarget = UnitUtils.getDistance(raven, enemyTargetPos);
-        Point2d turretPos = ravenPos;
-        if (!raven.getBuffs().contains(Buffs.FUNGAL_GROWTH)) { //cast at raven if fungaled
-            for (int i = 1; i < distanceToTarget - 1; i++) {
-                Point2d testPos = Position.towards(ravenPos, enemyTargetPos, i);
-                if (testSafetyOfPos(testPos, enemyTarget)) {
-                    break;
-                }
-                turretPos = testPos;
-            }
-        }
-        turretPos = Position.toWholePoint(turretPos);
-
-        //get list of nearby placeable positions
-        List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
-                .filter(p -> p.distance(enemyTargetPos) < 7)
-                .filter(p -> Bot.OBS.isPlacable(p))
-                .sorted(Comparator.comparing(p -> p.distance(enemyTargetPos)))
-                .collect(Collectors.toList());
-        if (posList.isEmpty()) {
-            return false;
-        }
-
-        List<QueryBuildingPlacement> queryList = posList.stream()
-                .map(p -> QueryBuildingPlacement
-                        .placeBuilding()
-                        .useAbility(Abilities.EFFECT_AUTO_TURRET)
-                        .on(p).build())
-                .collect(Collectors.toList());
-
-        List<Boolean> placementList = Bot.QUERY.placement(queryList);
-        queriesMade++;
-
-        if (placementList.contains(true)) {
-            Point2d placementPos = posList.get(placementList.indexOf(true));
-            ActionHelper.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
-            //PlacementMap.makeUnavailable(Units.TERRAN_AUTO_TURRET, placementPos);
-            turretsCast++;
-            return true;
-        }
-//        else if (attackUnit != null && !UnitUtils.canMove(attackUnit) && towardsEnemyDistance < 4) {
-//            castAutoTurret(raven, 4);
-//        }
-        return false;
+        TurretingRaven.add(raven, enemyTarget.getPosition().toPoint2d());
+        return true;
     }
+
+//    private static boolean castAutoTurret(Unit raven, Unit enemyTarget) {
+//        //see how close we can safely cast from
+//        Point2d ravenPos = raven.getPosition().toPoint2d();
+//        Point2d enemyTargetPos = enemyTarget.getPosition().toPoint2d();
+//        float distanceToTarget = UnitUtils.getDistance(raven, enemyTargetPos);
+//        Point2d turretPos = ravenPos;
+//        if (!raven.getBuffs().contains(Buffs.FUNGAL_GROWTH)) { //cast at raven if fungaled
+//            for (int i = 1; i < distanceToTarget - 1; i++) {
+//                Point2d testPos = Position.towards(ravenPos, enemyTargetPos, i);
+//                if (testSafetyOfPos(testPos, enemyTarget)) {
+//                    break;
+//                }
+//                turretPos = testPos;
+//            }
+//        }
+//        turretPos = Position.toWholePoint(turretPos);
+//
+//        //get list of nearby placeable positions
+//        List<Point2d> posList = Position.getSpiralList(turretPos, 3).stream()
+//                .filter(p -> p.distance(enemyTargetPos) < 7)
+//                .filter(p -> Bot.OBS.isPlacable(p))
+//                .sorted(Comparator.comparing(p -> p.distance(enemyTargetPos)))
+//                .collect(Collectors.toList());
+//        if (posList.isEmpty()) {
+//            return false;
+//        }
+//
+//        List<QueryBuildingPlacement> queryList = posList.stream()
+//                .map(p -> QueryBuildingPlacement
+//                        .placeBuilding()
+//                        .useAbility(Abilities.EFFECT_AUTO_TURRET)
+//                        .on(p).build())
+//                .collect(Collectors.toList());
+//
+//        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+//        queriesMade++;
+//
+//        if (placementList.contains(true)) {
+//            Point2d placementPos = posList.get(placementList.indexOf(true));
+//            ActionHelper.unitCommand(raven, Abilities.EFFECT_AUTO_TURRET, placementPos, false);
+//            //PlacementMap.makeUnavailable(Units.TERRAN_AUTO_TURRET, placementPos);
+//            turretsCast++;
+//            return true;
+//        }
+////        else if (attackUnit != null && !UnitUtils.canMove(attackUnit) && towardsEnemyDistance < 4) {
+////            castAutoTurret(raven, 4);
+////        }
+//        return false;
+//    }
 
     //hacky way to deal with stuck ravens (for 4sec every 3 minutes, the ravens will power in past 14 threat to attack structures/thors
     private static boolean testSafetyOfPos(Point2d testPos, Unit enemyTarget) {

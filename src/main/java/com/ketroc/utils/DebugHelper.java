@@ -46,7 +46,7 @@ public class DebugHelper {
 
     private static void testingStuff() {
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("5:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("8:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
             Bot.DEBUG.debugCreateUnit(Units.PROTOSS_IMMORTAL, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 2);

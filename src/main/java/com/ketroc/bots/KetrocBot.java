@@ -113,6 +113,8 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
+            TurretingRaven.onStepStart();
+
             OBS.getChatMessages().stream()
                     .filter(chat -> chat.getPlayerId() != OBS.getPlayerId())
                     .forEach(chat -> Chat.respondToBots(chat));
@@ -228,6 +230,8 @@ public class KetrocBot extends Bot {
             LocationConstants.onStep(); //manage which enemy base to target
 
             purchaseQueue.remove(toRemove);
+
+            TurretingRaven.onStepEnd();
 
             DebugHelper.onStep();
             ACTION.sendActions();

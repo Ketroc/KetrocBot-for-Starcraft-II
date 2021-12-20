@@ -1606,4 +1606,10 @@ public class UnitUtils {
                 .sum();
         return weaponDmg / unitWeapon.getSpeed();
     }
+
+    public static boolean isEnemyGroundUnitsNearby(Point2d targetPos, int range) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getFlying().orElse(false))
+                .stream()
+                .anyMatch(u -> UnitUtils.getDistance(u.unit(), targetPos) < range + u.unit().getRadius());
+    }
 }

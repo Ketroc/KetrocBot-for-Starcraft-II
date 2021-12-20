@@ -6,7 +6,6 @@ import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
-import com.ketroc.bots.WorkerAMoveBot;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.DebugHelper;
@@ -27,7 +26,7 @@ public class KetrocLauncher {
         Race oppRace = Race.ZERG;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
-        Strategy.gamePlan = GamePlan.ONE_BASE_BANSHEE_CYCLONE;
+        Strategy.gamePlan = GamePlan.RAVEN;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -43,10 +42,10 @@ public class KetrocLauncher {
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
 //                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()),
-//                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
-//                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
-                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()),
-                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")))
+                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
+                        S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
+//                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()),
+//                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")))
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
