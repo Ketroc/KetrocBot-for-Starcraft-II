@@ -170,7 +170,7 @@ public class BansheeHarasser {
         int safestThreatValue = Integer.MAX_VALUE;
         boolean canCloak = canCloak();
         for (int i=0; i<360; i+=20) {
-            int angle = (isDodgeClockwise) ? i : (i * -1);
+            int angle = (isDodgeClockwise) ? i : -i;
             Point2d detourPos = Position.rotate(towardsTarget, banshee.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null) {
                 continue;
@@ -191,7 +191,7 @@ public class BansheeHarasser {
                 }
                 //add 20degrees more angle as buffer, to account for chasing units
                 i += 20;
-                angle = (isDodgeClockwise) ? i : (i * -1);
+                angle = (isDodgeClockwise) ? i : -i;
                 detourPos = Position.rotate(towardsTarget, banshee.unit().getPosition().toPoint2d(), angle);
                 return detourPos;
             }

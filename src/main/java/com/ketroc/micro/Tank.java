@@ -18,11 +18,10 @@ import java.util.List;
 
 public class Tank extends BasicUnitMicro {
     public static final float TARGET_POS_RADIUS = 1.3f;
-
     public static boolean isLongDelayedUnsiege = true;
 
-    private long lastActiveFrame; //last frame that this tank was sieged with an enemy target
-    private int framesDelayToUnSiege = 0;
+    protected long lastActiveFrame; //last frame that this tank was sieged with an enemy target
+    protected int framesDelayToUnSiege = 0;
 
     public Tank(UnitInPool unit, Point2d targetPos) {
         this(unit, targetPos, MicroPriority.SURVIVAL);
@@ -53,7 +52,7 @@ public class Tank extends BasicUnitMicro {
         }
 
         //if no targets in range
-        List<UnitInPool> enemyTargetsInRange = UnitUtils.getEnemyTargetsInRange(tank);
+        List<UnitInPool> enemyTargetsInRange = getEnemyTargetsInRange(13);
         if (enemyTargetsInRange.isEmpty()) {
             return null;
         }
@@ -124,12 +123,8 @@ public class Tank extends BasicUnitMicro {
             return false;
         }
 
-        int rangeToSiege = (ArmyManager.doOffense && UnitUtils.numMySiegedTanks() < 2) ? 18 : 13;
-        if (!getEnemyTargetsInRange(rangeToSiege).isEmpty()) {
-            siege();
-            return true;
-        }
-        return false;
+        int rangeToSiege = (ArmyManager.doOffense && UnitUtils.numMyOffensiveSiegedTanks() < 2) ? 18 : 13;
+        return !getEnemyTargetsInRange(rangeToSiege).isEmpty();
     }
 
     //alternate between ~2s and ~5s for unsiege delay to stagger the tanks
@@ -139,24 +134,10 @@ public class Tank extends BasicUnitMicro {
     }
 
     protected boolean doUnsiege() {
-        //unsiege immediately if retreating
-        if (!ArmyManager.doOffense &&
-                UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
-                getEnemyTargetsInRange(11).isEmpty()) {
-            if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
-//                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
-//                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
-                unsiege();
-                return true;
-            }
-            return false;
-        }
-
         //unsiege immediately if no targets but threat from enemy air or enemy ground in my blind spot exists
         if (getEnemyTargetsInRange(13).isEmpty() &&
                 (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) ||
                         isEnemyTargetsInBlindSpot())) {
-            unsiege();
             return true;
         }
 
@@ -164,30 +145,14 @@ public class Tank extends BasicUnitMicro {
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > TARGET_POS_RADIUS + 2 &&
                 getEnemyTargetsInRange(15).isEmpty()) {
-            if (lastActiveFrame + framesDelayToUnSiege < Time.nowFrames()) {
-//                Chat.chat("Distance to attackGroundPos: " + UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos));
-//                Chat.chat("Frames since last active: " + (Time.nowFrames() - lastActiveFrame));
-                unsiege();
-                return true;
-            }
-            return false;
+            return isUnsiegeWaitTimeComplete();
         }
         lastActiveFrame = Time.nowFrames();
         return false;
     }
 
-    protected List<UnitInPool> getEnemyTargetsInRange(int range) {
-        float finalRange = range + unit.unit().getRadius();
-        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> {
-            float distance = UnitUtils.getDistance(enemy.unit(), unit.unit());
-            return distance <= (UnitUtils.canMove(enemy.unit()) ? finalRange : Math.min(range, 13)) + enemy.unit().getRadius() &&
-                    distance - unit.unit().getRadius() + enemy.unit().getRadius() > 2 &&
-                    !enemy.unit().getFlying().orElse(true) &&
-                    !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                    !enemy.unit().getHallucination().orElse(false) &&
-                    enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                    !UnitUtils.isSnapshot(enemy.unit());
-        });
+    protected boolean isUnsiegeWaitTimeComplete() {
+        return lastActiveFrame + framesDelayToUnSiege < Time.nowFrames();
     }
 
     protected boolean isEnemyTargetsInBlindSpot() {
@@ -242,15 +207,6 @@ public class Tank extends BasicUnitMicro {
                 .orElse(null);
     }
 
-    protected UnitInPool getClosestEnemySiegedTankInRange() {
-        List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
-        enemyTankList.addAll(EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED));
-        return enemyTankList.stream()
-                .filter(u -> UnitUtils.getDistance(u.unit(), unit.unit()) < 13 + unit.unit().getRadius() * 2)
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
-                .orElse(null);
-    }
-
     protected void scanEnemyTank(Unit enemyTank) {
         Point2d scanPos = Position.towards(enemyTank, unit.unit(), -5);
         UnitUtils.scan(scanPos);
@@ -264,4 +220,21 @@ public class Tank extends BasicUnitMicro {
         }
         super.detour();
     }
+
+    protected List<UnitInPool> getEnemyTargetsInRange(int range) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> {
+            if (enemy.unit().getFlying().orElse(true) ||
+                    UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) ||
+                    enemy.unit().getHallucination().orElse(false) ||
+                    enemy.unit().getDisplayType() != DisplayType.VISIBLE ||
+                    UnitUtils.isSnapshot(enemy.unit())) {
+                return false;
+            }
+            float distance = UnitUtils.getDistance(enemy.unit(), unit.unit());
+            return distance <= (UnitUtils.canMove(enemy.unit()) ? range : Math.min(range, 13)) +
+                            unit.unit().getRadius() + enemy.unit().getRadius() &&
+                    distance - unit.unit().getRadius() + enemy.unit().getRadius() > 2;
+        });
+    }
+
 }

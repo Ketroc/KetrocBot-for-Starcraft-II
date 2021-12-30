@@ -296,7 +296,7 @@ public class BasicUnitMicro {
     protected Point2d findDetourPos2(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit(), targetPos, rangeCheck + unit.unit().getRadius());
         for (int i=0; i<360; i+=15) {
-            int angle = (isDodgeClockwise) ? i : (i * -1);
+            int angle = (isDodgeClockwise) ? i : -i;
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null || !isPathable(detourPos)) {
                 continue;
@@ -307,7 +307,7 @@ public class BasicUnitMicro {
                 }
                 //add 1degree more angle as buffer, to account for chasing units
                 i += 1;
-                angle = (isDodgeClockwise) ? i : (i * -1);
+                angle = (isDodgeClockwise) ? i : -i;
                 detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle);
                 return Position.towards(detourPos, unit.unit(), unit.unit().getRadius());
             }
@@ -330,7 +330,7 @@ public class BasicUnitMicro {
     protected Point2d findDetourPos(float rangeCheck) {
         Point2d towardsTarget = Position.towards(unit.unit(), targetPos, rangeCheck);
         for (int i=180; i<360; i+=15) {
-            int angle = (isDodgeClockwise) ? i : (i * -1);
+            int angle = (isDodgeClockwise) ? i : -i;
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null || !isPathable(detourPos)) {
                 continue;
@@ -340,7 +340,7 @@ public class BasicUnitMicro {
             }
         }
         for (int i=180; i<360; i+=15) {
-            int angle = (isDodgeClockwise) ? (i * -1) : i;
+            int angle = (isDodgeClockwise) ? -i : i;
             Point2d detourPos = Position.rotate(towardsTarget, unit.unit().getPosition().toPoint2d(), angle, true);
             if (detourPos == null || !isPathable(detourPos)) {
                 continue;

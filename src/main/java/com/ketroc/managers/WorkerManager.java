@@ -310,7 +310,6 @@ public class WorkerManager {
                 .orElse(null);
         if (scv != null) {
             Base.releaseScv(scv.unit());
-            Chat.chat("Gas scv taken at " + scv.unit().getPosition().toPoint2d());
             return scv;
         }
 
@@ -333,7 +332,6 @@ public class WorkerManager {
                 .orElse(null);
         if (scv != null) {
             Base.releaseScv(scv.unit());
-            Chat.chat("Gas scv taken at " + scv.unit().getPosition().toPoint2d());
             return scv;
         }
 

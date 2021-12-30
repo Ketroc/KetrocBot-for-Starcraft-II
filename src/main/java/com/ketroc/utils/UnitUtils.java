@@ -14,6 +14,8 @@ import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.StructureSize;
+import com.ketroc.micro.TankOffense;
+import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.Base;
 import com.ketroc.models.Cost;
 import com.ketroc.models.Ignored;
@@ -123,6 +125,11 @@ public class UnitUtils {
 
     public static final Set<Units> REPAIR_BAY_TYPES = new HashSet<>(Set.of(
             Units.TERRAN_CYCLONE, Units.TERRAN_HELLION, Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED));
+
+    public static final Set<Units> GROUND_ARMY_ATTACKERS_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_MARINE, Units.TERRAN_MARAUDER, Units.TERRAN_REAPER, Units.TERRAN_GHOST,
+            Units.TERRAN_CYCLONE, Units.TERRAN_HELLION, Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED,
+            Units.TERRAN_HELLION_TANK, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER, Units.TERRAN_LIBERATOR_AG));
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -452,9 +459,9 @@ public class UnitUtils {
         float unitRadius = unit.getRadius();
         Point2d unitPos = unit.getPosition().toPoint2d();
         return Bot.OBS.getVisibility(unitPos.add(unitRadius, 0)) != Visibility.VISIBLE &&
-                Bot.OBS.getVisibility(unitPos.add(unitRadius * -1, 0)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(unitPos.add(-unitRadius, 0)) != Visibility.VISIBLE &&
                 Bot.OBS.getVisibility(unitPos.add(0, unitRadius)) != Visibility.VISIBLE &&
-                Bot.OBS.getVisibility(unitPos.add(0, unitRadius * -1)) != Visibility.VISIBLE;
+                Bot.OBS.getVisibility(unitPos.add(0, -unitRadius)) != Visibility.VISIBLE;
     }
 
     public static boolean canMove(Unit unit) {
@@ -1383,8 +1390,11 @@ public class UnitUtils {
         }
     }
 
-    public static int numMySiegedTanks() {
-        return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED).size();
+    public static int numMyOffensiveSiegedTanks() {
+        return (int)UnitMicroList.getUnitSubList(TankOffense.class).stream()
+                .filter(tank -> tank.unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED &&
+                        UnitUtils.getOrder(tank.unit.unit()) != Abilities.MORPH_UNSIEGE)
+                .count();
     }
 
     public static boolean isRepairBaySafe() {

@@ -23,10 +23,8 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.ProxyBunkerDefense;
 import com.ketroc.utils.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ArmyManager {
@@ -40,6 +38,8 @@ public class ArmyManager {
     public static UnitInPool leadTank;
 
     public static Unit attackUnit;
+    public static Unit attackAirUnit;
+    public static Unit attackGroundUnit;
     public static boolean isAttackUnitRetreating;
 
     public static List<Unit> armyGoingHome;
@@ -138,12 +138,10 @@ public class ArmyManager {
                 ActionHelper.unitCommand(armyGoingHome, Abilities.MOVE, retreatPos, false);
             }
             if (!armyGroundAttacking.isEmpty()) {
-                Point2d targetPos = attackGroundPos;
-                ActionHelper.unitCommand(armyGroundAttacking, Abilities.ATTACK, targetPos, false);
+                ActionHelper.unitCommand(armyGroundAttacking, Abilities.ATTACK, attackGroundPos, false);
             }
             if (!armyAirAttacking.isEmpty()) {
-                Point2d targetPos = attackAirPos;
-                ActionHelper.unitCommand(armyAirAttacking, Abilities.ATTACK, targetPos, false);
+                ActionHelper.unitCommand(armyAirAttacking, Abilities.ATTACK, attackAirPos, false);
             }
             if (!armyDetectorAttacking.isEmpty()) {
                 Point2d targetPos = attackCloakedPos != null ? attackCloakedPos : attackGroundPos;
@@ -274,7 +272,7 @@ public class ArmyManager {
         vikingMidPoint = (!GameCache.vikingList.isEmpty())
                 ? Position.midPointUnitsMedian(GameCache.vikingList)
                 : LocationConstants.baseLocations.get(0);
-        List<Unit> groundAttackers = (Strategy.MASS_RAVENS) ? GameCache.ravenList : GameCache.bansheeList;
+        List<Unit> groundAttackers = UnitUtils.getMyUnitsOfType(UnitUtils.GROUND_ARMY_ATTACKERS_TYPE);
         groundAttackersMidPoint = (!groundAttackers.isEmpty())
                 ? Position.midPointUnitsMedian(groundAttackers)
                 : LocationConstants.baseLocations.get(0);
@@ -498,31 +496,33 @@ public class ArmyManager {
 
     //set defensePos to closestEnemy to an injured base cc
     private static void setDefensePosition() {
-        attackUnit = GameCache.allVisibleEnemiesList.stream()
-                .filter(u -> GameCache.baseList.stream()
-                                .filter(base -> base.isMyBase() || base.isNatBaseAndHasBunker())
-                                .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
-                        !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
-                        u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
-                        u.unit().getDisplayType() != DisplayType.HIDDEN && //ignore undetected cloaked/burrowed units
-                        !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) && //ignore eggs/autoturrets/etc
-                        u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
-                        u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
-                        !u.unit().getHallucination().orElse(false)) //ignore hallucs
+        Predicate<UnitInPool> enemyTargetFilter = u -> GameCache.baseList.stream()
+                .filter(base -> base.isMyBase() || base.isNatBaseAndHasBunker())
+                .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
+                !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
+                u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
+                u.unit().getDisplayType() != DisplayType.HIDDEN && //ignore undetected cloaked/burrowed units
+                !UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) && //ignore eggs/autoturrets/etc
+                u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
+                u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
+                !u.unit().getHallucination().orElse(false);
+        attackAirUnit = GameCache.allVisibleEnemiesList.stream()
+                .filter(enemyTargetFilter) //ignore hallucs
+                .filter(u -> u.unit().getFlying().orElse(true))
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
+                        UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
                 .map(UnitInPool::unit)
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u, LocationConstants.baseLocations.get(0)) +
-                        UnitUtils.getDistance(u, groundAttackersMidPoint)))
+                .orElse(null);
+        attackGroundUnit = GameCache.allVisibleEnemiesList.stream()
+                .filter(enemyTargetFilter) //ignore hallucs
+                .filter(u -> !u.unit().getFlying().orElse(false))
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
+                        UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))
+                .map(UnitInPool::unit)
                 .orElse(null);
 
-        if (attackUnit != null) {
-            attackGroundPos = attackUnit.getPosition().toPoint2d();
-        }
-//        else if (GameCache.baseList.get(2).isMyBase()) {
-//            attackGroundPos = GameCache.baseList.get(2).getResourceMidPoint();
-//        }
-        else {
-            attackGroundPos = getArmyRallyPoint();
-        }
+        attackGroundPos = (attackGroundUnit != null) ? attackGroundUnit.getPosition().toPoint2d() : getArmyRallyPoint();
+        attackAirPos = (attackAirUnit != null) ? attackAirUnit.getPosition().toPoint2d() : attackGroundPos;
     }
 
     private static Point2d getArmyRallyPoint() {
@@ -629,16 +629,6 @@ public class ArmyManager {
         if (closestEnemyGround != null) {
             attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
             attackUnit = closestEnemyGround.unit();
-//            //TODO: below is hack to "hopefully" handle unknown bug of air units getting stuck on unchanging attackPos
-//            if (!UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BANSHEE, attackGroundPos, 1).isEmpty() &&
-//                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, attackGroundPos, 1).isEmpty() &&
-//                    !UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_RAVEN, attackGroundPos, 1).isEmpty()) {
-//                Chat.tag("PHANTOM_UNIT");
-//                Print.print("\n\n=============== PHANTOM ENEMY FOUND ===============\n");
-//                Print.print("closestEnemyGround.isAlive() = " + closestEnemyGround.isAlive());
-//                Print.print("closestEnemyGround.unit().getType() = " + closestEnemyGround.unit().getType());
-//                GameCache.allEnemiesList.remove(closestEnemyGround);
-//            }
         }
         else if (LocationConstants.nextEnemyBase == null) {
             attackGroundPos = null; //flag to spread army
@@ -1105,10 +1095,10 @@ public class ArmyManager {
             yMove = 5f;
         }
         if (xDistance > 0) {
-            xMove *= -1;
+            xMove = -xMove;
         }
         if (yDistance > 0) {
-            yMove *= -1;
+            yMove = -yMove;
         }
         return Point2d.of(xCC + xMove, yCC + yMove);
     }

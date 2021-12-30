@@ -13,6 +13,13 @@ import java.util.Arrays;
 public class PlacementMap {
     public static boolean[][] placementMap = new boolean[400][400];
     public static boolean[][] ccPlacementMap = new boolean[400][400];
+
+    /* shape:
+        ..000....
+        ..00000..
+        ..00000..
+        000000000
+        .0000000. */
     public static final Point2d[] _3x3_WITH_ADDON_SHAPE = new Point2d[] {
             Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
             Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
@@ -458,14 +465,6 @@ public class PlacementMap {
         }
     }
 
-    /* shape:
-        ..000....
-        ..00000..
-        ..00000..
-        000000000
-        .0000000.
-
-     */
     public static boolean canFitPathingShape(Point2d placementPos, Point2d[] shapePoints) {
         boolean isCC = Arrays.equals(shapePoints, _5x5_SHAPE);
         for (Point2d vector : shapePoints) {

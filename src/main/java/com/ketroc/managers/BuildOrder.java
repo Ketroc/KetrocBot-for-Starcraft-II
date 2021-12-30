@@ -118,7 +118,7 @@ public class BuildOrder {
                     _2FactExpandOpener();
                 }
                 else if (Strategy.EXPAND_SLOWLY) {
-                    pfExpand2BaseOpener();
+                    pfExpand2BaseMassGasOpener();
                 }
                 else {
                     pfExpandOpener();
@@ -143,9 +143,9 @@ public class BuildOrder {
                         _2FactExpandHellionOpener();
                     }
                 } else if (Strategy.EXPAND_SLOWLY) {
-                    pfExpand2BaseOpener();
+                    pfExpand2BaseMassGasOpener();
                 } else {
-                    pfExpandOpener();
+                    pfExpandFast3rdOpener();
                 }
                 break;
 
@@ -155,7 +155,7 @@ public class BuildOrder {
         }
     }
 
-    private static void pfExpandOpener() {
+    private static void pfExpandFast3rdOpener() {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
@@ -165,18 +165,32 @@ public class BuildOrder {
         build3rdCC();
     }
 
+    private static void pfExpandOpener() {
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+    }
+
     private static void _1FactExpandOpener() {
         LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
         Switches.fastDepotBarracksOpener = true;
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
     }
 
@@ -251,7 +265,7 @@ public class BuildOrder {
     }
 
 
-    private static void pfExpand2BaseOpener() {
+    private static void pfExpand2BaseMassGasOpener() {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
@@ -294,22 +308,6 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_WIDOWMINE));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SIEGE_TANK));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-
-//        Units produceFactoryUnit = BuildManager.openingFactoryUnits.isEmpty() ?
-//                Units.TERRAN_CYCLONE :
-//                BuildManager.openingFactoryUnits.remove(0);
-//        KetrocBot.purchaseQueue.add(new PurchaseUnit(produceFactoryUnit));
-//
-//        produceFactoryUnit = BuildManager.openingFactoryUnits.isEmpty() ?
-//                Units.TERRAN_CYCLONE :
-//                BuildManager.openingFactoryUnits.remove(0);
-//        KetrocBot.purchaseQueue.add(new PurchaseUnit(produceFactoryUnit));
-
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
     }
 
     private static void _1base2Fact2StarportOpener() {
@@ -405,7 +403,7 @@ public class BuildOrder {
             boolean clockwiseFirst = Position.rotate(bunkerPos, natCCPos, 10).distance(enemyMainCCPos) >
                     Position.rotate(bunkerPos, natCCPos, -10).distance(enemyMainCCPos);
             for (int i=10; i<90; i+=10) {
-                int rotation = (clockwiseFirst) ? i : (i * -1);
+                int rotation = (clockwiseFirst) ? i : -i;
                 Point2d rotatedPos = Position.rotate(bunkerPos, natCCPos, rotation);
                 if (Bot.QUERY.placement(Abilities.BUILD_BUNKER, rotatedPos)) {
                     return rotatedPos;
@@ -415,7 +413,7 @@ public class BuildOrder {
                 }
             }
             for (int i=10; i<90; i+=10) {
-                int rotation = (!clockwiseFirst) ? i : (i * -1);
+                int rotation = (!clockwiseFirst) ? i : -i;
                 Point2d rotatedPos = Position.rotate(bunkerPos, natCCPos, rotation);
                 if (Bot.QUERY.placement(Abilities.BUILD_BUNKER, rotatedPos)) {
                     return rotatedPos;

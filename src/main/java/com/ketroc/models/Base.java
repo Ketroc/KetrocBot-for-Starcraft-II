@@ -155,7 +155,7 @@ public class Base {
         if (liberators.isEmpty()) {
             if (resourceMidPoint != null) {
                 Point2d midPoint = isMyNatBase() ?
-                        Position.towards(ccPos, LocationConstants.BUNKER_NATURAL, getLibDistanceFromCC() * -1) :
+                        Position.towards(ccPos, LocationConstants.BUNKER_NATURAL, -getLibDistanceFromCC()) :
                         Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -32.5), null));
@@ -366,9 +366,11 @@ public class Base {
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));
 
             //don't flee if near PF when enemy ground in range
-            boolean enemyGroundAttackersInRange = enemiesInAttackRange.stream().anyMatch(enemy -> !enemy.unit().getFlying().orElse(true));
-            boolean baseIsPF = getCc() != null && getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS;
-            if (enemyGroundAttackersInRange && baseIsPF) {
+            boolean isEnemyGroundAttackersInRange = enemiesInAttackRange.stream().anyMatch(enemy -> !enemy.unit().getFlying().orElse(true));
+            boolean isBasePF = getCc() != null && getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS;
+            boolean hasShadeThreat = AdeptShadeTracker.activeShades.stream()
+                    .anyMatch(shade -> shade.doConsiderThreat() && UnitUtils.getDistance(shade.getShadeUip().unit(), scv.unit()) < 7);
+            if (isBasePF && (isEnemyGroundAttackersInRange || hasShadeThreat)) {
                 return false;
             }
 

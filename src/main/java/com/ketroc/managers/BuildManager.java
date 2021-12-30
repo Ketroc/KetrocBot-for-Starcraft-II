@@ -405,7 +405,7 @@ public class BuildManager {
                         else { //if base that will become a PF TODO: use same logic as OC
                             if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_PLANETARY_FORTRESS)) {
                                 if (!Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
                                     break; //don't queue scv
                                 }
                             }
@@ -724,7 +724,7 @@ public class BuildManager {
                 return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                         UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2;
             case PROTOSS:
-                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                return !Strategy.DO_DEFENSIVE_TANKS && UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
                         UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ADEPT).size();
             default:
                 return false;

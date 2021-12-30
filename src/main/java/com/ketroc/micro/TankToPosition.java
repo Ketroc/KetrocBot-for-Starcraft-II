@@ -25,8 +25,8 @@ public class TankToPosition extends Tank {
         //DebugHelper.boxUnit(unit.unit());
 
         //no tank
-        if (unit == null || !unit.isAlive()) {
-            super.onStep();
+        if (!isAlive()) {
+            onDeath();
             return;
         }
 
@@ -55,6 +55,7 @@ public class TankToPosition extends Tank {
         //unsiege
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
             if (doUnsiege()) {
+                unsiege();
                 return;
             }
         }
@@ -79,10 +80,19 @@ public class TankToPosition extends Tank {
 
     @Override
     protected boolean doSiegeUp() {
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1) { // || !getEnemyTargetsInRange(13).isEmpty()) {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
             return true;
         }
-        return false;
+        return super.doSiegeUp();
+    }
+
+
+    @Override
+    protected boolean doUnsiege() {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1) {
+            return false;
+        }
+        return super.doUnsiege();
     }
 }

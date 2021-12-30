@@ -55,6 +55,7 @@ public class TankOffense extends Tank {
         //unsiege
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED) {
             if (doUnsiege()) {
+                unsiege();
                 return;
             }
         }
@@ -62,6 +63,7 @@ public class TankOffense extends Tank {
         //siege up
         if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK && isSafe() && !isRetreating()) {
             if (doSiegeUp()) {
+                siege();
                 return;
             }
         }
@@ -80,5 +82,17 @@ public class TankOffense extends Tank {
         else if (!isMovingToTargetPos()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
+    }
+
+    @Override
+    protected boolean doUnsiege() {
+        //unsiege immediately if retreating
+        if (!ArmyManager.doOffense &&
+                UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
+                getEnemyTargetsInRange(11).isEmpty()) {
+            return isUnsiegeWaitTimeComplete();
+        }
+
+        return super.doUnsiege();
     }
 }

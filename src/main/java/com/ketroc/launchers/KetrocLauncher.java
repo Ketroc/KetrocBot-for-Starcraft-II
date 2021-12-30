@@ -20,13 +20,13 @@ public class KetrocLauncher {
         });
 
         DebugHelper.doTestingSpawns = true;
-        DebugHelper.isDebugOn = false;
-        Launcher.isRealTime = false;
+        DebugHelper.isDebugOn = true;
+        Launcher.isRealTime = true;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.ZERG;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
-        Strategy.gamePlan = GamePlan.RAVEN;
+        Strategy.gamePlan = GamePlan.TANK_VIKING;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -41,7 +41,7 @@ public class KetrocLauncher {
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
-//                        S2Coordinator.createParticipant(Race.ZERG, new EnemyDebugTestBot()),
+//                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
                         S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
 //                        S2Coordinator.createParticipant(Race.TERRAN, new WorkerAMoveBot()),

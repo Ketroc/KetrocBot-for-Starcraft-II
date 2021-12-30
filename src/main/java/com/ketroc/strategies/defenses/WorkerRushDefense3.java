@@ -60,7 +60,7 @@ public class WorkerRushDefense3 {
         } else if (!isWorkerRushed && numDefendersNeeded < 0) {
             UnitMicroList.getUnitSubList(ScvDefender.class).stream()
                     .sorted(Comparator.comparing(scv -> scv.unit.unit().getHealth().orElse(0f)))
-                    .limit(numDefendersNeeded * -1)
+                    .limit(-numDefendersNeeded)
                     .forEach(scv -> {
                         UnitUtils.returnAndStopScv(scv.unit);
                         scv.removeMe = true;

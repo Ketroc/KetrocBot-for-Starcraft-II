@@ -439,10 +439,10 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-//            case "":
-//                return new HashSet<>(Set.of(
-//                        GamePlan.,
-//                ));
+            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE
+                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
@@ -542,6 +542,7 @@ public class Strategy {
 
         switch (gamePlan) {
             case BANSHEE:
+                DO_DEFENSIVE_TANKS = true;
                 break;
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();

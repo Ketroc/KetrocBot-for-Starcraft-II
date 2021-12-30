@@ -12,6 +12,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.utils.LocationConstants;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,10 +84,10 @@ public class Position {
 
     public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {
         if (target.getX() < origin.getX()) {
-            xDistance *= -1;
+            xDistance = -xDistance;
         }
         if (target.getY() < origin.getY()) {
-            yDistance *= -1;
+            yDistance = -yDistance;
         }
         float x = origin.getX() + xDistance;
 
@@ -122,7 +123,7 @@ public class Position {
         return midPoint.div(unitList.size());
     }
 
-    public static Point2d midPointUnitsMedian(List<Unit> unitList) {
+    public static Point2d midPointUnitsMedian(Collection<Unit> unitList) {
         if (unitList.isEmpty()) {
             return null;
         }
@@ -175,7 +176,7 @@ public class Position {
     public static Point2d rotateTowards(Point2d origin, Point2d pivotPoint, Point2d towardsTarget, double angle) {
         float angleDiff = getSignedAngleDifference(getAngle(origin, pivotPoint), getAngle(origin, towardsTarget));
         if (angleDiff < 1) {
-            angle *= -1;
+            angle = -angle;
         }
         return rotate(origin, pivotPoint, angle, false);
     }
@@ -392,7 +393,7 @@ public class Position {
         difference = (difference > 180) ? 360 - difference : difference;
         if (isSigned &&
                 !((angle1 - angle2 >= 0 && angle1 - angle2 <= 180) || (angle1 - angle2 <= -180 && angle1 - angle2 >= -360))){
-            difference *= -1;
+            difference = -difference;
         }
         return difference;
     }
@@ -417,12 +418,12 @@ public class Position {
     }
 
     public static Point2d towardsXAxis(Point2d origin, Point2d target, float distance) {
-        float xCoord = origin.getX() + (origin.getX() > target.getX() ? distance * -1 : distance);
+        float xCoord = origin.getX() + (origin.getX() > target.getX() ? -distance : distance);
         return inBounds(Point2d.of(xCoord, origin.getY()));
     }
 
     public static Point2d towardsYAxis(Point2d origin, Point2d target, float distance) {
-        float yCoord = origin.getY() + (origin.getY() > target.getY() ? distance * -1 : distance);
+        float yCoord = origin.getY() + (origin.getY() > target.getY() ? -distance : distance);
         return inBounds(Point2d.of(origin.getX(), yCoord));
     }
 }

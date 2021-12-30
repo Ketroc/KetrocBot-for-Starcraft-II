@@ -45,6 +45,11 @@ public class DebugHelper {
 
 
     private static void testingStuff() {
+        //spawn at start
+        if (Time.at(1)) {
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_REAPER, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+        }
+
         //spawn every minute
         if (Time.nowFrames() > Time.toFrames("8:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->

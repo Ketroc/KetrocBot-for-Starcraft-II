@@ -2,15 +2,22 @@ package com.ketroc.bots;
 
 import com.github.ocraft.s2client.bot.S2Agent;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.launchers.Launcher;
+
+import java.util.List;
 
 public class EnemyDebugTestBot extends S2Agent {
     public int myId;
     public int enemyId;
     public Point2d mySpawnPos;
     public Point2d enemySpawnPos;
+    
+    public boolean doStartRecording;
 
     public long nukeStartFrame;
     public long nukeEffectEndFrame;
@@ -43,6 +50,22 @@ public class EnemyDebugTestBot extends S2Agent {
 
     @Override
     public void onStep() {
+        List<UnitInPool> reaperList = observation().getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_REAPER);
+        if (!reaperList.isEmpty()) {
+            Unit reaper = reaperList.get(0).unit();
+            if (doStartRecording) {
+                System.out.println("Frame: " + observation().getGameLoop());
+                reaper.getOrders().forEach(order -> {
+                    System.out.println("order.getAbility() = " + order.getAbility());
+                    System.out.println("order.getTargetedUnitTag() = " + order.getTargetedUnitTag());
+                    System.out.println("order.getTargetedWorldSpacePosition() = " + order.getTargetedWorldSpacePosition());
+                });
+            }
+            else if (reaper.getOrders().size() > 1) {
+                doStartRecording = true;
+            }
+        }
+        
 
 //        if (at(100)) {
 //            debug().debugCreateUnit(Units.PROTOSS_PHOENIX, Point2d.of(100, 100), enemyId, 1);
