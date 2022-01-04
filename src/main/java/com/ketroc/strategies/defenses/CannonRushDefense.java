@@ -39,7 +39,7 @@ public class CannonRushDefense {
                 }
                 break;
 
-            case 1: //1 scv per probe, calc #scvs per cannon TODO: go to case 2 if a cannon completes (use ScvTarget.giveUp)
+            case 1: //2 scvs per probe, calc #scvs per cannon TODO: go to case 2 if a cannon completes (use ScvTarget.giveUp)
 
                 //next stage if cannon completed
                 if (isAnyCannonComplete()) {

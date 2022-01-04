@@ -21,12 +21,12 @@ public class KetrocLauncher {
 
         DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
-        Launcher.isRealTime = true;
+        Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.PROTOSS;
+        Race oppRace = Race.TERRAN;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.RANDOM_BUILD;
-        Strategy.gamePlan = GamePlan.TANK_VIKING;
+        Strategy.gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -49,7 +49,14 @@ public class KetrocLauncher {
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
+
+//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("JagannathaAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("LightshadeAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("OxideAIE.SC2Map")));
@@ -77,6 +84,9 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WorldofSleepersLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
+
+                .startGame(LocalMap.of(Paths.get("Flat482Spawns.SC2Map")));
+
 
         while (s2Coordinator.update()) {
 

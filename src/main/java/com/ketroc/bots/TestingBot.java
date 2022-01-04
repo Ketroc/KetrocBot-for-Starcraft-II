@@ -8,7 +8,6 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
 import com.ketroc.micro.Cyclone;
 import com.ketroc.models.MuleMessages;
 import com.ketroc.utils.Error;
@@ -62,23 +61,23 @@ public class TestingBot extends Bot {
         ACTION.sendActions();
 
         //get map, get hardcoded map locations
-        LocationConstants.onGameStart(mainCC);
+//        LocationConstants.onGameStart(mainCC);
 
         //build unit lists
-        try {
-            GameCache.onStep();
-        } catch (Exception e) {
-            Error.onException(e);
-        }
+//        try {
+//            GameCache.onStep();
+//        } catch (Exception e) {
+//            Error.onException(e);
+//        }
 
-        LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
+//        LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
 //        DebugHelper.onGameStart();
-        debug().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
+        debug().debugGiveAllResources().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
         //dropMuleMessageAsDrones();
 //        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
-        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
+//        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
         debug().sendDebug();
 
 
@@ -134,18 +133,19 @@ public class TestingBot extends Bot {
 //            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
 //            int wer = 392847;
 //        }
-        List<UnitInPool> ccList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
-                u.unit().getBuildProgress() > 0.95f && u.unit().getBuildProgress() < 0.99f);
-        if (!ccList.isEmpty()) {
-            Unit cc = ccList.get(0).unit();
-            List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV &&
-                    UnitUtils.getDistance(u.unit(), cc) < 4 &&
-                    UnitUtils.isCarryingResources(u.unit()));
-            if (!scvList.isEmpty()) {
-                UnitInPool scv = scvList.get(0);
-                int qoeriu = 21384;
-            }
-        }
+
+//        List<UnitInPool> ccList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
+//                u.unit().getBuildProgress() > 0.95f && u.unit().getBuildProgress() < 0.99f);
+//        if (!ccList.isEmpty()) {
+//            Unit cc = ccList.get(0).unit();
+//            List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV &&
+//                    UnitUtils.getDistance(u.unit(), cc) < 4 &&
+//                    UnitUtils.isCarryingResources(u.unit()));
+//            if (!scvList.isEmpty()) {
+//                UnitInPool scv = scvList.get(0);
+//                int qoeriu = 21384;
+//            }
+//        }
 
         ACTION.sendActions();
         DEBUG.sendDebug();

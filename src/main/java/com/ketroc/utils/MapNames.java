@@ -5,6 +5,7 @@ public final class MapNames {
     public static final String ACROPOLIS = "Acropolis LE";
     public static final String ASCENSION_TO_AIUR = "Ascension to Aiur LE";
     public static final String CATALYST = "Catalyst LE";
+    public static final String CURIOUS_MINDS_AIE = "Curious Minds AIE";
     public static final String BLACKBURN_AIE = "Blackburn AIE";
     public static final String DEATH_AURA = "Deathaura LE";
     public static final String DEATH_AURA505 = "Deathaura 5.0.5";
@@ -18,6 +19,8 @@ public final class MapNames {
     public static final String EVER_DREAM = "Ever Dream LE";
     public static final String EVER_DREAM505 = "Ever Dream 5.0.5";
     public static final String EVER_DREAM506 = "Ever Dream 5.0.6";
+    public static final String FLAT48 = "Flat48";
+    public static final String GLITTERING_ASHES_AIE = "Glittering Ashes AIE";
     public static final String GOLDEN_WALL = "Golden Wall LE";
     public static final String GOLDEN_WALL505 = "Golden Wall 5.0.5";
     public static final String GOLDEN_WALL506 = "Golden Wall 5.0.6";

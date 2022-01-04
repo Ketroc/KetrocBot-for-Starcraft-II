@@ -1057,7 +1057,6 @@ public class Strategy {
 
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
-        //UpgradeManager.starportUpgradeList.clear();
 
         MAX_MARINES = 4;
         DO_OFFENSIVE_TANKS = true;

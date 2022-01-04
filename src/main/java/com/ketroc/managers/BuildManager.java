@@ -653,7 +653,7 @@ public class BuildManager {
             return Units.TERRAN_WIDOWMINE;
         }
 
-        //first build hardcoded starport units
+        //first build hardcoded factory units
         if (!openingFactoryUnits.isEmpty()) {
             return openingFactoryUnits.get(0);
         }
