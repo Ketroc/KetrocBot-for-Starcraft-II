@@ -99,10 +99,11 @@ public class Opponent {
 
     //randomly select a game plan that requires more test games
     public GamePlan getGamePlanNeedingMoreTests(int minTestGames) {
-        return strategyWinRates.stream()
-                .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
-                .min(Comparator.comparing(winLossRecord -> Math.random()))
-                .map(WinLossRecord::getGamePlan)
-                .orElse(GamePlan.NONE);
+        return GamePlan.NONE;
+//TODO: turn on        return strategyWinRates.stream()
+//                .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
+//                .min(Comparator.comparing(winLossRecord -> Math.random()))
+//                .map(WinLossRecord::getGamePlan)
+//                .orElse(GamePlan.NONE);
     }
 }

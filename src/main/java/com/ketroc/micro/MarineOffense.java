@@ -15,7 +15,8 @@ import java.util.Set;
 
 public class MarineOffense extends Marine {
     private static final Set<Units> DONT_CHASE_TYPES = Set.of(
-            Units.TERRAN_REAPER, Units.TERRAN_HELLION, Units.PROTOSS_ORACLE, Units.PROTOSS_INTERCEPTOR);
+            Units.TERRAN_REAPER, Units.TERRAN_HELLION,
+            Units.PROTOSS_ADEPT, Units.PROTOSS_ORACLE, Units.PROTOSS_INTERCEPTOR);
 
     private Unit closestEnemyThreat;
     private boolean doStutterForward;
@@ -57,10 +58,10 @@ public class MarineOffense extends Marine {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 !enemy.unit().getHallucination().orElse(false) &&
                 !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                !DONT_CHASE_TYPES.contains(enemy.unit().getType()) &&
+                (!ArmyManager.doOffense || !DONT_CHASE_TYPES.contains(enemy.unit().getType())) &&
                 enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                !UnitUtils.isSnapshot(enemy.unit()) &&
-                UnitUtils.canAttackGround(enemy.unit()) &&
+                (!UnitUtils.isSnapshot(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
+                (UnitUtils.canAttackGround(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
                 UnitUtils.getDistance(unit.unit(), enemy.unit()) < 15)
                 .stream()
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy.unit())))

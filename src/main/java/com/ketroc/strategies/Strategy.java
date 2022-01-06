@@ -363,49 +363,49 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.ONE_BASE_TANK_VIKING
 //                ));
-            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
-                return new HashSet<>(Set.of(
-                        GamePlan.RAVEN_CYCLONE,
-                        GamePlan.TANK_VIKING,
-                        GamePlan.BANSHEE
-                ));
-            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-            case "1e0db23f174f455": //MM local
-                return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
-//                        GamePlan.BUNKER_CONTAIN_STRONG
-                ));
-            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
-                return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING,
-                        GamePlan.MARINE_RUSH
-                ));
-            case "ee6dc754-ee07-4243-8b92-4e648f58912b": //ChaosBot TODO: for testing anti-nuke code
-                return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
-                ));
-            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIBot TODO: for testing anti-nuke code
-                return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
-                ));
-            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                return new HashSet<>(Set.of(
-                        GamePlan.ONE_BASE_TANK_VIKING
-                ));
+//TODO - turn on            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+//                return new HashSet<>(Set.of(
+//                        GamePlan.RAVEN_CYCLONE,
+//                        GamePlan.TANK_VIKING,
+//                        GamePlan.BANSHEE
+//                ));
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+//            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+//            case "1e0db23f174f455": //MM local
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING
+////                        GamePlan.BUNKER_CONTAIN_STRONG
+//                ));
+//            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING,
+//                        GamePlan.MARINE_RUSH
+//                ));
+//            case "ee6dc754-ee07-4243-8b92-4e648f58912b": //ChaosBot TODO: for testing anti-nuke code
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING
+//                ));
+//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIBot TODO: for testing anti-nuke code
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING
+//                ));
+//            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+//            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+//                return new HashSet<>(Set.of(
+//                        GamePlan.ONE_BASE_TANK_VIKING
+//                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.ONE_BASE_TANK_VIKING,
-                        GamePlan.BANSHEE_CYCLONE,
+//TODO: turn on                        GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BANSHEE,
-                        GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.RAVEN,
-                        GamePlan.TANK_VIKING,
-                        GamePlan.RAVEN_CYCLONE,
-                        GamePlan.BANSHEE_TANK
+//                        GamePlan.TANK_VIKING,
+//                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.RAVEN
+//                        GamePlan.MARINE_RUSH
+//                        GamePlan.RAVEN_CYCLONE,
+//                        GamePlan.BANSHEE_TANK
                 ));
         }
     }
@@ -446,12 +446,12 @@ public class Strategy {
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH,
+//TODO: turn on                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE
+//                        GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.RAVEN
+//                        GamePlan.BUNKER_CONTAIN_WEAK,
+//                        GamePlan.RAVEN
                 ));
         }
     }
@@ -481,26 +481,26 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.MASS_MINE_OPENER
-                ));
-            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
-                return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE
-                ));
+//            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+//            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+//                return new HashSet<>(Set.of(
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.MASS_MINE_OPENER
+//                ));
+//            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
+//                return new HashSet<>(Set.of(
+//                        GamePlan.BANSHEE
+//                ));
             default:
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE,
+//TODO: turn on                        GamePlan.BANSHEE,
+                        GamePlan.MASS_MINE_OPENER,
+                        GamePlan.BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.RAVEN,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.RAVEN_CYCLONE,
-                        GamePlan.MASS_MINE_OPENER
+                        GamePlan.BUNKER_CONTAIN_WEAK
+//                        GamePlan.RAVEN,
+//                        GamePlan.RAVEN_CYCLONE,
                 ));
         }
     }
@@ -1058,7 +1058,7 @@ public class Strategy {
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
 
-        MAX_MARINES = 4;
+        MAX_MARINES = 5;
         DO_OFFENSIVE_TANKS = true;
         DO_SEEKER_MISSILE = true;
         MIN_BANSHEES = 0;

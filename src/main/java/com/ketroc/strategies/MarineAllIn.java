@@ -1,6 +1,7 @@
 package com.ketroc.strategies;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -21,7 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MarineAllIn {
-    public static final int MIN_MARINES_TO_ATTACK = 18;
+    public static int MIN_MARINES_TO_ATTACK = 18;
 
     public static boolean doAttack;
     public static List<Point2d> attackPoints;
@@ -40,12 +41,16 @@ public class MarineAllIn {
 //            thirdBaseFinal = thirdBase2;
 //        }
 
-        //attack enemy natural then enemy main
+        //attack enemy 3rd, natural, then enemy main
         attackPoints = new ArrayList<>(List.of(
                 GameCache.baseList.get(GameCache.baseList.size()-2).getResourceMidPoint(),
                 LocationConstants.enemyRampPos,
                 GameCache.baseList.get(GameCache.baseList.size()-1).getResourceMidPoint()
         ));
+        if (LocationConstants.opponentRace != Race.ZERG) { //attack earlier vs terran/protoss
+            attackPoints.remove(0);
+            MIN_MARINES_TO_ATTACK = 12;
+        }
     }
 
     public static void onStep() {
@@ -136,7 +141,7 @@ public class MarineAllIn {
             return false;
         }
         else if (!ArmyManager.doOffense &&
-                marineList.size() >= 20 &&
+                marineList.size() >= MarineAllIn.MIN_MARINES_TO_ATTACK + 2 &&
                 marineList.stream().allMatch(marine -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase,
                         marine.unit.unit().getPosition().toPoint2d()))) {
             Chat.chatWithoutSpamInvisToHuman("Hell. It's about time.", 30);
