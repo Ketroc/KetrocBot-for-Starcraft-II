@@ -54,8 +54,8 @@ public class StructureFloater extends BasicUnitMicro {
                 LocationConstants._3x3Structures.add(targetPos);
                 break;
             case TERRAN_FACTORY_FLYING:
-                LocationConstants.FACTORIES.add(targetPos);
-                break;
+//                LocationConstants.FACTORIES.add(targetPos);
+//                break;
             case TERRAN_STARPORT_FLYING:
                 LocationConstants.STARPORTS.add(targetPos);
                 break;

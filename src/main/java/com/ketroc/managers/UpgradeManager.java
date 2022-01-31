@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UpgradeManager {
-    public static boolean doStarportTechlabUpgrades;
 
     public static final List<Upgrades> airUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
@@ -139,8 +138,8 @@ public class UpgradeManager {
 
     private static void checkStarportTechLabs() {
         //don't start cloak/speed until 1 banshee in production
-        if (!doStarportTechlabUpgrades && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
-            doStarportTechlabUpgrades = true;
+        if (UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) == 0) {
+            return;
         }
 
         //if all upgrades done
@@ -152,22 +151,20 @@ public class UpgradeManager {
                 .map(unit -> Bot.abilityToUpgrade.get(ActionIssued.getCurOrder(unit).get().ability))
                 .collect(Collectors.toList());
 
-        if (doStarportTechlabUpgrades) { //if at least 1 banshee
-            starportUpgradeList.stream()
-                    .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
-                    .filter(upgrade -> upgrade != Upgrades.BANSHEE_SPEED || ArmyManager.doOffense) //don't get banshee speed until on the offense
-                    .findFirst()
-                    .ifPresent(upgrade -> {
-                        UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
-                                .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
-                                .findFirst()
-                                .ifPresent(techLab -> {
-                                    if (!Purchase.isUpgradeQueued(upgrade)) {
-                                        KetrocBot.purchaseQueue.addFirst(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
-                                    }
-                                });
-                    });
-        }
+        starportUpgradeList.stream()
+                .filter(upgrade -> !starportUpgradesInProgress.contains(upgrade))
+                .filter(upgrade -> upgrade != Upgrades.BANSHEE_SPEED || ArmyManager.doOffense) //don't get banshee speed until on the offense
+                .findFirst()
+                .ifPresent(upgrade -> {
+                    UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+                            .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
+                            .findFirst()
+                            .ifPresent(techLab -> {
+                                if (!Purchase.isUpgradeQueued(upgrade)) {
+                                    KetrocBot.purchaseQueue.addFirst(new PurchaseUpgrade(upgrade, Bot.OBS.getUnit(techLab.getTag())));
+                                }
+                            });
+                });
     }
 
     private static void getStarportUpgrades() { //TODO: don't start if making vikings

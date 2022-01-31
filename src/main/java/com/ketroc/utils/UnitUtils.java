@@ -183,7 +183,7 @@ public class UnitUtils {
             Units.ZERG_OVERLORD, Units.ZERG_TRANSPORT_OVERLORD_COCOON, Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED,
             Units.ZERG_OVERLORD_TRANSPORT, Units.ZERG_OVERLORD_COCOON, Units.ZERG_MUTALISK,
             Units.PROTOSS_OBSERVER_SIEGED, Units.PROTOSS_ORACLE, Units.PROTOSS_WARP_PRISM,
-            Units.PROTOSS_WARP_PRISM_PHASING, //Units.PROTOSS_OBSERVER, viking dive code seems better atm
+            Units.PROTOSS_WARP_PRISM_PHASING, Units.PROTOSS_OBSERVER,
             Units.TERRAN_MEDIVAC, Units.TERRAN_BANSHEE, Units.TERRAN_LIBERATOR, Units.TERRAN_LIBERATOR_AG));
 
     public static final Set<Units> DETECTOR_TYPES = new HashSet<>(Set.of(

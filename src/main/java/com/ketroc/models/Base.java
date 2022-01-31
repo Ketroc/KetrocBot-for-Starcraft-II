@@ -809,6 +809,7 @@ public class Base {
                 Position.rotateTowards(farPatchMiningMidpoint, ccPos, getResourceMidPoint(), -25));
         turretPos = Position.moveClear(turretPos, ccPos, 3.5f);
         if (!PlacementMap.canFit2x2(turretPos)) {
+            PlacementMap.canFit2x2(turretPos);
             turretPos = farPatchMiningMidpoint;
         }
         turrets.add(new DefenseUnitPositions(turretPos, null));

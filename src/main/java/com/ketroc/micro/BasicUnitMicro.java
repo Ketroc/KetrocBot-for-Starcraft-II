@@ -280,7 +280,7 @@ public class BasicUnitMicro {
         }
     }
 
-    protected boolean isSafe() {
+    public boolean isSafe() {
         return isSafe(unit.unit().getPosition().toPoint2d());
     }
 

@@ -6,6 +6,7 @@ public final class MapNames {
     public static final String ASCENSION_TO_AIUR = "Ascension to Aiur LE";
     public static final String CATALYST = "Catalyst LE";
     public static final String CURIOUS_MINDS_AIE = "Curious Minds AIE";
+    public static final String BERLINGRAD_AIE = "Berlingrad AIE";
     public static final String BLACKBURN_AIE = "Blackburn AIE";
     public static final String DEATH_AURA = "Deathaura LE";
     public static final String DEATH_AURA505 = "Deathaura 5.0.5";
@@ -24,6 +25,7 @@ public final class MapNames {
     public static final String GOLDEN_WALL = "Golden Wall LE";
     public static final String GOLDEN_WALL505 = "Golden Wall 5.0.5";
     public static final String GOLDEN_WALL506 = "Golden Wall 5.0.6";
+    public static final String HARDWIRE_AIE = "Hardwire AIE";
     public static final String ICE_AND_CHROME = "Ice and Chrome LE";
     public static final String ICE_AND_CHROME505 = "Ice and Chrome LE 5.0.5";
     public static final String ICE_AND_CHROME506 = "Ice and Chrome 5.0.6";

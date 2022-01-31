@@ -85,7 +85,7 @@ public class BuildManager {
             }
         } else {
             //build factory units
-            if (BunkerContain.proxyBunkerLevel != 2) {
+            if (BunkerContain.proxyBunkerLevel != 2 || Strategy.DO_USE_CYCLONES) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
                     if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
                         UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
@@ -120,9 +120,9 @@ public class BuildManager {
         }
 
         //build factory logic
-        if (!doPrioritizeStarportUnits()) {
-            buildFactoryLogic();
-        }
+//        if (!doPrioritizeStarportUnits()) { TODO: factory production only in build order atm
+//            buildFactoryLogic();
+//        }
 
         //build starport logic
         buildStarportLogic();
@@ -625,8 +625,7 @@ public class BuildManager {
         for (UnitInPool factoryUip : GameCache.factoryList) {
             Unit factory = factoryUip.unit();
             if (UnitUtils.getOrder(factory) != null ||
-                    PurchaseUnit.contains(factoryUip) ||
-                    UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1) {
+                    PurchaseUnit.contains(factoryUip)) { // || UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1
                 continue;
             }
 
@@ -732,7 +731,7 @@ public class BuildManager {
     }
 
     public static void liftFactory(Unit factory) {
-        //wait for factory to finish
+        //wait for factory to finish TODO: cancel if 2nd+ factory
         if (factory.getBuildProgress() != 1f) {
             return;
         }
@@ -765,41 +764,42 @@ public class BuildManager {
                     LocationConstants.STARPORTS.add(factoryPos);
                 }
             }
-            LocationConstants.STARPORTS.addAll(LocationConstants.FACTORIES);
-            LocationConstants.FACTORIES.clear();
+//            LocationConstants.STARPORTS.addAll(LocationConstants.FACTORIES);
+//            LocationConstants.FACTORIES.clear();
         }
     }
 
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starportUip : GameCache.starportList) {
-            if (UnitUtils.getOrder(starportUip.unit()) == null || PurchaseUnit.contains(starportUip)) {
-                Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING ||
-                        Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
-                        (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) ?
-                                tankVikingDecideStarportUnit() :
-                                decideStarportUnit();
-                if (unitToProduce == null) {
-                    return;
+            if (UnitUtils.getOrder(starportUip.unit()) != null || PurchaseUnit.contains(starportUip)) {
+                continue;
+            }
+            Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING ||
+                    Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+                    (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) ?
+                            tankVikingDecideStarportUnit() :
+                            decideStarportUnit();
+            if (unitToProduce == null) {
+                return;
+            }
+            Units unitType = Bot.abilityToUnitType.get(unitToProduce);
+            //get add-on if required
+            if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
+                    (Bot.OBS.getFoodUsed() >= 198 ||
+                    ((unitToProduce == Abilities.TRAIN_RAVEN ||
+                            unitToProduce == Abilities.TRAIN_BANSHEE ||
+                            unitToProduce == Abilities.TRAIN_BATTLECRUISER)))) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
+            }
+            else if (UnitUtils.canAfford(unitType)) {
+                if (unitToProduce == Abilities.TRAIN_MEDIVAC) {
+                    Chat.tag("MEDIVAC");
                 }
-                Units unitType = Bot.abilityToUnitType.get(unitToProduce);
-                //get add-on if required
-                if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
-                        (Bot.OBS.getFoodUsed() >= 198 ||
-                        ((unitToProduce == Abilities.TRAIN_RAVEN ||
-                                unitToProduce == Abilities.TRAIN_BANSHEE ||
-                                unitToProduce == Abilities.TRAIN_BATTLECRUISER)))) {
-                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
+                ActionHelper.unitCommand(starportUip.unit(), unitToProduce, false);
+                if (!openingStarportUnits.isEmpty()) {
+                    openingStarportUnits.remove(0);
                 }
-                else if (UnitUtils.canAfford(unitType)) {
-                    if (unitToProduce == Abilities.TRAIN_MEDIVAC) {
-                        Chat.tag("MEDIVAC");
-                    }
-                    ActionHelper.unitCommand(starportUip.unit(), unitToProduce, false);
-                    if (!openingStarportUnits.isEmpty()) {
-                        openingStarportUnits.remove(0);
-                    }
-                    Cost.updateBank(unitType);
-                }
+                Cost.updateBank(unitType);
             }
         }
     }
@@ -1021,18 +1021,18 @@ public class BuildManager {
     }
 
     private static void buildFactoryLogic() {
-        if ((UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 2 || !LocationConstants.FACTORIES.isEmpty()) &&
-                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
-                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE ||
-                        (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) &&
-                UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
-                !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
-                !LocationConstants.FACTORIES.isEmpty() &&
-                (!Strategy.ENEMY_DOES_BANSHEE_HARASS || !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_RAVEN).isEmpty())) {
-            if (isAllProductionStructuresBusy()) {
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
-            }
-        }
+//        if ((UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 2 || !LocationConstants.FACTORIES.isEmpty()) &&
+//                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
+//                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE ||
+//                        (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) &&
+//                UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
+//                !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
+//                !LocationConstants.FACTORIES.isEmpty() &&
+//                (!Strategy.ENEMY_DOES_BANSHEE_HARASS || !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_RAVEN).isEmpty())) {
+//            if (isAllProductionStructuresBusy()) {
+//                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+//            }
+//        }
     }
 
     private static void buildStarportLogic() {

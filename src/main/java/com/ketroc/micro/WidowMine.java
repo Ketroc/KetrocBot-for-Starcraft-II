@@ -220,7 +220,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     @Override
-    protected boolean isSafe() {
+    public boolean isSafe() {
         return this.isSafe(unit.unit().getPosition().toPoint2d());
     }
 

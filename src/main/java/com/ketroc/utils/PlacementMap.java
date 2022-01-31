@@ -3,42 +3,62 @@ package com.ketroc.utils;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class PlacementMap {
     public static boolean[][] placementMap = new boolean[400][400];
     public static boolean[][] ccPlacementMap = new boolean[400][400];
 
     /* shape:
-        ..000....
-        ..00000..
-        ..00000..
+        ..XXX....
+        00XXXXX..
+        00XXXXX..
         000000000
         .0000000. */
     public static final Point2d[] _3x3_WITH_ADDON_SHAPE = new Point2d[] {
             Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
-            Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
+            Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
             Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1), Point2d.of(3, -1),
             Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2), Point2d.of(5, -2),
             Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3)};
+    /* shape:
+        ..XXX..
+        00XXX..
+        00XXX..
+        0000000
+        .00000. */
     public static final Point2d[] _3x3_SHAPE = new Point2d[] {
             Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
-            Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0),
+            Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0),
             Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1),
             Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2),
             Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3)};
+    /* shape:
+        ..XXXXX..
+        .0XXXXX..
+        00XXXXX..
+        00XXXXX..
+        00XXXXX00
+        000000000
+        ..00000.. */
     public static final Point2d[] _5x5_SHAPE = new Point2d[] {
             Point2d.of(-2, 2), Point2d.of(-1, 2), Point2d.of(0, 2), Point2d.of(1, 2), Point2d.of(2, 2),
-            Point2d.of(-3, 1), Point2d.of(-2, 1), Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1), Point2d.of(2, 1),
+            Point2d.of(-4, 1), Point2d.of(-3, 1), Point2d.of(-2, 1), Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1), Point2d.of(2, 1),
             Point2d.of(-4, 0), Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0),
             Point2d.of(-4, -1), Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1),
             Point2d.of(-4, -2), Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2),
-            Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3),
+            Point2d.of(-4, -3), Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3),
             Point2d.of(-2, -4), Point2d.of(-1, -4), Point2d.of(0, -4), Point2d.of(1, -4), Point2d.of(2, -4)};
     public static final Point2d[] GAS_CC_BLOCK_SHAPE = new Point2d[] {
             Point2d.of(-3, 4), Point2d.of(-2, 4), Point2d.of(-1, 4), Point2d.of(0, 4), Point2d.of(1, 4), Point2d.of(2, 4), Point2d.of(3, 4),
@@ -64,35 +84,42 @@ public class PlacementMap {
 
 
     public static void onGameStart() {
-        //LocationConstants.FACTORIES.clear();//TODO: delete
         initializeMap(false);
-//TODO:bring back - this is code to find main base positions
-//        setColumn();
-//        populateMainBase3x3WithAddonPos(buildColumn, true);
-//        replaceFactoriesWithCommandCenters();
-//        populateMainBase3x3Pos(buildColumn, true);
-//        topUp3x3List();
-//        populateDepotPos();
+        setColumn();
+        populateMainBase3x3WithAddonPos(buildColumn, true);
+        replaceStarportsWithCommandCenters();
+        populateMainBase3x3Pos(buildColumn, true);
+        topUp5x5List();
+        topUp3x3List();
+        populateDepotPos();
 
-        //visualizePlacementMap();
+        visualizePlacementMap();
+        LocationConstants.STARPORTS.forEach(p -> visualize3x3WithAddOn(p));
+        visualStructureListOrder(LocationConstants.STARPORTS, Color.RED);
+        LocationConstants.extraDepots.forEach(p -> visualize2x2(p));
+        visualStructureListOrder(LocationConstants.extraDepots, Color.TEAL);
+        LocationConstants._3x3Structures.forEach(p -> visualize3x3(p));
+        visualStructureListOrder(LocationConstants._3x3Structures, Color.BLUE);
+        LocationConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
+        visualStructureListOrder(LocationConstants.MACRO_OCS, Color.YELLOW);
         //create2CellColumns();
     }
 
     private static void populateDepotPos() {
-        int depotNum = 0;
+        List<Point2d> depotPosList = new ArrayList<>();
         for (int x=(int)(LocationConstants.MAX_X - 0.5f); x>LocationConstants.MIN_X; x--) {
             for (int y=(int)(LocationConstants.MIN_Y + 0.5f); y<LocationConstants.MAX_Y; y++) {
                 Point2d pos = Point2d.of(x, y);
                 if ((x+2) % 7 == buildColumn && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
                     if (canFit2x2(pos) && (pos.distance(Bot.OBS.getStartLocation().toPoint2d()) > 6.5f || !isNodeNearby(pos))) {
-                        visualize2x2(pos);
-                        DebugHelper.drawText(++depotNum + "", pos, Color.TEAL, 14);
                         makeUnavailable(Units.TERRAN_SUPPLY_DEPOT, pos);
-                        LocationConstants.extraDepots.add(pos);
+                        depotPosList.add(pos);
                     }
                 }
             }
         }
+        depotPosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
+        LocationConstants.extraDepots.addAll(depotPosList);
     }
 
     private static boolean isNodeNearby(Point2d pos) {
@@ -102,10 +129,38 @@ public class PlacementMap {
     }
 
     private static void topUp3x3List() {
+        if (LocationConstants._3x3Structures.size() < 4 &&
+                !LocationConstants._3x3Structures.contains(LocationConstants.MID_WALL_3x3)) {
+            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+            LocationConstants._3x3Structures.add(1, LocationConstants.MID_WALL_3x3);
+        }
         while (LocationConstants._3x3Structures.size() < 4) {
-            Point2d lastFactoryPos = LocationConstants.FACTORIES.remove(LocationConstants.FACTORIES.size() - 1);
-            LocationConstants._3x3Structures.add(lastFactoryPos);
-            LocationConstants.extraDepots.add(getAddOnPos(lastFactoryPos));
+            Point2d lastStarportPos = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size() - 1);
+            makeAvailable(Units.TERRAN_TECHLAB, lastStarportPos.add(2.5f, -0.5f));
+            LocationConstants._3x3Structures.add(lastStarportPos);
+            LocationConstants.extraDepots.add(getAddOnPos(lastStarportPos));
+        }
+    }
+
+    private static void topUp5x5List() {
+        if (!LocationConstants.MACRO_OCS.isEmpty()) {
+            return;
+        }
+        for (int i = LocationConstants.STARPORTS.size() - 1; i >= 0; i--) {
+            Point2d starportPos = LocationConstants.STARPORTS.get(i);
+            Point2d aboveStarportPos = starportPos.add(0, 3);
+            if (LocationConstants.STARPORTS.contains(aboveStarportPos)) {
+                LocationConstants.STARPORTS.remove(starportPos);
+                LocationConstants.STARPORTS.remove(aboveStarportPos);
+                makeAvailable(Units.TERRAN_STARPORT, starportPos);
+                makeAvailable(Units.TERRAN_TECHLAB, starportPos.add(2.5f, -0.5f));
+                makeAvailable(Units.TERRAN_STARPORT, aboveStarportPos);
+                makeAvailable(Units.TERRAN_TECHLAB, aboveStarportPos.add(2.5f, -0.5f));
+                Point2d ccPos = starportPos.add(1, 1);
+                LocationConstants.MACRO_OCS.add(ccPos);
+                makeUnavailable(Units.TERRAN_COMMAND_CENTER, ccPos);
+                return;
+            }
         }
     }
 
@@ -132,39 +187,29 @@ public class PlacementMap {
 
         //remove start CC from to placement grid
         makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());
-//        if (isColumnSet) {
-//            DebugHelper.drawBox(Bot.OBS.getStartLocation().toPoint2d(), Color.YELLOW, 2.5f);
-//        }
 
-//        //remove ramp wall
-//        makeUnavailable2x2(LocationConstants.WALL_2x2);
-//        makeUnavailable3x3(LocationConstants.WALL_3x3);
-//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3);
-//        DebugHelper.drawBox(LocationConstants.WALL_2x2, Color.YELLOW, 1f);
-//        DebugHelper.drawBox(LocationConstants.WALL_3x3, Color.YELLOW, 1.5f);
-//        DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.YELLOW, 1.5f);
-//
-//        //make space around ramp entrance
-//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(-2, -2));
-//        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(0, -2));;
-//        //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
-//
-//
-//        //remove reaper jump wall
-//        if (LocationConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
-//            LocationConstants.reaperBlockDepots.forEach(p -> {
-//                makeUnavailable2x2(p);
-//                if (isColumnSet) {
-//                    DebugHelper.drawBox(p, Color.YELLOW, 1f);
-//                }
-//            });
-//            LocationConstants.reaperBlock3x3s.forEach(p -> {
-//                makeUnavailable3x3(p);
-//                if (isColumnSet) {
-//                    DebugHelper.drawBox(p, Color.YELLOW, 1.5f);
-//                }
-//            });
-//        }
+        //remove ramp wall
+        makeUnavailable2x2(LocationConstants.WALL_2x2);
+        makeUnavailable3x3(LocationConstants.WALL_3x3);
+        makeUnavailable3x3(LocationConstants.MID_WALL_3x3);
+
+        //make space around ramp entrance
+        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(-2, -2));
+        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(0, -2));
+        //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
+
+
+        //remove reaper jump wall
+        if (LocationConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
+            LocationConstants.reaperBlockDepots.forEach(p -> makeUnavailable2x2(p));
+            LocationConstants.reaperBlock3x3s.forEach(p -> makeUnavailable3x3(p));
+        }
+    }
+
+    public static void visualStructureListOrder(List<Point2d> structureList, Color color) {
+        for (int i=0; i<structureList.size(); i++) {
+            DebugHelper.drawText((i+1) + "", structureList.get(i), color);
+        }
     }
 
     public static void visualizePlacementMap() {
@@ -421,8 +466,8 @@ public class PlacementMap {
         }
     }
 
-    private static Point2d getAddOnPos(Point2d factoryPos) {
-        return factoryPos.add(Point2d.of(2.5f, -0.5f));
+    private static Point2d getAddOnPos(Point2d starportPos) {
+        return starportPos.add(Point2d.of(2.5f, -0.5f));
     }
 
     public static void makeAvailable(Unit structure) {
@@ -543,7 +588,7 @@ public class PlacementMap {
     }
 
     public static void visualize5x5(Point2d placementPos) {
-        DebugHelper.drawBox(placementPos, Color.BLUE, 2.45f);
+        DebugHelper.drawBox(placementPos, Color.YELLOW, 2.45f);
     }
 
     public static void visualize2x2(Point2d placementPos) {
@@ -552,39 +597,43 @@ public class PlacementMap {
 
     public static int populateMainBase3x3WithAddonPos(int columnIndex, boolean isColumnSet) {
         int num3x3WithAddons = 0;
+        List<Point2d> _3x3PosList = new ArrayList<>();
         for (int x=(int)(LocationConstants.MIN_X + 0.5f); x<LocationConstants.MAX_X; x++) {
             for (int y=(int)(LocationConstants.MAX_Y - 0.5f); y>LocationConstants.MIN_Y; y--) {
                 Point2d pos = Point2d.of(x + 0.5f, y + 0.5f);
                 if (x % 7 == columnIndex && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
                     if (canFitPathingShape(pos, _3x3_WITH_ADDON_SHAPE)) {
                         num3x3WithAddons++;
-                        makeUnavailable(Units.TERRAN_FACTORY, pos);
+                        makeUnavailable(Units.TERRAN_STARPORT, pos);
                         if (isColumnSet) {
-                            DebugHelper.drawText(num3x3WithAddons + "", pos, Color.RED, 14);
-                            LocationConstants.FACTORIES.add(pos);
+                            _3x3PosList.add(pos);
                         }
                     }
                 }
             }
         }
+        _3x3PosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
+        LocationConstants.STARPORTS.addAll(_3x3PosList);
         return num3x3WithAddons;
     }
 
-    private static void replaceFactoriesWithCommandCenters() {
-        for (int i=0; i<LocationConstants.FACTORIES.size(); i++) {
-            Point2d factoryPos = LocationConstants.FACTORIES.get(i);
-            makeAvailable(Units.TERRAN_FACTORY, factoryPos);
-            Point2d ccPos = factoryPos.add(1, -1);
+    private static void replaceStarportsWithCommandCenters() {
+        List<Point2d> _5x5PosList = new ArrayList<>();
+        for (int i=0; i<LocationConstants.STARPORTS.size(); i++) {
+            Point2d starportPos = LocationConstants.STARPORTS.get(i);
+            makeAvailable(Units.TERRAN_STARPORT, starportPos);
+            makeAvailable(Units.TERRAN_TECHLAB, starportPos.add(2.5f, -0.5f));
+            Point2d ccPos = starportPos.add(1, -1);
             if (canFitPathingShape(ccPos, _5x5_SHAPE)) {
-                LocationConstants.MACRO_OCS.add(ccPos);
-                LocationConstants.FACTORIES.remove(i--);
-                visualize5x5(ccPos);
+                _5x5PosList.add(ccPos);
+                LocationConstants.STARPORTS.remove(i--);
                 makeUnavailable(Units.TERRAN_COMMAND_CENTER, ccPos);
             } else {
-                visualize3x3WithAddOn(factoryPos);
-                makeUnavailable(Units.TERRAN_FACTORY, factoryPos);
+                makeUnavailable(Units.TERRAN_STARPORT, starportPos);
             }
         }
+        _5x5PosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
+        LocationConstants.MACRO_OCS.addAll(_5x5PosList);
     }
 
     public static int populateMainBase3x3Pos(int columnIndex, boolean doVisualize) {
@@ -608,12 +657,12 @@ public class PlacementMap {
     }
 
     public static void setColumn() {
-        int bestColumnNumFactories = 0;
+        int bestColumnNumStarports = 0;
         for (int i=0; i<7; i++) {
             initializeMap(false);
-            int numFactories = populateMainBase3x3WithAddonPos(i, false);
-            if (numFactories > bestColumnNumFactories) {
-                bestColumnNumFactories = numFactories;
+            int numStarports = populateMainBase3x3WithAddonPos(i, false);
+            if (numStarports > bestColumnNumStarports) {
+                bestColumnNumStarports = numStarports;
                 buildColumn = i;
             }
         }

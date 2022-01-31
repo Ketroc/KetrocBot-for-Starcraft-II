@@ -354,8 +354,8 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 break;
             case TERRAN_FACTORY:
-                LocationConstants.FACTORIES.add(pos);
-                break;
+//                LocationConstants.FACTORIES.add(pos);
+//                break;
             case TERRAN_STARPORT:
                 LocationConstants.STARPORTS.add(pos);
                 break;
@@ -408,16 +408,16 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 return false;
             case TERRAN_FACTORY:
-                if (!LocationConstants.FACTORIES.isEmpty()) {
-                    position = LocationConstants.FACTORIES.stream()
-                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_FACTORY))
-                            .findFirst().orElse(null);
-                    if (position != null) {
-                        LocationConstants.FACTORIES.remove(position);
-                        return true;
-                    }
-                }
-                return false;
+//                if (!LocationConstants.FACTORIES.isEmpty()) {
+//                    position = LocationConstants.FACTORIES.stream()
+//                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_FACTORY))
+//                            .findFirst().orElse(null);
+//                    if (position != null) {
+//                        LocationConstants.FACTORIES.remove(position);
+//                        return true;
+//                    }
+//                }
+//                return false;
             case TERRAN_STARPORT:
                 if (!LocationConstants.STARPORTS.isEmpty()) {
                     position = LocationConstants.STARPORTS.stream()

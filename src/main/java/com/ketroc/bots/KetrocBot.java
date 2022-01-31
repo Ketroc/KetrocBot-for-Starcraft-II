@@ -266,7 +266,8 @@ public class KetrocBot extends Bot {
 
                         //get OC
                         if (GameCache.baseList.get(0).getCc() != null &&
-                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER) {
+                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER &&
+                                !Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
                             purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
                         }
 
@@ -495,12 +496,9 @@ public class KetrocBot extends Bot {
                                 }
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
                                 break;
-                            case TERRAN_FACTORY: case TERRAN_FACTORY_FLYING:
-//                                if (!LocationConstants.STARPORTS.isEmpty()) { //TODO: use same location for factory
-//                                    purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.STARPORTS.get(LocationConstants.STARPORTS.size()-1)));
-//                                }
-                                LocationConstants.FACTORIES.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
-                                break;
+                            case TERRAN_FACTORY:
+//                                LocationConstants.FACTORIES.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+//                                break;
                             case TERRAN_STARPORT:
                                 LocationConstants.STARPORTS.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 break;
@@ -688,7 +686,7 @@ public class KetrocBot extends Bot {
         Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
-        Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
+        //Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
         Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
         Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
         Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());

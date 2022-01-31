@@ -705,6 +705,7 @@ public class ArmyManager {
                 .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
                         !enemyAirUip.unit().getHallucination().orElse(false) &&
                         !Ignored.contains(enemyAirUip.getTag()) &&
+                        AirUnitKillSquad.canAdd(enemyAirUip) &&
                         InfluenceMaps.getValue(
                                 InfluenceMaps.pointThreatToAirValue,
                                 Position.towards(enemyAirUip.unit(), ArmyManager.vikingMidPoint, 9)

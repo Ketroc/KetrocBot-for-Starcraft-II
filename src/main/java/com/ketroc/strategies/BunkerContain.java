@@ -101,7 +101,7 @@ public class BunkerContain {
             UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
             ((PurchaseStructure) KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
-        if (Time.nowFrames() == Time.toFrames("0:44")) {
+        if (Time.nowFrames() == Time.toFrames("0:47")) {
             addNewRepairScv();
         }
         sendFirstScv();
@@ -127,7 +127,8 @@ public class BunkerContain {
             else if (factorySwap.removeMe) {
                 factorySwap = null;
                 KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
-                KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
+                int _2ndTankIndex = Math.min(2, KetrocBot.purchaseQueue.size());
+                KetrocBot.purchaseQueue.add(_2ndTankIndex, new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
             }
             else {
                 factorySwap.onStep();
@@ -148,11 +149,9 @@ public class BunkerContain {
             //if not using factory for tanks
             if (factory != null && factorySwap == null) {
                 if (UnitUtils.getOrder(factory.unit()) == null) {
-                    if ((tank1 == null || tank2 == null)) {
-                        //buildTanks();
-                    }
-                    //when 2 tanks are out
-                    else if (!factory.unit().getFlying().orElse(true)) {
+                    if (!Strategy.DO_USE_CYCLONES &&
+                            tank1 != null && tank2 != null &&
+                            !factory.unit().getFlying().orElse(true)) {
                         BuildManager.liftFactory(factory.unit());
                         factory = null;
                     }
@@ -352,7 +351,7 @@ public class BunkerContain {
     }
 
     private static void sendFirstScv() {
-        if (!isFirstScvSent && Time.nowFrames() >= Time.toFrames(0)) {
+        if (!isFirstScvSent && Time.nowFrames() >= 96) {
             Unit firstScv = repairScvList.get(0).unit();
             Base.releaseScv(firstScv);
             if (UnitUtils.isCarryingResources(firstScv)) {
@@ -620,7 +619,7 @@ public class BunkerContain {
     }
 
     public static void addNewRepairScv() {
-        UnitInPool newScv = WorkerManager.getScv(bunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
+        UnitInPool newScv = WorkerManager.getScvEmptyHands(bunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
         if (newScv == null) {
             return;
         }
@@ -802,25 +801,25 @@ public class BunkerContain {
     }
 
     public static void onBarracksComplete() {
-        //add remainder of build order
-        if (proxyBunkerLevel == 2) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-//            Point2d factoryPos = Position.towards(
-//                    LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 3),
-//                    LocationConstants.pointOnMyRamp,
-//                    3);
-//            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
-        }
-
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
-
-        if (proxyBunkerLevel == 2) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-        }
+//        //add remainder of build order
+//        if (proxyBunkerLevel == 2) {
+//            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+////            Point2d factoryPos = Position.towards(
+////                    LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 3),
+////                    LocationConstants.pointOnMyRamp,
+////                    3);
+////            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
+//        }
+//
+//        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+//
+//        if (proxyBunkerLevel == 2) {
+//            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+//            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+//        }
 
         //set barracks rally
-        Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null)
+        Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null && LocationConstants.opponentRace == Race.TERRAN)
                 ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.myRampPos, 2)
                 : behindBunkerPos;
         ActionHelper.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
@@ -887,7 +886,7 @@ public class BunkerContain {
         ActionHelper.unitCommand(factory.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
 
         Point2d turretPos = calcTurretPosition(true);
-        if (!Strategy.NO_TURRETS) {
+        if (!Strategy.NO_TURRETS && LocationConstants.opponentRace == Race.TERRAN) {
             if (turretPos != null) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
             }

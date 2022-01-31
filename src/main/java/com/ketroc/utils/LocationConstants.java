@@ -6,11 +6,10 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.GameCache;
-import com.ketroc.geometry.Position;
-import com.ketroc.models.*;
-import com.ketroc.strategies.Strategy;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.models.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,10 +65,10 @@ public class LocationConstants {
 
     public static void onGameStart(UnitInPool mainCC) {
         if (MAP.contains("Golden Wall") || MAP.contains("Blackburn")) { //isTopSpawn == the left spawn for this map
-            isTopSpawn = mainCC.unit().getPosition().getX() < Bot.OBS.getGameInfo().findCenterOfMap().getX();
+            isTopSpawn = isMySpawnLeft();
         }
         else {
-            isTopSpawn = mainCC.unit().getPosition().getY() > Bot.OBS.getGameInfo().findCenterOfMap().getY();
+            isTopSpawn = isMySpawnTop();
         }
         setStructureLocations();
         setBaseLocations();
@@ -222,6 +221,9 @@ public class LocationConstants {
             case MapNames.BLACKBURN_AIE:
                 setLocationsForBlackburn(isTopSpawn);
                 break;
+            case MapNames.BERLINGRAD_AIE:
+                setLocationsForBerlingrad(isTopSpawn);
+                break;
             case MapNames.CATALYST:
                 setLocationsForCatalyst(isTopSpawn);
                 break;
@@ -260,6 +262,9 @@ public class LocationConstants {
             case MapNames.GOLDEN_WALL505:
             case MapNames.GOLDEN_WALL506:
                 setLocationsForGoldenWall(isTopSpawn);
+                break;
+            case MapNames.HARDWIRE_AIE:
+                setLocationsForHardwire(isTopSpawn);
                 break;
             case MapNames.ICE_AND_CHROME:
             case MapNames.ICE_AND_CHROME505:
@@ -340,47 +345,47 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(172.5f, 150.5f));
-            _3x3Structures.add(Point2d.of(153.5f, 157.5f));
+//            _3x3Structures.add(Point2d.of(172.5f, 150.5f));
+//            _3x3Structures.add(Point2d.of(153.5f, 157.5f));
 
             BUNKER_NATURAL = Point2d.of(136.5f, 144.5f);
-            FACTORIES.add(Point2d.of(159.5f, 141.5f));
-            FACTORIES.add(Point2d.of(159.5f, 144.5f));
+//            FACTORIES.add(Point2d.of(159.5f, 141.5f));
+//            FACTORIES.add(Point2d.of(159.5f, 144.5f));
 
-            STARPORTS.add(Point2d.of(170.5f, 153.5f));
-            STARPORTS.add(Point2d.of(160.5f, 153.5f));
-            STARPORTS.add(Point2d.of(165.5f, 152.5f));
-            STARPORTS.add(Point2d.of(176.5f, 148.5f));
-            STARPORTS.add(Point2d.of(176.5f, 144.5f));
-            STARPORTS.add(Point2d.of(176.5f, 140.5f));
-            STARPORTS.add(Point2d.of(172.5f, 137.5f));
-            STARPORTS.add(Point2d.of(153.5f, 137.5f));
-            STARPORTS.add(Point2d.of(153.5f, 134.5f));
-            STARPORTS.add(Point2d.of(154.5f, 131.5f));
-            STARPORTS.add(Point2d.of(159.5f, 148.5f));
-            STARPORTS.add(Point2d.of(150.5f, 160.5f));
-            STARPORTS.add(Point2d.of(145.5f, 161.5f));
-
-            MACRO_OCS.add(Point2d.of(166.5f, 138.5f));
-            MACRO_OCS.add(Point2d.of(160.5f, 137.5f));
-            MACRO_OCS.add(Point2d.of(172.5f, 133.5f));
-            MACRO_OCS.add(Point2d.of(167.5f, 133.5f));
-            MACRO_OCS.add(Point2d.of(162.5f, 132.5f));
+//            STARPORTS.add(Point2d.of(170.5f, 153.5f));
+//            STARPORTS.add(Point2d.of(160.5f, 153.5f));
+//            STARPORTS.add(Point2d.of(165.5f, 152.5f));
+//            STARPORTS.add(Point2d.of(176.5f, 148.5f));
+//            STARPORTS.add(Point2d.of(176.5f, 144.5f));
+//            STARPORTS.add(Point2d.of(176.5f, 140.5f));
+//            STARPORTS.add(Point2d.of(172.5f, 137.5f));
+//            STARPORTS.add(Point2d.of(153.5f, 137.5f));
+//            STARPORTS.add(Point2d.of(153.5f, 134.5f));
+//            STARPORTS.add(Point2d.of(154.5f, 131.5f));
+//            STARPORTS.add(Point2d.of(159.5f, 148.5f));
+//            STARPORTS.add(Point2d.of(150.5f, 160.5f));
+//            STARPORTS.add(Point2d.of(145.5f, 161.5f));
+//
+//            MACRO_OCS.add(Point2d.of(166.5f, 138.5f));
+//            MACRO_OCS.add(Point2d.of(160.5f, 137.5f));
+//            MACRO_OCS.add(Point2d.of(172.5f, 133.5f));
+//            MACRO_OCS.add(Point2d.of(167.5f, 133.5f));
+//            MACRO_OCS.add(Point2d.of(162.5f, 132.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(168.0f, 154.0f));
-            extraDepots.add(Point2d.of(163.0f, 155.0f));
-            extraDepots.add(Point2d.of(161.0f, 156.0f));
-            extraDepots.add(Point2d.of(160.0f, 151.0f));
-            extraDepots.add(Point2d.of(158.0f, 153.0f));
-            extraDepots.add(Point2d.of(158.0f, 151.0f));
-            extraDepots.add(Point2d.of(175.0f, 151.0f));
-            extraDepots.add(Point2d.of(177.0f, 138.0f));
-            extraDepots.add(Point2d.of(170.0f, 130.0f));
-            extraDepots.add(Point2d.of(168.0f, 130.0f));
-            extraDepots.add(Point2d.of(166.0f, 130.0f));
-            extraDepots.add(Point2d.of(164.0f, 129.0f));
+//            extraDepots.add(Point2d.of(168.0f, 154.0f));
+//            extraDepots.add(Point2d.of(163.0f, 155.0f));
+//            extraDepots.add(Point2d.of(161.0f, 156.0f));
+//            extraDepots.add(Point2d.of(160.0f, 151.0f));
+//            extraDepots.add(Point2d.of(158.0f, 153.0f));
+//            extraDepots.add(Point2d.of(158.0f, 151.0f));
+//            extraDepots.add(Point2d.of(175.0f, 151.0f));
+//            extraDepots.add(Point2d.of(177.0f, 138.0f));
+//            extraDepots.add(Point2d.of(170.0f, 130.0f));
+//            extraDepots.add(Point2d.of(168.0f, 130.0f));
+//            extraDepots.add(Point2d.of(166.0f, 130.0f));
+//            extraDepots.add(Point2d.of(164.0f, 129.0f));
         } else {
             proxyBarracksPos = Point2d.of(99.5f, 131.5f);
             proxyBunkerPos = Point2d.of(136.5f, 146.5f);
@@ -401,46 +406,46 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(70.5f, 65.5f));
-            _3x3Structures.add(Point2d.of(70.5f, 46.5f));
+//            _3x3Structures.add(Point2d.of(70.5f, 65.5f));
+//            _3x3Structures.add(Point2d.of(70.5f, 46.5f));
 
             BUNKER_NATURAL = Point2d.of(86.5f, 58.5f);
-            FACTORIES.add(Point2d.of(63.5f, 61.5f));
-            FACTORIES.add(Point2d.of(63.5f, 58.5f));
-
-            STARPORTS.add(Point2d.of(60.5f, 49.5f));
-            STARPORTS.add(Point2d.of(49.5f, 52.5f));
-            STARPORTS.add(Point2d.of(54.5f, 52.5f));
-            STARPORTS.add(Point2d.of(64.5f, 52.5f));
-            STARPORTS.add(Point2d.of(46.5f, 61.5f));
-            STARPORTS.add(Point2d.of(46.5f, 56.5f));
-            STARPORTS.add(Point2d.of(49.5f, 66.5f));
-            STARPORTS.add(Point2d.of(66.5f, 72.5f));
-            STARPORTS.add(Point2d.of(67.5f, 69.5f));
-            STARPORTS.add(Point2d.of(64.5f, 67.5f));
-            STARPORTS.add(Point2d.of(63.5f, 64.5f));
-            STARPORTS.add(Point2d.of(74.5f, 44.5f));
-            STARPORTS.add(Point2d.of(79.5f, 42.5f));
-
-            MACRO_OCS.add(Point2d.of(57.5f, 65.5f));
-            MACRO_OCS.add(Point2d.of(51.5f, 70.5f));
-            MACRO_OCS.add(Point2d.of(56.5f, 70.5f));
-            MACRO_OCS.add(Point2d.of(61.5f, 71.5f));
+//            FACTORIES.add(Point2d.of(63.5f, 61.5f));
+//            FACTORIES.add(Point2d.of(63.5f, 58.5f));
+//
+//            STARPORTS.add(Point2d.of(60.5f, 49.5f));
+//            STARPORTS.add(Point2d.of(49.5f, 52.5f));
+//            STARPORTS.add(Point2d.of(54.5f, 52.5f));
+//            STARPORTS.add(Point2d.of(64.5f, 52.5f));
+//            STARPORTS.add(Point2d.of(46.5f, 61.5f));
+//            STARPORTS.add(Point2d.of(46.5f, 56.5f));
+//            STARPORTS.add(Point2d.of(49.5f, 66.5f));
+//            STARPORTS.add(Point2d.of(66.5f, 72.5f));
+//            STARPORTS.add(Point2d.of(67.5f, 69.5f));
+//            STARPORTS.add(Point2d.of(64.5f, 67.5f));
+//            STARPORTS.add(Point2d.of(63.5f, 64.5f));
+//            STARPORTS.add(Point2d.of(74.5f, 44.5f));
+//            STARPORTS.add(Point2d.of(79.5f, 42.5f));
+//
+//            MACRO_OCS.add(Point2d.of(57.5f, 65.5f));
+//            MACRO_OCS.add(Point2d.of(51.5f, 70.5f));
+//            MACRO_OCS.add(Point2d.of(56.5f, 70.5f));
+//            MACRO_OCS.add(Point2d.of(61.5f, 71.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(46.0f, 59.0f));
-            extraDepots.add(Point2d.of(47.0f, 54.0f));
-            extraDepots.add(Point2d.of(48.0f, 59.0f));
-            extraDepots.add(Point2d.of(51.0f, 50.0f));
-            extraDepots.add(Point2d.of(57.0f, 50.0f));
-            extraDepots.add(Point2d.of(62.0f, 47.0f));
-            extraDepots.add(Point2d.of(62.0f, 67.0f));
-            extraDepots.add(Point2d.of(55.0f, 50.0f));
-            extraDepots.add(Point2d.of(65.0f, 50.0f));
-            extraDepots.add(Point2d.of(48.0f, 64.0f));
-            extraDepots.add(Point2d.of(53.0f, 50.0f));
-            extraDepots.add(Point2d.of(54.0f, 67.0f));
+//            extraDepots.add(Point2d.of(46.0f, 59.0f));
+//            extraDepots.add(Point2d.of(47.0f, 54.0f));
+//            extraDepots.add(Point2d.of(48.0f, 59.0f));
+//            extraDepots.add(Point2d.of(51.0f, 50.0f));
+//            extraDepots.add(Point2d.of(57.0f, 50.0f));
+//            extraDepots.add(Point2d.of(62.0f, 47.0f));
+//            extraDepots.add(Point2d.of(62.0f, 67.0f));
+//            extraDepots.add(Point2d.of(55.0f, 50.0f));
+//            extraDepots.add(Point2d.of(65.0f, 50.0f));
+//            extraDepots.add(Point2d.of(48.0f, 64.0f));
+//            extraDepots.add(Point2d.of(53.0f, 50.0f));
+//            extraDepots.add(Point2d.of(54.0f, 67.0f));
         }
     }
 
@@ -740,47 +745,47 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(26.5f, 34.5f));
-            _3x3Structures.add(Point2d.of(26.5f, 30.5f));
+//            _3x3Structures.add(Point2d.of(26.5f, 34.5f));
+//            _3x3Structures.add(Point2d.of(26.5f, 30.5f));
 
             BUNKER_NATURAL = Point2d.of(42.5f, 59.5f);
-            FACTORIES.add(Point2d.of(55.5f, 40.5f));
-            FACTORIES.add(Point2d.of(52.5f, 38.5f));
-
-            STARPORTS.add(Point2d.of(26.5f, 26.5f));
-            STARPORTS.add(Point2d.of(26.5f, 38.5f));
-            STARPORTS.add(Point2d.of(30.5f, 22.5f));
-            STARPORTS.add(Point2d.of(35.5f, 21.5f));
-            STARPORTS.add(Point2d.of(40.5f, 21.5f));
-            STARPORTS.add(Point2d.of(45.5f, 32.5f));
-            STARPORTS.add(Point2d.of(45.5f, 35.5f));
-            STARPORTS.add(Point2d.of(44.5f, 38.5f));
-            STARPORTS.add(Point2d.of(39.5f, 35.5f));
-            STARPORTS.add(Point2d.of(38.5f, 38.5f));
-            STARPORTS.add(Point2d.of(32.5f, 38.5f));
-            STARPORTS.add(Point2d.of(28.5f, 48.5f));
-
-            MACRO_OCS.add(Point2d.of(41.5f, 31.5f));
-            MACRO_OCS.add(Point2d.of(46.5f, 28.5f));
-            MACRO_OCS.add(Point2d.of(46.5f, 23.5f));
-            MACRO_OCS.add(Point2d.of(52.5f, 24.5f));
-            MACRO_OCS.add(Point2d.of(52.5f, 29.5f));
-            MACRO_OCS.add(Point2d.of(53.5f, 34.5f));
+//            FACTORIES.add(Point2d.of(55.5f, 40.5f));
+//            FACTORIES.add(Point2d.of(52.5f, 38.5f));
+//
+//            STARPORTS.add(Point2d.of(26.5f, 26.5f));
+//            STARPORTS.add(Point2d.of(26.5f, 38.5f));
+//            STARPORTS.add(Point2d.of(30.5f, 22.5f));
+//            STARPORTS.add(Point2d.of(35.5f, 21.5f));
+//            STARPORTS.add(Point2d.of(40.5f, 21.5f));
+//            STARPORTS.add(Point2d.of(45.5f, 32.5f));
+//            STARPORTS.add(Point2d.of(45.5f, 35.5f));
+//            STARPORTS.add(Point2d.of(44.5f, 38.5f));
+//            STARPORTS.add(Point2d.of(39.5f, 35.5f));
+//            STARPORTS.add(Point2d.of(38.5f, 38.5f));
+//            STARPORTS.add(Point2d.of(32.5f, 38.5f));
+//            STARPORTS.add(Point2d.of(28.5f, 48.5f));
+//
+//            MACRO_OCS.add(Point2d.of(41.5f, 31.5f));
+//            MACRO_OCS.add(Point2d.of(46.5f, 28.5f));
+//            MACRO_OCS.add(Point2d.of(46.5f, 23.5f));
+//            MACRO_OCS.add(Point2d.of(52.5f, 24.5f));
+//            MACRO_OCS.add(Point2d.of(52.5f, 29.5f));
+//            MACRO_OCS.add(Point2d.of(53.5f, 34.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(43.0f, 23.0f));
-            extraDepots.add(Point2d.of(33.0f, 24.0f));
-            extraDepots.add(Point2d.of(43.0f, 25.0f));
-            extraDepots.add(Point2d.of(56.0f, 28.0f));
-            extraDepots.add(Point2d.of(28.0f, 23.0f));
-            extraDepots.add(Point2d.of(56.0f, 24.0f));
-            extraDepots.add(Point2d.of(50.0f, 33.0f));
-            extraDepots.add(Point2d.of(56.0f, 26.0f));
-            extraDepots.add(Point2d.of(29.0f, 40.0f));
-            extraDepots.add(Point2d.of(35.0f, 40.0f));
-            extraDepots.add(Point2d.of(50.0f, 35.0f));
-            extraDepots.add(Point2d.of(41.0f, 40.0f));
+//            extraDepots.add(Point2d.of(43.0f, 23.0f));
+//            extraDepots.add(Point2d.of(33.0f, 24.0f));
+//            extraDepots.add(Point2d.of(43.0f, 25.0f));
+//            extraDepots.add(Point2d.of(56.0f, 28.0f));
+//            extraDepots.add(Point2d.of(28.0f, 23.0f));
+//            extraDepots.add(Point2d.of(56.0f, 24.0f));
+//            extraDepots.add(Point2d.of(50.0f, 33.0f));
+//            extraDepots.add(Point2d.of(56.0f, 26.0f));
+//            extraDepots.add(Point2d.of(29.0f, 40.0f));
+//            extraDepots.add(Point2d.of(35.0f, 40.0f));
+//            extraDepots.add(Point2d.of(50.0f, 35.0f));
+//            extraDepots.add(Point2d.of(41.0f, 40.0f));
         } else { //right spawn
             proxyBarracksPos = Point2d.of(64.5f, 80.5f);
             proxyBunkerPos = Point2d.of(42.5f, 60.5f);
@@ -800,50 +805,100 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(157.5f, 30.5f));
-            _3x3Structures.add(Point2d.of(153.5f, 38.5f));
+//            _3x3Structures.add(Point2d.of(157.5f, 30.5f));
+//            _3x3Structures.add(Point2d.of(153.5f, 38.5f));
 
             BUNKER_NATURAL = Point2d.of(141.5f, 59.5f);
-            FACTORIES.add(Point2d.of(141.5f, 39.5f));
-            FACTORIES.add(Point2d.of(141.5f, 36.5f));
-
-            STARPORTS.add(Point2d.of(156.5f, 26.5f));
-            STARPORTS.add(Point2d.of(156.5f, 38.5f));
-            STARPORTS.add(Point2d.of(151.5f, 22.5f));
-            STARPORTS.add(Point2d.of(147.5f, 36.5f));
-            STARPORTS.add(Point2d.of(147.5f, 39.5f));
-            STARPORTS.add(Point2d.of(141.5f, 20.5f));
-            STARPORTS.add(Point2d.of(146.5f, 20.5f));
-            STARPORTS.add(Point2d.of(136.5f, 32.5f));
-            STARPORTS.add(Point2d.of(131.5f, 33.5f));
-            STARPORTS.add(Point2d.of(128.5f, 37.5f));
-            STARPORTS.add(Point2d.of(129.5f, 40.5f));
-            STARPORTS.add(Point2d.of(129.5f, 43.5f));
-            STARPORTS.add(Point2d.of(156.5f, 50.5f));
-            STARPORTS.add(Point2d.of(152.5f, 47.5f));
-
-            MACRO_OCS.add(Point2d.of(142.5f, 31.5f));
-            MACRO_OCS.add(Point2d.of(137.5f, 28.5f));
-            MACRO_OCS.add(Point2d.of(137.5f, 23.5f));
-            MACRO_OCS.add(Point2d.of(131.5f, 24.5f));
-            MACRO_OCS.add(Point2d.of(131.5f, 29.5f));
-            MACRO_OCS.add(Point2d.of(135.5f, 36.5f));
+//            FACTORIES.add(Point2d.of(141.5f, 39.5f));
+//            FACTORIES.add(Point2d.of(141.5f, 36.5f));
+//
+//            STARPORTS.add(Point2d.of(156.5f, 26.5f));
+//            STARPORTS.add(Point2d.of(156.5f, 38.5f));
+//            STARPORTS.add(Point2d.of(151.5f, 22.5f));
+//            STARPORTS.add(Point2d.of(147.5f, 36.5f));
+//            STARPORTS.add(Point2d.of(147.5f, 39.5f));
+//            STARPORTS.add(Point2d.of(141.5f, 20.5f));
+//            STARPORTS.add(Point2d.of(146.5f, 20.5f));
+//            STARPORTS.add(Point2d.of(136.5f, 32.5f));
+//            STARPORTS.add(Point2d.of(131.5f, 33.5f));
+//            STARPORTS.add(Point2d.of(128.5f, 37.5f));
+//            STARPORTS.add(Point2d.of(129.5f, 40.5f));
+//            STARPORTS.add(Point2d.of(129.5f, 43.5f));
+//            STARPORTS.add(Point2d.of(156.5f, 50.5f));
+//            STARPORTS.add(Point2d.of(152.5f, 47.5f));
+//
+//            MACRO_OCS.add(Point2d.of(142.5f, 31.5f));
+//            MACRO_OCS.add(Point2d.of(137.5f, 28.5f));
+//            MACRO_OCS.add(Point2d.of(137.5f, 23.5f));
+//            MACRO_OCS.add(Point2d.of(131.5f, 24.5f));
+//            MACRO_OCS.add(Point2d.of(131.5f, 29.5f));
+//            MACRO_OCS.add(Point2d.of(135.5f, 36.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(149.0f, 22.0f));
-            extraDepots.add(Point2d.of(144.0f, 22.0f));
-            extraDepots.add(Point2d.of(132.0f, 21.0f));
-            extraDepots.add(Point2d.of(159.0f, 34.0f));
-            extraDepots.add(Point2d.of(142.0f, 23.0f));
-            extraDepots.add(Point2d.of(154.0f, 25.0f));
-            extraDepots.add(Point2d.of(144.0f, 41.0f));
-            extraDepots.add(Point2d.of(156.0f, 41.0f));
-            extraDepots.add(Point2d.of(157.0f, 33.0f));
-            extraDepots.add(Point2d.of(147.0f, 24.0f));
-            extraDepots.add(Point2d.of(157.0f, 35.0f));
-            extraDepots.add(Point2d.of(152.0f, 41.0f));
+//            extraDepots.add(Point2d.of(149.0f, 22.0f));
+//            extraDepots.add(Point2d.of(144.0f, 22.0f));
+//            extraDepots.add(Point2d.of(132.0f, 21.0f));
+//            extraDepots.add(Point2d.of(159.0f, 34.0f));
+//            extraDepots.add(Point2d.of(142.0f, 23.0f));
+//            extraDepots.add(Point2d.of(154.0f, 25.0f));
+//            extraDepots.add(Point2d.of(144.0f, 41.0f));
+//            extraDepots.add(Point2d.of(156.0f, 41.0f));
+//            extraDepots.add(Point2d.of(157.0f, 33.0f));
+//            extraDepots.add(Point2d.of(147.0f, 24.0f));
+//            extraDepots.add(Point2d.of(157.0f, 35.0f));
+//            extraDepots.add(Point2d.of(152.0f, 41.0f));
         }
+    }
+
+    private static void setLocationsForBerlingrad(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(70.5f, 71.5f));
+        muleLetterPosList.add(Point2d.of(78.5f, 71.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(25.5f, 132.5f);
+            enemyMineralPos = Point2d.of(126.5f, 23.5f);
+
+            proxyBarracksPos = Point2d.of(103.5f, 84.5f);
+            proxyBunkerPos = Point2d.of(115.5f, 54.5f);
+            proxyBunkerPos2 = Point2d.of(90.5f, 39.5f);
+
+            reaperBlockDepots.add(Point2d.of(51.0f, 120.0f));
+            reaperBlockDepots.add(Point2d.of(51.0f, 125.0f));
+            reaperBlockDepots.add(Point2d.of(53.0f, 126.0f));
+            reaperBlockDepots.add(Point2d.of(26.0f, 93.0f));
+            reaperBlock3x3s.add(Point2d.of(49.5f, 122.5f));
+
+            WALL_2x2 = Point2d.of(38.0f, 119.0f);
+            MID_WALL_2x2 = Point2d.of(40.5f, 119.5f);
+            MID_WALL_3x3 = Point2d.of(40.5f, 119.5f);
+            WALL_3x3 = Point2d.of(41.5f, 116.5f);
+
+            BUNKER_NATURAL = Point2d.of(36.5f, 101.5f);
+        } else {
+            myMineralPos = Point2d.of(126.5f, 23.5f);
+            enemyMineralPos = Point2d.of(25.5f, 132.5f);
+
+            proxyBarracksPos = Point2d.of(49.5f, 73.5f);
+            proxyBunkerPos = Point2d.of(36.5f, 101.5f);
+            proxyBunkerPos2 = Point2d.of(61.5f, 116.5f);
+
+            reaperBlockDepots.add(Point2d.of(101.0f, 36.0f));
+            reaperBlockDepots.add(Point2d.of(101.0f, 31.0f));
+            reaperBlockDepots.add(Point2d.of(99.0f, 30.0f));
+            reaperBlockDepots.add(Point2d.of(126.0f, 63.0f));
+            reaperBlock3x3s.add(Point2d.of(102.5f, 33.5f));
+
+            WALL_2x2 = Point2d.of(114.0f, 37.0f);
+            MID_WALL_2x2 = Point2d.of(112f, 37f);
+            MID_WALL_3x3 = Point2d.of(111.5f, 36.5f);
+            WALL_3x3 = Point2d.of(110.5f, 39.5f);
+
+            BUNKER_NATURAL = Point2d.of(115.5f, 54.5f);
+        }
+        _3x3Structures.add(MID_WALL_3x3);
+        _3x3Structures.add(WALL_3x3);
+        extraDepots.add(WALL_2x2);
+        extraDepots.add(MID_WALL_2x2);
     }
 
     private static void setLocationsForCatalyst(boolean isTopPos) {
@@ -1020,49 +1075,49 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(16.5f, 116.5f));
-            _3x3Structures.add(Point2d.of(24.5f, 93.5f));
+//            _3x3Structures.add(Point2d.of(16.5f, 116.5f));
+//            _3x3Structures.add(Point2d.of(24.5f, 93.5f));
 
             BUNKER_NATURAL = Point2d.of(30.5f, 83.5f);
-            FACTORIES.add(Point2d.of(31.5f, 108.5f));
-            FACTORIES.add(Point2d.of(36.5f, 105.5f));
-
-            STARPORTS.add(Point2d.of(18.5f, 122.5f));
-            STARPORTS.add(Point2d.of(22.5f, 125.5f));
-            STARPORTS.add(Point2d.of(28.5f, 125.5f));
-            STARPORTS.add(Point2d.of(33.5f, 123.5f));
-            STARPORTS.add(Point2d.of(16.5f, 109.5f));
-            STARPORTS.add(Point2d.of(18.5f, 105.5f));
-            STARPORTS.add(Point2d.of(31.5f, 111.5f));
-            STARPORTS.add(Point2d.of(37.5f, 114.5f));
-            STARPORTS.add(Point2d.of(37.5f, 111.5f));
-            STARPORTS.add(Point2d.of(37.5f, 108.5f));
-            STARPORTS.add(Point2d.of(20.5f, 98.5f));
-            STARPORTS.add(Point2d.of(15.5f, 95.5f));
-
-            MACRO_OCS.add(Point2d.of(26.5f, 110.5f));
-            MACRO_OCS.add(Point2d.of(25.5f, 105.5f));
-            MACRO_OCS.add(Point2d.of(31.5f, 115.5f));
-            MACRO_OCS.add(Point2d.of(37.5f, 118.5f));
-            MACRO_OCS.add(Point2d.of(30.5f, 89.5f));
-            MACRO_OCS.add(Point2d.of(38.5f, 100.5f));
+//            FACTORIES.add(Point2d.of(31.5f, 108.5f));
+//            FACTORIES.add(Point2d.of(36.5f, 105.5f));
+//
+//            STARPORTS.add(Point2d.of(18.5f, 122.5f));
+//            STARPORTS.add(Point2d.of(22.5f, 125.5f));
+//            STARPORTS.add(Point2d.of(28.5f, 125.5f));
+//            STARPORTS.add(Point2d.of(33.5f, 123.5f));
+//            STARPORTS.add(Point2d.of(16.5f, 109.5f));
+//            STARPORTS.add(Point2d.of(18.5f, 105.5f));
+//            STARPORTS.add(Point2d.of(31.5f, 111.5f));
+//            STARPORTS.add(Point2d.of(37.5f, 114.5f));
+//            STARPORTS.add(Point2d.of(37.5f, 111.5f));
+//            STARPORTS.add(Point2d.of(37.5f, 108.5f));
+//            STARPORTS.add(Point2d.of(20.5f, 98.5f));
+//            STARPORTS.add(Point2d.of(15.5f, 95.5f));
+//
+//            MACRO_OCS.add(Point2d.of(26.5f, 110.5f));
+//            MACRO_OCS.add(Point2d.of(25.5f, 105.5f));
+//            MACRO_OCS.add(Point2d.of(31.5f, 115.5f));
+//            MACRO_OCS.add(Point2d.of(37.5f, 118.5f));
+//            MACRO_OCS.add(Point2d.of(30.5f, 89.5f));
+//            MACRO_OCS.add(Point2d.of(38.5f, 100.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(16.0f, 121.0f));
-            extraDepots.add(Point2d.of(28.0f, 123.0f));
-            extraDepots.add(Point2d.of(33.0f, 121.0f));
-            extraDepots.add(Point2d.of(15.0f, 112.0f));
-            extraDepots.add(Point2d.of(16.0f, 107.0f));
-            extraDepots.add(Point2d.of(20.0f, 103.0f));
-            extraDepots.add(Point2d.of(16.0f, 119.0f));
-            extraDepots.add(Point2d.of(24.0f, 123.0f));
-            extraDepots.add(Point2d.of(34.0f, 119.0f));
-            extraDepots.add(Point2d.of(21.0f, 107.0f));
-            extraDepots.add(Point2d.of(16.0f, 114.0f));
-            extraDepots.add(Point2d.of(18.0f, 120.0f));
-            extraDepots.add(Point2d.of(20.0f, 125.0f));
-            extraDepots.add(Point2d.of(21.0f, 109.0f));
+//            extraDepots.add(Point2d.of(16.0f, 121.0f));
+//            extraDepots.add(Point2d.of(28.0f, 123.0f));
+//            extraDepots.add(Point2d.of(33.0f, 121.0f));
+//            extraDepots.add(Point2d.of(15.0f, 112.0f));
+//            extraDepots.add(Point2d.of(16.0f, 107.0f));
+//            extraDepots.add(Point2d.of(20.0f, 103.0f));
+//            extraDepots.add(Point2d.of(16.0f, 119.0f));
+//            extraDepots.add(Point2d.of(24.0f, 123.0f));
+//            extraDepots.add(Point2d.of(34.0f, 119.0f));
+//            extraDepots.add(Point2d.of(21.0f, 107.0f));
+//            extraDepots.add(Point2d.of(16.0f, 114.0f));
+//            extraDepots.add(Point2d.of(18.0f, 120.0f));
+//            extraDepots.add(Point2d.of(20.0f, 125.0f));
+//            extraDepots.add(Point2d.of(21.0f, 109.0f));
         } else {
             proxyBarracksPos = Point2d.of(58.5f, 76.5f);
             proxyBunkerPos = Point2d.of(30.5f, 83.5f);
@@ -1083,46 +1138,46 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(135.5f, 30.5f));
-            _3x3Structures.add(Point2d.of(127.5f, 46.5f));
+//            _3x3Structures.add(Point2d.of(135.5f, 30.5f));
+//            _3x3Structures.add(Point2d.of(127.5f, 46.5f));
 
             BUNKER_NATURAL = Point2d.of(121.5f, 56.5f);
-            FACTORIES.add(Point2d.of(118.5f, 32.5f));
-            FACTORIES.add(Point2d.of(112.5f, 37.5f));
-
-            STARPORTS.add(Point2d.of(134.5f, 20.5f));
-            STARPORTS.add(Point2d.of(130.5f, 17.5f));
-            STARPORTS.add(Point2d.of(127.5f, 14.5f));
-            STARPORTS.add(Point2d.of(121.5f, 14.5f));
-            STARPORTS.add(Point2d.of(118.5f, 20.5f));
-            STARPORTS.add(Point2d.of(116.5f, 16.5f));
-            STARPORTS.add(Point2d.of(130.5f, 31.5f));
-            STARPORTS.add(Point2d.of(129.5f, 34.5f));
-            STARPORTS.add(Point2d.of(118.5f, 29.5f));
-            STARPORTS.add(Point2d.of(112.5f, 30.5f));
-            STARPORTS.add(Point2d.of(112.5f, 34.5f));
-            STARPORTS.add(Point2d.of(134.5f, 44.5f));
-            STARPORTS.add(Point2d.of(129.5f, 41.5f));
-
-            MACRO_OCS.add(Point2d.of(125.5f, 29.5f));
-            MACRO_OCS.add(Point2d.of(119.5f, 25.5f));
-            MACRO_OCS.add(Point2d.of(114.5f, 26.5f));
-            MACRO_OCS.add(Point2d.of(124.5f, 34.5f));
-            MACRO_OCS.add(Point2d.of(114.5f, 21.5f));
+//            FACTORIES.add(Point2d.of(118.5f, 32.5f));
+//            FACTORIES.add(Point2d.of(112.5f, 37.5f));
+//
+//            STARPORTS.add(Point2d.of(134.5f, 20.5f));
+//            STARPORTS.add(Point2d.of(130.5f, 17.5f));
+//            STARPORTS.add(Point2d.of(127.5f, 14.5f));
+//            STARPORTS.add(Point2d.of(121.5f, 14.5f));
+//            STARPORTS.add(Point2d.of(118.5f, 20.5f));
+//            STARPORTS.add(Point2d.of(116.5f, 16.5f));
+//            STARPORTS.add(Point2d.of(130.5f, 31.5f));
+//            STARPORTS.add(Point2d.of(129.5f, 34.5f));
+//            STARPORTS.add(Point2d.of(118.5f, 29.5f));
+//            STARPORTS.add(Point2d.of(112.5f, 30.5f));
+//            STARPORTS.add(Point2d.of(112.5f, 34.5f));
+//            STARPORTS.add(Point2d.of(134.5f, 44.5f));
+//            STARPORTS.add(Point2d.of(129.5f, 41.5f));
+//
+//            MACRO_OCS.add(Point2d.of(125.5f, 29.5f));
+//            MACRO_OCS.add(Point2d.of(119.5f, 25.5f));
+//            MACRO_OCS.add(Point2d.of(114.5f, 26.5f));
+//            MACRO_OCS.add(Point2d.of(124.5f, 34.5f));
+//            MACRO_OCS.add(Point2d.of(114.5f, 21.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(137.0f, 28.0f));
-            extraDepots.add(Point2d.of(136.0f, 23.0f));
-            extraDepots.add(Point2d.of(132.0f, 37.0f));
-            extraDepots.add(Point2d.of(136.0f, 25.0f));
-            extraDepots.add(Point2d.of(132.0f, 15.0f));
-            extraDepots.add(Point2d.of(119.0f, 18.0f));
-            extraDepots.add(Point2d.of(135.0f, 28.0f));
-            extraDepots.add(Point2d.of(125.0f, 16.0f));
-            extraDepots.add(Point2d.of(134.0f, 25.0f));
-            extraDepots.add(Point2d.of(128.0f, 17.0f));
-            extraDepots.add(Point2d.of(136.0f, 33.0f));
+//            extraDepots.add(Point2d.of(137.0f, 28.0f));
+//            extraDepots.add(Point2d.of(136.0f, 23.0f));
+//            extraDepots.add(Point2d.of(132.0f, 37.0f));
+//            extraDepots.add(Point2d.of(136.0f, 25.0f));
+//            extraDepots.add(Point2d.of(132.0f, 15.0f));
+//            extraDepots.add(Point2d.of(119.0f, 18.0f));
+//            extraDepots.add(Point2d.of(135.0f, 28.0f));
+//            extraDepots.add(Point2d.of(125.0f, 16.0f));
+//            extraDepots.add(Point2d.of(134.0f, 25.0f));
+//            extraDepots.add(Point2d.of(128.0f, 17.0f));
+//            extraDepots.add(Point2d.of(136.0f, 33.0f));
         }
     }
 
@@ -1855,51 +1910,51 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(177.5f, 149.5f));
-            _3x3Structures.add(Point2d.of(177.5f, 152.5f));
+//            _3x3Structures.add(Point2d.of(177.5f, 149.5f));
+//            _3x3Structures.add(Point2d.of(177.5f, 152.5f));
 
             BUNKER_NATURAL = Point2d.of(138.5f, 147.5f);
-            FACTORIES.add(Point2d.of(160.5f, 148.5f));
-            FACTORIES.add(Point2d.of(161.5f, 145.5f));
+//            FACTORIES.add(Point2d.of(160.5f, 148.5f));
+//            FACTORIES.add(Point2d.of(161.5f, 145.5f));
 
-            STARPORTS.add(Point2d.of(173.5f, 156.5f));
-            STARPORTS.add(Point2d.of(168.5f, 158.5f));
-            STARPORTS.add(Point2d.of(162.5f, 159.5f));
-            STARPORTS.add(Point2d.of(159.5f, 157.5f));
-            STARPORTS.add(Point2d.of(175.5f, 143.5f));
-            STARPORTS.add(Point2d.of(174.5f, 140.5f));
-            STARPORTS.add(Point2d.of(168.5f, 139.5f));
-            STARPORTS.add(Point2d.of(174.5f, 137.5f));
-            STARPORTS.add(Point2d.of(168.5f, 136.5f));
-            STARPORTS.add(Point2d.of(168.5f, 133.5f));
-            STARPORTS.add(Point2d.of(153.5f, 145.5f));
-            STARPORTS.add(Point2d.of(149.5f, 160.5f));
-            STARPORTS.add(Point2d.of(146.5f, 158.5f));
-
-            MACRO_OCS.add(Point2d.of(160.5f, 153.5f));
-            MACRO_OCS.add(Point2d.of(164.5f, 136.5f));
-            MACRO_OCS.add(Point2d.of(158.5f, 141.5f));
-            MACRO_OCS.add(Point2d.of(163.5f, 141.5f));
-            MACRO_OCS.add(Point2d.of(143.5f, 149.5f));
+//            STARPORTS.add(Point2d.of(173.5f, 156.5f));
+//            STARPORTS.add(Point2d.of(168.5f, 158.5f));
+//            STARPORTS.add(Point2d.of(162.5f, 159.5f));
+//            STARPORTS.add(Point2d.of(159.5f, 157.5f));
+//            STARPORTS.add(Point2d.of(175.5f, 143.5f));
+//            STARPORTS.add(Point2d.of(174.5f, 140.5f));
+//            STARPORTS.add(Point2d.of(168.5f, 139.5f));
+//            STARPORTS.add(Point2d.of(174.5f, 137.5f));
+//            STARPORTS.add(Point2d.of(168.5f, 136.5f));
+//            STARPORTS.add(Point2d.of(168.5f, 133.5f));
+//            STARPORTS.add(Point2d.of(153.5f, 145.5f));
+//            STARPORTS.add(Point2d.of(149.5f, 160.5f));
+//            STARPORTS.add(Point2d.of(146.5f, 158.5f));
+//
+//            MACRO_OCS.add(Point2d.of(160.5f, 153.5f));
+//            MACRO_OCS.add(Point2d.of(164.5f, 136.5f));
+//            MACRO_OCS.add(Point2d.of(158.5f, 141.5f));
+//            MACRO_OCS.add(Point2d.of(163.5f, 141.5f));
+//            MACRO_OCS.add(Point2d.of(143.5f, 149.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(178.0f, 155.0f));
-            extraDepots.add(Point2d.of(174.0f, 159.0f));
-            extraDepots.add(Point2d.of(164.0f, 157.0f));
-            extraDepots.add(Point2d.of(178.0f, 145.0f));
-            extraDepots.add(Point2d.of(172.0f, 160.0f));
-            extraDepots.add(Point2d.of(178.0f, 147.0f));
-            extraDepots.add(Point2d.of(160.0f, 161.0f));
-            extraDepots.add(Point2d.of(164.0f, 155.0f));
-            extraDepots.add(Point2d.of(166.0f, 157.0f));
-            extraDepots.add(Point2d.of(180.0f, 145.0f));
-            extraDepots.add(Point2d.of(157.0f, 158.0f));
-            extraDepots.add(Point2d.of(168.0f, 142.0f));
-            extraDepots.add(Point2d.of(168.0f, 144.0f));
-            extraDepots.add(Point2d.of(180.0f, 147.0f));
-            extraDepots.add(Point2d.of(144.0f, 166.0f));
-            extraDepots.add(Point2d.of(142.0f, 166.0f));
+//            extraDepots.add(Point2d.of(178.0f, 155.0f));
+//            extraDepots.add(Point2d.of(174.0f, 159.0f));
+//            extraDepots.add(Point2d.of(164.0f, 157.0f));
+//            extraDepots.add(Point2d.of(178.0f, 145.0f));
+//            extraDepots.add(Point2d.of(172.0f, 160.0f));
+//            extraDepots.add(Point2d.of(178.0f, 147.0f));
+//            extraDepots.add(Point2d.of(160.0f, 161.0f));
+//            extraDepots.add(Point2d.of(164.0f, 155.0f));
+//            extraDepots.add(Point2d.of(166.0f, 157.0f));
+//            extraDepots.add(Point2d.of(180.0f, 145.0f));
+//            extraDepots.add(Point2d.of(157.0f, 158.0f));
+//            extraDepots.add(Point2d.of(168.0f, 142.0f));
+//            extraDepots.add(Point2d.of(168.0f, 144.0f));
+//            extraDepots.add(Point2d.of(180.0f, 147.0f));
+//            extraDepots.add(Point2d.of(144.0f, 166.0f));
+//            extraDepots.add(Point2d.of(142.0f, 166.0f));
         } else {
             proxyBarracksPos = Point2d.of(102.5f, 132.5f);
             proxyBunkerPos = Point2d.of(138.5f, 147.5f);
@@ -1920,51 +1975,51 @@ public class LocationConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-            _3x3Structures.add(Point2d.of(38.5f, 52.5f));
-            _3x3Structures.add(Point2d.of(38.5f, 57.5f));
+//            _3x3Structures.add(Point2d.of(38.5f, 52.5f));
+//            _3x3Structures.add(Point2d.of(38.5f, 57.5f));
 
             BUNKER_NATURAL = Point2d.of(77.5f, 56.5f);
-            FACTORIES.add(Point2d.of(54.5f, 49.5f));
-            FACTORIES.add(Point2d.of(58.5f, 58.5f));
-
-            STARPORTS.add(Point2d.of(38.5f, 49.5f));
-            STARPORTS.add(Point2d.of(42.5f, 45.5f));
-            STARPORTS.add(Point2d.of(48.5f, 44.5f));
-            STARPORTS.add(Point2d.of(38.5f, 60.5f));
-            STARPORTS.add(Point2d.of(52.5f, 54.5f));
-            STARPORTS.add(Point2d.of(51.5f, 58.5f));
-            STARPORTS.add(Point2d.of(38.5f, 63.5f));
-            STARPORTS.add(Point2d.of(44.5f, 64.5f));
-            STARPORTS.add(Point2d.of(38.5f, 66.5f));
-            STARPORTS.add(Point2d.of(44.5f, 67.5f));
-            STARPORTS.add(Point2d.of(44.5f, 70.5f));
-            STARPORTS.add(Point2d.of(64.5f, 44.5f));
-            STARPORTS.add(Point2d.of(67.5f, 46.5f));
-            STARPORTS.add(Point2d.of(76.5f, 38.5f));
-
-            MACRO_OCS.add(Point2d.of(55.5f, 45.5f));
-            MACRO_OCS.add(Point2d.of(57.5f, 62.5f));
-            MACRO_OCS.add(Point2d.of(52.5f, 62.5f));
-            MACRO_OCS.add(Point2d.of(51.5f, 67.5f));
-            MACRO_OCS.add(Point2d.of(72.5f, 54.5f));
+//            FACTORIES.add(Point2d.of(54.5f, 49.5f));
+//            FACTORIES.add(Point2d.of(58.5f, 58.5f));
+//
+//            STARPORTS.add(Point2d.of(38.5f, 49.5f));
+//            STARPORTS.add(Point2d.of(42.5f, 45.5f));
+//            STARPORTS.add(Point2d.of(48.5f, 44.5f));
+//            STARPORTS.add(Point2d.of(38.5f, 60.5f));
+//            STARPORTS.add(Point2d.of(52.5f, 54.5f));
+//            STARPORTS.add(Point2d.of(51.5f, 58.5f));
+//            STARPORTS.add(Point2d.of(38.5f, 63.5f));
+//            STARPORTS.add(Point2d.of(44.5f, 64.5f));
+//            STARPORTS.add(Point2d.of(38.5f, 66.5f));
+//            STARPORTS.add(Point2d.of(44.5f, 67.5f));
+//            STARPORTS.add(Point2d.of(44.5f, 70.5f));
+//            STARPORTS.add(Point2d.of(64.5f, 44.5f));
+//            STARPORTS.add(Point2d.of(67.5f, 46.5f));
+//            STARPORTS.add(Point2d.of(76.5f, 38.5f));
+//
+//            MACRO_OCS.add(Point2d.of(55.5f, 45.5f));
+//            MACRO_OCS.add(Point2d.of(57.5f, 62.5f));
+//            MACRO_OCS.add(Point2d.of(52.5f, 62.5f));
+//            MACRO_OCS.add(Point2d.of(51.5f, 67.5f));
+//            MACRO_OCS.add(Point2d.of(72.5f, 54.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-            extraDepots.add(Point2d.of(38.0f, 55.0f));
-            extraDepots.add(Point2d.of(43.0f, 48.0f));
-            extraDepots.add(Point2d.of(52.0f, 46.0f));
-            extraDepots.add(Point2d.of(59.0f, 46.0f));
-            extraDepots.add(Point2d.of(40.0f, 55.0f));
-            extraDepots.add(Point2d.of(46.0f, 47.0f));
-            extraDepots.add(Point2d.of(49.0f, 58.0f));
-            extraDepots.add(Point2d.of(49.0f, 60.0f));
-            extraDepots.add(Point2d.of(49.0f, 62.0f));
-            extraDepots.add(Point2d.of(41.0f, 68.0f));
-            extraDepots.add(Point2d.of(61.0f, 60.0f));
-            extraDepots.add(Point2d.of(52.0f, 48.0f));
-            extraDepots.add(Point2d.of(73.0f, 38.0f));
-            extraDepots.add(Point2d.of(71.0f, 38.0f));
-            extraDepots.add(Point2d.of(52.0f, 50.0f));
+//            extraDepots.add(Point2d.of(38.0f, 55.0f));
+//            extraDepots.add(Point2d.of(43.0f, 48.0f));
+//            extraDepots.add(Point2d.of(52.0f, 46.0f));
+//            extraDepots.add(Point2d.of(59.0f, 46.0f));
+//            extraDepots.add(Point2d.of(40.0f, 55.0f));
+//            extraDepots.add(Point2d.of(46.0f, 47.0f));
+//            extraDepots.add(Point2d.of(49.0f, 58.0f));
+//            extraDepots.add(Point2d.of(49.0f, 60.0f));
+//            extraDepots.add(Point2d.of(49.0f, 62.0f));
+//            extraDepots.add(Point2d.of(41.0f, 68.0f));
+//            extraDepots.add(Point2d.of(61.0f, 60.0f));
+//            extraDepots.add(Point2d.of(52.0f, 48.0f));
+//            extraDepots.add(Point2d.of(73.0f, 38.0f));
+//            extraDepots.add(Point2d.of(71.0f, 38.0f));
+//            extraDepots.add(Point2d.of(52.0f, 50.0f));
         }
     }
 
@@ -2127,11 +2182,55 @@ public class LocationConstants {
         }
     }
 
+    private static void setLocationsForHardwire(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(100.5f, 90.5f));
+        muleLetterPosList.add(Point2d.of(109.5f, 93.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(165f, 158.5f);
+            enemyMineralPos = Point2d.of(51f, 57.5f);
+
+            proxyBarracksPos = Point2d.of(119.5f, 85.5f);
+            proxyBunkerPos = Point2d.of(87.5f, 55.5f);
+            proxyBunkerPos2 = Point2d.of(72.5f, 81.5f);
+
+            reaperBlock3x3s.add(Point2d.of(156.5f, 139.5f));
+            reaperBlockDepots.add(Point2d.of(158.0f, 137.0f));
+            reaperBlockDepots.add(Point2d.of(154.0f, 141.0f));
+
+            WALL_2x2 = Point2d.of(145.0f, 158.0f);
+            MID_WALL_2x2 = Point2d.of(145f, 156f);
+            MID_WALL_3x3 = Point2d.of(145.5f, 155.5f);
+            WALL_3x3 = Point2d.of(142.5f, 154.5f);
+
+            BUNKER_NATURAL = Point2d.of(127.5f, 160.5f);
+        } else {
+            myMineralPos = Point2d.of(51f, 57.5f);
+            enemyMineralPos = Point2d.of(165f, 158.5f);
+
+            proxyBarracksPos = Point2d.of(95.5f, 131.5f);
+            proxyBunkerPos = Point2d.of(128.5f, 160.5f);
+            proxyBunkerPos2 = Point2d.of(142.5f, 134.5f);
+
+            reaperBlockDepots.add(Point2d.of(59.0f, 78.0f));
+            reaperBlock3x3s.add(Point2d.of(59.5f, 75.5f));
+            reaperBlockDepots.add(Point2d.of(62.0f, 75.0f));
+
+            WALL_2x2 = Point2d.of(71.0f, 58.0f);
+            MID_WALL_2x2 = Point2d.of(71f, 60f);
+            MID_WALL_3x3 = Point2d.of(70.5f, 60.5f);
+            WALL_3x3 = Point2d.of(73.5f, 61.5f);
+
+            BUNKER_NATURAL = Point2d.of(86.5f, 54.5f);
+        }
+        _3x3Structures.add(MID_WALL_3x3);
+        _3x3Structures.add(WALL_3x3);
+        extraDepots.add(WALL_2x2);
+        extraDepots.add(MID_WALL_2x2);
+    }
+
     private static void setLocationsForIceAndChrome(boolean isTopPos) {
         muleLetterPosList.add(Point2d.of(134.5f, 104.5f));
         muleLetterPosList.add(Point2d.of(145.5f, 107.5f));
-        STARPORTS = FACTORIES;
-        Strategy.BUILD_EXPANDS_IN_MAIN = false;
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(107.5f, 95.5f);
             proxyBunkerPos = Point2d.of(77.5f, 96.5f);
@@ -4191,6 +4290,23 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(147.5f, 31.5f));
                 break;
 
+            case MapNames.BERLINGRAD_AIE:
+                baseLocations.add(Point2d.of(31.5f, 131.5f));
+                baseLocations.add(Point2d.of(28.5f, 107.5f));
+                baseLocations.add(Point2d.of(60.5f, 112.5f));
+                baseLocations.add(Point2d.of(83.5f, 132.5f));
+                baseLocations.add(Point2d.of(25.5f, 77.5f));
+                baseLocations.add(Point2d.of(25.5f, 47.5f));
+                baseLocations.add(Point2d.of(33.5f, 21.5f));
+                baseLocations.add(Point2d.of(118.5f, 134.5f));
+                baseLocations.add(Point2d.of(126.5f, 108.5f));
+                baseLocations.add(Point2d.of(126.5f, 78.5f));
+                baseLocations.add(Point2d.of(68.5f, 23.5f));
+                baseLocations.add(Point2d.of(91.5f, 43.5f));
+                baseLocations.add(Point2d.of(123.5f, 48.5f));
+                baseLocations.add(Point2d.of(120.5f, 24.5f));
+                break;
+
             case MapNames.CATALYST:
                 baseLocations.add(Point2d.of(39.5f, 139.5f));
                 baseLocations.add(Point2d.of(68.5f, 140.5f));
@@ -4361,6 +4477,25 @@ public class LocationConstants {
                 baseLocations.add(Point2d.of(136.5f, 71.5f));
                 baseLocations.add(Point2d.of(167.5f, 77.5f));
                 baseLocations.add(Point2d.of(175.5f, 50.5f));
+                break;
+
+            case MapNames.HARDWIRE_AIE:
+                baseLocations.add(Point2d.of(157.5f, 157.5f));
+                baseLocations.add(Point2d.of(135.5f, 167.5f));
+                baseLocations.add(Point2d.of(140.5f, 134.5f));
+                baseLocations.add(Point2d.of(156.5f, 108.5f));
+                baseLocations.add(Point2d.of(106.5f, 168.5f));
+                baseLocations.add(Point2d.of(67.5f, 164.5f));
+                baseLocations.add(Point2d.of(91.5f, 148.5f));
+                baseLocations.add(Point2d.of(61.5f, 137.5f));
+                baseLocations.add(Point2d.of(154.5f, 78.5f));
+                baseLocations.add(Point2d.of(124.5f, 67.5f));
+                baseLocations.add(Point2d.of(148.5f, 51.5f));
+                baseLocations.add(Point2d.of(109.5f, 47.5f));
+                baseLocations.add(Point2d.of(59.5f, 107.5f));
+                baseLocations.add(Point2d.of(75.5f, 81.5f));
+                baseLocations.add(Point2d.of(80.5f, 48.5f));
+                baseLocations.add(Point2d.of(58.5f, 58.5f));
                 break;
 
             case MapNames.ICE_AND_CHROME:
@@ -4690,15 +4825,30 @@ public class LocationConstants {
     }
 
     public static Point2d getFactoryPos() {
-        //normal spot
-        if (!FACTORIES.isEmpty()) {
-            return FACTORIES.remove(0);
-        }
-
-        //any starport spot if starport already in the factory position
-        Strategy.DO_DEFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
-        Strategy.DO_OFFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
-        Strategy.DO_USE_CYCLONES = false; //unreliable position for cyclone pathing so don't make cyclones
+//        //normal spot
+//        if (!FACTORIES.isEmpty()) {
+//            return FACTORIES.remove(0);
+//        }
+//
+//        //any starport spot if starport already in the factory position
+//        Strategy.DO_DEFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
+//        Strategy.DO_OFFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
+//        Strategy.DO_USE_CYCLONES = false; //unreliable position for cyclone pathing so don't make cyclones
         return STARPORTS.remove(0);
+    }
+
+    public static boolean isMySpawnTop() {
+        return Bot.OBS.getStartLocation().getY() > LocationConstants.SCREEN_TOP_RIGHT.getY()/2;
+    }
+
+    public static boolean isMySpawnLeft() {
+        return Bot.OBS.getStartLocation().getX() < LocationConstants.SCREEN_TOP_RIGHT.getX()/2;
+    }
+
+    public static Point2d getBackCorner() {
+        return Point2d.of(
+                isMySpawnLeft() ? LocationConstants.SCREEN_BOTTOM_LEFT.getX() : LocationConstants.SCREEN_TOP_RIGHT.getX(),
+                isMySpawnTop() ? LocationConstants.SCREEN_TOP_RIGHT.getY() : LocationConstants.SCREEN_BOTTOM_LEFT.getY()
+        );
     }
 }

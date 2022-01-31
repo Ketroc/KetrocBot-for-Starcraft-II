@@ -33,6 +33,7 @@ public class Bot extends S2Agent {
 
     public Bot(String opponentId) {
         this.opponentId = opponentId;
+        //this.opponentId = TournyIdUtil.getMappedId(opponentId);
     }
 
     @Override
@@ -141,7 +142,7 @@ public class Bot extends S2Agent {
             Units.remapForBuild(Integer.MAX_VALUE);
             Abilities.remapForBuild(Integer.MAX_VALUE);
         }
-        catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException | InvocationTargetException e) {
             Error.onException(e);
         }
     }

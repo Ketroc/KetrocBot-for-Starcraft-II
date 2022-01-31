@@ -44,7 +44,7 @@ public class WorkerManager {
         fixOverSaturation();
         setNumScvsPerGas();
         buildRefineryLogic();
-        //defendWorkerHarass(); //TODO: testing - off while testing WorkerDefense3 (off forever as WorkerRushDefense3 can handle single workers)
+        defendWorkerHarass();
         preventMulesFromDyingWithMineralsInHand();
     }
 
@@ -256,7 +256,8 @@ public class WorkerManager {
 
     @Nullable
     public static UnitInPool getScvEmptyHands(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
-        return getScv(targetPos, scvFilter.and(scv -> !UnitUtils.isCarryingResources(scv.unit())));
+        UnitInPool resultScv = getScv(targetPos, scvFilter.and(scv -> !UnitUtils.isCarryingResources(scv.unit())));
+        return resultScv != null ? resultScv : getScv(targetPos, scvFilter);
     }
 
     @Nullable

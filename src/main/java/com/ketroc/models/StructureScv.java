@@ -314,8 +314,8 @@ public class StructureScv {
                 LocationConstants.extraDepots.add(structureScv.structurePos);
                 break;
             case TERRAN_FACTORY:
-                LocationConstants.FACTORIES.add(structureScv.structurePos);
-                break;
+//                LocationConstants.FACTORIES.add(structureScv.structurePos);
+//                break;
             case TERRAN_STARPORT:
                 LocationConstants.STARPORTS.add(structureScv.structurePos);
                 break;

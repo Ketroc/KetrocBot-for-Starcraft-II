@@ -155,16 +155,16 @@ public class Strategy {
         Chat.tag(gamePlan.toString());
 
         //TODO: delete - turning off 2nd factory based on strategy choice
-        if (gamePlan != GamePlan.RAVEN_CYCLONE &&
-                gamePlan != GamePlan.BANSHEE_CYCLONE &&
-                gamePlan != GamePlan.TANK_VIKING &&
-                gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
-                gamePlan != GamePlan.ONE_BASE_TANK_VIKING &&
-                (gamePlan != GamePlan.BUNKER_CONTAIN_STRONG || LocationConstants.opponentRace != Race.TERRAN)) {
-            if (LocationConstants.FACTORIES.size() == 2) {
-                LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
-            }
-        }
+//        if (gamePlan != GamePlan.RAVEN_CYCLONE &&
+//                gamePlan != GamePlan.BANSHEE_CYCLONE &&
+//                gamePlan != GamePlan.TANK_VIKING &&
+//                gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
+//                gamePlan != GamePlan.ONE_BASE_TANK_VIKING &&
+//                (gamePlan != GamePlan.BUNKER_CONTAIN_STRONG || LocationConstants.opponentRace != Race.TERRAN)) {
+//            if (LocationConstants.FACTORIES.size() == 2) {
+//                LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
+//            }
+//        }
 
         applyOpponentSpecificTweaks();
         setRampWall();
@@ -363,19 +363,19 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.ONE_BASE_TANK_VIKING
 //                ));
-//TODO - turn on            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
-//                return new HashSet<>(Set.of(
-//                        GamePlan.RAVEN_CYCLONE,
-//                        GamePlan.TANK_VIKING,
-//                        GamePlan.BANSHEE
-//                ));
-//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-//            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-//            case "1e0db23f174f455": //MM local
-//                return new HashSet<>(Set.of(
-//                        GamePlan.TANK_VIKING
-////                        GamePlan.BUNKER_CONTAIN_STRONG
-//                ));
+            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+                return new HashSet<>(Set.of(
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.TANK_VIKING,
+                        GamePlan.BANSHEE
+                ));
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+            case "1e0db23f174f455": //MM local
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING
+//                        GamePlan.BUNKER_CONTAIN_STRONG
+                ));
 //            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
 //                return new HashSet<>(Set.of(
 //                        GamePlan.TANK_VIKING,
@@ -397,15 +397,15 @@ public class Strategy {
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.ONE_BASE_TANK_VIKING,
-//TODO: turn on                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BANSHEE,
                         //GamePlan.SCV_RUSH,
-//                        GamePlan.TANK_VIKING,
-//                        GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.RAVEN
-//                        GamePlan.MARINE_RUSH
-//                        GamePlan.RAVEN_CYCLONE,
-//                        GamePlan.BANSHEE_TANK
+                        GamePlan.TANK_VIKING,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.RAVEN,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.BANSHEE_TANK
                 ));
         }
     }
@@ -446,12 +446,13 @@ public class Strategy {
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
-//TODO: turn on                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE
-//                        GamePlan.MARINE_RUSH,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-//                        GamePlan.BUNKER_CONTAIN_WEAK,
-//                        GamePlan.RAVEN
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.RAVEN
                 ));
         }
     }
@@ -493,14 +494,14 @@ public class Strategy {
 //                ));
             default:
                 return new HashSet<>(Set.of(
-//TODO: turn on                        GamePlan.BANSHEE,
+                        GamePlan.BANSHEE,
                         GamePlan.MASS_MINE_OPENER,
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK
-//                        GamePlan.RAVEN,
-//                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.RAVEN,
+                        GamePlan.RAVEN_CYCLONE
                 ));
         }
     }
@@ -558,6 +559,10 @@ public class Strategy {
                 break;
             case BUNKER_CONTAIN_WEAK:
                 BunkerContain.proxyBunkerLevel = 1;
+                break;
+            case BUNKER_CONTAIN_STRONG:
+                BunkerContain.proxyBunkerLevel = 2;
+                DO_USE_CYCLONES = true;
                 break;
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
@@ -692,7 +697,6 @@ public class Strategy {
     private static void massRavenStrategy() {
         MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
-        UpgradeManager.doStarportTechlabUpgrades = true;
 
         //get 2 banshees and +1attack for creep clearing and early defense
         if (LocationConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {
@@ -1064,6 +1068,7 @@ public class Strategy {
         MIN_BANSHEES = 0;
         MAX_BANSHEES = 4;
         NUM_BASES_TO_OC = 3;
+        BuildManager.openingStarportUnits.add(Units.TERRAN_BANSHEE);
         BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
         BuildManager.openingStarportUnits.add(Units.TERRAN_RAVEN);
         BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);

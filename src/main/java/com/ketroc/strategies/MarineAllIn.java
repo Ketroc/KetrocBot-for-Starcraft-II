@@ -49,7 +49,7 @@ public class MarineAllIn {
         ));
         if (LocationConstants.opponentRace != Race.ZERG) { //attack earlier vs terran/protoss
             attackPoints.remove(0);
-            MIN_MARINES_TO_ATTACK = 12;
+            MIN_MARINES_TO_ATTACK = 11;
         }
     }
 

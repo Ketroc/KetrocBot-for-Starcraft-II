@@ -16,7 +16,7 @@ import java.util.Set;
 public class MarineOffense extends Marine {
     private static final Set<Units> DONT_CHASE_TYPES = Set.of(
             Units.TERRAN_REAPER, Units.TERRAN_HELLION,
-            Units.PROTOSS_ADEPT, Units.PROTOSS_ORACLE, Units.PROTOSS_INTERCEPTOR);
+            Units.PROTOSS_ADEPT, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.PROTOSS_ORACLE, Units.PROTOSS_INTERCEPTOR);
 
     private Unit closestEnemyThreat;
     private boolean doStutterForward;
@@ -49,7 +49,7 @@ public class MarineOffense extends Marine {
     }
 
     @Override
-    protected boolean isSafe() {
+    public boolean isSafe() {
         return doStutterForward; //||
                 //!InfluenceMaps.getValue(InfluenceMaps.pointInMarineRange, unit.unit().getPosition().toPoint2d());
     }

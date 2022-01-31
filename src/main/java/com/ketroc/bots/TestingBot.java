@@ -52,9 +52,6 @@ public class TestingBot extends Bot {
                 .get()
                 .getRequestedRace();
 
-
-        PlacementMap.initializeMap(false);
-
         //start first scv
         mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
         ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
@@ -116,6 +113,9 @@ public class TestingBot extends Bot {
         System.out.println(unit.getType() + ".add(Point2d.of(" + unit.getPosition().getX() + "f, " + unit.getPosition().getY() + "f));");
     }
 
+    public static boolean hasScanned;
+    public static boolean scanEffectArrived;
+    public static boolean scanEnded;
     @Override
     public void onStep() {
 //        if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
@@ -146,6 +146,37 @@ public class TestingBot extends Bot {
 //                int qoeriu = 21384;
 //            }
 //        }
+
+//        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
+//                        u.unit().getOrders().isEmpty())
+//                        .forEach(cc -> ACTION.unitCommand(cc.getTag(), Abilities.MORPH_ORBITAL_COMMAND, false));
+//        List<UnitInPool> ocList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_ORBITAL_COMMAND &&
+//                u.unit().getOrders().isEmpty());
+//
+//        if (!ocList.isEmpty()) {
+//            UnitInPool oc = ocList.get(0);
+//            if (!hasScanned) {
+//                if (oc.unit().getOrders().isEmpty()) {
+//                    hasScanned = true;
+//                    ACTION.unitCommand(oc.getTag(), Abilities.EFFECT_SCAN, Point2d.of(100, 100), false);
+//                    System.out.println("Scan cast on frame: " + Time.nowFrames());
+//                    Chat.chat("cast");
+//                }
+//            } else if (!scanEffectArrived) {
+//                if (Bot.OBS.getVisibility(Point2d.of(100, 100)) == Visibility.VISIBLE) {
+//                    scanEffectArrived = true;
+//                    System.out.println("Scan vision started on frame: " + Time.nowFrames());
+//                    Chat.chat("started");
+//                }
+//            } else if (!scanEnded) {
+//                if (Bot.OBS.getVisibility(Point2d.of(100, 100)) == Visibility.FOGGED) {
+//                    System.out.println("Scan vision ended on frame: " + Time.nowFrames());
+//                    scanEnded = true;
+//                    Chat.chat("ended");
+//                }
+//            }
+//        }
+
 
         ACTION.sendActions();
         DEBUG.sendDebug();

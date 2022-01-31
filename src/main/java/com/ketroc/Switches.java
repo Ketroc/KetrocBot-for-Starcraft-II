@@ -1,8 +1,8 @@
 package com.ketroc;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.utils.LocationConstants;
+import com.github.ocraft.s2client.protocol.data.Units;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.UnitUtils;
 
 public class Switches {
@@ -13,8 +13,6 @@ public class Switches {
 
     public static boolean fastDepotBarracksOpener; //hardcoded start to get bunker up in time for reaper rush
 
-    public static boolean firstObserverSpotted;
-    public static boolean firstTankSpotted;
     public static boolean scvRushComplete = true;
     public static boolean enemyCanProduceAir;
     public static boolean enemyHasCloakThreat; //enemy can produce cloaked/burrowed attack units
@@ -27,20 +25,15 @@ public class Switches {
     public static void onStep() {
         hasCastOCSpellThisFrame = false;
 
-        //+2 scans saved for observers
-        if (LocationConstants.opponentRace == Race.PROTOSS &&
-                !firstObserverSpotted &&
-                !UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE).isEmpty()) {
-            numScansToSave += 2;
-            firstObserverSpotted = true;
+        if (numScansToSave == 2) {
+            return;
         }
 
-        //+2 scans saved for tanks
-        if (LocationConstants.opponentRace == Race.TERRAN &&
-                !firstTankSpotted &&
-                !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty()) {
-            numScansToSave += 2;
-            firstTankSpotted = true;
+        //2 scans saved for observers, banshees, tank vs tank wars TODO: include all cloaked/burrowed units
+        if (!UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE).isEmpty() ||
+                !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BANSHEE).isEmpty() ||
+                (Strategy.DO_OFFENSIVE_TANKS && !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty())) {
+            numScansToSave = 2;
         }
     }
 }

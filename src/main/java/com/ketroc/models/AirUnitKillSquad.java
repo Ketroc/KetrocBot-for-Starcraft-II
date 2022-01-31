@@ -18,14 +18,13 @@ import java.util.List;
 
 //banshee, overlord/seer, observer,
 public class AirUnitKillSquad {
-    public static final int MAX_THREAT = 3;
+    public static final int MAX_THREAT = 1;
 
     public static List<AirUnitKillSquad> enemyAirTargets = new ArrayList<>();
 
     private BasicUnitMicro raven;
     private List<VikingChaser> vikings = new ArrayList<>();
     private UnitInPool targetUnit;
-    private int numVikingsRequired;
 
     public AirUnitKillSquad(UnitInPool targetUnit) {
         this.targetUnit = targetUnit;
@@ -55,14 +54,9 @@ public class AirUnitKillSquad {
         this.targetUnit = targetUnit;
     }
 
-    public int getNumVikingsRequired() {
-        return numVikingsRequired;
+    public int numVikingsRequired() {
+        return numVikingsRequired((Units)targetUnit.unit().getType());
     }
-
-    public void setNumVikingsRequired(int numVikingsRequired) {
-        this.numVikingsRequired = numVikingsRequired;
-    }
-
 
     public void updateUnits() {
         updateRaven();
@@ -77,10 +71,13 @@ public class AirUnitKillSquad {
     private void doScan() {
         if (targetUnit != null && targetUnit.isAlive() &&
                 targetUnit.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) == CloakState.CLOAKED &&
-                vikings.size() == 2 &&
-                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) &&
-                (raven == null || UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20)) {
-            Point2d scanPos = Position.towards(targetUnit.unit(), vikings.get(0).unit.unit(), -3.5f);
+                vikings.size() == numVikingsRequired() &&
+                vikings.stream().allMatch(viking -> UnitUtils.getDistance(viking.unit.unit(), targetUnit.unit()) < 6) && (
+                        raven == null ||
+                        UnitUtils.getDistance(raven.unit.unit(), targetUnit.unit()) > 20 ||
+                        !raven.isSafe()
+                )) {
+            Point2d scanPos = Position.towards(targetUnit.unit(), vikings.get(0).unit.unit(), -2.5f);
             UnitUtils.scan(scanPos);
             System.out.println("scan for AirUnitKillSquad at " + Time.nowClock());
         }
@@ -119,8 +116,8 @@ public class AirUnitKillSquad {
         });
         vikings.removeIf(vikingChaser -> !vikingChaser.isAlive());
 
-        //add new vikings up to 2 TODO: (assign different amounts of vikings for different targets?)
-        if (vikings.size() < 2) {
+        //add new vikings
+        if (vikings.size() < numVikingsRequired()) {
             addViking();
         }
     }
@@ -197,10 +194,15 @@ public class AirUnitKillSquad {
     }
 
     public static void add(UnitInPool newTarget) {
-        if (!contains(newTarget.getTag())) {
+        if (canAdd(newTarget)) {
             enemyAirTargets.add(new AirUnitKillSquad(newTarget));
             Ignored.add(new IgnoredUnit(newTarget.getTag()));
         }
+    }
+
+    public static boolean canAdd(UnitInPool newTarget) {
+        return GameCache.vikingList.size() >= numVikingsRequired((Units)newTarget.unit().getType()) &&
+                !contains(newTarget.getTag());
     }
 
     public static void remove(Tag targetTagToRemove) {
@@ -208,5 +210,14 @@ public class AirUnitKillSquad {
                 .filter(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove))
                 .forEach(killSquad -> killSquad.removeAll());
         enemyAirTargets.removeIf(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove));
+    }
+
+    public static int numVikingsRequired(Units targetType) {
+        switch (targetType) {
+            case PROTOSS_WARP_PRISM: case PROTOSS_WARP_PRISM_PHASING: case ZERG_OVERSEER: case ZERG_OVERSEER_SIEGED:
+            case ZERG_OVERLORD_TRANSPORT: case ZERG_OVERLORD_COCOON: case TERRAN_MEDIVAC: case TERRAN_BANSHEE:
+                return 2;
+        }
+        return 1;
     }
 }

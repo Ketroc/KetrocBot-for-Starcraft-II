@@ -12,9 +12,9 @@ import java.util.Set;
 
 public class EnemyScan {
     public static Set<EnemyScan> enemyScanSet = new HashSet<>();
+    public static final int SCAN_DURATION = 196;
 
     // ************* FIELDS ************
-    public static final int SCAN_DURATION = 275;
     public long endTime;
     public EffectLocations scanEffect;
     public Point2d position;
@@ -28,7 +28,7 @@ public class EnemyScan {
 
     // ************ STATIC METHODS ************
     public static void onStep() {
-        //if I can see the scan spot and it's not there, or it endTime has passed, then remove the scan
+        //if I can see the scan spot and it's not there, or its endTime has passed, then remove the scan
         enemyScanSet.removeIf(enemyScan ->
                 (Bot.OBS.getVisibility(enemyScan.position) == Visibility.VISIBLE &&
                         Bot.OBS.getEffects().stream()
