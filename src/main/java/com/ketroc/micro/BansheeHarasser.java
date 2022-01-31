@@ -104,7 +104,7 @@ public class BansheeHarasser {
             }
         }
 
-        //flee from closest cyclone, if locked on
+        //flee from closest cyclone, if locked on TODO: move to vision-breaking position instead
         if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
             Point2d nearestCyclonePos = UnitUtils.getEnemyUnitsOfType(Units.TERRAN_CYCLONE).stream()
                     .filter(cyclone -> UnitUtils.getDistance(banshee.unit(), cyclone.unit()) <= 16.5)

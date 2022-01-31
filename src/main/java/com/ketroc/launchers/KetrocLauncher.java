@@ -50,9 +50,9 @@ public class KetrocLauncher {
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));

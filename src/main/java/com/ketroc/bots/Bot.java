@@ -121,6 +121,11 @@ public class Bot extends S2Agent {
         }
 
         try {
+            //make actions accessible
+            Class.forName("com.github.ocraft.s2client.bot.gateway.impl.ActionInterfaceImpl")
+                    .getDeclaredField("actions")
+                    .setAccessible(true);
+
             //undo ocraft's id update to 4.10
             if (baseBuild >= 75689) {
                 Class<?> units = Class.forName("com.github.ocraft.s2client.protocol.data.Units");

@@ -89,7 +89,7 @@ public class Harassers {
 
     private static void getNewHarassers() {
         if (Strategy.DO_BANSHEE_HARASS) {
-            if (clockwiseBanshee == null) {
+            if (doClockwise()) {
                 Tag newBansheeTag = getNewBanshee();
                 if (newBansheeTag != null) {
                     clockwiseBanshee = new BansheeHarasser(Bot.OBS.getUnit(newBansheeTag), true);
@@ -130,6 +130,12 @@ public class Harassers {
         else {
             releaseAllHellions();
         }
+    }
+
+    //do clockwise first if it's the longer path
+    private static boolean doClockwise() {
+        return clockwiseBanshee == null &&
+                (counterClockwiseBanshee != null || LocationConstants.clockBasePositions.size() >= LocationConstants.counterClockBasePositions.size());
     }
 
     private static void releaseAllHellions() {
