@@ -303,8 +303,9 @@ public class GameCache {
                     switch (unitType) {
                         //change base viking:banshee ratio once tempests hit the field
                         case PROTOSS_TEMPEST:
-                            Strategy.VIKING_BANSHEE_RATIO = 1f;
                             Chat.tag("VS_TEMPESTS");
+                            Switches.enemyHasTempests = true;
+                            Strategy.VIKING_BANSHEE_RATIO = 1f;
                             Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_FACTORY)
                                     .forEach(factory -> BuildManager.liftFactory(factory.unit()));
                             break;

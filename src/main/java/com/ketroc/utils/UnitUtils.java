@@ -1230,11 +1230,6 @@ public class UnitUtils {
                 .findAny();
     }
 
-    //enemy units shooting from high ground are DisplayType of VISIBLE (not SNAPSHOT)
-    public static boolean isUnitPositionVisible(Unit unit) {
-        return Bot.OBS.getVisibility(unit.getPosition().toPoint2d()) == Visibility.VISIBLE;
-    }
-
     public static boolean isAnyStarportIdle() {
         return GameCache.starportList.stream().anyMatch(u -> UnitUtils.getOrder(u.unit()) == null);
     }
@@ -1621,5 +1616,9 @@ public class UnitUtils {
         return Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getFlying().orElse(false))
                 .stream()
                 .anyMatch(u -> UnitUtils.getDistance(u.unit(), targetPos) < range + u.unit().getRadius());
+    }
+
+    public static boolean hasUpgrade(Upgrades upgrade) {
+        return Bot.OBS.getUpgrades().contains(upgrade);
     }
 }

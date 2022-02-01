@@ -1,10 +1,7 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.Abilities;
-import com.github.ocraft.s2client.protocol.data.Buffs;
-import com.github.ocraft.s2client.protocol.data.UnitAttribute;
-import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -111,7 +108,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //detour if unsafe
-        if (!isSafe()) {
+        if (!isSafe() && !stayInDamageRange()) {
             Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 2);
             if (isSafe(towardsRetreatPos)) { //first try going straight back
                 ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, ArmyManager.retreatPos, false);
@@ -128,6 +125,30 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //super.onStep();
+    }
+
+    private boolean stayInDamageRange() {
+        //always false unless at edge of lock range
+        if (lockTarget == null || UnitUtils.getRange(lockTarget.unit(), unit.unit()) < 13.5f) {
+            return false;
+        }
+
+        //be suicidal vs tempests
+        if (lockTarget.unit().getType() == Units.PROTOSS_TEMPEST) {
+            return true;
+        }
+
+        //maintain lock if target near dead
+        return targetNearDeath();
+    }
+
+    private boolean targetNearDeath() {
+        if (lockTarget == null) {
+            return false;
+        }
+        int hpThreshold = (UnitUtils.hasUpgrade(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE) &&
+                UnitUtils.getAttributes(lockTarget.unit()).contains(UnitAttribute.ARMORED)) ? 80 : 40;
+        return lockTarget.unit().getHealth().orElse(9999f) < hpThreshold;
     }
 
     //choose targets to auto-attack
@@ -152,6 +173,8 @@ public class Cyclone extends BasicUnitMicro {
 
     private boolean isSafeToAttemptLock(UnitInPool lockTarget) {
         if (Switches.isDivingTempests ||
+                lockTarget.unit().getType() == Units.PROTOSS_TEMPEST ||
+                UnitUtils.THOR_TYPE.contains(lockTarget.unit().getType()) ||
                 UnitUtils.getDistance(lockTarget.unit(), unit.unit()) +
                         lockTarget.unit().getRadius() + unit.unit().getRadius() <= 7) {
             return true;
@@ -186,47 +209,68 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private boolean setLockTarget() {
-        int rangeToCheck = Switches.isDivingTempests ? 15 : 10;
-        UnitInPool closestHighPriorityTarget = GameCache.allVisibleEnemiesList.stream()
-                .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit().getType())) && //units or attacking structures
-                        UnitUtils.isUnitPositionVisible(enemy.unit()) &&
-                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
-                        targetAcceptingMoreLocks(enemy) &&
-                        isSafeToAttemptLock(enemy))
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
-                .orElse(null);
-        if (closestHighPriorityTarget != null) {
-            lockOn(closestHighPriorityTarget);
-            return true;
+        UnitInPool target = null;
+        if (Switches.enemyHasTempests) {
+            target = GameCache.allVisibleEnemiesList.stream()
+                    .filter(enemy -> enemy.unit().getType() == Units.PROTOSS_TEMPEST &&
+                            !UnitUtils.isSnapshot(enemy.unit()) &&
+                            UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= 15)
+                    .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
+                    .orElse(null);
+        }
+        if (target == null) {
+            target = GameCache.allVisibleEnemiesList.stream()
+                    .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                            !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                            enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                            !UnitUtils.isSnapshot(enemy.unit()) &&
+                            (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit().getType())) && //units or attacking structures
+                            UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <=
+                                    getRangeToCheck((Units) enemy.unit().getType()) &&
+                            targetAcceptingMoreLocks(enemy) &&
+                            isSafeToAttemptLock(enemy))
+                    .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
+                    .orElse(null);
+        }
+        if (target == null) {
+            target = GameCache.allVisibleEnemiesList.stream()
+                    .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
+                            enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                            !UnitUtils.isSnapshot(enemy.unit()) &&
+                            UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <=
+                                    getRangeToCheck((Units) enemy.unit().getType()) &&
+                            targetAcceptingMoreLocks(enemy) &&
+                            isSafeToAttemptLock(enemy))
+                    .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
+                    .orElse(null);
+        }
+        if (target == null) {
+            return false;
         }
 
-        UnitInPool closestLowPriorityTarget = GameCache.allVisibleEnemiesList.stream()
-                .filter(enemy -> !NEVER_LOCK_TYPES.contains(enemy.unit().getType()) &&
-                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                        UnitUtils.isUnitPositionVisible(enemy.unit()) &&
-                        UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <= rangeToCheck &&
-                        targetAcceptingMoreLocks(enemy) &&
-                        isSafeToAttemptLock(enemy))
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
-                .orElse(null);
-        if (closestLowPriorityTarget != null) {
-            if (UnitUtils.getDistance(closestLowPriorityTarget.unit(), unit.unit()) < 7.1) {
-                lockOn(closestLowPriorityTarget);
-            }
-            else {
-                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, closestLowPriorityTarget.unit(), false);
-            }
-            return true;
+        //give lock command
+        if (!SOFT_LOCK_TYPES.contains(target.unit().getType()) ||
+                UnitUtils.getDistance(target.unit(), unit.unit()) < 7.1) {
+            lockOn(target);
         }
+        else { //move towards soft target but reassess every frame
+            ActionHelper.unitCommand(unit.unit(),
+                    Abilities.MOVE,
+                    Position.towards(target.unit().getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d(), 6f),
+                    false);
+        }
+        return true;
+    }
 
-        return false;
+    private float getRangeToCheck(Units type) {
+        return (Switches.isDivingTempests || type == Units.PROTOSS_TEMPEST) ? 15 : 10;
     }
 
     //nothing locked on yet, or armored attack unit with > 100hp, or armored structure with > 300hp
     private boolean targetAcceptingMoreLocks(UnitInPool enemy) {
+        if (enemy.unit().getType() == Units.PROTOSS_TEMPEST) { //max locks for tempests
+            return true;
+        }
         int numLocks = Cyclone.numLocks(enemy.getTag());
         return numLocks == 0 || (
                 UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) && (
@@ -236,7 +280,6 @@ public class Cyclone extends BasicUnitMicro {
                         )
                 )
         );
-
     }
 
     private void lockOn(UnitInPool lockTarget) {
