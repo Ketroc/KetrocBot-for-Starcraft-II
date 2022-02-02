@@ -129,11 +129,12 @@ public class PlacementMap {
     }
 
     private static void topUp3x3List() {
-        if (LocationConstants._3x3Structures.size() < 4 &&
-                !LocationConstants._3x3Structures.contains(LocationConstants.MID_WALL_3x3)) {
-            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
-            LocationConstants._3x3Structures.add(1, LocationConstants.MID_WALL_3x3);
-        }
+// turned off because fast wall off is important
+//        if (LocationConstants._3x3Structures.size() < 4 &&
+//                !LocationConstants._3x3Structures.contains(LocationConstants.MID_WALL_3x3)) {
+//            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+//            LocationConstants._3x3Structures.add(1, LocationConstants.MID_WALL_3x3);
+//        }
         while (LocationConstants._3x3Structures.size() < 4) {
             Point2d lastStarportPos = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size() - 1);
             makeAvailable(Units.TERRAN_TECHLAB, lastStarportPos.add(2.5f, -0.5f));

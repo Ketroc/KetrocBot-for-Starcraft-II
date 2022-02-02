@@ -87,11 +87,12 @@ public class BuildManager {
             //build factory units
             if (BunkerContain.proxyBunkerLevel != 2 || Strategy.DO_USE_CYCLONES) {
                 if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
-                    if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
-                        UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
-                    } else {
+//TODO: turned off to test keeping factory production vs protoss
+//                    if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
+//                        UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
+//                    } else {
                         buildFactoryUnitsLogic();
-                    }
+//                    }
                 } else if (!UnitUtils.isOutOfGas() && !UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
                     UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                 }

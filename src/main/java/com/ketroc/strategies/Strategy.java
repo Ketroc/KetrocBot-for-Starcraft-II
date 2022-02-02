@@ -363,19 +363,19 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.ONE_BASE_TANK_VIKING
 //                ));
-            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
-                return new HashSet<>(Set.of(
-                        GamePlan.RAVEN_CYCLONE,
-                        GamePlan.TANK_VIKING,
-                        GamePlan.BANSHEE
-                ));
-            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-            case "1e0db23f174f455": //MM local
-                return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING
-//                        GamePlan.BUNKER_CONTAIN_STRONG
-                ));
+//            case "5714a116-b8c8-42f5-b8dc-93b28f4adf2d": //Spudde
+//                return new HashSet<>(Set.of(
+//                        GamePlan.RAVEN_CYCLONE,
+//                        GamePlan.TANK_VIKING,
+//                        GamePlan.BANSHEE
+//                ));
+//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+//            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+//            case "1e0db23f174f455": //MM local
+//                return new HashSet<>(Set.of(
+//                        GamePlan.TANK_VIKING
+////                        GamePlan.BUNKER_CONTAIN_STRONG
+//                ));
 //            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
 //                return new HashSet<>(Set.of(
 //                        GamePlan.TANK_VIKING,
@@ -401,7 +401,7 @@ public class Strategy {
                         GamePlan.BANSHEE,
                         //GamePlan.SCV_RUSH,
                         GamePlan.TANK_VIKING,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        //GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.RAVEN,
                         GamePlan.MARINE_RUSH,
                         GamePlan.RAVEN_CYCLONE,
@@ -439,10 +439,10 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-                return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE
-                ));
+//            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+//                return new HashSet<>(Set.of(
+//                        GamePlan.BANSHEE
+//                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,

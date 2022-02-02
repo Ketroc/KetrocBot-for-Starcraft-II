@@ -384,7 +384,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     //1st try finding safe depot pos in fog of war. if none, then any safe depot pos
                     position = LocationConstants.extraDepots.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
-                            .filter(depotPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                            //after initial build order, priority is to grant vision of my main base
+                            .filter(depotPos -> KetrocBot.purchaseQueue.size() > 1 ||
+                                    !UnitUtils.isWallComplete() ||
+                                    Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE)
                             .findFirst()
                             .orElse(
                                     LocationConstants.extraDepots.stream()

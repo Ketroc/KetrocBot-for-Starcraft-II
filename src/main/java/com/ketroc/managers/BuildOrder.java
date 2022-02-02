@@ -337,7 +337,7 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SIEGE_TANK));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_WIDOWMINE));
-        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SIEGE_TANK));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_CYCLONE));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
     }
 
