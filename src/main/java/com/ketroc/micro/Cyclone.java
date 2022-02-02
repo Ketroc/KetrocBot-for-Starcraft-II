@@ -3,6 +3,7 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.*;
 import com.github.ocraft.s2client.protocol.debug.Color;
+import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
@@ -129,7 +130,7 @@ public class Cyclone extends BasicUnitMicro {
 
     private boolean stayInDamageRange() {
         //always false unless at edge of lock range
-        if (lockTarget == null || UnitUtils.getRange(lockTarget.unit(), unit.unit()) < 13.5f) {
+        if (lockTarget == null || aboutToLoseVision()) {
             return false;
         }
 
@@ -140,6 +141,16 @@ public class Cyclone extends BasicUnitMicro {
 
         //maintain lock if target near dead
         return targetNearDeath();
+    }
+
+    //enemy near maxed lock range of about to step into fog of war
+    private boolean aboutToLoseVision() {
+        float range = UnitUtils.getRange(lockTarget.unit(), unit.unit());
+        return range > 13f || (range > 10f &&
+                Bot.OBS.getVisibility(
+                        Position.towards(lockTarget.unit().getPosition().toPoint2d(),
+                                unit.unit().getPosition().toPoint2d(),
+                                -1)) != Visibility.VISIBLE);
     }
 
     private boolean targetNearDeath() {

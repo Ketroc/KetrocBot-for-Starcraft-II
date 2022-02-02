@@ -15,7 +15,6 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.managers.BuildManager;
 import com.ketroc.micro.MarineBasic;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
@@ -306,8 +305,9 @@ public class GameCache {
                             Chat.tag("VS_TEMPESTS");
                             Switches.enemyHasTempests = true;
                             Strategy.VIKING_BANSHEE_RATIO = 1f;
-                            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_FACTORY)
-                                    .forEach(factory -> BuildManager.liftFactory(factory.unit()));
+//turned off to test factory production vs tempests
+//                            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_FACTORY)
+//                                    .forEach(factory -> BuildManager.liftFactory(factory.unit()));
                             break;
                         //ignore phoenixes until one is verify as real
                         case PROTOSS_PHOENIX:
