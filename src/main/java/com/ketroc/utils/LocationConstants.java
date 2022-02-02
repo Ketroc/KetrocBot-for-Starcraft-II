@@ -869,7 +869,7 @@ public class LocationConstants {
             reaperBlock3x3s.add(Point2d.of(49.5f, 122.5f));
 
             WALL_2x2 = Point2d.of(38.0f, 119.0f);
-            MID_WALL_2x2 = Point2d.of(40.5f, 119.5f);
+            MID_WALL_2x2 = Point2d.of(40f, 119f);
             MID_WALL_3x3 = Point2d.of(40.5f, 119.5f);
             WALL_3x3 = Point2d.of(41.5f, 116.5f);
 
