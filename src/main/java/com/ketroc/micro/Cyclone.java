@@ -198,7 +198,8 @@ public class Cyclone extends BasicUnitMicro {
     protected void updateTargetPos() {
         //locked on
         if (lockTarget != null) {
-            targetPos = lockTarget.unit().getPosition().toPoint2d();
+            targetPos = Position.towards(unit.unit().getPosition().toPoint2d(),
+                    lockTarget.unit().getPosition().toPoint2d(), 2);
             return;
         }
 
