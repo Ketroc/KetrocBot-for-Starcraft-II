@@ -150,7 +150,7 @@ public class Cyclone extends BasicUnitMicro {
                 Bot.OBS.getVisibility(
                         Position.towards(lockTarget.unit().getPosition().toPoint2d(),
                                 unit.unit().getPosition().toPoint2d(),
-                                -1)) != Visibility.VISIBLE);
+                                -2)) != Visibility.VISIBLE);
     }
 
     private boolean targetNearDeath() {

@@ -22,44 +22,68 @@ public class PlacementMap {
 
     /* shape:
         ..XXX....
+        ..XXXXX..
+        00XXXXX..
+        000000000
+        000000000 */
+    public static final Point2d[] _3x3_WITH_ADDON_SHAPE = new Point2d[] {
+            Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
+            Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
+            Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1), Point2d.of(3, -1),
+            Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2), Point2d.of(5, -2),
+            Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3), Point2d.of(5, -3)};
+    /* shape:
+        ..XXX..
+        ..XXX..
+        00XXX..
+        0000000
+        0000000 */
+    public static final Point2d[] _3x3_SHAPE1 = new Point2d[] {
+            Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
+            Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0),
+            Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1),
+            Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2),
+            Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3)};
+    /* shape:
+        ...XXX..
+        ...XXX..
+        ...XXX..
+        .0000000
+        .0000000 */
+    public static final Point2d[] _3x3_SHAPE2 = new Point2d[] {
+            Point2d.of(0, 1), Point2d.of(1, 1), Point2d.of(2, 1),
+            Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0),
+            Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1),
+            Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2),
+            Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3)};
+    /* shape:
+        ....XXX..
+        ....XXX..
+        ....XXX..
+        ..0000000
+        ..0000000 */
+    public static final Point2d[] _3x3_SHAPE3 = new Point2d[] {
+            Point2d.of(1, 1), Point2d.of(2, 1), Point2d.of(3, 1),
+            Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
+            Point2d.of(1, -1), Point2d.of(2, -1), Point2d.of(3, -1),
+            Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2), Point2d.of(5, -2),
+            Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3), Point2d.of(5, -3)};
+    /* shape:
+        ..XXXXX..
+        ..XXXXX..
+        00XXXXX..
         00XXXXX..
         00XXXXX..
         000000000
         .0000000. */
-    public static final Point2d[] _3x3_WITH_ADDON_SHAPE = new Point2d[] {
-            Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
-            Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0), Point2d.of(3, 0),
-            Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1), Point2d.of(3, -1),
-            Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2), Point2d.of(5, -2),
-            Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3)};
-    /* shape:
-        ..XXX..
-        00XXX..
-        00XXX..
-        0000000
-        .00000. */
-    public static final Point2d[] _3x3_SHAPE = new Point2d[] {
-            Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1),
-            Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0),
-            Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1),
-            Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2),
-            Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3)};
-    /* shape:
-        ..XXXXX..
-        .0XXXXX..
-        00XXXXX..
-        00XXXXX..
-        00XXXXX00
-        000000000
-        ..00000.. */
     public static final Point2d[] _5x5_SHAPE = new Point2d[] {
             Point2d.of(-2, 2), Point2d.of(-1, 2), Point2d.of(0, 2), Point2d.of(1, 2), Point2d.of(2, 2),
-            Point2d.of(-4, 1), Point2d.of(-3, 1), Point2d.of(-2, 1), Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1), Point2d.of(2, 1),
+            Point2d.of(-3, 1), Point2d.of(-2, 1), Point2d.of(-1, 1), Point2d.of(0, 1), Point2d.of(1, 1), Point2d.of(2, 1),
             Point2d.of(-4, 0), Point2d.of(-3, 0), Point2d.of(-2, 0), Point2d.of(-1, 0), Point2d.of(0, 0), Point2d.of(1, 0), Point2d.of(2, 0),
             Point2d.of(-4, -1), Point2d.of(-3, -1), Point2d.of(-2, -1), Point2d.of(-1, -1), Point2d.of(0, -1), Point2d.of(1, -1), Point2d.of(2, -1),
-            Point2d.of(-4, -2), Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2), Point2d.of(3, -2), Point2d.of(4, -2),
-            Point2d.of(-4, -3), Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3),
-            Point2d.of(-2, -4), Point2d.of(-1, -4), Point2d.of(0, -4), Point2d.of(1, -4), Point2d.of(2, -4)};
+            Point2d.of(-4, -2), Point2d.of(-3, -2), Point2d.of(-2, -2), Point2d.of(-1, -2), Point2d.of(0, -2), Point2d.of(1, -2), Point2d.of(2, -2),
+            Point2d.of(-4, -3), Point2d.of(-3, -3), Point2d.of(-2, -3), Point2d.of(-1, -3), Point2d.of(0, -3), Point2d.of(1, -3), Point2d.of(2, -3), Point2d.of(3, -3), Point2d.of(4, -3),
+            Point2d.of(-3, -4), Point2d.of(-2, -4), Point2d.of(-1, -4), Point2d.of(0, -4), Point2d.of(1, -4), Point2d.of(2, -4), Point2d.of(3, -4)};
     public static final Point2d[] GAS_CC_BLOCK_SHAPE = new Point2d[] {
             Point2d.of(-3, 4), Point2d.of(-2, 4), Point2d.of(-1, 4), Point2d.of(0, 4), Point2d.of(1, 4), Point2d.of(2, 4), Point2d.of(3, 4),
             Point2d.of(-4, 3), Point2d.of(-3, 3), Point2d.of(-2, 3), Point2d.of(-1, 3), Point2d.of(0, 3), Point2d.of(1, 3), Point2d.of(2, 3), Point2d.of(3, 3), Point2d.of(4, 3),
@@ -90,8 +114,8 @@ public class PlacementMap {
         replaceStarportsWithCommandCenters();
         populateMainBase3x3Pos(buildColumn, true);
         topUp5x5List();
-        topUp3x3List();
         populateDepotPos();
+        topUp3x3List();
 
         visualizePlacementMap();
         LocationConstants.STARPORTS.forEach(p -> visualize3x3WithAddOn(p));
@@ -137,7 +161,7 @@ public class PlacementMap {
 //        }
         while (LocationConstants._3x3Structures.size() < 4) {
             Point2d lastStarportPos = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size() - 1);
-            makeAvailable(Units.TERRAN_TECHLAB, lastStarportPos.add(2.5f, -0.5f));
+            //makeAvailable(Units.TERRAN_TECHLAB, getAddOnPos(lastStarportPos));
             LocationConstants._3x3Structures.add(lastStarportPos);
             LocationConstants.extraDepots.add(getAddOnPos(lastStarportPos));
         }
@@ -642,8 +666,24 @@ public class PlacementMap {
         for (int x=(int)(LocationConstants.MIN_X + 0.5f); x<LocationConstants.MAX_X; x++) {
             for (int y=(int)(LocationConstants.MAX_Y - 0.5f); y>LocationConstants.MIN_Y; y--) {
                 Point2d pos = Point2d.of(x + 0.5f, y + 0.5f);
-                if ((x % 7 == columnIndex || (x-1) % 7 == columnIndex || (x-2) % 7 == columnIndex) && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
-                    if (canFitPathingShape(pos, _3x3_SHAPE)) {
+                if (x % 7 == columnIndex && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
+                    if (canFitPathingShape(pos, _3x3_SHAPE1)) {
+                        if (doVisualize) {
+                            visualize3x3(pos);
+                        }
+                        LocationConstants._3x3Structures.add(pos);
+                        num3x3s++;
+                        makeUnavailable(Units.TERRAN_ARMORY, pos);
+                    } else if (canFitPathingShape(pos, _3x3_SHAPE2)) {
+                        pos = pos.add(1, 0);
+                        if (doVisualize) {
+                            visualize3x3(pos);
+                        }
+                        LocationConstants._3x3Structures.add(pos);
+                        num3x3s++;
+                        makeUnavailable(Units.TERRAN_ARMORY, pos);
+                    } else if (canFitPathingShape(pos, _3x3_SHAPE3)) {
+                        pos = pos.add(2, 0);
                         if (doVisualize) {
                             visualize3x3(pos);
                         }
