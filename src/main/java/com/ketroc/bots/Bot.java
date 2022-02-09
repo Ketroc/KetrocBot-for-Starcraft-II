@@ -24,8 +24,8 @@ public class Bot extends S2Agent {
     public static DebugInterface DEBUG;
     public static ControlInterface CONTROL;
     public static String opponentId;
-    public static Map<Abilities, Units> abilityToUnitType = new HashMap<>(); //TODO: move
-    public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>(); //TODO: move
+    public static Map<Abilities, Units> abilityToUnitType = new HashMap<>();
+    public static Map<Abilities, Upgrades> abilityToUpgrade = new HashMap<>();
     public static long[] prevGameFrames = new long[]{1, 1};
     public static int myId;
     public static int enemyId;

@@ -125,7 +125,7 @@ public class DroneDrill extends Bot {
                 FlyingCC.onStep();
 
                 //update status of scvs building structures
-                StructureScv.checkScvsActivelyBuilding();  //TODO: move to GameState onStep()??
+                StructureScv.checkScvsActivelyBuilding();
 
                 //scv rush opener
                 if (!Switches.scvRushComplete) {

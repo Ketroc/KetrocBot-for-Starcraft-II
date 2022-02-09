@@ -507,7 +507,7 @@ public class ArmyManager {
                 u.unit().getType() != Units.ZERG_BROODLING && //ignore broodlings
                 !u.unit().getHallucination().orElse(false);
         attackAirUnit = GameCache.allVisibleEnemiesList.stream()
-                .filter(enemyTargetFilter) //ignore hallucs
+                .filter(enemyTargetFilter)
                 .filter(u -> u.unit().getFlying().orElse(true))
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), groundAttackersMidPoint)))

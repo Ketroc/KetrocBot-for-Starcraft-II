@@ -217,10 +217,9 @@ public class KetrocBot extends Bot {
                 }
             }
 
-            //TODO: order to spend should be workers, units, build queue, structures
             //Strategy.onStep(); //effect game strategy
             UpgradeManager.onStep();
-            BuildManager.onStep(); //build structures TODO: split into Structure and Unit Managers, then move Unit Manager above purchase loop
+            BuildManager.onStep(); //build structures
             ArmyManager.onStep(); //decide army movements
             UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads

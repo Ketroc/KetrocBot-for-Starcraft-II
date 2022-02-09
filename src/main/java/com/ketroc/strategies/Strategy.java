@@ -451,7 +451,7 @@ public class Strategy {
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        //GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.RAVEN
                 ));
         }

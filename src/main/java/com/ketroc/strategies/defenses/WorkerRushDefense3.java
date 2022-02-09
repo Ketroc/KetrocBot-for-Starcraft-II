@@ -98,6 +98,7 @@ public class WorkerRushDefense3 {
                 });
     }
 
+    //open depot rax gas
     private static void changeBuildOrder() {
         //cancel gas, requeue it (after barracks)
         if (StructureScv.cancelProduction(Units.TERRAN_REFINERY)) {
