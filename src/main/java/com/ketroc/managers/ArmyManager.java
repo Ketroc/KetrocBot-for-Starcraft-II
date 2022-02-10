@@ -751,7 +751,7 @@ public class ArmyManager {
         return GameCache.allEnemiesList.stream()
                 .filter(u -> u.getLastSeenGameLoop() + 24 >= Time.nowFrames() &&
                         (!Ignored.contains(u.getTag()) || AirUnitKillSquad.containsWithNoVikings(u.getTag())) &&
-                        u.unit().getFlying().orElse(false) && //air unit
+                        UnitUtils.isAir(u.unit()) &&
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
                         !u.unit().getHallucination().orElse(false)) //ignore hallucs

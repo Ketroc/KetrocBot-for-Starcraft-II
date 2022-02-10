@@ -1621,4 +1621,12 @@ public class UnitUtils {
     public static boolean hasUpgrade(Upgrades upgrade) {
         return Bot.OBS.getUpgrades().contains(upgrade);
     }
+
+    public static boolean isAir(Unit unit) {
+        return unit.getFlying().orElse(false) || unit.getType() == Units.PROTOSS_COLOSSUS;
+    }
+
+    public static boolean isGround(Unit unit) {
+        return !unit.getFlying().orElse(false);
+    }
 }
