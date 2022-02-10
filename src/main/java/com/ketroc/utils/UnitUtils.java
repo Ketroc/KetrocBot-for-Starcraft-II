@@ -550,14 +550,14 @@ public class UnitUtils {
     }
 
 
-    public static List<Unit> getVisibleEnemyUnitsOfType(Units unitType) {
+    public static List<UnitInPool> getVisibleEnemyUnitsOfType(Units unitType) {
         return GameCache.allVisibleEnemiesMap.getOrDefault(unitType, new ArrayList<>());
     }
 
-    public static List<Unit> getVisibleEnemyUnitsOfType(Set<Units> unitTypes) {
-        List<Unit> result = new ArrayList<>();
+    public static List<UnitInPool> getVisibleEnemyUnitsOfType(Set<Units> unitTypes) {
+        List<UnitInPool> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
-            List<Unit> enemyOfTypeList = GameCache.allVisibleEnemiesMap.getOrDefault(unitType, new ArrayList<>());
+            List<UnitInPool> enemyOfTypeList = GameCache.allVisibleEnemiesMap.getOrDefault(unitType, new ArrayList<>());
             if (!enemyOfTypeList.isEmpty()) {
                 result.addAll(enemyOfTypeList);
             }
@@ -972,8 +972,16 @@ public class UnitUtils {
                 .orElse(null);
     }
 
+    public static boolean isInMyMainOrNat(UnitInPool uip) {
+        return isInMyMainOrNat(uip.unit().getPosition().toPoint2d());
+    }
+
     public static boolean isInMyMainOrNat(Unit unit) {
         return isInMyMainOrNat(unit.getPosition().toPoint2d());
+    }
+
+    public static boolean isInMyMain(UnitInPool uip) {
+        return isInMyMain(uip.unit().getPosition().toPoint2d());
     }
 
     public static boolean isInMyMain(Unit unit) {

@@ -27,7 +27,7 @@ public class EnemyScan {
     }
 
     // ************ STATIC METHODS ************
-    public static void onStep() {
+    public static void onStepStart() {
         //if I can see the scan spot and it's not there, or its endTime has passed, then remove the scan
         enemyScanSet.removeIf(enemyScan ->
                 (Bot.OBS.getVisibility(enemyScan.position) == Visibility.VISIBLE &&

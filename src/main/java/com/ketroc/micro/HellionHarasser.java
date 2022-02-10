@@ -142,7 +142,7 @@ public class HellionHarasser extends Hellion {
             //if at basePos without any key targets in vision (eg workers), set target to next base
             else if (UnitUtils.getDistance(unit.unit(), getThisBase()) < 4f &&
                     UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
-                            .noneMatch(enemyWorker -> UnitUtils.getDistance(unit.unit(), enemyWorker) < 10)) {
+                            .noneMatch(enemyWorker -> UnitUtils.getDistance(unit.unit(), enemyWorker.unit()) < 10)) {
                 nextBase();
             }
         }
@@ -178,11 +178,11 @@ public class HellionHarasser extends Hellion {
         }
 
         //go towards nearest high priority enemy target (eg workers)
-        Unit closestChaseTarget = UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy)))
+        UnitInPool closestChaseTarget = UnitUtils.getVisibleEnemyUnitsOfType(CHASE_TARGETS).stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy.unit())))
                 .orElse(null);
-        if (closestChaseTarget != null && UnitUtils.getDistance(unit.unit(), closestChaseTarget) < 10) {
-            targetPos = closestChaseTarget.getPosition().toPoint2d();
+        if (closestChaseTarget != null && UnitUtils.getDistance(unit.unit(), closestChaseTarget.unit()) < 10) {
+            targetPos = closestChaseTarget.unit().getPosition().toPoint2d();
             return;
         }
 

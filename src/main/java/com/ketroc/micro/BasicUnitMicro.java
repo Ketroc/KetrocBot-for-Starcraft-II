@@ -427,7 +427,7 @@ public class BasicUnitMicro {
                 targetPos = ArmyManager.attackAirPos;
             }
         //find last structures with random reachable positions
-        } else if (targetPos != null && UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
+        } else if (targetPos == null || UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
             do {
                 targetPos = Bot.OBS.getGameInfo().findRandomLocation();
             } while (isGround && !Bot.OBS.isPathable(targetPos));

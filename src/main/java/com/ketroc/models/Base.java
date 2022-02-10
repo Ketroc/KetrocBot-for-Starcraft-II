@@ -295,7 +295,7 @@ public class Base {
                     Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(scv);
                     if (curOrder.isEmpty() ||
                             (curOrder.get().ability == Abilities.HARVEST_GATHER &&
-                                    !curOrder.get().targetTag.equals(mineralPatch.getNode().getTag()))) {
+                                    !mineralPatch.getNode().getTag().equals(curOrder.get().targetTag))) {
                         ActionHelper.unitCommand(scv.unit(), Abilities.HARVEST_GATHER, mineralPatch.getNode(), false);
                     }
                     return;

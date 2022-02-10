@@ -99,7 +99,7 @@ public class BansheeHarasser {
             //if at basePos without workers in vision, then move on to next base
             else if (UnitUtils.getDistance(banshee.unit(), getThisBase()) < 2.5f &&
                     UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
-                            .noneMatch(enemyWorker -> UnitUtils.getDistance(banshee.unit(), enemyWorker) < 10)) {
+                            .noneMatch(enemyWorker -> UnitUtils.getDistance(banshee.unit(), enemyWorker.unit()) < 10)) {
                 nextBase();
             }
         }
@@ -141,11 +141,11 @@ public class BansheeHarasser {
         }
 
         //go towards nearest enemy worker
-        Unit closestWorker = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
-                .min(Comparator.comparing(worker -> UnitUtils.getDistance(banshee.unit(), worker)))
+        UnitInPool closestWorker = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyWorkerType).stream()
+                .min(Comparator.comparing(worker -> UnitUtils.getDistance(banshee.unit(), worker.unit())))
                 .orElse(null);
-        if (closestWorker != null && UnitUtils.getDistance(banshee.unit(), closestWorker) < 10) {
-            return closestWorker.getPosition().toPoint2d();
+        if (closestWorker != null && UnitUtils.getDistance(banshee.unit(), closestWorker.unit()) < 10) {
+            return closestWorker.unit().getPosition().toPoint2d();
         }
 
         //go towards enemy base

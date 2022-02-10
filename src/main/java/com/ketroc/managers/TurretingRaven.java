@@ -65,6 +65,7 @@ public class TurretingRaven {
     public static void onStepStart() {
         list.clear();
     }
+
     public static void onStepEnd() {
         if (list.isEmpty()) {
             return;

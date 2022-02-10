@@ -54,7 +54,8 @@ public class LockOnManager {
 
         //if no guess, get median position of visible cyclones
         List<Unit> nearbyCyclones = UnitUtils.getVisibleEnemyUnitsOfType(Units.TERRAN_CYCLONE).stream()
-                .filter(cyclone -> UnitUtils.getDistance(targetUnit, cyclone) < 16)
+                .filter(cyclone -> UnitUtils.getDistance(targetUnit, cyclone.unit()) < 16)
+                .map(UnitInPool::unit)
                 .collect(Collectors.toList());
         if (!nearbyCyclones.isEmpty()) {
             return Position.midPointUnitsMedian(nearbyCyclones);

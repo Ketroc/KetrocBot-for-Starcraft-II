@@ -22,7 +22,7 @@ public class AdeptShadeTracker {
     public AdeptShadeTracker(UnitInPool shadeUip) {
         this.shadeUip = shadeUip;
         boolean shadeCreatedInVision = GameCache.allVisibleEnemiesMap.getOrDefault(Units.PROTOSS_ADEPT, Collections.emptyList()).stream()
-                .anyMatch(adept -> UnitUtils.getDistance(adept, shadeUip.unit()) < 1.5f);
+                .anyMatch(adept -> UnitUtils.getDistance(adept.unit(), shadeUip.unit()) < 1.5f);
         this.endFrame = Time.nowFrames() + (int)(shadeCreatedInVision ? SHADE_DURATION : SHADE_DURATION * 0.6f); //remove 40% of shade duration if I didn't see it get created (guess)
     }
 

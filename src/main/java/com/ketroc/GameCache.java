@@ -55,7 +55,7 @@ public class GameCache {
     public static final List<Unit> vikingDivers = new ArrayList<>();
 
     public static final List<UnitInPool> allVisibleEnemiesList = new ArrayList<>();
-    public static final Map<Units, List<Unit>> allVisibleEnemiesMap = new HashMap<>();
+    public static final Map<Units, List<UnitInPool>> allVisibleEnemiesMap = new HashMap<>();
     public static final List<UnitInPool> allEnemiesList = new ArrayList<>(); //tracks units in fog of war too
     public static final Set<UnitInPool> allMyUnitsSet = new HashSet<>();
     public static final Map<Units, List<UnitInPool>> allEnemiesMap = new HashMap<>();
@@ -72,11 +72,11 @@ public class GameCache {
 
     public static void onGameStart() {
         allMyUnitsSet.addAll(Bot.OBS.getUnits(Alliance.SELF));
-        onStep();
+        onStepStart();
     }
 
 
-    public static void onStep() {
+    public static void onStepStart() {
         mineralBank = Bot.OBS.getMinerals();
         gasBank = Bot.OBS.getVespene();
         freeSupply = Bot.OBS.getFoodCap() - Bot.OBS.getFoodUsed();
@@ -326,7 +326,7 @@ public class GameCache {
                     if (!allVisibleEnemiesMap.containsKey(unitType)) {
                         allVisibleEnemiesMap.put(unitType, new ArrayList<>());
                     }
-                    allVisibleEnemiesMap.get(unitType).add(unit);
+                    allVisibleEnemiesMap.get(unitType).add(unitInPool);
 
                     if (!unit.getFlying().orElse(false)) {
                         enemyIsGround.add(unit);

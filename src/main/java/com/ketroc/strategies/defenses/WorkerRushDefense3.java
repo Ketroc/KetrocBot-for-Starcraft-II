@@ -124,17 +124,17 @@ public class WorkerRushDefense3 {
             }
         //turn off worker rush flag
         } else if (UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()
-                .filter(enemy -> UnitUtils.getDistance(enemy, LocationConstants.myRampPos) <
-                        UnitUtils.getDistance(enemy, LocationConstants.enemyRampPos))
+                .filter(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myRampPos) <
+                        UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyRampPos))
                 .count() == 0) {
             turnOffWorkerRushDefense();
         }
     }
 
     private static int numEnemyWorkersAttacking() {
-        Predicate<Unit> defenseBoundary = (GameCache.baseList.get(1).isMyBase() || UnitUtils.getNatBunker().isPresent()) ?
-                enemy -> UnitUtils.isInMyMainOrNat(enemy) :
-                enemy -> UnitUtils.isInMyMain(enemy);
+        Predicate<UnitInPool> defenseBoundary = (GameCache.baseList.get(1).isMyBase() || UnitUtils.getNatBunker().isPresent()) ?
+                UnitUtils::isInMyMainOrNat :
+                UnitUtils::isInMyMain;
         return (int)UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()
                 .filter(defenseBoundary)
                 .count();

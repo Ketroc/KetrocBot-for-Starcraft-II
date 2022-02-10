@@ -75,7 +75,7 @@ public class DroneDrill extends Bot {
             DebugHelper.onGameStart();
 
             //build unit lists
-            GameCache.onStep();
+            GameCache.onStepStart();
 
             //set main midpoint (must be done after GameState.onStep())
             LocationConstants.setRepairBayLocation();
@@ -101,13 +101,13 @@ public class DroneDrill extends Bot {
                     ACTION.sendChat("Last updated: Sept 24, 2020", ActionChat.Channel.BROADCAST);
                 }
                 //free up ignored units
-                Ignored.onStep();
+                Ignored.onStepStart();
 
                 //remove expired enemy scans
-                EnemyScan.onStep();
+                EnemyScan.onStepStart();
 
                 //rebuild unit cache every frame
-                GameCache.onStep();
+                GameCache.onStepStart();
 
                 //check switches
                 Switches.onStep();

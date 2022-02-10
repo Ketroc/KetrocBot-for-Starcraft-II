@@ -104,7 +104,7 @@ public class ScvRush {
             return;
         }
 
-        Unit enemyCommand = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyCommandStructures).get(0);
+        Unit enemyCommand = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyCommandStructures).get(0).unit();
 
         List<UnitInPool> enemyWorkers = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, enemyCommand.getPosition().toPoint2d(), 10);
 

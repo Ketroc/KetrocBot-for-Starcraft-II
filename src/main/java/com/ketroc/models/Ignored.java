@@ -36,7 +36,7 @@ public abstract class Ignored {
         ignoredUnits.add(unitToAdd);
     }
 
-    public static void onStep() {
+    public static void onStepStart() {
         ignoredUnits.removeIf(ignoredUnit -> ignoredUnit.doReleaseUnit());
     }
 

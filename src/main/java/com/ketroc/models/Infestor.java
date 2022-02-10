@@ -40,9 +40,9 @@ public class Infestor {
         }
 
         //add new infestors
-        List<Unit> visibleInfestors = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.INFESTOR_TYPE);
+        List<UnitInPool> visibleInfestors = UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.INFESTOR_TYPE);
         visibleInfestors.stream()
-                .filter(infestor -> !isInfestorInList(infestor))
+                .filter(infestor -> !isInfestorInList(infestor.unit()))
                 .forEach(unit -> infestorList.add(new Infestor(Bot.OBS.getUnit(unit.getTag()))));
 
         //remove expired fungals

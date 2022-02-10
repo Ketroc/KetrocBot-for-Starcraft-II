@@ -113,7 +113,6 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
-            TurretingRaven.onStepStart();
 
             OBS.getChatMessages().stream()
                     .filter(chat -> chat.getPlayerId() != OBS.getPlayerId())
@@ -125,7 +124,11 @@ public class KetrocBot extends Bot {
                 JsonUtil.chatAllWinRates(true);
             }
 
+            TurretingRaven.onStepStart();
             MyUnitAbilities.onStepStart();
+            Ignored.onStepStart(); //free up ignored units
+            EnemyScan.onStepStart(); //remove expired enemy scans
+            GameCache.onStepStart(); //rebuild unit cache every frame
             WorkerManager.onStepStart(); //fix workers, make refineries
 
             switch (LocationConstants.opponentRace) {
@@ -141,9 +144,6 @@ public class KetrocBot extends Bot {
             }
             //PlacementMap.visualizePlacementMap();
 
-            Ignored.onStep(); //free up ignored units
-            EnemyScan.onStep(); //remove expired enemy scans
-            GameCache.onStep(); //rebuild unit cache every frame
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
             OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
 

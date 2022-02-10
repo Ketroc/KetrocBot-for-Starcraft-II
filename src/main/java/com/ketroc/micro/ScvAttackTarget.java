@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.bots.Bot;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.models.Base;
 import com.ketroc.utils.ActionHelper;
@@ -81,14 +80,14 @@ public class ScvAttackTarget extends Scv {
         }
     }
 
-    public static void add(Unit enemyWorker) {
+    public static void add(UnitInPool enemyWorker) {
         boolean alreadyExists = UnitMicroList.unitMicroList.stream()
                 .anyMatch(unitMicro -> unitMicro instanceof ScvAttackTarget &&
                         ((ScvAttackTarget) unitMicro).targetUnit.getTag().equals(enemyWorker.getTag()));
         if (!alreadyExists) {
-            UnitInPool newScv = getNewScv(enemyWorker.getPosition().toPoint2d());
+            UnitInPool newScv = getNewScv(enemyWorker.unit().getPosition().toPoint2d());
             if (newScv != null) {
-                UnitMicroList.add(new ScvAttackTarget(newScv, Bot.OBS.getUnit(enemyWorker.getTag())));
+                UnitMicroList.add(new ScvAttackTarget(newScv, enemyWorker));
             }
         }
     }
