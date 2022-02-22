@@ -257,6 +257,11 @@ public class GameCache {
                         LocationConstants.opponentRace = Bot.OBS.getUnitTypeData(false).get(unitType).getRace().get();
                         Chat.tag("VS_" + LocationConstants.opponentRace);
                         LocationConstants.setEnemyTypes();
+                        if (LocationConstants.opponentRace == Race.TERRAN) {
+                            Strategy.gamePlan = GamePlan.TANK_VIKING;
+                            Strategy.DO_USE_CYCLONES = false;
+                            Strategy.useTankVikingAdjustments();
+                        }
                         Strategy.setRaceStrategies();
                     }
 

@@ -77,6 +77,8 @@ public class PurchaseStructureMorph implements Purchase {
     // =========== METHODS ============
 
     public PurchaseResult build() {
+        //TODO: handle null productionStructure up here then remove all the null checks below
+
         //cancel purchase if structure died or morph already in progress
         if (productionStructure != null &&
                 (!productionStructure.isAlive() || structureAlreadyMorphing())) {
@@ -99,7 +101,8 @@ public class PurchaseStructureMorph implements Purchase {
         }
 
 
-        if (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null) {
+        if (productionStructure != null &&
+                (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null)) {
             if (UnitUtils.framesUntilAvailable(productionStructure.unit()) < 100) {
                 Cost.updateBank(cost);
             }

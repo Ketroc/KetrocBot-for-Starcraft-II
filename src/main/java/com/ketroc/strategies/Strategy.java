@@ -187,6 +187,8 @@ public class Strategy {
                 DO_DIVE_MOBILE_DETECTORS = false;
                 break;
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+                NO_TURRETS = true;
+                DO_DEFENSIVE_TANKS = true;
                 break;
             case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
                 DO_DIVE_MOBILE_DETECTORS = false;
