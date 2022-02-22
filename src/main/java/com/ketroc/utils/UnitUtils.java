@@ -14,6 +14,7 @@ import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.StructureSize;
+import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.TankOffense;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.Base;
@@ -1313,6 +1314,10 @@ public class UnitUtils {
         return structure.getPosition().toPoint2d().add(2.5f, -0.5f);
     }
 
+    public static Point2d getProductionPosFromAddOn(Unit addOn) {
+        return addOn.getPosition().toPoint2d().add(-2.5f, 0.5f);
+    }
+
     public static boolean isOutOfGas() {
         return Cost.isGasBroke(25) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
     }
@@ -1333,44 +1338,7 @@ public class UnitUtils {
                 .mapToInt(purchaseUnit -> secondsToProduce(purchaseUnit.getUnitType()))
                 .sum();
 
-        // if under construction
-        if (structure.getBuildProgress() != 1) {
-            return timeForQueuedUnits + (int) (secondsToProduce(structure.getType()) * (1 - structure.getBuildProgress()));
-        }
-
-        //TODO: include structure morphs (command centers)
-
-        //if available now
-        if (UnitUtils.getOrder(structure) == null) {
-            return timeForQueuedUnits;
-        }
-
-        if (!structure.getOrders().isEmpty()) {
-            UnitOrder curOrder = structure.getOrders().get(0);
-
-            // if currently training a unit
-            if (curOrder.getProgress().isPresent() && curOrder.getAbility().toString().contains("TRAIN")) {
-                Units unitTypeInProduction = Bot.abilityToUnitType.get(curOrder.getAbility());
-                return timeForQueuedUnits + (int) (secondsToProduce(unitTypeInProduction) * (1 - curOrder.getProgress().get()));
-            }
-
-            // if currently building an add-on
-            else if (curOrder.getAbility().toString().contains("BUILD")) {
-                UnitInPool addOn = getAddOn(structure).orElse(null);
-                if (addOn == null) {
-                    return timeForQueuedUnits + secondsToProduce(addOn.unit().getType());
-                } else {
-                    return timeForQueuedUnits + (int) (secondsToProduce(addOn.unit().getType()) * (1 - addOn.unit().getBuildProgress()));
-                }
-            }
-
-            // if currently researching an upgrade
-            else if (curOrder.getAbility().toString().contains("RESEARCH")) {
-                Upgrades upgradeInProduction = Bot.abilityToUpgrade.get(curOrder.getAbility());
-                return (int) (secondsToProduce(upgradeInProduction) * (1 - curOrder.getProgress().get()));
-            }
-        }
-        return 0;
+        return timeForQueuedUnits + Time.toSeconds(framesUntilAvailable(structure));
     }
 
     public static int secondsToProduce(UnitType unitType) {
@@ -1479,20 +1447,13 @@ public class UnitUtils {
         }
     }
 
-    public static float getTrainingTimeRemaining(Unit structure) {
-        return structure.getOrders().stream()
-                .findFirst()
-                .flatMap(order -> order.getProgress())
-                .orElse(0f);
-    }
-
     //gets production structure that is available or best one to cancel current production of
     public static Optional<Unit> getEmergencyProductionStructure(Units unitToTrain) {
         Units structureType = getRequiredStructureType(unitToTrain);
         boolean requiresTechLab = requiresTechLab(unitToTrain);
         return getMyUnitsOfType(structureType).stream()
                 .filter(structure -> !requiresTechLab || structure.getAddOnTag().isPresent())
-                .min(Comparator.comparing(structure -> getTrainingTimeRemaining(structure)));
+                .min(Comparator.comparing(structure -> trainingTimeRemaining(structure)));
     }
 
     public static Units getRequiredStructureType(Units unitType) {
@@ -1636,5 +1597,105 @@ public class UnitUtils {
 
     public static boolean isGround(Unit unit) {
         return !unit.getFlying().orElse(false);
+    }
+
+    public static List<Point2d> getPosByAvailableTechLab() {
+        return getPosByAvailableAddons(Units.TERRAN_TECHLAB);
+    }
+
+    public static List<Point2d> getPosByAvailableReactor() {
+        return getPosByAvailableAddons(Units.TERRAN_REACTOR);
+    }
+
+    private static List<Point2d> getPosByAvailableAddons(Units addOnType) {
+        List<UnitInPool> availableAddOns = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == addOnType);
+        return availableAddOns.stream()
+                .map(addOn -> UnitUtils.getProductionPosFromAddOn(addOn.unit())) //map back to starport positions
+                .filter(starportPos -> !StructureFloater.contains(starportPos)) //nothing is already floating there
+                .filter(starportPos -> !StructureScv.contains(starportPos)) //nothing is already in production there
+                .collect(Collectors.toList());
+    }
+
+    public static int framesUntilAvailable(Unit structure) {
+        //idle structure
+        Abilities curOrder = getOrder(structure);
+        if (curOrder == null) {
+            return 0;
+        }
+
+        //structure under production
+        if (structure.getBuildProgress() < 1) {
+            return productionTimeRemaining(structure);
+        }
+
+        //structure TRAINing unit
+        if (curOrder.toString().startsWith("TRAIN_")) {
+            return trainingTimeRemaining(structure);
+        }
+
+        //structure RESEARCHing upgrade
+        if (curOrder.toString().startsWith("RESEARCH_")) {
+            return upgradeTimeRemaining(structure);
+        }
+
+        if (curOrder.toString().startsWith("BUILD_")) {
+            return addOnTimeRemaining(structure);
+        }
+
+//        //structure MORPHing TODO: this is commented out because untested (will Bot.abilityToUnitType work?)
+//        if (curOrder.toString().contains("MORPH_")) {
+//            return getMorphTimeRemaining(structure);
+//        }
+
+        return 0;
+    }
+
+    public static int addOnTimeRemaining(Unit structure) {
+        Abilities curOrder = getOrder(structure);
+        if (curOrder == null || !curOrder.toString().startsWith("BUILD_")) {
+            return 0;
+        }
+        float buildProgress = getAddOn(structure).map(unitInPool -> unitInPool.unit().getBuildProgress()).orElse(0f);
+        Units addOnType = Bot.abilityToUnitType.get(curOrder);
+        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(addOnType).getBuildTime().orElse(0f);
+        return (int)Math.ceil(totalBuildTime * (1 - buildProgress));
+    }
+
+    public static int productionTimeRemaining(Unit structure) {
+        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(structure.getType()).getBuildTime().orElse(0f);
+        return (int)Math.ceil(totalBuildTime * (1 - structure.getBuildProgress()));
+    }
+
+    public static int morphTimeRemaining(Unit structure) {
+        Abilities curOrder = getOrder(structure);
+        if (curOrder == null || !curOrder.toString().startsWith("MORPH_")) {
+            return 0;
+        }
+        Units morphType = Bot.abilityToUnitType.get(curOrder);
+        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(morphType).getBuildTime().orElse(0f);
+        float morphProgress = (structure.getOrders().isEmpty()) ? 0 : structure.getOrders().get(0).getProgress().orElse(1f);
+        return (int)Math.ceil(totalBuildTime * (1 - morphProgress));
+    }
+
+    public static int trainingTimeRemaining(Unit structure) {
+        Abilities curOrder = getOrder(structure);
+        if (curOrder == null || !curOrder.toString().startsWith("TRAIN_")) {
+            return 0;
+        }
+        Units trainType = Bot.abilityToUnitType.get(curOrder);
+        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(trainType).getBuildTime().orElse(0f);
+        float trainProgress = (structure.getOrders().isEmpty()) ? 0 : structure.getOrders().get(0).getProgress().orElse(1f);
+        return (int)Math.ceil(totalBuildTime * (1 - trainProgress));
+    }
+
+    public static int upgradeTimeRemaining(Unit structure) {
+        Abilities curOrder = getOrder(structure);
+        if (curOrder == null || !curOrder.toString().startsWith("RESEARCH_")) {
+            return 0;
+        }
+        Upgrades upgrade = Bot.abilityToUpgrade.get(curOrder);
+        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(upgrade).getBuildTime().orElse(0f);
+        float upgradeProgress = (structure.getOrders().isEmpty()) ? 0 : structure.getOrders().get(0).getProgress().orElse(1f);
+        return (int)Math.ceil(totalBuildTime * (1 - upgradeProgress));
     }
 }

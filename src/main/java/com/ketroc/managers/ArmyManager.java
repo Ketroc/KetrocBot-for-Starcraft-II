@@ -775,7 +775,7 @@ public class ArmyManager {
                     scv.unit().getType() == Units.TERRAN_SCV &&
                             Position.isSameElevation(scv.unit().getPosition(), nydusWorm.get().unit().getPosition()) &&
                             UnitUtils.getDistance(scv.unit(), nydusWorm.get().unit()) < 35 &&
-                            !StructureScv.isScvProducing(scv.unit()))
+                            !StructureScv.contains(scv.unit()))
                     .stream()
                     .sorted(Comparator.comparing(scv -> Bot.QUERY.pathingDistance(scv.unit(), nydusWorm.get().unit().getPosition().toPoint2d())))
                     .collect(Collectors.toList());

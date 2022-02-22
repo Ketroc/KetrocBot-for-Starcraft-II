@@ -387,7 +387,7 @@ public class LocationConstants {
 //            extraDepots.add(Point2d.of(166.0f, 130.0f));
 //            extraDepots.add(Point2d.of(164.0f, 129.0f));
         } else {
-            proxyBarracksPos = Point2d.of(99.5f, 131.5f);
+            proxyBarracksPos = Point2d.of(96.5f, 131.5f);
             proxyBunkerPos = Point2d.of(136.5f, 146.5f);
             proxyBunkerPos2 = Point2d.of(147.5f, 121.5f);
 

@@ -14,10 +14,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.models.Base;
 import com.ketroc.models.Cost;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.Print;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -80,7 +77,7 @@ public class PurchaseStructureMorph implements Purchase {
     // =========== METHODS ============
 
     public PurchaseResult build() {
-        //cancel purchase is structure died or morph already in progress
+        //cancel purchase if structure died or morph already in progress
         if (productionStructure != null &&
                 (!productionStructure.isAlive() || structureAlreadyMorphing())) {
             return PurchaseResult.CANCEL;
@@ -101,6 +98,14 @@ public class PurchaseStructureMorph implements Purchase {
             return PurchaseResult.WAITING;
         }
 
+
+        if (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null) {
+            if (UnitUtils.framesUntilAvailable(productionStructure.unit()) < 100) {
+                Cost.updateBank(cost);
+            }
+            return PurchaseResult.WAITING;
+        }
+
         //if can't afford it
         if (!canAfford()) {
             Cost.updateBank(cost);
@@ -114,21 +119,14 @@ public class PurchaseStructureMorph implements Purchase {
             }
         }
 
-        //if structure not producing unit and can afford morph TODO: this is hardcoded to scv production (not valid for cancelling factory production etc)
-        if (productionStructure.unit().getBuildProgress() == 1 && UnitUtils.getOrder(productionStructure.unit()) == null) {
-            Print.print("start building " + this.morphOrAddOn.toString());
-            Print.print("sending action " + this.morphOrAddOn);
-            ActionHelper.unitCommand(productionStructure.unit(), this.morphOrAddOn, false);
-            Cost.updateBank(cost);
-            if (morphOrAddOn == Abilities.MORPH_PLANETARY_FORTRESS) {
-                Base.setBaseMorphTime(productionStructure.unit());
-            }
-            return PurchaseResult.SUCCESS;
-        }
-
-        //if canafford but structure is busy
+        Print.print("start building " + this.morphOrAddOn.toString());
+        Print.print("sending action " + this.morphOrAddOn);
+        ActionHelper.unitCommand(productionStructure.unit(), this.morphOrAddOn, false);
         Cost.updateBank(cost);
-        return PurchaseResult.WAITING;
+        if (morphOrAddOn == Abilities.MORPH_PLANETARY_FORTRESS) {
+            Base.setBaseMorphTime(productionStructure.unit());
+        }
+        return PurchaseResult.SUCCESS;
     }
 
     private boolean structureAlreadyMorphing() {

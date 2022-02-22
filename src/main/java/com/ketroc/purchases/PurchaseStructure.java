@@ -423,6 +423,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 //                return false;
             case TERRAN_STARPORT:
                 if (!LocationConstants.STARPORTS.isEmpty()) {
+                    List<Point2d> freeTechLabPos = UnitUtils.getPosByAvailableTechLab();
+                    if (!freeTechLabPos.isEmpty()) {
+                        position = freeTechLabPos.get(0);
+                    }
                     position = LocationConstants.STARPORTS.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
                             .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base

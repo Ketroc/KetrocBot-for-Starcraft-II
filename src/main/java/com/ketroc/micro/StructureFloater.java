@@ -61,4 +61,10 @@ public class StructureFloater extends BasicUnitMicro {
                 break;
         }
     }
+
+    public static boolean contains(Point2d pos) {
+        return UnitMicroList.getUnitSubList(StructureFloater.class)
+                .stream()
+                .anyMatch(floater -> floater.targetPos.distance(pos) < 0.5f);
+    }
 }

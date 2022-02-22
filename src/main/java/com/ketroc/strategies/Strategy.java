@@ -401,7 +401,7 @@ public class Strategy {
                         GamePlan.BANSHEE,
                         //GamePlan.SCV_RUSH,
                         GamePlan.TANK_VIKING,
-                        //GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.RAVEN,
                         GamePlan.MARINE_RUSH,
                         GamePlan.RAVEN_CYCLONE,
@@ -451,7 +451,7 @@ public class Strategy {
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
-                        //GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.RAVEN
                 ));
         }
@@ -1127,7 +1127,7 @@ public class Strategy {
         opponentRecords.filterToGamePlans(gamePlans);
 
         //play 4 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1);
 
         //pick the winningest strategy (exclude most recent loss strategy)
         if (gamePlan == GamePlan.NONE) {

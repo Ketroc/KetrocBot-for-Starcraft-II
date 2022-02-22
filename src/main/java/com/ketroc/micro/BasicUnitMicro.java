@@ -463,7 +463,7 @@ public class BasicUnitMicro {
                 .filter(base -> base.isMyBase() &&
                         base.isComplete() &&
                         !base.isMyMainBase() &&
-                        base.numMineralScvs() >= 4 &&
+                        base.numMineralScvs() + base.numScvRepairers() >= 4 &&
                         !base.isUnderAttack())
                 .map(Base::inFrontPos)
                 .min(Comparator.comparing(pos -> pos.distance(unitPos)));

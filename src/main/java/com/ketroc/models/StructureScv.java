@@ -222,7 +222,7 @@ public class StructureScv {
                         Time.nowFrames() < Time.toFrames("5:00") &&
                         structureScv.structurePos.distance(LocationConstants.myRampPos) > 50) {
                     BunkerContain.repairScvList.stream()
-                            .filter(u -> !StructureScv.isScvProducing(u.unit()))
+                            .filter(u -> !StructureScv.contains(u.unit()))
                             .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))
                             .ifPresent(u -> structureScv.setScv(u));
                 }
@@ -352,9 +352,15 @@ public class StructureScv {
     }
 
     //checks if an scv is within the scvBuildingList
-    public static boolean isScvProducing(Unit scv) {
+    public static boolean contains(Unit scv) {
         return scvBuildingList.stream()
                 .anyMatch(structureScv -> structureScv.scv.getTag().equals(scv.getTag()));
+    }
+
+    //checks if a structure is being built at this position
+    public static boolean contains(Point2d pos) {
+        return scvBuildingList.stream()
+                .anyMatch(structureScv -> structureScv.structurePos.distance(pos) < 0.5f);
     }
 
 

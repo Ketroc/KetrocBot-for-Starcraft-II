@@ -189,6 +189,12 @@ public class Base {
         return numMineralScvs(scv -> true);
     }
 
+    public int numScvRepairers() {
+        return (int)UnitMicroList.getUnitSubList(ScvRepairBay.class).stream()
+                .filter(scvRepairBay -> UnitUtils.getDistance(scvRepairBay.unit.unit(), ccPos) < 9)
+                .count();
+    }
+
     public int numMineralScvs(Predicate<UnitInPool> scvFilter) {
         return (int)mineralPatches.stream()
                 .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
@@ -1149,4 +1155,5 @@ public class Base {
         return GameCache.baseList.stream()
                 .anyMatch(base -> base.isMyBase() && UnitUtils.getDistance(unit, base.ccPos) < distance);
     }
+
 }
