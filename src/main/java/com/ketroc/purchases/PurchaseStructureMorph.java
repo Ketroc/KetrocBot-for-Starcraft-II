@@ -100,26 +100,27 @@ public class PurchaseStructureMorph implements Purchase {
             return PurchaseResult.WAITING;
         }
 
-
-        if (productionStructure != null &&
-                (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null)) {
-            if (UnitUtils.framesUntilAvailable(productionStructure.unit()) < 100) {
-                Cost.updateBank(cost);
-            }
-            return PurchaseResult.WAITING;
-        }
-
         //if can't afford it
         if (!canAfford()) {
             Cost.updateBank(cost);
             return PurchaseResult.WAITING;
         }
 
+        //select production structure
         if (productionStructure == null) {
             selectProductionStructure();
             if (productionStructure == null) {
                 return PurchaseResult.CANCEL;
             }
+        }
+
+        //wait for structure to be available and decide whether to set funds aside
+        if (productionStructure != null &&
+                (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null)) {
+            if (UnitUtils.framesUntilAvailable(productionStructure.unit()) < 100) {
+                Cost.updateBank(cost);
+            }
+            return PurchaseResult.WAITING;
         }
 
         Print.print("start building " + this.morphOrAddOn.toString());

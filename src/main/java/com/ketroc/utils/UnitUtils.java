@@ -1694,7 +1694,7 @@ public class UnitUtils {
             return 0;
         }
         Upgrades upgrade = Bot.abilityToUpgrade.get(curOrder);
-        float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(upgrade).getBuildTime().orElse(0f);
+        float totalBuildTime = Bot.OBS.getUpgradeData(false).get(upgrade).getResearchTime().orElse(0f);
         float upgradeProgress = (structure.getOrders().isEmpty()) ? 0 : structure.getOrders().get(0).getProgress().orElse(1f);
         return (int)Math.ceil(totalBuildTime * (1 - upgradeProgress));
     }
