@@ -32,7 +32,7 @@ public class WidowMine extends BasicUnitMicro {
 
     public WidowMine(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
-        offenseTargetBase = LocationConstants.nextEnemyBase;
+        offenseTargetBase = PosConstants.nextEnemyBase;
         prevSafeHealth = unit.getHealth().orElse(90f);
     }
 
@@ -76,7 +76,7 @@ public class WidowMine extends BasicUnitMicro {
 
         //adjustment to be in front of bunker instead of behind
         if (!ArmyManager.doOffense && targetPos.equals(UnitUtils.getBehindBunkerPos())) {
-            targetPos = Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), -3f);
+            targetPos = Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), -3f);
         }
     }
 

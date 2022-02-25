@@ -586,10 +586,10 @@ public class UnitUtils {
     }
 
     public static void queueUpAttackOfEveryBase(List<Unit> units) {
-        ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(2), false);
-        for (int i = 3; i < LocationConstants.baseLocations.size(); i++) {
-            Point2d basePos = LocationConstants.baseLocations.get(i);
-            ActionHelper.unitCommand(units, Abilities.ATTACK, LocationConstants.baseLocations.get(i), true);
+        ActionHelper.unitCommand(units, Abilities.ATTACK, PosConstants.baseLocations.get(2), false);
+        for (int i = 3; i < PosConstants.baseLocations.size(); i++) {
+            Point2d basePos = PosConstants.baseLocations.get(i);
+            ActionHelper.unitCommand(units, Abilities.ATTACK, PosConstants.baseLocations.get(i), true);
         }
     }
 
@@ -731,7 +731,7 @@ public class UnitUtils {
     }
 
     public static boolean isUnitTrapped(Unit unit) {
-        boolean cantPathToMain = Bot.QUERY.pathingDistance(unit, LocationConstants.insideMainWall) == 0;
+        boolean cantPathToMain = Bot.QUERY.pathingDistance(unit, PosConstants.insideMainWall) == 0;
 
         //check path to front of natural if main base's wall is closed
         if (cantPathToMain && isWallUnderAttack()) {
@@ -846,11 +846,11 @@ public class UnitUtils {
     }
 
     public static void patrolInPlace(Unit unit, Point2d pos) {
-        ActionHelper.unitCommand(unit, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, Position.towards(pos, PosConstants.mainBaseMidPos, 1.5f), true);
     }
 
     public static void patrolInPlace(List<Unit> unitList, Point2d pos) {
-        ActionHelper.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, LocationConstants.mainBaseMidPos, 1.5f), true);
+        ActionHelper.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, PosConstants.mainBaseMidPos, 1.5f), true);
     }
 
     public static Unit getEnemyInRange(Unit myUnit) {
@@ -966,7 +966,7 @@ public class UnitUtils {
     }
 
     public static Unit getCompletedNatBunker() {
-        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, LocationConstants.BUNKER_NATURAL, 3f).stream()
+        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL, 3f).stream()
                 .map(UnitInPool::unit)
                 .filter(unit -> unit.getBuildProgress() == 1)
                 .findFirst()
@@ -1155,8 +1155,8 @@ public class UnitUtils {
     }
 
     public static boolean isReaperWallStructure(Point2d structurePos) {
-        return LocationConstants.reaperBlockDepots.stream().anyMatch(p -> p.distance(structurePos) < 1) ||
-                LocationConstants.reaperBlock3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
+        return PosConstants.reaperBlockDepots.stream().anyMatch(p -> p.distance(structurePos) < 1) ||
+                PosConstants.reaperBlock3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
     }
 
     public static boolean isRampWallStructure(Unit structure) {
@@ -1164,10 +1164,10 @@ public class UnitUtils {
     }
 
     public static boolean isRampWallStructure(Point2d structurePos) {
-        return structurePos.distance(LocationConstants.WALL_2x2) < 1 ||
-                structurePos.distance(LocationConstants.WALL_3x3) < 1 ||
-                structurePos.distance(LocationConstants.MID_WALL_2x2) < 1 ||
-                structurePos.distance(LocationConstants.MID_WALL_3x3) < 1;
+        return structurePos.distance(PosConstants.WALL_2x2) < 1 ||
+                structurePos.distance(PosConstants.WALL_3x3) < 1 ||
+                structurePos.distance(PosConstants.MID_WALL_2x2) < 1 ||
+                structurePos.distance(PosConstants.MID_WALL_3x3) < 1;
     }
 
     public static boolean isWallingStructure(Unit structure) {
@@ -1176,7 +1176,7 @@ public class UnitUtils {
 
     public static boolean isWallingStructure(Point2d structurePos) {
         return isRampWallStructure(structurePos) ||
-                (LocationConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos));
+                (PosConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos));
     }
 
     public static boolean myUnitWithin1ShotThreat(Unit myUnit) {
@@ -1369,8 +1369,8 @@ public class UnitUtils {
     }
 
     public static boolean isRepairBaySafe() {
-        return !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, LocationConstants.REPAIR_BAY) &&
-                !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, LocationConstants.REPAIR_BAY);
+        return !InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, PosConstants.REPAIR_BAY) &&
+                !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, PosConstants.REPAIR_BAY);
     }
 
     public static boolean isAnyBaseUnderAttack() {
@@ -1404,7 +1404,7 @@ public class UnitUtils {
 
     public static Optional<UnitInPool> getNatBunker() {
         return Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
-                        getDistance(bunker.unit(), LocationConstants.BUNKER_NATURAL) < 1 &&
+                        getDistance(bunker.unit(), PosConstants.BUNKER_NATURAL) < 1 &&
                         ActionIssued.getCurOrder(bunker).stream()
                                 .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
                 .stream()
@@ -1541,7 +1541,7 @@ public class UnitUtils {
     }
 
     public static Point2d getBehindBunkerPos() {
-        return Position.towards(LocationConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 1.9f);
+        return Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 1.9f);
     }
 
     public static boolean isDestructible(UnitInPool uip) {
@@ -1617,15 +1617,15 @@ public class UnitUtils {
     }
 
     public static int framesUntilAvailable(Unit structure) {
+        //structure under production
+        if (structure.getBuildProgress() < 1) {
+            return productionTimeRemaining(structure);
+        }
+
         //idle structure
         Abilities curOrder = getOrder(structure);
         if (curOrder == null) {
             return 0;
-        }
-
-        //structure under production
-        if (structure.getBuildProgress() < 1) {
-            return productionTimeRemaining(structure);
         }
 
         //structure TRAINing unit
@@ -1638,6 +1638,7 @@ public class UnitUtils {
             return upgradeTimeRemaining(structure);
         }
 
+        //structure BUILDing addOn
         if (curOrder.toString().startsWith("BUILD_")) {
             return addOnTimeRemaining(structure);
         }
@@ -1656,7 +1657,7 @@ public class UnitUtils {
             return 0;
         }
         float buildProgress = getAddOn(structure).map(unitInPool -> unitInPool.unit().getBuildProgress()).orElse(0f);
-        Units addOnType = Bot.abilityToUnitType.get(curOrder);
+        Units addOnType = curOrder == Abilities.BUILD_TECHLAB ? Units.TERRAN_BARRACKS_TECHLAB : Units.TERRAN_BARRACKS_REACTOR;
         float totalBuildTime = Bot.OBS.getUnitTypeData(false).get(addOnType).getBuildTime().orElse(0f);
         return (int)Math.ceil(totalBuildTime * (1 - buildProgress));
     }

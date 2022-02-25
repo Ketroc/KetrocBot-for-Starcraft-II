@@ -37,6 +37,7 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
+        System.out.println("Hello");
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.out.println("In DefaultUncaughtExceptionHandler");
             e.printStackTrace();

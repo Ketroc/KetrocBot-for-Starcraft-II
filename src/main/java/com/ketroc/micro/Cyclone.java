@@ -212,7 +212,7 @@ public class Cyclone extends BasicUnitMicro {
 
         //lock is on cooldown
         if (isLockOnCooldown()) {
-            targetPos = LocationConstants.insideMainWall;
+            targetPos = PosConstants.insideMainWall;
             return;
         }
 

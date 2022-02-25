@@ -33,7 +33,7 @@ public class BansheeHarasser {
 
     public BansheeHarasser(UnitInPool banshee, boolean isBaseTravelClockwise) {
         this.banshee = banshee;
-        baseList = (isBaseTravelClockwise) ? LocationConstants.clockBasePositions : LocationConstants.counterClockBasePositions;
+        baseList = (isBaseTravelClockwise) ? PosConstants.clockBasePositions : PosConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
         this.isDodgeClockwise = isBaseTravelClockwise;
     }
@@ -129,7 +129,7 @@ public class BansheeHarasser {
     private Point2d getTargetLocation() {
         //go home if low hp
         if (retreatForRepairs) {
-            return LocationConstants.REPAIR_BAY;
+            return PosConstants.REPAIR_BAY;
         }
 
         //go towards nearest missile turret in production
@@ -274,7 +274,7 @@ public class BansheeHarasser {
     //selects target based on cost:health ratio
     public UnitInPool selectHarassTarget() {
         //target missile turret constructing scv
-        if (LocationConstants.opponentRace == Race.TERRAN) {
+        if (PosConstants.opponentRace == Race.TERRAN) {
             List<UnitInPool> enemyIncompleteTurrets = getNearbyIncompleteTurrets();
 
             if (!enemyIncompleteTurrets.isEmpty()) {

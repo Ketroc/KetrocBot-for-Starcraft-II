@@ -48,7 +48,7 @@ public class WorkerRushDefense {
             if (defenseStep >= 2) {
 
                 //update snapshots
-                LocationConstants.enemyMineralTriangle.updateNodes();
+                PosConstants.enemyMineralTriangle.updateNodes();
 
                 //remove dead scvs from scvList
                 UnitUtils.removeDeadUnits(scvList);
@@ -63,7 +63,7 @@ public class WorkerRushDefense {
                         ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.LIFT_COMMAND_CENTER, false);
                     }
                 } else if (numWorkersNearCC == 0 && GameCache.ccList.get(0).getType() == Units.TERRAN_COMMAND_CENTER_FLYING) {
-                    ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.LAND_COMMAND_CENTER, LocationConstants.baseLocations.get(0), false);
+                    ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.LAND_COMMAND_CENTER, PosConstants.baseLocations.get(0), false);
                 }
 
             }
@@ -108,7 +108,7 @@ public class WorkerRushDefense {
 
                         //put depot back in depot list
                         if (scv.structureType == Units.TERRAN_SUPPLY_DEPOT) {
-                            LocationConstants.extraDepots.add(0, scv.structurePos);
+                            PosConstants.extraDepots.add(0, scv.structurePos);
                         }
                         StructureScv.remove(scv);
                         i--;
@@ -122,14 +122,14 @@ public class WorkerRushDefense {
                         if (scvList == null) {
                             scvList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, GameCache.ccList.get(0).getPosition().toPoint2d(), 20);
                         }
-                        if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
+                        if (clusterTriangleNode(PosConstants.myMineralTriangle)) {
                             defenseStep++;
                         }
                     }
                     break;
 
                 case 3: //send scvs across the map to cluster on enemy node
-                    if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
+                    if (clusterTriangleNode(PosConstants.enemyMineralTriangle)) {
                         defenseStep++;
                     }
                     break;
@@ -165,8 +165,8 @@ public class WorkerRushDefense {
         //if townhall dead, head home and advance to defenseStep 5
         if (enemyStructureList.isEmpty()) {
             //send scvs home on attack-move
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false);
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(PosConstants.myMineralPos, PosConstants.baseLocations.get(0), 2), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.myMineralPos, false);
             defenseStep++;
             return;
         }
@@ -181,7 +181,7 @@ public class WorkerRushDefense {
                 //if enemy worker < 1 distance from scv, attack worker
                 if (!Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                         UnitUtils.getDistance(worker.unit(), scv.unit()) < 1).isEmpty()) {
-                    ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.enemyMineralPos, false);
+                    ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, PosConstants.enemyMineralPos, false);
                 }
                 else {
                     List<UnitInPool> nearbyWeakScvs = Bot.OBS.getUnits(Alliance.SELF, weakScv -> weakScv.unit().getType() == Units.TERRAN_SCV &&
@@ -204,7 +204,7 @@ public class WorkerRushDefense {
         else {
             //triangle-cluster after switching from attacking townhall
             if (isAttackingTownHall) {
-                if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
+                if (clusterTriangleNode(PosConstants.enemyMineralTriangle)) {
                     isAttackingTownHall = false;
                 }
             }
@@ -212,13 +212,13 @@ public class WorkerRushDefense {
             else {
                 Unit closestEnemyWorker = UnitUtils.getClosestEnemyOfType(UnitUtils.enemyWorkerType, scvList.get(0).unit().getPosition().toPoint2d());
                 if (UnitUtils.getDistance(closestEnemyWorker, scvList.get(0).unit()) > 1) {
-                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
                 } else {
                     for (UnitInPool scv : scvList) {
                         if (UnitUtils.isWeaponAvailable(scv.unit())) {
-                            ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.myMineralPos, false);
+                            ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, PosConstants.myMineralPos, false);
                         } else {
-                            ActionHelper.unitCommand(scv.unit(), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                            ActionHelper.unitCommand(scv.unit(), Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
                         }
                     }
                 }

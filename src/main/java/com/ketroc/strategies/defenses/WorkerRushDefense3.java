@@ -13,7 +13,7 @@ import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.Chat;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -107,11 +107,11 @@ public class WorkerRushDefense3 {
         //move barracks to top of purchase queue (and position far from ramp)
         if (Purchase.isStructureQueued(Units.TERRAN_BARRACKS)) {
             Purchase.removeFirst(Units.TERRAN_BARRACKS);
-            Point2d deepRaxPos = LocationConstants._3x3Structures.stream()
+            Point2d deepRaxPos = PosConstants._3x3Structures.stream()
                     .filter(pos -> UnitUtils.isInMyMain(pos))
-                    .max(Comparator.comparing(pos -> pos.distance(LocationConstants.myRampPos)))
+                    .max(Comparator.comparing(pos -> pos.distance(PosConstants.myRampPos)))
                     .get();
-            LocationConstants._3x3Structures.remove(deepRaxPos);
+            PosConstants._3x3Structures.remove(deepRaxPos);
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, deepRaxPos));
         }
     }
@@ -124,8 +124,8 @@ public class WorkerRushDefense3 {
             }
         //turn off worker rush flag
         } else if (UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()
-                .filter(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myRampPos) <
-                        UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyRampPos))
+                .filter(enemy -> UnitUtils.getDistance(enemy.unit(), PosConstants.myRampPos) <
+                        UnitUtils.getDistance(enemy.unit(), PosConstants.enemyRampPos))
                 .count() == 0) {
             turnOffWorkerRushDefense();
         }

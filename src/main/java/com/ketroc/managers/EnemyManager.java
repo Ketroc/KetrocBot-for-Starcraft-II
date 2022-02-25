@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.utils.Chat;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class EnemyManager {
     //TODO: check for damage dealt
     //checks for 3+ phoenix, detected phoenix, and graviton beam use
     private static void realPhoenixCheck() {
-        if (LocationConstants.opponentRace == Race.PROTOSS && !Switches.phoenixAreReal) {
+        if (PosConstants.opponentRace == Race.PROTOSS && !Switches.phoenixAreReal) {
             //find any phoenix in range of my detection
             List<UnitInPool> enemyPhoenixList = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> enemy.unit().getType() == Units.PROTOSS_PHOENIX);
 

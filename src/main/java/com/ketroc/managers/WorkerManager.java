@@ -173,7 +173,7 @@ public class WorkerManager {
         unitsToRepair.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
 
         //add liberators if TvZ/TvT
-        if (LocationConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
+        if (PosConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
             unitsToRepair.addAll(GameCache.liberatorList);
         }
 
@@ -184,7 +184,7 @@ public class WorkerManager {
                 .collect(Collectors.toSet()));
 
         //add wall structures
-        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) < 2) {
+        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, PosConstants.insideMainWall) < 2) {
             unitsToRepair.addAll(GameCache.wallStructures);
         }
 
@@ -207,7 +207,7 @@ public class WorkerManager {
     }
 
     private static boolean isRangedEnemyNearby() {
-        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, LocationConstants.insideMainWall) > 0;
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, PosConstants.insideMainWall) > 0;
     }
 
     private static void buildRefineryLogic() {

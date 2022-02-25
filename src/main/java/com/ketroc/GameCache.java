@@ -253,11 +253,11 @@ public class GameCache {
 
                 case ENEMY:
                     //update enemy race vs random player
-                    if (LocationConstants.opponentRace == Race.RANDOM) {
-                        LocationConstants.opponentRace = Bot.OBS.getUnitTypeData(false).get(unitType).getRace().get();
-                        Chat.tag("VS_" + LocationConstants.opponentRace);
-                        LocationConstants.setEnemyTypes();
-                        if (LocationConstants.opponentRace == Race.TERRAN) {
+                    if (PosConstants.opponentRace == Race.RANDOM) {
+                        PosConstants.opponentRace = Bot.OBS.getUnitTypeData(false).get(unitType).getRace().get();
+                        Chat.tag("VS_" + PosConstants.opponentRace);
+                        PosConstants.setEnemyTypes();
+                        if (PosConstants.opponentRace == Race.TERRAN) {
                             Strategy.gamePlan = GamePlan.TANK_VIKING;
                             Strategy.DO_USE_CYCLONES = false;
                             Strategy.useTankVikingAdjustments();
@@ -281,7 +281,7 @@ public class GameCache {
                         Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
                         Strategy.DO_DEFENSIVE_LIBS = false;
-                        if (LocationConstants.opponentRace != Race.TERRAN) {
+                        if (PosConstants.opponentRace != Race.TERRAN) {
                             //Strategy.DO_DEFENSIVE_TANKS = false;
                             Strategy.DO_OFFENSIVE_TANKS = false;
                         }
@@ -431,7 +431,7 @@ public class GameCache {
 
         //if no minerals to distance mine either, then mine nearest mineral wall
         if (defaultRallyNode == null) {
-            defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
+            defaultRallyNode = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, PosConstants.baseLocations.get(0));
         }
 
         //loop through effects (bile and nukes handled separately)
@@ -534,7 +534,7 @@ public class GameCache {
 
         // === vikings ===
         //start viking dive vs tempests
-        if (Switches.vikingDiveTarget == null && LocationConstants.opponentRace == Race.PROTOSS && !GameCache.vikingList.isEmpty()) {
+        if (Switches.vikingDiveTarget == null && PosConstants.opponentRace == Race.PROTOSS && !GameCache.vikingList.isEmpty()) {
             List<UnitInPool> tempests = getProtossCapitalShips();
             if (!tempests.isEmpty()) {
                 UnitInPool closestTempest = tempests.stream()
@@ -640,10 +640,10 @@ public class GameCache {
         if (Time.periodic(1)) {
             milliTimestamp = System.currentTimeMillis();
         }
-        int xMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_X);
-        int xMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_X);
-        int yMin = InfluenceMaps.toMapCoord(LocationConstants.MIN_Y);
-        int yMax = InfluenceMaps.toMapCoord(LocationConstants.MAX_Y);
+        int xMin = InfluenceMaps.toMapCoord(PosConstants.MIN_X);
+        int xMax = InfluenceMaps.toMapCoord(PosConstants.MAX_X);
+        int yMin = InfluenceMaps.toMapCoord(PosConstants.MIN_Y);
+        int yMax = InfluenceMaps.toMapCoord(PosConstants.MAX_Y);
 
         InfluenceMaps.pointDetected = new boolean[800][800];
         InfluenceMaps.pointInHellionRange = new boolean[800][800];

@@ -38,7 +38,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
         //getting repaired
         if (!Cost.isGasBroke() && !Cost.isMineralBroke() && shouldRepair()) {
             targetUip = null;
-            targetPos = LocationConstants.REPAIR_BAY;
+            targetPos = PosConstants.REPAIR_BAY;
             return;
         }
 
@@ -52,13 +52,13 @@ public class MedivacScvHealer extends BasicUnitMicro {
         if (targetUip != null) {
             targetPos = targetUip.unit().getPosition().toPoint2d();
         } else if (ArmyManager.attackGroundPos == null) {
-            targetPos = LocationConstants.REPAIR_BAY;
+            targetPos = PosConstants.REPAIR_BAY;
         } else {
             Point2d forwardBioPos = GameCache.allMyUnitsSet.stream()
                     .filter(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getAttributes().contains(UnitAttribute.BIOLOGICAL))
                     .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), ArmyManager.attackGroundPos)))
                     .map(u -> u.unit().getPosition().toPoint2d())
-                    .orElse(LocationConstants.REPAIR_BAY);
+                    .orElse(PosConstants.REPAIR_BAY);
             if (forwardBioPos.distance(targetPos) > 3) {
                 targetPos = forwardBioPos;
             }
@@ -68,7 +68,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
     private boolean shouldRepair() {
         float healthPercentage = UnitUtils.getHealthPercentage(unit.unit());
         return healthPercentage < 20 ||
-                (healthPercentage < 100 && UnitUtils.getDistance(unit.unit(), LocationConstants.REPAIR_BAY) < 3);
+                (healthPercentage < 100 && UnitUtils.getDistance(unit.unit(), PosConstants.REPAIR_BAY) < 3);
     }
 
     @Override

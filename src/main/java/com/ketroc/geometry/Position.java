@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,14 +47,14 @@ public class Position {
     }
 
     private static float inBoundsX(float x) {
-        x = Math.min(x, LocationConstants.MAX_X);
-        x = Math.max(x, LocationConstants.MIN_X);
+        x = Math.min(x, PosConstants.MAX_X);
+        x = Math.max(x, PosConstants.MIN_X);
         return x;
     }
 
     private static float inBoundsY(float y) {
-        y = Math.min(y, LocationConstants.MAX_Y);
-        y = Math.max(y, LocationConstants.MIN_Y);
+        y = Math.min(y, PosConstants.MAX_Y);
+        y = Math.max(y, PosConstants.MIN_Y);
         return y;
     }
 
@@ -63,11 +63,11 @@ public class Position {
     }
 
     private static boolean isOutOfBoundsX(float x) {
-        return x > LocationConstants.MAX_X || x < LocationConstants.MIN_X;
+        return x > PosConstants.MAX_X || x < PosConstants.MIN_X;
     }
 
     private static boolean isOutOfBoundsY(float y) {
-        return y > LocationConstants.MAX_Y || y < LocationConstants.MIN_Y;
+        return y > PosConstants.MAX_Y || y < PosConstants.MIN_Y;
     }
 
     public static boolean isOnBoundary(Point2d p) {
@@ -75,11 +75,11 @@ public class Position {
     }
 
     private static boolean isOnBoundaryX(float x) {
-        return x == LocationConstants.MAX_X || x == LocationConstants.MIN_X;
+        return x == PosConstants.MAX_X || x == PosConstants.MIN_X;
     }
 
     private static boolean isOnBoundaryY(float y) {
-        return y == LocationConstants.MAX_Y || y == LocationConstants.MIN_Y;
+        return y == PosConstants.MAX_Y || y == PosConstants.MIN_Y;
     }
 
     public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {

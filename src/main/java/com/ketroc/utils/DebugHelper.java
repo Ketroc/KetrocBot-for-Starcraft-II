@@ -28,7 +28,7 @@ public class DebugHelper {
     private static int lineNum;
 
     public static void onGameStart() {
-        z = Bot.OBS.terrainHeight(LocationConstants.baseLocations.get(0)) + 0.5f;
+        z = Bot.OBS.terrainHeight(PosConstants.baseLocations.get(0)) + 0.5f;
     }
 
     public static void onStep() {
@@ -54,10 +54,10 @@ public class DebugHelper {
         if (Time.nowFrames() > Time.toFrames("8:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_IMMORTAL, LocationConstants.proxyBarracksPos, Bot.enemyId, 2);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_BANELING, LocationConstants.proxyBarracksPos, Bot.enemyId, 4);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_STALKER, LocationConstants.proxyBarracksPos, Bot.enemyId, 7);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_OBSERVER, LocationConstants.proxyBarracksPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_IMMORTAL, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_BANELING, PosConstants.proxyBarracksPos, Bot.enemyId, 4);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_STALKER, PosConstants.proxyBarracksPos, Bot.enemyId, 7);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_OBSERVER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
 //                    .forEach(cyclone -> {
 //                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
@@ -133,7 +133,7 @@ public class DebugHelper {
         DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
         DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
         DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
-        if (LocationConstants.opponentRace == Race.PROTOSS) {
+        if (PosConstants.opponentRace == Race.PROTOSS) {
             DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
         }
 
@@ -300,8 +300,8 @@ public class DebugHelper {
     public static void gridTheMap() {
         boolean isDebugOnSave = isDebugOn;
         isDebugOn = true;
-        for (int x = LocationConstants.MIN_X; x<LocationConstants.MAX_X; x++) {
-            for (int y = LocationConstants.MIN_Y; y < LocationConstants.MAX_Y; y++) {
+        for (int x = PosConstants.MIN_X; x< PosConstants.MAX_X; x++) {
+            for (int y = PosConstants.MIN_Y; y < PosConstants.MAX_Y; y++) {
                 if (Bot.OBS.isPathable(Point2d.of(x, y))) {
                     drawBox(x, y, Color.GRAY, 0.5f);
                     if (Bot.OBS.terrainHeight(Point2d.of(x - 0.2f, y + 0.2f)) + 2 > Bot.OBS.terrainHeight(Point2d.of(x, y))) {

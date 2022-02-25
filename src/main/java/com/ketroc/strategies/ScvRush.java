@@ -36,13 +36,13 @@ public class ScvRush {
             int lines = 0;
             DebugHelper.addInfoLine("clusterEnemyNodeStep: " + ScvRush.clusterTriangleStep);
             DebugHelper.addInfoLine("scvRushStep: " + ScvRush.scvRushStep);
-            DebugHelper.drawText("0", LocationConstants.enemyMineralTriangle.getMiddle().unit().getPosition().toPoint2d(), Color.WHITE);
-            DebugHelper.drawText("1", LocationConstants.enemyMineralTriangle.getInner().unit().getPosition().toPoint2d(), Color.WHITE);
-            DebugHelper.drawText("2", LocationConstants.enemyMineralTriangle.getOuter().unit().getPosition().toPoint2d(), Color.WHITE);
+            DebugHelper.drawText("0", PosConstants.enemyMineralTriangle.getMiddle().unit().getPosition().toPoint2d(), Color.WHITE);
+            DebugHelper.drawText("1", PosConstants.enemyMineralTriangle.getInner().unit().getPosition().toPoint2d(), Color.WHITE);
+            DebugHelper.drawText("2", PosConstants.enemyMineralTriangle.getOuter().unit().getPosition().toPoint2d(), Color.WHITE);
         }
         try {
             //update snapshots
-            LocationConstants.enemyMineralTriangle.updateNodes();
+            PosConstants.enemyMineralTriangle.updateNodes();
             if (scvList != null) {  //TODO: hack for preventing idle scvs from getting picked up for speed mining
                 scvList.forEach(scv -> Base.releaseScv(scv.unit()));
             }
@@ -52,19 +52,19 @@ public class ScvRush {
                         scvList = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, GameCache.ccList.get(0).getPosition().toPoint2d(), 20);
                         scvList.forEach(scv -> Base.releaseScv(scv.unit()));
                     }
-                    if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
+                    if (clusterTriangleNode(PosConstants.myMineralTriangle)) {
                         scvRushStep++;
                     }
                     break;
 
                 case 1: //send scvs across the map to cluster on enemy node
-                    if (clusterTriangleNode(LocationConstants.myMineralTriangle)) {
+                    if (clusterTriangleNode(PosConstants.myMineralTriangle)) {
                         scvRushStep++;
                     }
                     break;
 
                 case 2: //send scvs across the map to cluster on enemy node
-                    if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
+                    if (clusterTriangleNode(PosConstants.enemyMineralTriangle)) {
                         scvRushStep++;
                     }
                     break;
@@ -98,8 +98,8 @@ public class ScvRush {
         //if command structure is dead, head home and advance to scvRushStep 4 to end
         if (UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.enemyCommandStructures).isEmpty()) {
             //send scvs home on attack-move
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(LocationConstants.myMineralPos, LocationConstants.baseLocations.get(0), 2), false);
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralPos, true);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, Position.towards(PosConstants.myMineralPos, PosConstants.baseLocations.get(0), 2), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.myMineralPos, true);
             scvRushStep++;
             return;
         }
@@ -112,12 +112,12 @@ public class ScvRush {
         if ((scvList.size() >= enemyWorkers.size() * 2 ||
                 scvList.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() >
                         enemyWorkers.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() * 2) ||
-                enemyWorkers.stream().noneMatch(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.enemyMineralPos) < 4)) {
+                enemyWorkers.stream().noneMatch(enemy -> UnitUtils.getDistance(enemy.unit(), PosConstants.enemyMineralPos) < 4)) {
             for (UnitInPool scv : scvList) {
                 //if worker < 1 distance from scv, attack worker
                 if (!Bot.OBS.getUnits(Alliance.ENEMY, worker -> worker.unit().getType() == UnitUtils.enemyWorkerType &&
                         UnitUtils.getDistance(worker.unit(), scv.unit()) < 1).isEmpty()) {
-                    ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, LocationConstants.enemyMineralPos, false);
+                    ActionHelper.unitCommand(scv.unit(), Abilities.ATTACK, PosConstants.enemyMineralPos, false);
                 }
                 //if broke, attack enemy cc
                 else if (GameCache.mineralBank == 0) {
@@ -140,7 +140,7 @@ public class ScvRush {
         else {
             //triangle-cluster after switching from attacking his command structure
             if (isAttackingCommand) {
-                if (clusterTriangleNode(LocationConstants.enemyMineralTriangle)) {
+                if (clusterTriangleNode(PosConstants.enemyMineralTriangle)) {
                     isAttackingCommand = false;
                 }
             }
@@ -220,7 +220,7 @@ public class ScvRush {
 //                    }
                 }
                 else {
-                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
+                    ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.myMineralTriangle.getMiddle().unit(), false);
                 }
             }
         }
@@ -238,10 +238,10 @@ public class ScvRush {
             }
         }
         if (!attackScvs.isEmpty()) {
-            ActionHelper.unitCommand(attackScvs, Abilities.ATTACK, LocationConstants.myMineralPos, false);
+            ActionHelper.unitCommand(attackScvs, Abilities.ATTACK, PosConstants.myMineralPos, false);
         }
         if (!clusterScvs.isEmpty()) {
-            ActionHelper.unitCommand(clusterScvs, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(clusterScvs, Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
@@ -261,7 +261,7 @@ public class ScvRush {
                 ActionHelper.unitCommand(attackScvs, Abilities.ATTACK, target.unit(), false);
             }
             if (!clusterScvs.isEmpty()) {
-                ActionHelper.unitCommand(clusterScvs, Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+                ActionHelper.unitCommand(clusterScvs, Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
             }
         }
         else if (isScvsOffCooldown()) {
@@ -270,17 +270,17 @@ public class ScvRush {
                 ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, target.unit(), false);
             }
             else {
-                ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, LocationConstants.myMineralPos, false);
+                ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.ATTACK, PosConstants.myMineralPos, false);
             }
         }
         else {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
     private static void updateTarget() {
         if (target != null) {
-            if (!target.isAlive() || UnitUtils.getDistance(target.unit(), LocationConstants.enemyMineralPos) > 2.5f) {
+            if (!target.isAlive() || UnitUtils.getDistance(target.unit(), PosConstants.enemyMineralPos) > 2.5f) {
                 target = null;
             }
         }
@@ -291,22 +291,22 @@ public class ScvRush {
             return;
         }
         if (isScvsClustered()) {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.myMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.myMineralTriangle.getMiddle().unit(), false);
             long attackFrame = Time.nowFrames() + (Launcher.STEP_SIZE * 3);
             scvList.stream().forEach(scv ->
-                    DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, LocationConstants.myMineralPos)));
+                    DelayedAction.delayedActions.add(new DelayedAction(attackFrame, Abilities.ATTACK, scv, PosConstants.myMineralPos)));
             long clusterFrame = attackFrame + (Launcher.STEP_SIZE * 3);
             scvList.stream().forEach(scv ->
-                    DelayedAction.delayedActions.add(new DelayedAction(clusterFrame, Abilities.SMART, scv, LocationConstants.enemyMineralTriangle.getMiddle())));
+                    DelayedAction.delayedActions.add(new DelayedAction(clusterFrame, Abilities.SMART, scv, PosConstants.enemyMineralTriangle.getMiddle())));
         }
         else {
-            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+            ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
         }
     }
 
     private static UnitInPool oneShotTarget(List<UnitInPool> enemyWorkers, List<UnitInPool> attackScvs) {
         UnitInPool enemy = enemyWorkers.stream()
-                .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit.unit(), LocationConstants.enemyMineralTriangle.getClusterPos())))
+                .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit.unit(), PosConstants.enemyMineralTriangle.getClusterPos())))
                 .orElse(null);
         int numAttackers = (int)attackScvs.stream().filter(scv -> UnitUtils.getDistance(scv.unit(), enemy.unit()) < 3).count();
         if (numAttackers * 5 >= enemy.unit().getHealth().get()) {
@@ -326,11 +326,11 @@ public class ScvRush {
     }
 
     private static boolean isScvTooFar(Unit scv) {
-        return UnitUtils.getDistance(scv, LocationConstants.enemyMineralPos) > 1.5f;
+        return UnitUtils.getDistance(scv, PosConstants.enemyMineralPos) > 1.5f;
     }
 
     private static void clusterUp() {
-        ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, LocationConstants.enemyMineralTriangle.getMiddle().unit(), false);
+        ActionHelper.unitCommand(UnitUtils.toUnitList(scvList), Abilities.SMART, PosConstants.enemyMineralTriangle.getMiddle().unit(), false);
     }
 
     private static boolean isScvsClustered() {
@@ -338,7 +338,7 @@ public class ScvRush {
     }
 
     private static boolean isByClusterPatch(Unit scv) {
-        return UnitUtils.getDistance(scv, LocationConstants.enemyMineralPos) < 1.4;
+        return UnitUtils.getDistance(scv, PosConstants.enemyMineralPos) < 1.4;
     }
 
     private static boolean isScvsOffCooldown() {

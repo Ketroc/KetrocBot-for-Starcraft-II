@@ -63,8 +63,8 @@ public class BunkerContain {
         if (proxyBunkerLevel == 0) {
             return;
         }
-        barracksPos = LocationConstants.proxyBarracksPos;
-        bunkerPos = LocationConstants.proxyBunkerPos;
+        barracksPos = PosConstants.proxyBarracksPos;
+        bunkerPos = PosConstants.proxyBunkerPos;
         enemyPos = getEnemyPos();
         defaultSpotterPos = Position.towards(bunkerPos, enemyPos, 6);
         behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
@@ -74,8 +74,8 @@ public class BunkerContain {
         tank2Pos = Position.rotate(
                 Position.towards(behindBunkerPos, bunkerPos, -0.5f),
                 bunkerPos, -85);
-        marinesNeeded = LocationConstants.opponentRace == Race.TERRAN ? 3 : 4;
-        scoutProxy = (LocationConstants.opponentRace == Race.TERRAN);
+        marinesNeeded = PosConstants.opponentRace == Race.TERRAN ? 3 : 4;
+        scoutProxy = (PosConstants.opponentRace == Race.TERRAN);
     }
 
     public static void onStep() {
@@ -92,9 +92,9 @@ public class BunkerContain {
 
         // ========= SCVS ===========
         if (Time.at(100)) { //build 1st depot
-            Unit scv = WorkerManager.getScvEmptyHands(LocationConstants.extraDepots.get(0)).unit();
-            ActionHelper.unitCommand(scv, Abilities.MOVE, LocationConstants.extraDepots.get(0), false);
-            UnitUtils.patrolInPlace(scv, LocationConstants.extraDepots.get(0));
+            Unit scv = WorkerManager.getScvEmptyHands(PosConstants.extraDepots.get(0)).unit();
+            ActionHelper.unitCommand(scv, Abilities.MOVE, PosConstants.extraDepots.get(0), false);
+            UnitUtils.patrolInPlace(scv, PosConstants.extraDepots.get(0));
             ((PurchaseStructure) KetrocBot.purchaseQueue.get(0)).setScv(scv);
         }
         sendFirstScv();
@@ -112,7 +112,7 @@ public class BunkerContain {
                 if (readyToBuildFactory()) {
                     UnitInPool availableRepairScv = repairScvList.stream()
                             .filter(scv -> UnitUtils.getOrder(scv.unit()) != Abilities.BUILD_BUNKER)
-                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.proxyBarracksPos)))
+                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), PosConstants.proxyBarracksPos)))
                             .orElse(repairScvList.get(0));
                     factorySwap = new AddonSwap(barracks, Abilities.BUILD_TECHLAB_BARRACKS, Units.TERRAN_FACTORY, availableRepairScv);
                     KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
@@ -135,7 +135,7 @@ public class BunkerContain {
             if (factory == null) {
                 List<UnitInPool> allFactories = Bot.OBS.getUnits(Alliance.SELF, factory ->
                         factory.unit().getType() == Units.TERRAN_FACTORY &&
-                        UnitUtils.getDistance(factory.unit(), LocationConstants.proxyBarracksPos) < 10);
+                        UnitUtils.getDistance(factory.unit(), PosConstants.proxyBarracksPos) < 10);
                 if (!allFactories.isEmpty()) {
                     onFactoryStarted(allFactories.get(0));
                 }
@@ -233,12 +233,12 @@ public class BunkerContain {
 
     public static void onMarineCreated(UnitInPool marine) {
         if (proxyBunkerLevel > 0 &&
-                (LocationConstants.opponentRace == Race.TERRAN && LocationConstants.proxyBunkerPos2 != null) &&
+                (PosConstants.opponentRace == Race.TERRAN && PosConstants.proxyBunkerPos2 != null) &&
                 getMarineCount() == 1) {
-            UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos2));
+            UnitMicroList.add(new MarineProxyBunker(marine, PosConstants.proxyBunkerPos2));
             return;
         }
-        UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos));
+        UnitMicroList.add(new MarineProxyBunker(marine, PosConstants.proxyBunkerPos));
     }
 
     public static void addRepairScv(UnitInPool scv) {
@@ -256,10 +256,10 @@ public class BunkerContain {
     }
 
     private static Point2d getEnemyPos() {
-        Point2d enemyNat = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-2);
-        Point2d enemyRamp = LocationConstants.enemyRampPos;
+        Point2d enemyNat = PosConstants.baseLocations.get(PosConstants.baseLocations.size()-2);
+        Point2d enemyRamp = PosConstants.enemyRampPos;
         float distance = (float) enemyRamp.distance(enemyNat) /
-                ((LocationConstants.opponentRace == Race.TERRAN) ? 7 : 3);
+                ((PosConstants.opponentRace == Race.TERRAN) ? 7 : 3);
         return Position.towards(enemyRamp, enemyNat, distance);
     }
 
@@ -324,7 +324,7 @@ public class BunkerContain {
                 }
                 else if (!factory.getFlying().orElse(true) && !Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
-                    ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
+                    ActionHelper.unitCommand(factory, Abilities.RALLY_BUILDING, PosConstants.insideMainWall, false);
                 }
             }
         }
@@ -339,14 +339,14 @@ public class BunkerContain {
             else {
                 ActionHelper.unitCommand(barracks.unit(), Abilities.LIFT_BARRACKS, false);
             }
-            DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.LAND, barracks, LocationConstants._3x3Structures.remove(0)));
+            DelayedAction.delayedActions.add(new DelayedAction(1, Abilities.LAND, barracks, PosConstants._3x3Structures.remove(0)));
             isBarracksSentHome = true;
         }
     }
 
     private static void sendFirstScv() {
         if (!isFirstScvSent && Time.at(280)) {
-            repairScvList.add(WorkerManager.getScvEmptyHands(LocationConstants.extraDepots.get(0)));
+            repairScvList.add(WorkerManager.getScvEmptyHands(PosConstants.extraDepots.get(0)));
             Unit firstScv = repairScvList.get(0).unit();
             if (UnitUtils.isCarryingResources(firstScv)) {
                 ActionHelper.unitCommand(firstScv, Abilities.HARVEST_RETURN, false);
@@ -363,24 +363,24 @@ public class BunkerContain {
     private static void manageScoutScvs() {
         if (!isScoutScvsSent && Time.nowFrames() >= Time.toFrames(34)) {
             while (scoutScvs.size() < 2) {
-                UnitInPool newScv = WorkerManager.getScvEmptyHands(LocationConstants.BUNKER_NATURAL);
+                UnitInPool newScv = WorkerManager.getScvEmptyHands(PosConstants.BUNKER_NATURAL);
                 if (newScv == null) {
                     return;
                 }
                 scoutScvs.add(newScv);
                 Base.releaseScv(newScv.unit());
             }
-            if (!LocationConstants.MAP.contains("Golden Wall") && !LocationConstants.MAP.contains("Blackburn")) {
-                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(1)), false);
-                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(2)), true);
-                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.clockBasePositions.get(3)), true);
-                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(1)), false);
-                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(2)), true);
-                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.counterClockBasePositions.get(3)), true);
+            if (!PosConstants.MAP.contains("Golden Wall") && !PosConstants.MAP.contains("Blackburn")) {
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.clockBasePositions.get(1)), false);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.clockBasePositions.get(2)), true);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.clockBasePositions.get(3)), true);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.counterClockBasePositions.get(1)), false);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.counterClockBasePositions.get(2)), true);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.counterClockBasePositions.get(3)), true);
             }
             else { //for goldenwall and blackburn only
-                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(3)), false);
-                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(LocationConstants.baseLocations.get(4)), false);
+                ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.baseLocations.get(3)), false);
+                ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, getResourceMidPoint(PosConstants.baseLocations.get(4)), false);
             }
             ActionHelper.unitCommand(scoutScvs.get(0).unit(), Abilities.MOVE, behindBunkerPos, true);
             ActionHelper.unitCommand(scoutScvs.get(1).unit(), Abilities.MOVE, behindBunkerPos, true);
@@ -409,9 +409,9 @@ public class BunkerContain {
                     //send scv to build 2nd proxy bunker and factory
                     if (!didFirstScoutScvIdle) {
                         didFirstScoutScvIdle = true;
-                        if (LocationConstants.proxyBunkerPos2 != null) {
-                            ActionHelper.unitCommand(scoutScv.unit(), Abilities.MOVE, LocationConstants.proxyBunkerPos2, false);
-                            UnitUtils.patrolInPlace(scoutScv.unit(), LocationConstants.proxyBunkerPos2);
+                        if (PosConstants.proxyBunkerPos2 != null) {
+                            ActionHelper.unitCommand(scoutScv.unit(), Abilities.MOVE, PosConstants.proxyBunkerPos2, false);
+                            UnitUtils.patrolInPlace(scoutScv.unit(), PosConstants.proxyBunkerPos2);
                             KetrocBot.purchaseQueue.stream()
                                     .filter(purchase -> purchase instanceof PurchaseStructure &&
                                             ((PurchaseStructure) purchase).getStructureType() == Units.TERRAN_BUNKER)
@@ -594,7 +594,7 @@ public class BunkerContain {
                 if (oldScv.isAlive()) {
                     UnitUtils.returnAndStopScv(oldScv);
                 }
-                UnitInPool newScv = WorkerManager.getScv(LocationConstants.proxyBunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
+                UnitInPool newScv = WorkerManager.getScv(PosConstants.proxyBunkerPos, scv -> scv.unit().getHealth().orElse(0f) > 40);
                 if (newScv == null) {
                     return;
                 }
@@ -633,9 +633,9 @@ public class BunkerContain {
         //check if contain is broken
         if (!isContainBroken()) {
             if (bunkerDied) {
-                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, LocationConstants.proxyBunkerPos));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.proxyBunkerPos));
                 UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).stream()
-                        .forEach(marine -> UnitMicroList.add(new MarineProxyBunker(marine, LocationConstants.proxyBunkerPos)));
+                        .forEach(marine -> UnitMicroList.add(new MarineProxyBunker(marine, PosConstants.proxyBunkerPos)));
             }
             return false;
         }
@@ -648,7 +648,7 @@ public class BunkerContain {
         for (int i=0; i<StructureScv.scvBuildingList.size(); i++) {
             StructureScv structureScv = StructureScv.scvBuildingList.get(i);
             //if proxy structure
-            if (structureScv.structurePos.distance(LocationConstants.REPAIR_BAY) > 50) {
+            if (structureScv.structurePos.distance(PosConstants.REPAIR_BAY) > 50) {
                 structureScv.cancelProduction();
                 requeueStructure(structureScv.structureType);
                 StructureScv.remove(structureScv);
@@ -660,7 +660,7 @@ public class BunkerContain {
         for (int i = 0; i<KetrocBot.purchaseQueue.size(); i++) {
             if (KetrocBot.purchaseQueue.get(i) instanceof PurchaseStructure) {
                 PurchaseStructure structure = (PurchaseStructure) KetrocBot.purchaseQueue.get(i);
-                if (structure.getPosition() != null && structure.getPosition().distance(LocationConstants.REPAIR_BAY) > 50) {
+                if (structure.getPosition() != null && structure.getPosition().distance(PosConstants.REPAIR_BAY) > 50) {
                     if (requeueStructure(structure.getStructureType())) {
                         i++;
                     }
@@ -746,7 +746,7 @@ public class BunkerContain {
     private static boolean requeueStructure(Units structureType) {
         switch (structureType) {
             case TERRAN_FACTORY:
-                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
                 return true;
             case TERRAN_BARRACKS:
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS));
@@ -805,15 +805,15 @@ public class BunkerContain {
 //        }
 
         //set barracks rally
-        Point2d rallyPos = (LocationConstants.proxyBunkerPos2 != null && LocationConstants.opponentRace == Race.TERRAN)
-                ? Position.towards(LocationConstants.proxyBunkerPos2, LocationConstants.myRampPos, 2)
+        Point2d rallyPos = (PosConstants.proxyBunkerPos2 != null && PosConstants.opponentRace == Race.TERRAN)
+                ? Position.towards(PosConstants.proxyBunkerPos2, PosConstants.myRampPos, 2)
                 : behindBunkerPos;
         ActionHelper.unitCommand(barracks.unit(), Abilities.RALLY_BUILDING, rallyPos, false);
     }
 
     private static void onBunkerStarted(UnitInPool bunk) {
         bunker = bunk;
-        ActionHelper.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
+        ActionHelper.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, PosConstants.insideMainWall, false);
 
         //send out another scv
         if (!scoutProxy) {
@@ -862,7 +862,7 @@ public class BunkerContain {
         ActionHelper.unitCommand(bunker.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
         if (proxyBunkerLevel != 2) {
             repairScvList.stream()
-                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.myMineralPos)))
+                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), PosConstants.myMineralPos)))
                     .ifPresent(u -> removeRepairScv(u));
         }
     }
@@ -872,7 +872,7 @@ public class BunkerContain {
         ActionHelper.unitCommand(factory.unit(), Abilities.RALLY_BUILDING, behindBunkerPos, false);
 
         Point2d turretPos = calcTurretPosition(true);
-        if (!Strategy.NO_TURRETS && LocationConstants.opponentRace == Race.TERRAN) {
+        if (!Strategy.NO_TURRETS && PosConstants.opponentRace == Race.TERRAN) {
             if (turretPos != null) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
             }

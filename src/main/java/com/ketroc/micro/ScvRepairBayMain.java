@@ -6,13 +6,13 @@ import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 //old way of assigning repair bay to main base
 public class ScvRepairBayMain extends Scv {
     public ScvRepairBayMain(UnitInPool scv) {
-        super(scv, LocationConstants.REPAIR_BAY, MicroPriority.SURVIVAL);
+        super(scv, PosConstants.REPAIR_BAY, MicroPriority.SURVIVAL);
         Base.releaseScv(scv.unit());
         Bot.ACTION.toggleAutocast(unit.getTag(), Abilities.EFFECT_REPAIR_SCV);
     }

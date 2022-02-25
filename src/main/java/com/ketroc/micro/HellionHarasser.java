@@ -12,7 +12,7 @@ import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
@@ -50,7 +50,7 @@ public class HellionHarasser extends Hellion {
         super(hellion, ArmyManager.attackGroundPos, MicroPriority.SURVIVAL);
         this.isBaseTravelClockwise = isBaseTravelClockwise;
         isDodgeClockwise = isBaseTravelClockwise; //more likely to get behind the mineral line
-        baseList = (isBaseTravelClockwise) ? LocationConstants.clockBasePositions : LocationConstants.counterClockBasePositions;
+        baseList = (isBaseTravelClockwise) ? PosConstants.clockBasePositions : PosConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
         this.isDodgeClockwise = isBaseTravelClockwise;
         doDetourAroundEnemy = true;

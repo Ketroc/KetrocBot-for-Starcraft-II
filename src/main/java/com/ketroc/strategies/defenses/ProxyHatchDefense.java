@@ -32,7 +32,7 @@ public class ProxyHatchDefense {
     private static void setIsProxyHatch() {
         if (!isProxyHatch) {
             if (Time.nowFrames() < Time.toFrames("3:00")) {
-                UnitInPool closestHatchery = UnitUtils.getClosestEnemyUnitOfType(Units.ZERG_HATCHERY, LocationConstants.baseLocations.get(1));
+                UnitInPool closestHatchery = UnitUtils.getClosestEnemyUnitOfType(Units.ZERG_HATCHERY, PosConstants.baseLocations.get(1));
                 if (closestHatchery != null &&
                         closestHatchery.unit().getBuildProgress() < 0.8 &&
                         (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, closestHatchery.unit().getPosition().toPoint2d()) ||

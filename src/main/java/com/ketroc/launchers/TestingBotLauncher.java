@@ -13,7 +13,7 @@ public class TestingBotLauncher {
     public static void main(String[] args) {
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
-                .setRealtime(true)
+                .setRealtime(false)
                 .setWindowLocation(900, 0)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
@@ -29,11 +29,11 @@ public class TestingBotLauncher {
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));

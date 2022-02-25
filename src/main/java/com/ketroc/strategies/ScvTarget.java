@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 import com.ketroc.bots.Bot;
 
@@ -53,7 +53,7 @@ public class ScvTarget {
             case PROTOSS_PYLON:
                 //send an scv to pylon blocking natural
                 //(this gives vision of deep cannons and help free up natural for later defensive PF)
-                if (UnitUtils.getDistance(targetUnit.unit(), LocationConstants.baseLocations.get(1)) < 3.5f) {
+                if (UnitUtils.getDistance(targetUnit.unit(), PosConstants.baseLocations.get(1)) < 3.5f) {
                     numScvs = 1;
                 }
                 else {

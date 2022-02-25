@@ -103,12 +103,12 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
                     return;
                 }
-                else if (LocationConstants.opponentRace != Race.ZERG) {
+                else if (PosConstants.opponentRace != Race.ZERG) {
                     assignToAnotherBase();
                     return;
                 }
             }
-            else if (LocationConstants.opponentRace != Race.ZERG) {
+            else if (PosConstants.opponentRace != Race.ZERG) {
                 assignToAnotherBase();
                 return;
             }
@@ -173,7 +173,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
         //go to another base if no viable landing positions
         if (landingPosList.isEmpty()) {
-            if (LocationConstants.opponentRace != Race.ZERG) {
+            if (PosConstants.opponentRace != Race.ZERG) {
                 assignToAnotherBase();
             }
         }

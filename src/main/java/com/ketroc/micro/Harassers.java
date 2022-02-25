@@ -14,7 +14,7 @@ import com.ketroc.models.IgnoredUnit;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.Chat;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Optional;
@@ -80,7 +80,7 @@ public class Harassers {
     private static boolean doRemoveBanshee(BansheeHarasser bansheeHarasser) {
         UnitInPool banshee = bansheeHarasser.banshee;
         return doEndBansheeHarass() || !banshee.isAlive() ||
-                (bansheeHarasser.retreatForRepairs && UnitUtils.getDistance(banshee.unit(), LocationConstants.REPAIR_BAY) < 10);
+                (bansheeHarasser.retreatForRepairs && UnitUtils.getDistance(banshee.unit(), PosConstants.REPAIR_BAY) < 10);
     }
 
     private static boolean doEndBansheeHarass() {
@@ -111,7 +111,7 @@ public class Harassers {
             if (numHellions == 0) {
                 return;
             }
-            switch (LocationConstants.opponentRace) {
+            switch (PosConstants.opponentRace) {
                 case ZERG:
                     if (numHellions > UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2) {
                         addHellion();
@@ -135,7 +135,7 @@ public class Harassers {
     //do clockwise first if it's the longer path
     private static boolean doClockwise() {
         return clockwiseBanshee == null &&
-                (counterClockwiseBanshee != null || LocationConstants.clockBasePositions.size() >= LocationConstants.counterClockBasePositions.size());
+                (counterClockwiseBanshee != null || PosConstants.clockBasePositions.size() >= PosConstants.counterClockBasePositions.size());
     }
 
     private static void releaseAllHellions() {

@@ -14,7 +14,7 @@ import com.ketroc.models.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LocationConstants {
+public class PosConstants {
     public static final Point2d SCREEN_BOTTOM_LEFT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP0().toPoint2d();
     public static final Point2d SCREEN_TOP_RIGHT = Bot.OBS.getGameInfo().getStartRaw().get().getPlayableArea().getP1().toPoint2d();
     public static final int MIN_X = (int) SCREEN_BOTTOM_LEFT.getX();
@@ -93,7 +93,7 @@ public class LocationConstants {
         nextEnemyBase = UnitUtils.getNextEnemyBase();
         if (nextEnemyBase == null) {
             Chat.chatNeverRepeat("Finish Him!");
-            MuleMessages.doTrollMule = true;
+            MannerMule.doTrollMule = true;
         }
     }
 
@@ -136,7 +136,7 @@ public class LocationConstants {
                 }
                 else if (thisPos.distance(natPos) < 13 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
-                    if (thisPos.distance(LocationConstants.BUNKER_NATURAL) > 8) {
+                    if (thisPos.distance(PosConstants.BUNKER_NATURAL) > 8) {
                         InfluenceMaps.pointInNatExcludingBunkerRange[x][y] = true;
                     }
                 }
@@ -322,8 +322,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsFor2000Atmospheres(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(100.5f, 106.5f));
-        muleLetterPosList.add(Point2d.of(115.5f, 89.5f));
+        muleLetterPosList.add(Point2d.of(98.5f, 116.5f));
+        muleLetterPosList.add(Point2d.of(105.5f, 116.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(123.5f, 73.5f);
             proxyBunkerPos = Point2d.of(87.5f, 57.5f);
@@ -723,8 +723,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForBlackburn(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(88.5f, 89.5f));
-        muleLetterPosList.add(Point2d.of(88.5f, 74.5f));
+        muleLetterPosList.add(Point2d.of(86f, 77f));
+        muleLetterPosList.add(Point2d.of(94f, 77f));
         if (isTopPos) { //left spawn
             proxyBarracksPos = Point2d.of(118.5f, 81.5f);
             proxyBunkerPos = Point2d.of(141.5f, 60.5f);
@@ -852,8 +852,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForBerlingrad(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(70.5f, 71.5f));
-        muleLetterPosList.add(Point2d.of(78.5f, 71.5f));
+        muleLetterPosList.add(Point2d.of(71.5f, 69.5f));
+        muleLetterPosList.add(Point2d.of(79.5f, 69.5f));
         if (isTopPos) {
             myMineralPos = Point2d.of(25.5f, 132.5f);
             enemyMineralPos = Point2d.of(126.5f, 23.5f);
@@ -1053,8 +1053,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForCuriousMinds(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(77.5f, 90.5f));
-        muleLetterPosList.add(Point2d.of(87.5f, 90.5f));
+        muleLetterPosList.add(Point2d.of(99.5f, 103.5f));
+        muleLetterPosList.add(Point2d.of(107.5f, 103.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(86.5f, 61.5f);
             proxyBunkerPos = Point2d.of(121.5f, 56.5f);
@@ -1888,8 +1888,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForGlitteringAshes(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(82.5f, 129.5f));
-        muleLetterPosList.add(Point2d.of(83.5f, 117.5f));
+        muleLetterPosList.add(Point2d.of(71.5f, 110.5f));
+        muleLetterPosList.add(Point2d.of(78.5f, 110.5f));
         if (isTopPos) {
             proxyBarracksPos = Point2d.of(112.5f, 70.5f);
             proxyBunkerPos = Point2d.of(77.5f, 56.5f);
@@ -2183,8 +2183,8 @@ public class LocationConstants {
     }
 
     private static void setLocationsForHardwire(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(100.5f, 90.5f));
-        muleLetterPosList.add(Point2d.of(109.5f, 93.5f));
+        muleLetterPosList.add(Point2d.of(103.5f, 94.5f));
+        muleLetterPosList.add(Point2d.of(110.5f, 94.5f));
         if (isTopPos) {
             myMineralPos = Point2d.of(165f, 158.5f);
             enemyMineralPos = Point2d.of(51f, 57.5f);
@@ -4838,17 +4838,17 @@ public class LocationConstants {
     }
 
     public static boolean isMySpawnTop() {
-        return Bot.OBS.getStartLocation().getY() > LocationConstants.SCREEN_TOP_RIGHT.getY()/2;
+        return Bot.OBS.getStartLocation().getY() > PosConstants.SCREEN_TOP_RIGHT.getY()/2;
     }
 
     public static boolean isMySpawnLeft() {
-        return Bot.OBS.getStartLocation().getX() < LocationConstants.SCREEN_TOP_RIGHT.getX()/2;
+        return Bot.OBS.getStartLocation().getX() < PosConstants.SCREEN_TOP_RIGHT.getX()/2;
     }
 
     public static Point2d getBackCorner() {
         return Point2d.of(
-                isMySpawnLeft() ? LocationConstants.SCREEN_BOTTOM_LEFT.getX() : LocationConstants.SCREEN_TOP_RIGHT.getX(),
-                isMySpawnTop() ? LocationConstants.SCREEN_TOP_RIGHT.getY() : LocationConstants.SCREEN_BOTTOM_LEFT.getY()
+                isMySpawnLeft() ? PosConstants.SCREEN_BOTTOM_LEFT.getX() : PosConstants.SCREEN_TOP_RIGHT.getX(),
+                isMySpawnTop() ? PosConstants.SCREEN_TOP_RIGHT.getY() : PosConstants.SCREEN_BOTTOM_LEFT.getY()
         );
     }
 }

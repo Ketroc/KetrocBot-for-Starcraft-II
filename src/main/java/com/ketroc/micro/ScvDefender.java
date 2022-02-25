@@ -11,7 +11,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.MineralPatch;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -87,7 +87,7 @@ public class ScvDefender extends Scv {
 
     private Point2d getLeadEnemyWorkerPos() {
         return UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), LocationConstants.myMineralPos)))
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), PosConstants.myMineralPos)))
                 .map(enemy -> enemy.unit().getPosition().toPoint2d())
                 .orElse(null);
     }

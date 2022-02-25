@@ -155,7 +155,7 @@ public class Base {
         if (liberators.isEmpty()) {
             if (resourceMidPoint != null) {
                 Point2d midPoint = isMyNatBase() ?
-                        Position.towards(ccPos, LocationConstants.BUNKER_NATURAL, -getLibDistanceFromCC()) :
+                        Position.towards(ccPos, PosConstants.BUNKER_NATURAL, -getLibDistanceFromCC()) :
                         Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
                 liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -32.5), null));
@@ -171,11 +171,11 @@ public class Base {
     public List<DefenseUnitPositions> getTanks() {
         if (tanks.isEmpty()) {
             if (resourceMidPoint != null) {
-                int angle = (LocationConstants.opponentRace == Race.TERRAN) ? 65 : 45;
+                int angle = (PosConstants.opponentRace == Race.TERRAN) ? 65 : 45;
                 Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle), null));
                 tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle*-1), null));
-                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(LocationConstants.myRampPos)));
+                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(PosConstants.myRampPos)));
             }
         }
         return tanks;
@@ -836,7 +836,7 @@ public class Base {
         }
 
         //hardcoded exception (calculated pos traps scvs)
-        if (LocationConstants.MAP.contains("Oxide")) {
+        if (PosConstants.MAP.contains("Oxide")) {
             if (turretPos.distance(Point2d.of(65, 76)) < 1) {
                 turretPos = turretPos.add(0, 1);
             }
@@ -882,8 +882,8 @@ public class Base {
     }
 
     public static float getLibDistanceFromCC() {
-        if (libDistanceFromCC == -1 || LocationConstants.opponentRace == Race.RANDOM) {
-            libDistanceFromCC = (LocationConstants.opponentRace == Race.PROTOSS) ? 1f : 2.5f;
+        if (libDistanceFromCC == -1 || PosConstants.opponentRace == Race.RANDOM) {
+            libDistanceFromCC = (PosConstants.opponentRace == Race.PROTOSS) ? 1f : 2.5f;
         }
         if (Liberator.castRange == 8) { //apply range upgrade TODO: handle range change onUpgradeComplete
             libDistanceFromCC += 3;

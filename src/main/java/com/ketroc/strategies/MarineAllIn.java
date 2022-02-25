@@ -14,7 +14,7 @@ import com.ketroc.micro.MarineOffense;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.utils.Chat;
 import com.ketroc.utils.InfluenceMaps;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
@@ -44,10 +44,10 @@ public class MarineAllIn {
         //attack enemy 3rd, natural, then enemy main
         attackPoints = new ArrayList<>(List.of(
                 GameCache.baseList.get(GameCache.baseList.size()-2).getResourceMidPoint(),
-                LocationConstants.enemyRampPos,
+                PosConstants.enemyRampPos,
                 GameCache.baseList.get(GameCache.baseList.size()-1).getResourceMidPoint()
         ));
-        if (LocationConstants.opponentRace != Race.ZERG) { //attack earlier vs terran/protoss
+        if (PosConstants.opponentRace != Race.ZERG) { //attack earlier vs terran/protoss
             attackPoints.remove(0);
             MIN_MARINES_TO_ATTACK = 11;
         }

@@ -132,7 +132,7 @@ public class CannonRushDefense {
     private static void addNewTarget(Units unitType) {
         for (UnitInPool newTarget : UnitUtils.getEnemyUnitsOfType(unitType)) {
             if (newTarget.unit().getDisplayType() != DisplayType.SNAPSHOT && !UnitUtils.isInFogOfWar(newTarget) &&  //is visible
-                    UnitUtils.getDistance(newTarget.unit(), LocationConstants.baseLocations.get(0)) < 50 && //within 50 distance
+                    UnitUtils.getDistance(newTarget.unit(), PosConstants.baseLocations.get(0)) < 50 && //within 50 distance
                     ScvTarget.targets.stream().noneMatch(t -> t.targetUnit.getTag().equals(newTarget.getTag()))) { //not already in the targets list
                 ScvTarget.targets.add(new ScvTarget(newTarget));
             }

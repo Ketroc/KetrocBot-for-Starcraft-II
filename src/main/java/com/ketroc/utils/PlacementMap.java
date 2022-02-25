@@ -118,21 +118,21 @@ public class PlacementMap {
         topUp3x3List();
 
         visualizePlacementMap();
-        LocationConstants.STARPORTS.forEach(p -> visualize3x3WithAddOn(p));
-        visualStructureListOrder(LocationConstants.STARPORTS, Color.RED);
-        LocationConstants.extraDepots.forEach(p -> visualize2x2(p));
-        visualStructureListOrder(LocationConstants.extraDepots, Color.TEAL);
-        LocationConstants._3x3Structures.forEach(p -> visualize3x3(p));
-        visualStructureListOrder(LocationConstants._3x3Structures, Color.BLUE);
-        LocationConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
-        visualStructureListOrder(LocationConstants.MACRO_OCS, Color.YELLOW);
+        PosConstants.STARPORTS.forEach(p -> visualize3x3WithAddOn(p));
+        visualStructureListOrder(PosConstants.STARPORTS, Color.RED);
+        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
+        visualStructureListOrder(PosConstants.extraDepots, Color.TEAL);
+        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
+        visualStructureListOrder(PosConstants._3x3Structures, Color.BLUE);
+        PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
+        visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
         //create2CellColumns();
     }
 
     private static void populateDepotPos() {
         List<Point2d> depotPosList = new ArrayList<>();
-        for (int x=(int)(LocationConstants.MAX_X - 0.5f); x>LocationConstants.MIN_X; x--) {
-            for (int y=(int)(LocationConstants.MIN_Y + 0.5f); y<LocationConstants.MAX_Y; y++) {
+        for (int x = (int)(PosConstants.MAX_X - 0.5f); x> PosConstants.MIN_X; x--) {
+            for (int y = (int)(PosConstants.MIN_Y + 0.5f); y< PosConstants.MAX_Y; y++) {
                 Point2d pos = Point2d.of(x, y);
                 if ((x+2) % 7 == buildColumn && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
                     if (canFit2x2(pos) && (pos.distance(Bot.OBS.getStartLocation().toPoint2d()) > 6.5f || !isNodeNearby(pos))) {
@@ -142,8 +142,8 @@ public class PlacementMap {
                 }
             }
         }
-        depotPosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
-        LocationConstants.extraDepots.addAll(depotPosList);
+        depotPosList.sort(Comparator.comparing(point2d -> point2d.distance(PosConstants.getBackCorner())));
+        PosConstants.extraDepots.addAll(depotPosList);
     }
 
     private static boolean isNodeNearby(Point2d pos) {
@@ -159,30 +159,30 @@ public class PlacementMap {
 //            LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
 //            LocationConstants._3x3Structures.add(1, LocationConstants.MID_WALL_3x3);
 //        }
-        while (LocationConstants._3x3Structures.size() < 4) {
-            Point2d lastStarportPos = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size() - 1);
+        while (PosConstants._3x3Structures.size() < 4) {
+            Point2d lastStarportPos = PosConstants.STARPORTS.remove(PosConstants.STARPORTS.size() - 1);
             //makeAvailable(Units.TERRAN_TECHLAB, getAddOnPos(lastStarportPos));
-            LocationConstants._3x3Structures.add(lastStarportPos);
-            LocationConstants.extraDepots.add(getAddOnPos(lastStarportPos));
+            PosConstants._3x3Structures.add(lastStarportPos);
+            PosConstants.extraDepots.add(getAddOnPos(lastStarportPos));
         }
     }
 
     private static void topUp5x5List() {
-        if (!LocationConstants.MACRO_OCS.isEmpty()) {
+        if (!PosConstants.MACRO_OCS.isEmpty()) {
             return;
         }
-        for (int i = LocationConstants.STARPORTS.size() - 1; i >= 0; i--) {
-            Point2d starportPos = LocationConstants.STARPORTS.get(i);
+        for (int i = PosConstants.STARPORTS.size() - 1; i >= 0; i--) {
+            Point2d starportPos = PosConstants.STARPORTS.get(i);
             Point2d aboveStarportPos = starportPos.add(0, 3);
-            if (LocationConstants.STARPORTS.contains(aboveStarportPos)) {
-                LocationConstants.STARPORTS.remove(starportPos);
-                LocationConstants.STARPORTS.remove(aboveStarportPos);
+            if (PosConstants.STARPORTS.contains(aboveStarportPos)) {
+                PosConstants.STARPORTS.remove(starportPos);
+                PosConstants.STARPORTS.remove(aboveStarportPos);
                 makeAvailable(Units.TERRAN_STARPORT, starportPos);
                 makeAvailable(Units.TERRAN_TECHLAB, starportPos.add(2.5f, -0.5f));
                 makeAvailable(Units.TERRAN_STARPORT, aboveStarportPos);
                 makeAvailable(Units.TERRAN_TECHLAB, aboveStarportPos.add(2.5f, -0.5f));
                 Point2d ccPos = starportPos.add(1, 1);
-                LocationConstants.MACRO_OCS.add(ccPos);
+                PosConstants.MACRO_OCS.add(ccPos);
                 makeUnavailable(Units.TERRAN_COMMAND_CENTER, ccPos);
                 return;
             }
@@ -190,8 +190,8 @@ public class PlacementMap {
     }
 
     public static void initializeMap(boolean isColumnSet) {
-        for (float x=LocationConstants.MIN_X + 0.5f; x<LocationConstants.MAX_X; x++) {
-            for (float y=LocationConstants.MIN_Y + 0.5f; y<LocationConstants.MAX_Y; y++) {
+        for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
+            for (float y = PosConstants.MIN_Y + 0.5f; y< PosConstants.MAX_Y; y++) {
                 placementMap[(int)x][(int)y] = Bot.OBS.isPlacable(Point2d.of(x, y));
                 ccPlacementMap[(int)x][(int)y] = Bot.OBS.isPlacable(Point2d.of(x, y));
             }
@@ -214,20 +214,20 @@ public class PlacementMap {
         makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());
 
         //remove ramp wall
-        makeUnavailable2x2(LocationConstants.WALL_2x2);
-        makeUnavailable3x3(LocationConstants.WALL_3x3);
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3);
+        makeUnavailable2x2(PosConstants.WALL_2x2);
+        makeUnavailable3x3(PosConstants.WALL_3x3);
+        makeUnavailable3x3(PosConstants.MID_WALL_3x3);
 
         //make space around ramp entrance
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(-2, -2));
-        makeUnavailable3x3(LocationConstants.MID_WALL_3x3.add(0, -2));
+        makeUnavailable3x3(PosConstants.MID_WALL_3x3.add(-2, -2));
+        makeUnavailable3x3(PosConstants.MID_WALL_3x3.add(0, -2));
         //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
 
 
         //remove reaper jump wall
-        if (LocationConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
-            LocationConstants.reaperBlockDepots.forEach(p -> makeUnavailable2x2(p));
-            LocationConstants.reaperBlock3x3s.forEach(p -> makeUnavailable3x3(p));
+        if (PosConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
+            PosConstants.reaperBlockDepots.forEach(p -> makeUnavailable2x2(p));
+            PosConstants.reaperBlock3x3s.forEach(p -> makeUnavailable3x3(p));
         }
     }
 
@@ -238,8 +238,8 @@ public class PlacementMap {
     }
 
     public static void visualizePlacementMap() {
-        for (float x=LocationConstants.MIN_X + 0.5f; x<LocationConstants.MAX_X; x++) {
-            for (float y=LocationConstants.MIN_Y + 0.5f; y<LocationConstants.MAX_Y; y++) {
+        for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
+            for (float y = PosConstants.MIN_Y + 0.5f; y< PosConstants.MAX_Y; y++) {
                 if (placementMap[(int)x][(int)y]) {
                     DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
                     //DebugHelper.drawText((int)x + "," + (int)y, Point2d.of(x-0.4f, y), Color.TEAL, 8);
@@ -249,8 +249,8 @@ public class PlacementMap {
     }
 
     public static void visualizeCcPlacementMap() {
-        for (float x=LocationConstants.MIN_X + 0.5f; x<LocationConstants.MAX_X; x++) {
-            for (float y=LocationConstants.MIN_Y + 0.5f; y<LocationConstants.MAX_Y; y++) {
+        for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
+            for (float y = PosConstants.MIN_Y + 0.5f; y< PosConstants.MAX_Y; y++) {
                 if (ccPlacementMap[(int)x][(int)y]) {
                     DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
                 }
@@ -593,8 +593,8 @@ public class PlacementMap {
 
     //TODO: optimize for each base
     public static void create2CellColumns() {
-        for (int x=(int)(LocationConstants.MIN_X + 0.5f); x<LocationConstants.MAX_X; x++) {
-            for (int y=(int)(LocationConstants.MIN_Y + 0.5f); y<LocationConstants.MAX_Y; y++) {
+        for (int x = (int)(PosConstants.MIN_X + 0.5f); x< PosConstants.MAX_X; x++) {
+            for (int y = (int)(PosConstants.MIN_Y + 0.5f); y< PosConstants.MAX_Y; y++) {
                 int columnSpacer = x % 7;
                 if (columnSpacer == 0 || columnSpacer == 1) {
                     placementMap[x][y] = false;
@@ -623,8 +623,8 @@ public class PlacementMap {
     public static int populateMainBase3x3WithAddonPos(int columnIndex, boolean isColumnSet) {
         int num3x3WithAddons = 0;
         List<Point2d> _3x3PosList = new ArrayList<>();
-        for (int x=(int)(LocationConstants.MIN_X + 0.5f); x<LocationConstants.MAX_X; x++) {
-            for (int y=(int)(LocationConstants.MAX_Y - 0.5f); y>LocationConstants.MIN_Y; y--) {
+        for (int x = (int)(PosConstants.MIN_X + 0.5f); x< PosConstants.MAX_X; x++) {
+            for (int y = (int)(PosConstants.MAX_Y - 0.5f); y> PosConstants.MIN_Y; y--) {
                 Point2d pos = Point2d.of(x + 0.5f, y + 0.5f);
                 if (x % 7 == columnIndex && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
                     if (canFitPathingShape(pos, _3x3_WITH_ADDON_SHAPE)) {
@@ -637,41 +637,41 @@ public class PlacementMap {
                 }
             }
         }
-        _3x3PosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
-        LocationConstants.STARPORTS.addAll(_3x3PosList);
+        _3x3PosList.sort(Comparator.comparing(point2d -> point2d.distance(PosConstants.getBackCorner())));
+        PosConstants.STARPORTS.addAll(_3x3PosList);
         return num3x3WithAddons;
     }
 
     private static void replaceStarportsWithCommandCenters() {
         List<Point2d> _5x5PosList = new ArrayList<>();
-        for (int i=0; i<LocationConstants.STARPORTS.size(); i++) {
-            Point2d starportPos = LocationConstants.STARPORTS.get(i);
+        for (int i = 0; i< PosConstants.STARPORTS.size(); i++) {
+            Point2d starportPos = PosConstants.STARPORTS.get(i);
             makeAvailable(Units.TERRAN_STARPORT, starportPos);
             makeAvailable(Units.TERRAN_TECHLAB, starportPos.add(2.5f, -0.5f));
             Point2d ccPos = starportPos.add(1, -1);
             if (canFitPathingShape(ccPos, _5x5_SHAPE)) {
                 _5x5PosList.add(ccPos);
-                LocationConstants.STARPORTS.remove(i--);
+                PosConstants.STARPORTS.remove(i--);
                 makeUnavailable(Units.TERRAN_COMMAND_CENTER, ccPos);
             } else {
                 makeUnavailable(Units.TERRAN_STARPORT, starportPos);
             }
         }
-        _5x5PosList.sort(Comparator.comparing(point2d -> point2d.distance(LocationConstants.getBackCorner())));
-        LocationConstants.MACRO_OCS.addAll(_5x5PosList);
+        _5x5PosList.sort(Comparator.comparing(point2d -> point2d.distance(PosConstants.getBackCorner())));
+        PosConstants.MACRO_OCS.addAll(_5x5PosList);
     }
 
     public static int populateMainBase3x3Pos(int columnIndex, boolean doVisualize) {
         int num3x3s = 0;
-        for (int x=(int)(LocationConstants.MIN_X + 0.5f); x<LocationConstants.MAX_X; x++) {
-            for (int y=(int)(LocationConstants.MAX_Y - 0.5f); y>LocationConstants.MIN_Y; y--) {
+        for (int x = (int)(PosConstants.MIN_X + 0.5f); x< PosConstants.MAX_X; x++) {
+            for (int y = (int)(PosConstants.MAX_Y - 0.5f); y> PosConstants.MIN_Y; y--) {
                 Point2d pos = Point2d.of(x + 0.5f, y + 0.5f);
                 if (x % 7 == columnIndex && InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, pos)) {
                     if (canFitPathingShape(pos, _3x3_SHAPE1)) {
                         if (doVisualize) {
                             visualize3x3(pos);
                         }
-                        LocationConstants._3x3Structures.add(pos);
+                        PosConstants._3x3Structures.add(pos);
                         num3x3s++;
                         makeUnavailable(Units.TERRAN_ARMORY, pos);
                     } else if (canFitPathingShape(pos, _3x3_SHAPE2)) {
@@ -679,7 +679,7 @@ public class PlacementMap {
                         if (doVisualize) {
                             visualize3x3(pos);
                         }
-                        LocationConstants._3x3Structures.add(pos);
+                        PosConstants._3x3Structures.add(pos);
                         num3x3s++;
                         makeUnavailable(Units.TERRAN_ARMORY, pos);
                     } else if (canFitPathingShape(pos, _3x3_SHAPE3)) {
@@ -687,7 +687,7 @@ public class PlacementMap {
                         if (doVisualize) {
                             visualize3x3(pos);
                         }
-                        LocationConstants._3x3Structures.add(pos);
+                        PosConstants._3x3Structures.add(pos);
                         num3x3s++;
                         makeUnavailable(Units.TERRAN_ARMORY, pos);
                     }

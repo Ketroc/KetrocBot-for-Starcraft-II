@@ -5,7 +5,7 @@ import com.ketroc.bots.KetrocBot;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
 
 public class WorkerRushDefense2 {
@@ -36,15 +36,15 @@ public class WorkerRushDefense2 {
         //TODO: move first depot to wall (in case it's on reaper wall vs scv rush)
         //build 1st depot on wall
         Purchase.removeFirst(Units.TERRAN_SUPPLY_DEPOT);
-        KetrocBot.purchaseQueue.add(0, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.WALL_2x2));
+        KetrocBot.purchaseQueue.add(0, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, PosConstants.WALL_2x2));
 
         //build eng bay on wall
         Purchase.removeFirst(Units.TERRAN_ENGINEERING_BAY);
-        KetrocBot.purchaseQueue.add(1, new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, LocationConstants.WALL_3x3));
+        KetrocBot.purchaseQueue.add(1, new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY, PosConstants.WALL_3x3));
 
         //build 2nd depot on wall
         Purchase.removeFirst(Units.TERRAN_SUPPLY_DEPOT, 1);
-        KetrocBot.purchaseQueue.add(2, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, LocationConstants.MID_WALL_2x2));
+        KetrocBot.purchaseQueue.add(2, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, PosConstants.MID_WALL_2x2));
 
         //build barracks (not on wall)
         Purchase.removeFirst(Units.TERRAN_BARRACKS);

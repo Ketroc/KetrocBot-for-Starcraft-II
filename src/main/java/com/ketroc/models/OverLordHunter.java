@@ -12,7 +12,7 @@ import com.ketroc.geometry.Position;
 import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
@@ -143,7 +143,7 @@ public class OverLordHunter {
         if (barracksSpotter == null) {
             if (UnitUtils.getOrder(barracks.unit()) == null) {
                 UnitMicroList.add(new StructureFloater(barracks, overlord.unit().getPosition().toPoint2d(), false));
-                LocationConstants._3x3Structures.add(0, Position.toHalfPoint(barracks.unit().getPosition().toPoint2d()));
+                PosConstants._3x3Structures.add(0, Position.toHalfPoint(barracks.unit().getPosition().toPoint2d()));
             }
             return;
         }
@@ -164,7 +164,7 @@ public class OverLordHunter {
 
         //send barracks to land
         if (barracksLander == null) {
-            Point2d landingPos = LocationConstants._3x3Structures.remove(0);
+            Point2d landingPos = PosConstants._3x3Structures.remove(0);
             UnitMicroList.add(new StructureFloater(barracks, landingPos, true));
         }
     }
@@ -216,7 +216,7 @@ public class OverLordHunter {
                         UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(1).getCcPos()) < 20 ||
                         UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(2).getCcPos()) < 20)
                 .filter(ol -> UnitUtils.isReachableToAttack(ol.unit(), 5.1f))
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), LocationConstants.BUNKER_NATURAL)));
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), PosConstants.BUNKER_NATURAL)));
     }
 
     private static boolean isOverlordLost(UnitInPool ol) {

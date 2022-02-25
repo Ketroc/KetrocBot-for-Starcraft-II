@@ -71,9 +71,9 @@ public class Tank extends BasicUnitMicro {
         float yTank = tank.getPosition().getY();
 
         int xMin = 0;
-        int xMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getX());
+        int xMax = InfluenceMaps.toMapCoord(PosConstants.SCREEN_TOP_RIGHT.getX());
         int yMin = 0;
-        int yMax = InfluenceMaps.toMapCoord(LocationConstants.SCREEN_TOP_RIGHT.getY());
+        int yMax = InfluenceMaps.toMapCoord(PosConstants.SCREEN_TOP_RIGHT.getY());
         int range = 13;
         int xStart = Math.max(Math.round(2*(xTank - range)), xMin);
         int yStart = Math.max(Math.round(2*(yTank - range)), yMin);
@@ -100,7 +100,7 @@ public class Tank extends BasicUnitMicro {
         //get unit based on best (x,y)
         UnitInPool bestTargetUnit = null;
         if (bestValue == 0) {
-            if (LocationConstants.opponentRace == Race.ZERG) {
+            if (PosConstants.opponentRace == Race.ZERG) {
                 bestTargetUnit = UnitUtils.getClosestEnemyUnitOfType(Units.ZERG_CHANGELING_MARINE, tank.getPosition().toPoint2d());
             }
         }

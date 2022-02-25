@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.LocationConstants;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 public class IgnoredMineralWallScv extends Ignored {
@@ -35,8 +35,8 @@ public class IgnoredMineralWallScv extends Ignored {
         if (numScvsActive() > 0) {
             return;
         }
-        Unit mineral = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, LocationConstants.baseLocations.get(0));
-        if (mineral != null && UnitUtils.getDistance(mineral, LocationConstants.baseLocations.get(0)) < 50) {
+        Unit mineral = UnitUtils.getClosestUnitOfType(Alliance.NEUTRAL, UnitUtils.MINERAL_WALL_TYPE, PosConstants.baseLocations.get(0));
+        if (mineral != null && UnitUtils.getDistance(mineral, PosConstants.baseLocations.get(0)) < 50) {
             UnitInPool scv = WorkerManager.getScvEmptyHands(mineral.getPosition().toPoint2d());
             if (scv != null) {
                 add(new IgnoredMineralWallScv(scv.getTag()));

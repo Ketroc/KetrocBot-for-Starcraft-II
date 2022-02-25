@@ -220,7 +220,7 @@ public class StructureScv {
             if (!structureScv.scv.isAlive()) {
                 if (BunkerContain.proxyBunkerLevel > 0 &&
                         Time.nowFrames() < Time.toFrames("5:00") &&
-                        structureScv.structurePos.distance(LocationConstants.myRampPos) > 50) {
+                        structureScv.structurePos.distance(PosConstants.myRampPos) > 50) {
                     BunkerContain.repairScvList.stream()
                             .filter(u -> !StructureScv.contains(u.unit()))
                             .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))
@@ -311,22 +311,22 @@ public class StructureScv {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                LocationConstants.extraDepots.add(structureScv.structurePos);
+                PosConstants.extraDepots.add(structureScv.structurePos);
                 break;
             case TERRAN_FACTORY:
 //                LocationConstants.FACTORIES.add(structureScv.structurePos);
 //                break;
             case TERRAN_STARPORT:
-                LocationConstants.STARPORTS.add(structureScv.structurePos);
+                PosConstants.STARPORTS.add(structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:
-                if (LocationConstants.proxyBarracksPos == null || structureScv.structurePos.distance(LocationConstants.proxyBarracksPos) > 10) {
-                    LocationConstants._3x3Structures.add(structureScv.structurePos);
+                if (PosConstants.proxyBarracksPos == null || structureScv.structurePos.distance(PosConstants.proxyBarracksPos) > 10) {
+                    PosConstants._3x3Structures.add(structureScv.structurePos);
                 }
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
-                LocationConstants._3x3Structures.add(structureScv.structurePos);
+                PosConstants._3x3Structures.add(structureScv.structurePos);
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             default:

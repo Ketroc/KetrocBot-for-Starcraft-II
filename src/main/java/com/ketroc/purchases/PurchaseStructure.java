@@ -200,13 +200,13 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             if ((!Bot.OBS.getUnits(u -> UnitUtils.getDistance(u.unit(), position) < UnitUtils.getStructureRadius(structureType) &&
                     !UnitUtils.canMove(u.unit())).isEmpty()) ||
                     UnitUtils.isExpansionCreepBlocked(position)) {
-                if (position.equals(LocationConstants.BUNKER_NATURAL)) {
+                if (position.equals(PosConstants.BUNKER_NATURAL)) {
                     position = findNearbyBunkerPos();
                     if (position == null) {
                         return PurchaseResult.CANCEL;
                     }
                     else {
-                        LocationConstants.BUNKER_NATURAL = position;
+                        PosConstants.BUNKER_NATURAL = position;
                     }
                 }
                 else {
@@ -226,7 +226,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 
         //select an scv if none was provided
         if (scv == null) {
-            if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && LocationConstants.baseLocations.get(0).distance(position) > 50) {
+            if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && PosConstants.baseLocations.get(0).distance(position) > 50) {
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);
             }
             if (scv == null) {
@@ -250,11 +250,11 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         Point2d behindBunkerPos = Position.toHalfPoint(
                 Position.towards(
                         Position.towards(
-                                LocationConstants.BUNKER_NATURAL,
+                                PosConstants.BUNKER_NATURAL,
                                 GameCache.baseList.get(1).getCcPos(),
                                 2
                         ),
-                        LocationConstants.myRampPos,
+                        PosConstants.myRampPos,
                         2
                 )
         );
@@ -311,7 +311,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
                     UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 if (techStructureNeeded == Units.TERRAN_FACTORY) {
-                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
                 }
                 else {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
@@ -347,31 +347,31 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         switch (structureType) {
             case TERRAN_SUPPLY_DEPOT:
                 if (UnitUtils.isWallingStructure(pos)) {
-                    LocationConstants.extraDepots.add(0, pos);
+                    PosConstants.extraDepots.add(0, pos);
                 }
                 else {
-                    LocationConstants.extraDepots.add(pos);
+                    PosConstants.extraDepots.add(pos);
                 }
                 break;
             case TERRAN_FACTORY:
 //                LocationConstants.FACTORIES.add(pos);
 //                break;
             case TERRAN_STARPORT:
-                LocationConstants.STARPORTS.add(pos);
+                PosConstants.STARPORTS.add(pos);
                 break;
             case TERRAN_COMMAND_CENTER:
                 //ignore expansion CCs
-                if (LocationConstants.baseLocations.contains(pos)) {
+                if (PosConstants.baseLocations.contains(pos)) {
                     return;
                 }
-                LocationConstants.MACRO_OCS.add(pos);
+                PosConstants.MACRO_OCS.add(pos);
                 break;
             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
                 if (UnitUtils.isWallingStructure(pos)) {
-                    LocationConstants._3x3Structures.add(0, pos);
+                    PosConstants._3x3Structures.add(0, pos);
                 }
                 else {
-                    LocationConstants._3x3Structures.add(pos);
+                    PosConstants._3x3Structures.add(pos);
                 }
                 break;
         }
@@ -380,9 +380,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     private boolean selectStructurePosition() {
         switch (structureType) {
             case TERRAN_SUPPLY_DEPOT:
-                if (!LocationConstants.extraDepots.isEmpty()) {
+                if (!PosConstants.extraDepots.isEmpty()) {
                     //1st try finding safe depot pos in fog of war. if none, then any safe depot pos
-                    position = LocationConstants.extraDepots.stream()
+                    position = PosConstants.extraDepots.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
                             //after initial build order, priority is to grant vision of my main base
                             .filter(depotPos -> KetrocBot.purchaseQueue.size() > 1 ||
@@ -390,13 +390,13 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                                     Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE)
                             .findFirst()
                             .orElse(
-                                    LocationConstants.extraDepots.stream()
+                                    PosConstants.extraDepots.stream()
                                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
                                             .findFirst()
                                             .orElse(null)
                             );
                     if (position != null) {
-                        LocationConstants.extraDepots.remove(position);
+                        PosConstants.extraDepots.remove(position);
                         return true;
                     }
                 }
@@ -422,57 +422,57 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
 //                }
 //                return false;
             case TERRAN_STARPORT:
-                if (!LocationConstants.STARPORTS.isEmpty()) {
+                if (!PosConstants.STARPORTS.isEmpty()) {
                     List<Point2d> freeTechLabPos = UnitUtils.getPosByAvailableTechLab();
                     if (!freeTechLabPos.isEmpty()) {
                         position = freeTechLabPos.get(0);
                     }
-                    position = LocationConstants.STARPORTS.stream()
+                    position = PosConstants.STARPORTS.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
                             .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                             .findFirst()
                             .orElse(
-                                    LocationConstants.STARPORTS.stream()
+                                    PosConstants.STARPORTS.stream()
                                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
                                             .findFirst()
                                             .orElse(null)
                             );
                     if (position != null) {
-                        LocationConstants.STARPORTS.remove(position);
+                        PosConstants.STARPORTS.remove(position);
                         return true;
                     }
                 }
                 return false;
             case TERRAN_BARRACKS:
                 if (Strategy.MARINE_ALLIN) {
-                    position = LocationConstants.STARPORTS.stream()
+                    position = PosConstants.STARPORTS.stream()
                             .filter(p -> UnitUtils.isInMyMain(p) &&
                                     isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                            .max(Comparator.comparing(pos -> pos.distance(LocationConstants.myRampPos)))
+                            .max(Comparator.comparing(pos -> pos.distance(PosConstants.myRampPos)))
                             .orElse(null);
                     if (position != null) {
-                        LocationConstants.STARPORTS.remove(position);
+                        PosConstants.STARPORTS.remove(position);
                         return true;
                     }
                     return false;
                 }
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
-                position = LocationConstants._3x3Structures.stream()
+                position = PosConstants._3x3Structures.stream()
                         .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
                         .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
                         .findFirst()
                         .orElse(
-                                LocationConstants._3x3Structures.stream()
+                                PosConstants._3x3Structures.stream()
                                         .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
                                         .findFirst()
                                         .orElse(null)
                         );
                 if (position != null) {
-                    LocationConstants._3x3Structures.remove(position);
+                    PosConstants._3x3Structures.remove(position);
                     return true;
                 }
-                else if (!LocationConstants.STARPORTS.isEmpty()) { //use starport position if none remain
-                    position = LocationConstants.STARPORTS.remove(LocationConstants.STARPORTS.size()-1);
+                else if (!PosConstants.STARPORTS.isEmpty()) { //use starport position if none remain
+                    position = PosConstants.STARPORTS.remove(PosConstants.STARPORTS.size()-1);
                     return true;
                 }
                 return false;

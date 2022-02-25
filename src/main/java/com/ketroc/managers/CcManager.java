@@ -48,7 +48,7 @@ public class CcManager {
 
     private static void spamMulesOnEnemyBase() {
         //exit since mule spam replaced with troll muling
-        if (MuleMessages.doTrollMule) {
+        if (MannerMule.doTrollMule) {
             return;
         }
         List<Unit> ocList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
@@ -108,7 +108,7 @@ public class CcManager {
                 }
             }
         }
-        MuleMessages.doTrollMule = true;
+        MannerMule.doTrollMule = true;
         return true;
     }
 
@@ -172,7 +172,7 @@ public class CcManager {
                             else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
                                 //TODO: handle logic of Strategy.PRIORITIZE_EXPANDING here
                                 //if not main cc, and if needed for expansion
-                                if (UnitUtils.getDistance(cc, LocationConstants.baseLocations.get(0)) > 1 &&
+                                if (UnitUtils.getDistance(cc, PosConstants.baseLocations.get(0)) > 1 &&
                                         !Base.isABasePos(cc.getPosition().toPoint2d()) &&
                                         isCcNeededForExpansion()) {
                                     Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
@@ -214,15 +214,15 @@ public class CcManager {
                         }
                         else if (cc.getEnergy().get() >= 50) {
                             //scan enemy main at 4:30
-                            if (LocationConstants.opponentRace == Race.PROTOSS &&
+                            if (PosConstants.opponentRace == Race.PROTOSS &&
                                     Strategy.gamePlan != GamePlan.MARINE_RUSH &&
                                     Strategy.gamePlan != GamePlan.SCV_RUSH &&
                                     !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
                                 ActionHelper.unitCommand(cc, Abilities.EFFECT_SCAN,
-                                        Position.towards(LocationConstants.enemyMainBaseMidPos, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 1), 3), false);
+                                        Position.towards(PosConstants.enemyMainBaseMidPos, PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 1), 3), false);
                                 Switches.scoutScanComplete = true;
                             }
-                            else if (!MuleMessages.doTrollMule &&
+                            else if (!MannerMule.doTrollMule &&
                                     GameCache.mineralBank < 3000 &&
                                     !Switches.hasCastOCSpellThisFrame &&
                                     UnitUtils.numScansAvailable() > Switches.numScansToSave) {
@@ -234,7 +234,7 @@ public class CcManager {
                                         int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
                                         if (numMules < base.getMineralPatchUnits().size()) {
                                             Unit mineralToMule;
-                                            if (i == 2 && LocationConstants.MAP.contains("Golden Wall")) { //special case so mules don't get trapped
+                                            if (i == 2 && PosConstants.MAP.contains("Golden Wall")) { //special case so mules don't get trapped
                                                 mineralToMule = base.getMineralPatches().stream()
                                                         .map(MineralPatch::getNode)
                                                         .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit, base.getCcPos())))
@@ -291,7 +291,7 @@ public class CcManager {
 
     private static void floatCCToBase(Unit cc, Point2d basePos, boolean isEnemyBase) {
         UnitMicroList.add(new StructureFloaterExpansionCC(cc, basePos));
-        LocationConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
+        PosConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
 
         //setCC in baseList
         if (!isEnemyBase) {
@@ -315,7 +315,7 @@ public class CcManager {
 
     private static void saveDyingCCs() {
         //skip if already maxed on macro OCs
-        if (LocationConstants.MACRO_OCS.isEmpty()) {
+        if (PosConstants.MACRO_OCS.isEmpty()) {
             return;
         }
         //loop through bases looking for a dying cc
@@ -328,8 +328,8 @@ public class CcManager {
             //if complete CC or incomplete PF, low health, and ground attacking enemy nearby
             if (cc.getType() == Units.TERRAN_COMMAND_CENTER && cc.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(cc) < Strategy.floatBaseAt
                     && !Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.getDistance(u.unit(), cc) <= 10 && UnitUtils.canAttackGround(u.unit())).isEmpty()) {
-                if (ActionIssued.getCurOrder(base.getCc()).isEmpty() && !LocationConstants.MACRO_OCS.isEmpty()) {
-                    FlyingCC.addFlyingCC(cc, LocationConstants.MACRO_OCS.remove(0), true);
+                if (ActionIssued.getCurOrder(base.getCc()).isEmpty() && !PosConstants.MACRO_OCS.isEmpty()) {
+                    FlyingCC.addFlyingCC(cc, PosConstants.MACRO_OCS.remove(0), true);
 
                     //remove cc from base
                     base.setCc(null);
@@ -376,8 +376,8 @@ public class CcManager {
         }
 
         if (GameCache.mineralBank > mineralsRequired && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
-                (Base.numMyBases() < LocationConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND ||
-                        !LocationConstants.MACRO_OCS.isEmpty() ||
+                (Base.numMyBases() < PosConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND ||
+                        !PosConstants.MACRO_OCS.isEmpty() ||
                         !Placement.possibleCcPosList.isEmpty())) {
             if ((GameCache.mineralBank > GameCache.gasBank && GameCache.gasBank > 2000) ||
                     Base.numAvailableBases() > 0 ||
@@ -469,32 +469,32 @@ public class CcManager {
     }
 
     public static int getNumEnemyBasesIgnored() {
-        return (LocationConstants.MACRO_OCS.isEmpty()) ? 2 : 5; //try to expand deeper on enemy side when macro OCs are complete
+        return (PosConstants.MACRO_OCS.isEmpty()) ? 2 : 5; //try to expand deeper on enemy side when macro OCs are complete
     }
 
     public static boolean purchaseMacroCC() {
-        if (LocationConstants.MACRO_OCS.isEmpty()) {
+        if (PosConstants.MACRO_OCS.isEmpty()) {
             return false;
         }
 
         Point2d ccPos;
         Point2d nextAvailableBase = Base.getNextAvailableBase();
         if (nextAvailableBase == null) {
-            ccPos = LocationConstants.MACRO_OCS.remove(0);
+            ccPos = PosConstants.MACRO_OCS.remove(0);
         }
         else {
-            ccPos = LocationConstants.MACRO_OCS.stream()
+            ccPos = PosConstants.MACRO_OCS.stream()
                     .min(Comparator.comparing(p -> p.distance(nextAvailableBase)))
                     .get();
-            LocationConstants.MACRO_OCS.remove(ccPos);
+            PosConstants.MACRO_OCS.remove(ccPos);
         }
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
         return true;
     }
 
     public static boolean ccToBeOC(Point2d ccPos) {
-        return LocationConstants.baseLocations
-                .subList(Strategy.NUM_BASES_TO_OC, LocationConstants.baseLocations.size()) //ignore OC base locations
+        return PosConstants.baseLocations
+                .subList(Strategy.NUM_BASES_TO_OC, PosConstants.baseLocations.size()) //ignore OC base locations
                 .stream()
                 .noneMatch(p -> ccPos.distance(p) < 1);
     }

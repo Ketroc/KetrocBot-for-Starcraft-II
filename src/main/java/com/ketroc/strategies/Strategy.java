@@ -134,7 +134,7 @@ public class Strategy {
 //        if (!Bot.isRealTime) {
 //            setStrategyNumber(); //TODO: this is off for ladder
 //        }
-        switch (LocationConstants.opponentRace) {
+        switch (PosConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
                 break;
@@ -223,7 +223,8 @@ public class Strategy {
 //                NO_RAMP_WALL = true;
 //                NO_TURRETS = true;
 //                NUM_MARINES = 1;
-//                ENEMY_DOES_BANSHEE_HARASS = true;
+                ENEMY_DOES_BANSHEE_HARASS = true;
+                Switches.enemyCanProduceAir = true;
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
@@ -252,6 +253,7 @@ public class Strategy {
 //                BUILD_EXPANDS_IN_MAIN = true;
 //                DO_DIVE_MOBILE_DETECTORS = false;
                 ENEMY_DOES_BANSHEE_HARASS = true;
+
                 break;
             case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1":
                 DO_BANSHEE_HARASS = false;
@@ -261,9 +263,9 @@ public class Strategy {
 
     private static void setRampWall() {
         if (NO_RAMP_WALL) {
-            LocationConstants._3x3Structures.add(LocationConstants._3x3Structures.remove(0));
-            LocationConstants._3x3Structures.add(LocationConstants._3x3Structures.remove(0));
-            LocationConstants.extraDepots.add(LocationConstants.extraDepots.remove(0));
+            PosConstants._3x3Structures.add(PosConstants._3x3Structures.remove(0));
+            PosConstants._3x3Structures.add(PosConstants._3x3Structures.remove(0));
+            PosConstants.extraDepots.add(PosConstants.extraDepots.remove(0));
         }
     }
 
@@ -701,7 +703,7 @@ public class Strategy {
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
 
         //get 2 banshees and +1attack for creep clearing and early defense
-        if (LocationConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {
+        if (PosConstants.opponentRace == Race.ZERG && !DO_USE_CYCLONES && !DO_OFFENSIVE_TANKS) {
             MIN_BANSHEES = 2;
             UpgradeManager.armoryUpgradeList = new ArrayList<>();
             UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
@@ -881,7 +883,7 @@ public class Strategy {
                 Print.print("checking strategy: " + strategy);
                 if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
                     if (strategy == GamePlan.SCV_RUSH &&
-                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
+                            (PosConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || PosConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
                         Print.print("skipping scv rush cuz it's Pillars of Gold");
                         continue;
                     }
@@ -959,7 +961,7 @@ public class Strategy {
         switch (step_TvtFastStart) {
             case 1:
                 //rally cc to the depot pos
-                ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, LocationConstants.extraDepots.get(0), false);
+                ActionHelper.unitCommand(GameCache.ccList.get(0), Abilities.RALLY_COMMAND_CENTER, PosConstants.extraDepots.get(0), false);
                 step_TvtFastStart++;
                 break;
 
@@ -979,7 +981,7 @@ public class Strategy {
 
                     //add depot and rax with first scv to the production queue
                     scv_TvtFastStart = Bot.OBS.getUnits(Alliance.SELF, scv -> scv.unit().getType() == Units.TERRAN_SCV).stream()
-                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), LocationConstants.extraDepots.get(0))))
+                            .min(Comparator.comparing(scv -> UnitUtils.getDistance(scv.unit(), PosConstants.extraDepots.get(0))))
                             .get();
                     PurchaseStructure.getPurchase(Units.TERRAN_SUPPLY_DEPOT)
                             .ifPresent(purchase -> purchase.setScv(scv_TvtFastStart.unit()));
@@ -1008,12 +1010,12 @@ public class Strategy {
         }
 
         //if maxed out on macro OCs
-        if (LocationConstants.MACRO_OCS.isEmpty()) {
+        if (PosConstants.MACRO_OCS.isEmpty()) {
             return 60;
         }
 
         //if maxed out on macro OCs
-        if (LocationConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
+        if (PosConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
             return 50;
         }
 
@@ -1025,7 +1027,7 @@ public class Strategy {
     }
 
     public static void setRaceStrategies() {
-        switch (LocationConstants.opponentRace) {
+        switch (PosConstants.opponentRace) {
             case ZERG:
                 DO_DEFENSIVE_LIBS = false;
                 DO_DEFENSIVE_TANKS = false;
@@ -1077,26 +1079,26 @@ public class Strategy {
     }
 
     private static void setReaperBlockWall() {
-        if (LocationConstants.opponentRace == Race.TERRAN && gamePlan != GamePlan.MARINE_RUSH) {
-            LocationConstants.extraDepots.addAll(0, LocationConstants.reaperBlockDepots);
-            LocationConstants._3x3Structures.addAll(0, LocationConstants.reaperBlock3x3s);
+        if (PosConstants.opponentRace == Race.TERRAN && gamePlan != GamePlan.MARINE_RUSH) {
+            PosConstants.extraDepots.addAll(0, PosConstants.reaperBlockDepots);
+            PosConstants._3x3Structures.addAll(0, PosConstants.reaperBlock3x3s);
 
             //decide if middle structure in wall is a depot or barracks
-            if (!LocationConstants.reaperBlock3x3s.isEmpty()) {
-                LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
+            if (!PosConstants.reaperBlock3x3s.isEmpty()) {
+                PosConstants._3x3Structures.remove(PosConstants.MID_WALL_3x3);
             }
             else {
-                LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+                PosConstants.extraDepots.remove(PosConstants.MID_WALL_2x2);
             }
         }
         else {
             if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE ||
                     gamePlan == GamePlan.MARINE_RUSH ||
                     Strategy.NUM_BASES_TO_OC > 1) {
-                LocationConstants._3x3Structures.remove(LocationConstants.MID_WALL_3x3);
+                PosConstants._3x3Structures.remove(PosConstants.MID_WALL_3x3);
             }
             else {
-                LocationConstants.extraDepots.remove(LocationConstants.MID_WALL_2x2);
+                PosConstants.extraDepots.remove(PosConstants.MID_WALL_2x2);
             }
         }
     }
