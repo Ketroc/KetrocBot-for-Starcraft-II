@@ -19,6 +19,7 @@ import com.ketroc.models.Cost;
 import com.ketroc.models.Gas;
 import com.ketroc.models.StructureScv;
 import com.ketroc.strategies.BunkerContain;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
@@ -165,7 +166,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return buildOther();
         }
         else {
-            if (UnitUtils.withinOpeningBuildOrder() || isTechAlmostReady(structureType, 0.8f)) { //save resources for structure if tech is almost done
+            if (!Purchase.isBuildOrderComplete() || isTechAlmostReady(structureType, 0.8f)) { //save resources for structure if tech is almost done
                 Cost.updateBank(cost);
             }
             return PurchaseResult.WAITING;
@@ -307,9 +308,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
                 if (techStructureNeeded == Units.TERRAN_FACTORY) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
                 }
@@ -353,11 +354,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     PosConstants.extraDepots.add(pos);
                 }
                 break;
+            case TERRAN_BARRACKS:
             case TERRAN_FACTORY:
-//                LocationConstants.FACTORIES.add(pos);
-//                break;
             case TERRAN_STARPORT:
-                PosConstants.STARPORTS.add(pos);
+                PosConstants._3x3AddonPosList.add(pos);
                 break;
             case TERRAN_COMMAND_CENTER:
                 //ignore expansion CCs
@@ -366,7 +366,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 PosConstants.MACRO_OCS.add(pos);
                 break;
-            case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
+            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
                 if (UnitUtils.isWallingStructure(pos)) {
                     PosConstants._3x3Structures.add(0, pos);
                 }
@@ -385,9 +385,10 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     position = PosConstants.extraDepots.stream()
                             .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_SUPPLY_DEPOT))
                             //after initial build order, priority is to grant vision of my main base
-                            .filter(depotPos -> KetrocBot.purchaseQueue.size() > 1 ||
+                            .filter(depotPos -> Purchase.isBuildOrderComplete() ||
                                     !UnitUtils.isWallComplete() ||
-                                    Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE)
+                                    (Bot.OBS.getVisibility(depotPos) != Visibility.VISIBLE &&
+                                            UnitUtils.isInMyMain(depotPos)))
                             .findFirst()
                             .orElse(
                                     PosConstants.extraDepots.stream()
@@ -410,75 +411,85 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                     }
                 }
                 return false;
-            case TERRAN_FACTORY:
-//                if (!LocationConstants.FACTORIES.isEmpty()) {
-//                    position = LocationConstants.FACTORIES.stream()
-//                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_FACTORY))
-//                            .findFirst().orElse(null);
-//                    if (position != null) {
-//                        LocationConstants.FACTORIES.remove(position);
-//                        return true;
-//                    }
-//                }
-//                return false;
-            case TERRAN_STARPORT:
-                if (!PosConstants.STARPORTS.isEmpty()) {
-                    List<Point2d> freeTechLabPos = UnitUtils.getPosByAvailableTechLab();
-                    if (!freeTechLabPos.isEmpty()) {
-                        position = freeTechLabPos.get(0);
-                    }
-                    position = PosConstants.STARPORTS.stream()
-                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
-                            .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
-                            .findFirst()
-                            .orElse(
-                                    PosConstants.STARPORTS.stream()
-                                            .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
-                                            .findFirst()
-                                            .orElse(null)
-                            );
-                    if (position != null) {
-                        PosConstants.STARPORTS.remove(position);
-                        return true;
-                    }
-                }
-                return false;
             case TERRAN_BARRACKS:
                 if (Strategy.MARINE_ALLIN) {
-                    position = PosConstants.STARPORTS.stream()
-                            .filter(p -> UnitUtils.isInMyMain(p) &&
-                                    isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                            .max(Comparator.comparing(pos -> pos.distance(PosConstants.myRampPos)))
+                    return set3x3AddOnPos();
+                }
+
+                // all builds that don't use barracks
+                if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
+                    return set3x3Pos();
+                }
+
+                //first rax near wall for ghost marauder build
+                if (!Purchase.isBuildOrderComplete() &&
+                        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BARRACKS).isEmpty()) {
+                    position = PosConstants._3x3AddonPosList.stream()
+                            .filter(raxPos -> UnitUtils.isInMyMain(raxPos))
+                            .min(Comparator.comparing(p -> p.distance(PosConstants.WALL_2x2)))
                             .orElse(null);
                     if (position != null) {
-                        PosConstants.STARPORTS.remove(position);
+                        PosConstants._3x3AddonPosList.remove(position);
                         return true;
                     }
                     return false;
                 }
+                //no break;
+            case TERRAN_FACTORY:
+            case TERRAN_STARPORT:
+                return set3x3AddOnPos();
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
-                position = PosConstants._3x3Structures.stream()
-                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                        .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
-                        .findFirst()
-                        .orElse(
-                                PosConstants._3x3Structures.stream()
-                                        .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
-                                        .findFirst()
-                                        .orElse(null)
-                        );
-                if (position != null) {
-                    PosConstants._3x3Structures.remove(position);
-                    return true;
-                }
-                else if (!PosConstants.STARPORTS.isEmpty()) { //use starport position if none remain
-                    position = PosConstants.STARPORTS.remove(PosConstants.STARPORTS.size()-1);
-                    return true;
-                }
-                return false;
+                return set3x3Pos();
             default:
                 return false;
         }
+    }
+
+    private boolean set3x3AddOnPos() {
+        if (!PosConstants._3x3AddonPosList.isEmpty()) {
+            List<Point2d> freeTechLabPos = UnitUtils.getPosByAvailableTechLab();
+            if (!freeTechLabPos.isEmpty()) {
+                position = freeTechLabPos.get(0);
+            }
+            position = PosConstants._3x3AddonPosList.stream()
+                    .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
+                    .filter(_3x3AddonPos -> !Purchase.isBuildOrderComplete() ||
+                            (Bot.OBS.getVisibility(_3x3AddonPos) != Visibility.VISIBLE && UnitUtils.isInMyMain(_3x3AddonPos))) //after initial build order, priority is to grant vision of my main base
+                    .findFirst()
+                    .orElse(
+                            PosConstants._3x3AddonPosList.stream()
+                                    .filter(p -> isLocationSafeAndAvailable(p, Abilities.BUILD_STARPORT))
+                                    .findFirst()
+                                    .orElse(null)
+                    );
+            if (position != null) {
+                PosConstants._3x3AddonPosList.remove(position);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean set3x3Pos() {
+        position = PosConstants._3x3Structures.stream()
+                .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                .filter(starportPos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(starportPos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                .findFirst()
+                .orElse(
+                        PosConstants._3x3Structures.stream()
+                                .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(structureType).getAbility().get()))
+                                .findFirst()
+                                .orElse(null)
+                );
+        if (position != null) {
+            PosConstants._3x3Structures.remove(position);
+            return true;
+        }
+        else if (!PosConstants._3x3AddonPosList.isEmpty()) { //use starport position if none remain
+            position = PosConstants._3x3AddonPosList.remove(PosConstants._3x3AddonPosList.size()-1);
+            return true;
+        }
+        return false;
     }
 
     private boolean isLocationSafeAndAvailable(Point2d p, Ability buildAbility) {
@@ -487,23 +498,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public static int countUnitType(Units unitType) {
-        int numUnitType = UnitUtils.numMyUnits(unitType, false);
+        int numUnitType = UnitUtils.numMyLooseUnits(unitType, false);
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_STARPORT_FLYING, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_STARPORT_FLYING, false);
                 break;
             case TERRAN_FACTORY:
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_FACTORY_FLYING, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_FACTORY_FLYING, false);
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_BARRACKS_FLYING, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_BARRACKS_FLYING, false);
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_ORBITAL_COMMAND, false);
-                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_ORBITAL_COMMAND, false);
+                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
                 break;
         }
         return numUnitType;

@@ -14,5 +14,6 @@ public enum GamePlan {
     SCV_RUSH,
     RAVEN_CYCLONE,
     MASS_MINE_OPENER,
+    GHOST_HELLBAT,
     NONE;
 }

@@ -8,8 +8,10 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.GameCache;
+import com.ketroc.geometry.Position;
 import com.ketroc.micro.Cyclone;
-import com.ketroc.models.MuleMessages;
+import com.ketroc.models.MannerMule;
 import com.ketroc.utils.Error;
 import com.ketroc.utils.*;
 
@@ -43,10 +45,10 @@ public class TestingBot extends Bot {
 
 
         //set map
-        LocationConstants.MAP = OBS.getGameInfo().getMapName();
+        PosConstants.MAP = OBS.getGameInfo().getMapName();
 
         //set enemy race
-        LocationConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
+        PosConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
                 .filter(playerInfo -> playerInfo.getPlayerId() == enemyId)
                 .findFirst()
                 .get()
@@ -58,53 +60,32 @@ public class TestingBot extends Bot {
         ACTION.sendActions();
 
         //get map, get hardcoded map locations
-//        LocationConstants.onGameStart(mainCC);
+        PosConstants.onGameStart(mainCC);
 
         //build unit lists
-//        try {
-//            GameCache.onStep();
-//        } catch (Exception e) {
-//            Error.onException(e);
-//        }
+        try {
+            GameCache.onStepStart();
+        } catch (Exception e) {
+            Error.onException(e);
+        }
 
-//        LocationConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
+        PosConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 
 //        DebugHelper.onGameStart();
-        debug().debugGiveAllResources().debugGiveAllTech().debugGiveAllResources().debugFastBuild();
-        //dropMuleMessageAsDrones();
-//        debug().debugCreateUnit(Units.ZERG_ZERGLING_BURROWED, LocationConstants.baseLocations.get(LocationConstants.baseLocations.size()-3), myId, 1);
+        debug().debugGiveAllResources().debugFastBuild().debugGiveAllTech();
+        MannerMule.doTrollMule = true;
+        debug().debugCreateUnit(Units.TERRAN_HELLION_TANK, mySpawnPos, myId, 1);
+        debug().debugCreateUnit(Units.TERRAN_ORBITAL_COMMAND, Position.towards(mySpawnPos, enemySpawnPos, 35), myId, 13);
 //        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
 //        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
         debug().sendDebug();
-
+        MannerMule.onGameStart();
 
     }
-
-    private void dropMuleMessageAsDrones() {
-        for (Point2d p : MuleMessages.muleLetterPosTable.get('E')) {
-            debug().debugCreateUnit(Units.ZERG_DRONE, p.add(LocationConstants.muleLetterPosList.get(0)), myId, 1);
-        }
-        for (Point2d p : MuleMessages.muleLetterPosTable.get('Z')) {
-            debug().debugCreateUnit(Units.ZERG_DRONE, p.add(LocationConstants.muleLetterPosList.get(1)), myId, 1);
-        }
-    }
-
 
     @Override
     public void onUnitCreated(UnitInPool unitInPool) {
         //printMuleMessagePointsUsingDrones();
-    }
-
-    private void printMuleMessagePointsUsingDrones() {
-        if (Bot.OBS.getGameLoop() > 10) {
-            Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.ZERG_DRONE)
-                    .forEach(u -> {
-                        Point2d relativePos = u.unit().getPosition().toPoint2d().sub(LocationConstants.muleLetterPosList.get(0));
-                        System.out.print(", Point2d.of(" + relativePos.getX() + "f, " + relativePos.getY() + "f)");
-                    });
-            System.out.println("");
-            System.out.println("");
-        }
     }
 
     @Override
@@ -118,65 +99,14 @@ public class TestingBot extends Bot {
     public static boolean scanEnded;
     @Override
     public void onStep() {
-//        if (Time.nowFrames() % Strategy.STEP_SIZE != 0) {
-//            return;
-//        }
-//        super.onStep();
-//        try {
-//            GameCache.onStep();
-//        } catch (Exception e) {
-//            Error.onException(e);
-//        }
-//        List<UnitInPool> enemyHatchList = OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.ZERG_HATCHERY);
-//        if (!enemyHatchList.isEmpty()) {
-//            Unit myFlyingCC = OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING).get(0).unit();
-//            System.out.println("distance = " + UnitUtils.getDistance(myFlyingCC, enemyHatchList.get(0).unit()));
-//            int wer = 392847;
-//        }
+        //build unit lists
+        try {
+            GameCache.onStepStart();
+        } catch (Exception e) {
+            Error.onException(e);
+        }
 
-//        List<UnitInPool> ccList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
-//                u.unit().getBuildProgress() > 0.95f && u.unit().getBuildProgress() < 0.99f);
-//        if (!ccList.isEmpty()) {
-//            Unit cc = ccList.get(0).unit();
-//            List<UnitInPool> scvList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV &&
-//                    UnitUtils.getDistance(u.unit(), cc) < 4 &&
-//                    UnitUtils.isCarryingResources(u.unit()));
-//            if (!scvList.isEmpty()) {
-//                UnitInPool scv = scvList.get(0);
-//                int qoeriu = 21384;
-//            }
-//        }
-
-//        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_COMMAND_CENTER &&
-//                        u.unit().getOrders().isEmpty())
-//                        .forEach(cc -> ACTION.unitCommand(cc.getTag(), Abilities.MORPH_ORBITAL_COMMAND, false));
-//        List<UnitInPool> ocList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_ORBITAL_COMMAND &&
-//                u.unit().getOrders().isEmpty());
-//
-//        if (!ocList.isEmpty()) {
-//            UnitInPool oc = ocList.get(0);
-//            if (!hasScanned) {
-//                if (oc.unit().getOrders().isEmpty()) {
-//                    hasScanned = true;
-//                    ACTION.unitCommand(oc.getTag(), Abilities.EFFECT_SCAN, Point2d.of(100, 100), false);
-//                    System.out.println("Scan cast on frame: " + Time.nowFrames());
-//                    Chat.chat("cast");
-//                }
-//            } else if (!scanEffectArrived) {
-//                if (Bot.OBS.getVisibility(Point2d.of(100, 100)) == Visibility.VISIBLE) {
-//                    scanEffectArrived = true;
-//                    System.out.println("Scan vision started on frame: " + Time.nowFrames());
-//                    Chat.chat("started");
-//                }
-//            } else if (!scanEnded) {
-//                if (Bot.OBS.getVisibility(Point2d.of(100, 100)) == Visibility.FOGGED) {
-//                    System.out.println("Scan vision ended on frame: " + Time.nowFrames());
-//                    scanEnded = true;
-//                    Chat.chat("ended");
-//                }
-//            }
-//        }
-
+        MannerMule.onStep();
 
         ACTION.sendActions();
         DEBUG.sendDebug();
@@ -267,7 +197,28 @@ public class TestingBot extends Bot {
     @Override
     public void onUnitDestroyed(UnitInPool unitInPool) {
         if (unitInPool.unit().getType() == Units.TERRAN_CYCLONE) {
-            debug().debugCreateUnit(Units.TERRAN_CYCLONE, LocationConstants.baseLocations.get(1), myId, 1);
+            debug().debugCreateUnit(Units.TERRAN_CYCLONE, PosConstants.baseLocations.get(1), myId, 1);
         }
+    }
+
+    public static void printScvLetterPos() {
+        List<Point2d> scvPosList = OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MULE)
+                .stream()
+                .map(u -> u.unit().getPosition().toPoint2d())
+                .collect(Collectors.toList());
+        float minX = scvPosList.stream()
+                .min(Comparator.comparing(p -> p.getX()))
+                .map(p -> p.getX())
+                .orElse(0f);
+        float maxY = scvPosList.stream()
+                .max(Comparator.comparing(p -> p.getY()))
+                .map(p -> p.getY())
+                .orElse(0f);
+        StringBuilder str = new StringBuilder("float[][] letter = new float[][]{");
+        for (Point2d scvPos : scvPosList) {
+            str.append("{").append(scvPos.getX()-minX).append("f,").append(maxY-scvPos.getY()).append("f}, ");
+        }
+        str.deleteCharAt(str.length()-1).deleteCharAt(str.length()-1).append("};");
+        System.out.println(str);
     }
 }

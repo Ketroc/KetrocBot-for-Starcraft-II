@@ -24,7 +24,10 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.CannonRushDefense;
 import com.ketroc.utils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class BuildManager {
@@ -61,6 +64,20 @@ public class BuildManager {
         //turn low health expansion command centers into macro OCs
         saveDyingCCs();
 
+        if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+            trainStarportUnits();
+            trainFactoryUnits();
+            trainBarracksUnits();
+            buildNuke();
+            buildFactoryLogic();
+            buildStarportLogicForGhostMarauder();
+            buildBarracksLogic();
+            if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
+                buildCCLogic();
+            }
+            return;
+        }
+
         //prioritize factory production when doing tank viking strat, and viking/raven count is fine
         if (Strategy.gamePlan == GamePlan.TANK_VIKING ||
                 Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
@@ -93,8 +110,8 @@ public class BuildManager {
 //                    } else {
                         buildFactoryUnitsLogic();
 //                    }
-                } else if (!UnitUtils.isOutOfGas() && !UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                    UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
+                } else if (!UnitUtils.isOutOfGas() && !UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                    UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
                 }
             }
 
@@ -106,9 +123,9 @@ public class BuildManager {
         //TODO: below is hacky test code for marine rush
         if (Strategy.MARINE_ALLIN) {
             GameCache.barracksList.stream()
-                    .filter(rax -> UnitUtils.getOrder(rax.unit()) == null)
+                    .filter(rax -> UnitUtils.canStructureProduce(rax.unit()))
                     .forEach(rax -> {
-                        int marineCount = UnitUtils.numMyUnits(Units.TERRAN_MARINE, true);
+                        int marineCount = UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, true);
                         if (marineCount < Strategy.MAX_MARINES && Bot.OBS.getMinerals() >= 50) {
                             if (Bot.OBS.getMinerals() >= 50 && Bot.OBS.getMinerals() >= 50) { //replaced cuz marines priority over structures UnitUtils.canAfford(Units.TERRAN_MARINE)) {
                                 ActionHelper.unitCommand(rax.unit(), Abilities.TRAIN_MARINE, false);
@@ -129,7 +146,7 @@ public class BuildManager {
         buildStarportLogic();
 
         //build command center logic
-        if (!Strategy.EXPAND_SLOWLY || Time.nowFrames() > Time.toFrames("5:00")) {
+        if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
             buildCCLogic();
         }
 
@@ -140,9 +157,9 @@ public class BuildManager {
     private static boolean doPrioritizeStarportUnits() {
         return !GameCache.starportList.isEmpty() &&
                 ((PosConstants.opponentRace == Race.TERRAN &&
-                        UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true) < numVikingsInTvT()) ||
+                        UnitUtils.numMyLooseUnits(Units.TERRAN_VIKING_FIGHTER, true) < numVikingsInTvT()) ||
                 (GameCache.starportList.stream().anyMatch(u -> u.unit().getAddOnTag().isPresent()) &&
-                        UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) < 1));
+                        UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true) < 1));
     }
 
     private static int numVikingsInTvT() {
@@ -157,7 +174,7 @@ public class BuildManager {
         if (MannerMule.doTrollMule) {
             return;
         }
-        List<Unit> ocList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        List<Unit> ocList = UnitUtils.myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         int ocCount = (int)ocList.stream().filter(oc -> oc.getEnergy().get() >= 50f).count(); //OCs with mule energy
         int numMulesAvailable = ocList.stream()
                 .mapToInt(oc -> oc.getEnergy().orElse(0f).intValue() / 50)
@@ -249,7 +266,7 @@ public class BuildManager {
         if (UnitUtils.isOutOfGas()) {
             Chat.tag("NO_GAS");
             //land factory
-            UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
+            UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY_FLYING).stream()
                     .filter(factory -> ActionIssued.getCurOrder(factory).isEmpty()) //if idle
                     .findFirst() //one factory only each step to ensure same position isn't given to multiple factories
                     .ifPresent(factory -> landFactories(factory));
@@ -258,7 +275,7 @@ public class BuildManager {
             GameCache.barracksList.stream()
                     .filter(barracks -> ActionIssued.getCurOrder(barracks).isEmpty()) //if idle
                     .forEach(barracks -> ActionHelper.unitCommand(barracks.unit(), Abilities.TRAIN_MARINE, false));
-            UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).stream()
+            UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).stream()
                     .filter(factory -> ActionIssued.getCurOrder(factory).isEmpty()) //if idle
                     .forEach(factory -> ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLBAT, false));
         }
@@ -296,12 +313,27 @@ public class BuildManager {
     }
 
     private static void build2ndLayerOfTech() {
+        if (Strategy.techBuilt) {
+            return;
+        }
+
+        if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+            if (ArmyManager.doOffense) {
+                Strategy.techBuilt = true;
+                if (UnitUtils.numMyLooseUnits(Units.TERRAN_ENGINEERING_BAY, true) == 0) {
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+                }
+                KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.PERSONAL_CLOAKING));
+                if (PosConstants.opponentRace == Race.PROTOSS) {
+                    KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.ENHANCED_SHOCKWAVES));
+                }
+            }
+            return;
+        }
+
         //build after 4th base started TODO: get armories earlier and smarter
-        if (!Strategy.techBuilt &&
-                ((ArmyManager.doOffense && BunkerContain.proxyBunkerLevel == 0) || Base.numMyBases() >= 4)) {
-            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING));
-            KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR));
-            int numArmories = UnitUtils.numMyUnits(Units.TERRAN_ARMORY, true);
+        if ((ArmyManager.doOffense && BunkerContain.proxyBunkerLevel == 0) || Base.numMyBases() >= 4) {
+            int numArmories = UnitUtils.numMyLooseUnits(Units.TERRAN_ARMORY, true);
             if (!UpgradeManager.airAttackUpgrades.isEmpty() && numArmories-- < 1) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
             }
@@ -323,7 +355,10 @@ public class BuildManager {
     }
 
     private static void buildDepotLogic() {
-        if (GameCache.mineralBank > 100 && checkIfDepotNeeded() && !PosConstants.extraDepots.isEmpty()) {
+        if (GameCache.mineralBank > 100 &&
+                Purchase.isBuildOrderComplete() &&
+                checkIfDepotNeeded() &&
+                !PosConstants.extraDepots.isEmpty()) {
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         }
     }
@@ -353,11 +388,11 @@ public class BuildManager {
 
     private static void ccActivityLogic() {
         for (Unit cc : GameCache.ccList) {
-            if (cc.getBuildProgress() == 1.0f && UnitUtils.getOrder(cc) == null) {
+            if (cc.getBuildProgress() == 1.0f && UnitUtils.canStructureProduce(cc)) {
                 switch ((Units) cc.getType()) {
                     case TERRAN_COMMAND_CENTER:
                         if (ccToBeOC(cc.getPosition().toPoint2d())) {
-                            if (UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
+                            if (UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
                                 Point2d expansionBasePos = getNextAvailableExpansionPosition();
                                 if (expansionBasePos != null) {
                                     floatCCForExpansion(cc, expansionBasePos);
@@ -530,6 +565,7 @@ public class BuildManager {
         if (PosConstants.MACRO_OCS.isEmpty()) {
             return;
         }
+
         //loop through bases looking for a dying cc
         for (Base base : GameCache.baseList) {
             if (!base.isMyBase()) {
@@ -537,29 +573,28 @@ public class BuildManager {
             }
             Unit cc = base.getCc().unit();
 
-            //if complete CC or incomplete PF, low health, and ground attacking enemy nearby
-            if (cc.getType() == Units.TERRAN_COMMAND_CENTER && cc.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(cc) < Strategy.floatBaseAt
-                    && !Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.getDistance(u.unit(), cc) <= 10 && UnitUtils.canAttackGround(u.unit())).isEmpty()) {
-                if (ActionIssued.getCurOrder(base.getCc()).isEmpty() && !PosConstants.MACRO_OCS.isEmpty()) {
+            //if complete CC or incomplete PF, low health, and ground-attacking enemy nearby
+            if ((cc.getType() == Units.TERRAN_COMMAND_CENTER || cc.getType() == Units.TERRAN_ORBITAL_COMMAND) &&
+                    cc.getBuildProgress() == 1.0f &&
+                    UnitUtils.getHealthPercentage(cc) < Strategy.floatBaseAt &&
+                    !Bot.OBS.getUnits(Alliance.ENEMY, u -> UnitUtils.getDistance(u.unit(), cc) <= 10 &&
+                            UnitUtils.canAttackGround(u.unit())).isEmpty()) {
+                if (ActionIssued.getCurOrder(base.getCc()).isEmpty()) {
                     FlyingCC.addFlyingCC(cc, PosConstants.MACRO_OCS.remove(0), true);
 
                     //remove cc from base
                     base.setCc(null);
 
                     //cancel PF morph in purchase queue
-                    for (int i = 0; i < KetrocBot.purchaseQueue.size(); i++) {
-                        Purchase p = KetrocBot.purchaseQueue.get(i);
-                        if (p instanceof PurchaseStructureMorph) {
-                            if (((PurchaseStructureMorph) p).getProductionStructure().getTag().equals(cc.getTag())) {
-                                KetrocBot.purchaseQueue.remove(i);
-                                break;
-                            }
-                        }
-                    }
+                    PurchaseStructureMorph.remove(cc.getTag());
                 }
                 //cancel PF upgrade
                 else if (UnitUtils.getOrder(cc) == Abilities.MORPH_PLANETARY_FORTRESS) {
                     ActionHelper.unitCommand(cc, Abilities.CANCEL_MORPH_PLANETARY_FORTRESS, false);
+                }
+                //cancel PF upgrade
+                else if (UnitUtils.getOrder(cc) == Abilities.MORPH_ORBITAL_COMMAND) {
+                    ActionHelper.unitCommand(cc, Abilities.CANCEL_MORPH_ORBITAL, false);
                 }
                 //cancel scv production
                 else {
@@ -587,7 +622,7 @@ public class BuildManager {
         //stop making marines when I have 2+ factories/starports, and bunker doesn't need filling
         if (GameCache.factoryList.size() + GameCache.starportList.size() >= 2 &&
                 (UnitUtils.getNatBunker().isEmpty() ||
-                        UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) >= Strategy.MAX_MARINES)) {
+                        UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, true) >= Strategy.MAX_MARINES)) {
             return;
         }
 
@@ -597,7 +632,7 @@ public class BuildManager {
         }
 
         Unit barracks = GameCache.barracksList.stream()
-                .filter(u -> UnitUtils.getOrder(u.unit()) == null)
+                .filter(u -> UnitUtils.canStructureProduce(u.unit()))
                 .findFirst().get().unit();
 
         // make marines if wall under attack
@@ -614,7 +649,7 @@ public class BuildManager {
                 Strategy.gamePlan == GamePlan.TANK_VIKING ||
                 Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING) {
             if (UnitUtils.canAfford(Units.TERRAN_MARINE, true) &&
-                    UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) < Strategy.MAX_MARINES &&
+                    UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, true) < Strategy.MAX_MARINES &&
                     Bot.OBS.getFoodUsed() < 180) {
                 ActionHelper.unitCommand(barracks, Abilities.TRAIN_MARINE, false);
                 Cost.updateBank(Units.TERRAN_MARINE);
@@ -625,7 +660,7 @@ public class BuildManager {
     private static void buildFactoryUnitsLogic() {
         for (UnitInPool factoryUip : GameCache.factoryList) {
             Unit factory = factoryUip.unit();
-            if (UnitUtils.getOrder(factory) != null ||
+            if (!UnitUtils.canStructureProduce(factory) ||
                     PurchaseUnit.contains(factoryUip)) { // || UnitUtils.getDistance(factory, LocationConstants.proxyBarracksPos) < 1
                 continue;
             }
@@ -633,7 +668,7 @@ public class BuildManager {
             Units unitToProduce = decideFactoryUnit();
 
             //get add-on if required, or if factory is idle (eg when supply blocked)
-            if (factory.getAddOnTag().isEmpty() && (unitToProduce == null || UnitUtils.requiresTechLab(unitToProduce))) {
+            if (factory.getAddOnTag().isEmpty() && (unitToProduce == null || UnitUtils.isTechLabRequired(unitToProduce))) {
                 if (!Purchase.isMorphQueued(Abilities.BUILD_TECHLAB_FACTORY)) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
                 }
@@ -667,11 +702,11 @@ public class BuildManager {
         if (Strategy.DO_USE_CYCLONES) {
             if (Bot.OBS.getUpgrades().contains(Upgrades.DRILL_CLAWS) &&
                     UnitUtils.canAfford(Units.TERRAN_WIDOWMINE) &&
-                    UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true) < 3) {
+                    UnitUtils.numMyLooseUnits(UnitUtils.WIDOW_MINE_TYPE, true) < 3) {
                 return Units.TERRAN_WIDOWMINE;
             }
             if (UnitUtils.canAfford(Units.TERRAN_CYCLONE) &&
-                    UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) < 10) {
+                    UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, true) < 10) {
                 return Units.TERRAN_CYCLONE;
             }
         }
@@ -692,12 +727,12 @@ public class BuildManager {
             }
         }
 
-        //build hellion if too gas starved for other factory units
+        //build hellion if too gas starved for other factory units TODO: switch to mines
         if (GameCache.gasBank < 75 &&
                 (PosConstants.opponentRace != Race.TERRAN || Base.numMyBases() >= 3) &&
-                UnitUtils.canAfford(Units.TERRAN_WIDOWMINE) &&
+                UnitUtils.canAfford(Units.TERRAN_HELLION) &&
                 !UnitUtils.isExpansionNeeded()) {
-            return Units.TERRAN_WIDOWMINE;
+            return Units.TERRAN_HELLION;
         }
 
         return null;
@@ -721,10 +756,10 @@ public class BuildManager {
     private static boolean isHellionsNeeded() {
         switch (PosConstants.opponentRace) {
             case ZERG:
-                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                return UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) <
                         UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2;
             case PROTOSS:
-                return !Strategy.DO_DEFENSIVE_TANKS && UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) <
+                return !Strategy.DO_DEFENSIVE_TANKS && UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) <
                         UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_ADEPT).size();
             default:
                 return false;
@@ -759,10 +794,10 @@ public class BuildManager {
             Point2d factoryPos = factory.getPosition().toPoint2d();
             if (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, factoryPos)) { //if not proxied
                 if (factory.getAddOnTag().isPresent()) {
-                    PosConstants.STARPORTS.add(0, factoryPos);
+                    PosConstants._3x3AddonPosList.add(0, factoryPos);
                 }
                 else {
-                    PosConstants.STARPORTS.add(factoryPos);
+                    PosConstants._3x3AddonPosList.add(factoryPos);
                 }
             }
 //            LocationConstants.STARPORTS.addAll(LocationConstants.FACTORIES);
@@ -770,9 +805,228 @@ public class BuildManager {
         }
     }
 
+    private static void trainBarracksUnits() {
+        //leave supply space for starport units
+        if (Bot.OBS.getFoodUsed() >= 190 &&
+                (chooseStarportUnit() != null || UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) < 6)) {
+            return;
+        }
+
+        int numMedivacs = UnitUtils.numMyLooseUnits(Units.TERRAN_MEDIVAC, true);
+        int numRavens = UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true);
+        int numVikings = UnitUtils.numMyLooseUnits(UnitUtils.VIKING_TYPE, true);
+        int numScvs = UnitUtils.numMyLooseUnits(Units.TERRAN_SCV, true);
+        boolean doTrainBio = Bot.OBS.getFoodUsed() + 2 <= 200 -
+                (Math.max(0, 5-numMedivacs) +
+                    Math.max(0, 2-numRavens) +
+                    Math.max(0, 4-numVikings)) * 2 +
+                Math.max(0, Strategy.maxScvs-numScvs);
+
+        for (UnitInPool barracksUip : GameCache.barracksList) {
+            if (!UnitUtils.canStructureProduce(barracksUip.unit()) || !UnitUtils.isStructureAvailableForProduction(barracksUip.unit())) {
+                continue;
+            }
+            Units unitType = Units.TERRAN_GHOST; //chooseBarracksUnit();
+
+            //get add-on if required
+            if (barracksUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(barracksUip.unit()) &&
+                    (Bot.OBS.getFoodUsed() > 198 || UnitUtils.isTechLabRequired(unitType))) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS, barracksUip));
+                continue;
+            }
+
+            if (!doTrainBio) { //TODO: don't max without leaving space
+                continue;
+            }
+
+            if (UnitUtils.canAfford(unitType)) {
+                Abilities trainCmd = (Abilities)Bot.OBS.getUnitTypeData(false).get(unitType)
+                        .getAbility()
+                        .orElse(Abilities.INVALID);
+                ActionHelper.unitCommand(barracksUip.unit(), trainCmd, false);
+                Cost.updateBank(unitType);
+            }
+        }
+    }
+
+    //TODO: factors:
+    //  -bank, bank ratio
+    //  -enemy army composition (light vs armored)
+    //  -enemy air units
+    //  -ratio limit
+    //  -want to favour ghosts for energy generation
+    private static Units chooseBarracksUnit() {
+//        int numGhosts = UnitUtils.numMyUnits(Units.TERRAN_GHOST, true);
+//        int numMarauders = UnitUtils.numMyUnits(Units.TERRAN_MARAUDER, true);
+//        int costEnemyArmored = GameCache.allEnemiesList.stream()
+//                .filter(enemy -> UnitUtils.canAttack(enemy.unit()) || UnitUtils.canMove(enemy.unit()))
+//                .filter(enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()))
+//                .filter(enemy -> Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType())
+//                        .getAttributes().contains(UnitAttribute.ARMORED))
+//                .map(enemy -> UnitUtils.getCost(enemy.unit()))
+//                .mapToInt(cost -> (int)(cost.minerals + cost.gas * 1.2))
+//                .sum();
+//        int costEnemyLight = GameCache.allEnemiesList.stream()
+//                .filter(enemy -> UnitUtils.canAttack(enemy.unit()) || UnitUtils.canMove(enemy.unit()))
+//                .filter(enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()))
+//                .filter(enemy -> Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType())
+//                        .getAttributes().contains(UnitAttribute.LIGHT))
+//                .map(enemy -> UnitUtils.getCost(enemy.unit()))
+//                .mapToInt(cost -> (int)(cost.minerals + cost.gas * 1.2))
+//                .sum();
+//
+//        float percentEnemyArmored = costEnemyArmored / (costEnemyLight + costEnemyArmored);
+//        float percentMarauders = numMarauders / (numGhosts + numMarauders);
+//
+//        if (percentEnemyArmored > percentMarauders) {
+//            return Units.TERRAN_MARAUDER;
+//        }
+//        return Units.TERRAN_GHOST;
+
+        //min marines first
+        if (UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, true) < Strategy.MAX_MARINES) {
+            return Units.TERRAN_MARINE;
+        }
+
+        //no ghost tech, get marauder
+        if (UnitUtils.myUnitsOfType(Units.TERRAN_GHOST_ACADEMY).isEmpty()) {
+            return Units.TERRAN_MARAUDER;
+        }
+
+        if (GameCache.gasBank >= 25 && GameCache.gasBank < 125) {
+            return Units.TERRAN_MARAUDER;
+        }
+        if (GameCache.gasBank > 600 && GameCache.gasBank < 125) {
+            return Units.TERRAN_GHOST;
+        }
+        int numGhosts = UnitUtils.numMyLooseUnits(Units.TERRAN_GHOST, true);
+        int numMarauders = UnitUtils.numMyLooseUnits(Units.TERRAN_MARAUDER, true);
+        if (numGhosts < 3) {
+            return Units.TERRAN_GHOST;
+        }
+        if (numMarauders * 2 < numGhosts) {
+            return Units.TERRAN_MARAUDER;
+        }
+        return Units.TERRAN_GHOST;
+    }
+
+    private static void trainStarportUnits() { //TODO: specific to ghost marauder (refactor)
+        for (UnitInPool starportUip : GameCache.starportList) {
+            if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
+                continue;
+            }
+            Units unitToProduce = chooseStarportUnit();
+            if (unitToProduce == null) {
+                return;
+            }
+
+            //get add-on if required
+            if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
+                    (Bot.OBS.getFoodUsed() > 198 || UnitUtils.isTechLabRequired(unitToProduce))) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
+                continue;
+            }
+
+            if (UnitUtils.canAfford(unitToProduce)) {
+                Abilities trainCmd = (Abilities)Bot.OBS.getUnitTypeData(false).get(unitToProduce)
+                        .getAbility()
+                        .orElse(Abilities.INVALID);
+                ActionHelper.unitCommand(starportUip.unit(), trainCmd, false);
+            }
+            Cost.updateBank(unitToProduce);
+        }
+    }
+
+    private static void trainFactoryUnits() {
+        //leave supply space for starport units
+        if (Bot.OBS.getFoodUsed() >= 190 && chooseStarportUnit() != null) {
+            return;
+        }
+
+        //when gas bank is heavy, turn off hellbat production
+        if (GameCache.gasBank > 1000 && GameCache.mineralBank * 3 < GameCache.gasBank) {
+            return;
+        }
+
+        for (UnitInPool factoryUip : GameCache.factoryList) {
+            Unit factory = factoryUip.unit();
+            if (!UnitUtils.canStructureProduce(factory) || !UnitUtils.isStructureAvailableForProduction(factoryUip.unit())) {
+                continue;
+            }
+
+            if (UnitUtils.getAddOn(factoryUip.unit()).isEmpty()) {
+                if (!PurchaseStructureMorph.contains(factoryUip.unit()) && UnitUtils.canAfford(Units.TERRAN_FACTORY_REACTOR)) {
+                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_FACTORY, factoryUip));
+                    Cost.updateBank(Units.TERRAN_FACTORY_REACTOR);
+                }
+                continue;
+            }
+
+            if (UnitUtils.canAfford(Units.TERRAN_HELLION_TANK)) {
+                ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_HELLION_TANK).getAbility().get(), false);
+                Cost.updateBank(Units.TERRAN_HELLION_TANK);
+            }
+        }
+    }
+
+    private static Units chooseStarportUnit() {
+        //maintain 2 ravens vs burrow
+        int numRavens = UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true);
+        if (Switches.enemyHasCloakThreat && numRavens < 2) {
+            return Units.TERRAN_RAVEN;
+        }
+
+        //build more vikings when more needed for KillSquads
+        if (!AirUnitKillSquad.getAvailableEnemyAirTargets().isEmpty() &&
+                UnitUtils.numInProductionOfType(Units.TERRAN_VIKING_FIGHTER) == 0) {
+            return Units.TERRAN_VIKING_FIGHTER;
+        }
+
+        //maintain 1 viking
+        if (UnitUtils.numMyLooseUnits(Units.TERRAN_VIKING_FIGHTER, true) < 1) {
+            return Units.TERRAN_VIKING_FIGHTER;
+        }
+
+        //maintain 2 ravens for creep when not defending
+        if (ArmyManager.doOffense && numRavens <= 2) {
+            return Units.TERRAN_RAVEN;
+        }
+
+        //maintain at least 1 medivac per 4 bio units unless floating medivac energy
+        float totalMedivacEnergy = (float) Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).stream()
+                .mapToDouble(u -> u.unit().getEnergy().orElse(0f))
+                .sum();
+        if (totalMedivacEnergy < 600) {
+            int numMarauders = UnitUtils.numMyLooseUnits(Units.TERRAN_MARAUDER, true);
+            int numHellbats = UnitUtils.numMyLooseUnits(Units.TERRAN_HELLION_TANK, true);
+            int numGhosts = UnitUtils.numMyLooseUnits(Units.TERRAN_GHOST, true);
+            int numMedivacs = UnitUtils.numMyLooseUnits(Units.TERRAN_MEDIVAC, true);
+            if (numMedivacs * 4 < numMarauders + numGhosts + numHellbats) {
+                return Units.TERRAN_MEDIVAC;
+            }
+        }
+
+        //build medivac if existing medivacs are dry
+        if (totalMedivacEnergy / UnitUtils.numMyLooseUnits(Units.TERRAN_MEDIVAC, false) < 20) {
+            return Units.TERRAN_MEDIVAC;
+        }
+
+        //maintain 4 ravens when viking/medivac quota is met
+        if (ArmyManager.doOffense && numRavens <= 2) {
+            return Units.TERRAN_RAVEN;
+        }
+
+        //keep building ravens if gas starts to bank up
+        if (GameCache.gasBank > 1000 && GameCache.gasBank > GameCache.mineralBank * 2) {
+            return Units.TERRAN_RAVEN;
+        }
+
+        return null;
+    }
+
     private static void buildStarportUnitsLogic() {
         for (UnitInPool starportUip : GameCache.starportList) {
-            if (UnitUtils.getOrder(starportUip.unit()) != null || PurchaseUnit.contains(starportUip)) {
+            if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
                 continue;
             }
             Abilities unitToProduce = (Strategy.gamePlan == GamePlan.TANK_VIKING ||
@@ -786,10 +1040,7 @@ public class BuildManager {
             Units unitType = Bot.abilityToUnitType.get(unitToProduce);
             //get add-on if required
             if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
-                    (Bot.OBS.getFoodUsed() >= 198 ||
-                    ((unitToProduce == Abilities.TRAIN_RAVEN ||
-                            unitToProduce == Abilities.TRAIN_BANSHEE ||
-                            unitToProduce == Abilities.TRAIN_BATTLECRUISER)))) {
+                    (Bot.OBS.getFoodUsed() >= 198 || UnitUtils.isTechLabRequired(unitType))) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
             }
             else if (UnitUtils.canAfford(unitType)) {
@@ -806,7 +1057,7 @@ public class BuildManager {
     }
 
     private static boolean isCloakInProduction() {
-        return UnitUtils.getMyUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
+        return UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT_TECHLAB).stream()
                 .anyMatch(techLab -> UnitUtils.getOrder(techLab) == Abilities.RESEARCH_BANSHEE_CLOAKING_FIELD);
     }
 
@@ -816,8 +1067,8 @@ public class BuildManager {
             return (Abilities)Bot.OBS.getUnitTypeData(false).get(openingStarportUnits.get(0)).getAbility().orElse(Abilities.INVALID);
         }
 
-        int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
-        int numVikings = UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true);
+        int numRavens = UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true);
+        int numVikings = UnitUtils.numMyLooseUnits(Units.TERRAN_VIKING_FIGHTER, true);
         int vikingsRequired = numVikingsInTvT();
 
         //never max out without a raven
@@ -880,12 +1131,12 @@ public class BuildManager {
             return (Abilities)Bot.OBS.getUnitTypeData(false).get(openingStarportUnits.get(0)).getAbility().orElse(Abilities.INVALID);
         }
 
-        int numBanshees = UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true);
-        int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
-        int numVikings = UnitUtils.numMyUnits(Units.TERRAN_VIKING_FIGHTER, true);
-        int numCyclones = UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true);
-        int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
-        int numLiberators = UnitUtils.numMyUnits(UnitUtils.LIBERATOR_TYPE, true);
+        int numBanshees = UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true);
+        int numRavens = UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true);
+        int numVikings = UnitUtils.numMyLooseUnits(Units.TERRAN_VIKING_FIGHTER, true);
+        int numCyclones = UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, true);
+        int numTanks = UnitUtils.numMyLooseUnits(UnitUtils.SIEGE_TANK_TYPE, true);
+        int numLiberators = UnitUtils.numMyLooseUnits(UnitUtils.LIBERATOR_TYPE, true);
         int vikingsRequired = ArmyManager.calcNumVikingsNeeded();
         int ravensRequired = (PosConstants.opponentRace == Race.ZERG) ? 4 : 1;
 
@@ -1001,7 +1252,7 @@ public class BuildManager {
         int mineralsRequired = 500;
         if (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_COMMAND_CENTER) == 0 &&
                 UnitUtils.numScvs(true) >= Math.min(Strategy.maxScvs,
-                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
+                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
             mineralsRequired = 400;
         }
 
@@ -1011,38 +1262,75 @@ public class BuildManager {
                         !Placement.possibleCcPosList.isEmpty())) {
             if ((GameCache.mineralBank > GameCache.gasBank && GameCache.gasBank > 2000) ||
                     Base.numAvailableBases() > 0 ||
-                    UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
+                    UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
                 addCCToPurchaseQueue();
-                if (UnitUtils.numMyUnits(Units.TERRAN_ENGINEERING_BAY, true) == 0 &&
-                        UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, true) + 1 == Strategy.NUM_BASES_TO_OC) {
+                if (UnitUtils.numMyLooseUnits(Units.TERRAN_ENGINEERING_BAY, true) == 0 &&
+                        UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_CENTER_TYPE, true) + 1 == Strategy.NUM_BASES_TO_OC) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
                 }
             }
         }
     }
 
+    private static void buildNuke() {
+        if (GameCache.factoryList.isEmpty() ||
+                !Bot.OBS.getUpgrades().contains(Upgrades.PERSONAL_CLOAKING) ||
+                !UnitUtils.canAfford(Units.TERRAN_NUKE) ||
+                UnitUtils.isNukeAvailable()) {
+            return;
+        }
+
+        UnitUtils.myUnitsOfType(Units.TERRAN_GHOST_ACADEMY).stream()
+                .findFirst()
+                .ifPresent(academy -> {
+                    if (ActionIssued.getCurOrder(academy).isEmpty()) {
+                        ActionHelper.unitCommand(academy, Abilities.BUILD_NUKE, false);
+                        Cost.updateBank(Units.TERRAN_NUKE);
+                    }
+                });
+    }
     private static void buildFactoryLogic() {
-//        if ((UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 2 || !LocationConstants.FACTORIES.isEmpty()) &&
-//                (Strategy.gamePlan == GamePlan.TANK_VIKING || Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING ||
-//                        Strategy.gamePlan == GamePlan.RAVEN_CYCLONE || Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE ||
-//                        (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG && LocationConstants.opponentRace == Race.TERRAN)) &&
-//                UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
-//                !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
-//                !LocationConstants.FACTORIES.isEmpty() &&
-//                (!Strategy.ENEMY_DOES_BANSHEE_HARASS || !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_RAVEN).isEmpty())) {
-//            if (isAllProductionStructuresBusy()) {
-//                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
-//            }
-//        }
+        if (UnitUtils.numMyLooseUnits(UnitUtils.FACTORY_TYPE, true) < 2 &&
+                Base.numMyBases() >= 3 &&
+                UnitUtils.canAfford(Units.TERRAN_FACTORY) &&
+                !PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) &&
+                isAllProductionStructuresActive(Units.TERRAN_FACTORY)) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+        }
+    }
+
+    private static void buildStarportLogicForGhostMarauder() {
+        if (UnitUtils.numMyLooseUnits(UnitUtils.STARPORT_TYPE, true) < 2 &&
+                Base.numMyBases() >= 4 &&
+                UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
+                !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT) &&
+                isAllProductionStructuresActive(Units.TERRAN_STARPORT)) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        }
     }
 
     private static void buildStarportLogic() {
-        if (!PosConstants.STARPORTS.isEmpty() &&
+        if (!PosConstants._3x3AddonPosList.isEmpty() &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT)) {
             if (Bot.OBS.getFoodUsed() > 197 ||
                     (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 && isAllProductionStructuresBusy())) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+            }
+        }
+    }
+
+    private static void buildBarracksLogic() {
+        if (UnitUtils.numMyLooseUnits(UnitUtils.BARRACKS_TYPE, true) >= 8) { //TODO: hack to test starports
+            return;
+        }
+        if (!PosConstants._3x3AddonPosList.isEmpty() &&
+                UnitUtils.canAfford(Units.TERRAN_BARRACKS) &&
+                !PurchaseStructure.isTechRequired(Units.TERRAN_BARRACKS)) {
+            if (Bot.OBS.getFoodUsed() > 198 ||
+                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_BARRACKS) <= 1 &&
+                            isAllProductionStructuresActive(Units.TERRAN_BARRACKS))) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
             }
         }
     }
@@ -1153,19 +1441,7 @@ public class BuildManager {
         if (PosConstants.MACRO_OCS.isEmpty()) {
             return false;
         }
-
-        Point2d ccPos;
-        Point2d nextAvailableBase = Base.getNextAvailableBase();
-        if (nextAvailableBase == null) {
-            ccPos = PosConstants.MACRO_OCS.remove(0);
-        }
-        else {
-            ccPos = PosConstants.MACRO_OCS.stream()
-                    .min(Comparator.comparing(p -> p.distance(nextAvailableBase)))
-                    .get();
-            PosConstants.MACRO_OCS.remove(ccPos);
-        }
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, PosConstants.MACRO_OCS.remove(0)));
         return true;
     }
 
@@ -1196,10 +1472,9 @@ public class BuildManager {
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
         return (int)(Math.min(Strategy.maxScvs - UnitUtils.numScvs(true), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
-                GameCache.starportList.size() * 2.34 +
-                GameCache.factoryList.stream()
-                        .filter(factory -> factory.unit().getType() == Units.TERRAN_FACTORY)
-                        .count() * 3.34);
+                UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT).size() * 2.34 +
+                UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).size() * 3.34 +
+                (Strategy.gamePlan == GamePlan.GHOST_HELLBAT ? UnitUtils.myUnitsOfType(Units.TERRAN_BARRACKS).size() * 3.34 : 0));
     }
 
     private static int supplyInProduction() {
@@ -1281,7 +1556,6 @@ public class BuildManager {
         GameCache.factoryList.forEach(factory -> {
             if (UnitUtils.getOrder(factory.unit()) != null) {
                 ActionHelper.unitCommand(factory.unit(), Abilities.CANCEL, false);
-
             }
         });
     }

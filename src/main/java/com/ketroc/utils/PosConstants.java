@@ -49,7 +49,7 @@ public class PosConstants {
     public static List<Point2d> _3x3Structures = new ArrayList<>(); //barracks, engbay, and armory x2
     public static List<Point2d> extraDepots = new ArrayList<>();
     public static List<Point2d> FACTORIES = new ArrayList<>();
-    public static List<Point2d> STARPORTS = new ArrayList<>();
+    public static List<Point2d> _3x3AddonPosList = new ArrayList<>();
     public static List<Point2d> TURRETS = new ArrayList<>();
     public static List<Point2d> MACRO_OCS = new ArrayList<>();
     public static Point2d proxyBarracksPos;
@@ -115,33 +115,43 @@ public class PosConstants {
 
         Point2d enemyNatPos = baseLocations.get(baseLocations.size() - 2);
         float enemyNatZ = Bot.OBS.terrainHeight(enemyNatPos);
-
         float rampZ = (homeZ + natZ) / 2;
+        float minProductionDistanceFromEnemy = (float)PosConstants.baseLocations.get(2).distance(enemyNatPos) - 10;
 
         for (int x = xMin; x <= xMax; x++) {
             for (int y = yMin; y <= yMax; y++) {
                 Point2d thisPos = Point2d.of(x/2f, y/2f);
                 float thisZ = Bot.OBS.terrainHeight(thisPos);
-                if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f && isPathable(thisPos)) {
-                    InfluenceMaps.pointInMainBase[x][y] = true;
-                    if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(natPos) < 15) {
-                        myRampPos = Point2d.of(x/2, y/2);
+                if (thisPos.distance(homePos) < 30 && Math.abs(thisZ - homeZ) < 1.2f) {
+                    if (isPathable(thisPos)) {
+                        InfluenceMaps.pointInMainBase[x][y] = true;
+                        if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(natPos) < 15) {
+                            myRampPos = Point2d.of(x / 2, y / 2);
+                        }
+                        continue;
                     }
+                } else if (thisPos.distance(natPos) < 50 &&
+                        thisPos.distance(enemyNatPos) > minProductionDistanceFromEnemy &&
+                        isPathable(thisPos)){
+                    InfluenceMaps.pointIn2ndProductionArea[x][y] = true;
                 }
-                else if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && isPathable(thisPos)) {
-                    InfluenceMaps.pointInEnemyMainBase[x][y] = true;
-                    if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(enemyNatPos) < 15) {
-                        enemyRampPos = Point2d.of(x/2, y/2);
-                    }
-                }
-                else if (thisPos.distance(natPos) < 13 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
+                if (thisPos.distance(natPos) < 13 && Math.abs(thisZ - natZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInNat[x][y] = true;
                     if (thisPos.distance(PosConstants.BUNKER_NATURAL) > 8) {
                         InfluenceMaps.pointInNatExcludingBunkerRange[x][y] = true;
                     }
+                    continue;
                 }
-                else if (thisPos.distance(enemyNatPos) < 16 && Math.abs(thisZ - enemyNatZ) < 1.2f && isPathable(thisPos)) {
+                if (thisPos.distance(enemyPos) < 30 && Math.abs(thisZ - enemyZ) < 1.2f && isPathable(thisPos)) {
+                    InfluenceMaps.pointInEnemyMainBase[x][y] = true;
+                    if (Math.abs(thisZ - rampZ) < 0.2f && thisPos.distance(enemyNatPos) < 15) {
+                        enemyRampPos = Point2d.of(x/2, y/2);
+                    }
+                    continue;
+                }
+                if (thisPos.distance(enemyNatPos) < 16 && Math.abs(thisZ - enemyNatZ) < 1.2f && isPathable(thisPos)) {
                     InfluenceMaps.pointInEnemyNat[x][y] = true;
+                    continue;
                 }
             }
         }
@@ -470,22 +480,22 @@ public class PosConstants {
 
             BUNKER_NATURAL = Point2d.of(36.5f, 105.5f);
 
-            STARPORTS.add(Point2d.of(22.5f, 138.5f));
-            STARPORTS.add(Point2d.of(29.5f, 149.5f));
-            STARPORTS.add(Point2d.of(26.5f, 146.5f));
-            STARPORTS.add(Point2d.of(35.5f, 148.5f));
-            STARPORTS.add(Point2d.of(40.5f, 148.5f));
-            STARPORTS.add(Point2d.of(22.5f, 132.5f));
-            STARPORTS.add(Point2d.of(25.5f, 128.5f));
-            STARPORTS.add(Point2d.of(30.5f, 125.5f));
-            STARPORTS.add(Point2d.of(28.5f, 131.5f));
-            STARPORTS.add(Point2d.of(30.5f, 134.5f));
-            STARPORTS.add(Point2d.of(41.5f, 129.5f));
-            STARPORTS.add(Point2d.of(47.5f, 130.5f));
-            STARPORTS.add(Point2d.of(24.5f, 120.5f));
-            STARPORTS.add(Point2d.of(20.5f, 113.5f));
-            STARPORTS.add(Point2d.of(33.5f, 127.5f));
-            STARPORTS.add(Point2d.of(22.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(25.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 125.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(41.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(24.5f, 120.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 113.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 141.5f));
 
             TURRETS.add(Point2d.of(38.0f, 143.0f));
             TURRETS.add(Point2d.of(29.0f, 138.0f));
@@ -532,22 +542,22 @@ public class PosConstants {
 
             BUNKER_NATURAL = Point2d.of(139.5f, 67.5f);
 
-            STARPORTS.add(Point2d.of(133.5f, 24.5f));
-            STARPORTS.add(Point2d.of(132.5f, 27.5f));
-            STARPORTS.add(Point2d.of(139.5f, 23.5f));
-            STARPORTS.add(Point2d.of(144.5f, 23.5f));
-            STARPORTS.add(Point2d.of(147.5f, 26.5f));
-            STARPORTS.add(Point2d.of(151.5f, 30.5f));
-            STARPORTS.add(Point2d.of(144.5f, 37.5f));
-            STARPORTS.add(Point2d.of(144.5f, 40.5f));
-            STARPORTS.add(Point2d.of(150.5f, 39.5f));
-            STARPORTS.add(Point2d.of(149.5f, 43.5f));
-            STARPORTS.add(Point2d.of(124.5f, 37.5f));
-            STARPORTS.add(Point2d.of(126.5f, 40.5f));
-            STARPORTS.add(Point2d.of(127.5f, 43.5f));
-            STARPORTS.add(Point2d.of(127.5f, 46.5f));
-            STARPORTS.add(Point2d.of(133.5f, 42.5f));
-            STARPORTS.add(Point2d.of(149.5f, 51.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(132.5f, 27.5f));
+            _3x3AddonPosList.add(Point2d.of(139.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(124.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(126.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(127.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(127.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 51.5f));
 
             TURRETS.add(Point2d.of(138.0f, 29.0f));
             TURRETS.add(Point2d.of(147.0f, 34.0f));
@@ -607,21 +617,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(31.5f, 124.5f));
             FACTORIES.add(Point2d.of(37.5f, 124.5f));
 
-            STARPORTS.add(Point2d.of(32.5f, 135.5f));
-            STARPORTS.add(Point2d.of(27.5f, 138.5f));
-            STARPORTS.add(Point2d.of(38.5f, 134.5f));
-            STARPORTS.add(Point2d.of(41.5f, 136.5f));
-            STARPORTS.add(Point2d.of(36.5f, 137.5f));
-            STARPORTS.add(Point2d.of(16.5f, 134.5f));
-            STARPORTS.add(Point2d.of(19.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(38.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(41.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(16.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(19.5f, 137.5f));
             //STARPORTS.add(Point2d.of(37.5f, 124.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(45.5f, 128.5f));
-            STARPORTS.add(Point2d.of(44.5f, 132.5f));
-            STARPORTS.add(Point2d.of(14.5f, 116.5f));
-            STARPORTS.add(Point2d.of(20.5f, 116.5f));
-            STARPORTS.add(Point2d.of(10.5f, 103.5f));
-            STARPORTS.add(Point2d.of(16.5f, 123.5f));
-            STARPORTS.add(Point2d.of(21.5f, 120.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(14.5f, 116.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 116.5f));
+            _3x3AddonPosList.add(Point2d.of(10.5f, 103.5f));
+            _3x3AddonPosList.add(Point2d.of(16.5f, 123.5f));
+            _3x3AddonPosList.add(Point2d.of(21.5f, 120.5f));
 
             TURRETS.add(Point2d.of(30.0f, 133.0f));
             TURRETS.add(Point2d.of(22.0f, 128.0f));
@@ -675,21 +685,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(144.5f, 27.5f));
             FACTORIES.add(Point2d.of(151.5f, 31.5f));
 
-            STARPORTS.add(Point2d.of(157.5f, 30.5f));
-            STARPORTS.add(Point2d.of(150.5f, 28.5f));
-            STARPORTS.add(Point2d.of(158.5f, 20.5f));
-            STARPORTS.add(Point2d.of(157.5f, 16.5f));
-            STARPORTS.add(Point2d.of(152.5f, 14.5f));
-            STARPORTS.add(Point2d.of(146.5f, 13.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 16.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 14.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 13.5f));
             //STARPORTS.add(Point2d.of(151.5f, 31.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(128.5f, 21.5f));
-            STARPORTS.add(Point2d.of(128.5f, 26.5f));
-            STARPORTS.add(Point2d.of(131.5f, 28.5f));
-            STARPORTS.add(Point2d.of(134.5f, 30.5f));
-            STARPORTS.add(Point2d.of(137.5f, 32.5f));
-            STARPORTS.add(Point2d.of(159.5f, 35.5f));
-            STARPORTS.add(Point2d.of(154.5f, 35.5f));
-            STARPORTS.add(Point2d.of(163.5f, 49.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(163.5f, 49.5f));
 
             TURRETS.add(Point2d.of(146.0f, 19.0f));
             TURRETS.add(Point2d.of(154.0f, 24.0f));
@@ -734,7 +744,6 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(61.0f, 26.0f));
             reaperBlock3x3s.add(Point2d.of(58.5f, 27.5f));
 
-
             myMineralPos = Point2d.of(29f, 30.5f);
             enemyMineralPos = Point2d.of(155f, 30.5f);
 
@@ -745,47 +754,11 @@ public class PosConstants {
 
             _3x3Structures.add(MID_WALL_3x3);
             _3x3Structures.add(WALL_3x3);
-//            _3x3Structures.add(Point2d.of(26.5f, 34.5f));
-//            _3x3Structures.add(Point2d.of(26.5f, 30.5f));
 
             BUNKER_NATURAL = Point2d.of(42.5f, 59.5f);
-//            FACTORIES.add(Point2d.of(55.5f, 40.5f));
-//            FACTORIES.add(Point2d.of(52.5f, 38.5f));
-//
-//            STARPORTS.add(Point2d.of(26.5f, 26.5f));
-//            STARPORTS.add(Point2d.of(26.5f, 38.5f));
-//            STARPORTS.add(Point2d.of(30.5f, 22.5f));
-//            STARPORTS.add(Point2d.of(35.5f, 21.5f));
-//            STARPORTS.add(Point2d.of(40.5f, 21.5f));
-//            STARPORTS.add(Point2d.of(45.5f, 32.5f));
-//            STARPORTS.add(Point2d.of(45.5f, 35.5f));
-//            STARPORTS.add(Point2d.of(44.5f, 38.5f));
-//            STARPORTS.add(Point2d.of(39.5f, 35.5f));
-//            STARPORTS.add(Point2d.of(38.5f, 38.5f));
-//            STARPORTS.add(Point2d.of(32.5f, 38.5f));
-//            STARPORTS.add(Point2d.of(28.5f, 48.5f));
-//
-//            MACRO_OCS.add(Point2d.of(41.5f, 31.5f));
-//            MACRO_OCS.add(Point2d.of(46.5f, 28.5f));
-//            MACRO_OCS.add(Point2d.of(46.5f, 23.5f));
-//            MACRO_OCS.add(Point2d.of(52.5f, 24.5f));
-//            MACRO_OCS.add(Point2d.of(52.5f, 29.5f));
-//            MACRO_OCS.add(Point2d.of(53.5f, 34.5f));
 
             extraDepots.add(WALL_2x2);
             extraDepots.add(MID_WALL_2x2);
-//            extraDepots.add(Point2d.of(43.0f, 23.0f));
-//            extraDepots.add(Point2d.of(33.0f, 24.0f));
-//            extraDepots.add(Point2d.of(43.0f, 25.0f));
-//            extraDepots.add(Point2d.of(56.0f, 28.0f));
-//            extraDepots.add(Point2d.of(28.0f, 23.0f));
-//            extraDepots.add(Point2d.of(56.0f, 24.0f));
-//            extraDepots.add(Point2d.of(50.0f, 33.0f));
-//            extraDepots.add(Point2d.of(56.0f, 26.0f));
-//            extraDepots.add(Point2d.of(29.0f, 40.0f));
-//            extraDepots.add(Point2d.of(35.0f, 40.0f));
-//            extraDepots.add(Point2d.of(50.0f, 35.0f));
-//            extraDepots.add(Point2d.of(41.0f, 40.0f));
         } else { //right spawn
             proxyBarracksPos = Point2d.of(64.5f, 80.5f);
             proxyBunkerPos = Point2d.of(42.5f, 60.5f);
@@ -929,20 +902,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(44.5f, 134.5f));
 
             //STARPORTS.add(Point2d.of(44.5f, 134.5f)); //FACTORY2
-            STARPORTS.add(Point2d.of(27.5f, 134.5f));
-            STARPORTS.add(Point2d.of(27.5f, 137.5f));
-            STARPORTS.add(Point2d.of(27.5f, 140.5f));
-            STARPORTS.add(Point2d.of(27.5f, 143.5f));
-            STARPORTS.add(Point2d.of(28.5f, 146.5f));
-            STARPORTS.add(Point2d.of(31.5f, 148.5f));
-            STARPORTS.add(Point2d.of(37.5f, 148.5f));
-            STARPORTS.add(Point2d.of(40.5f, 150.5f));
-            STARPORTS.add(Point2d.of(46.5f, 149.5f));
-            STARPORTS.add(Point2d.of(46.5f, 146.5f));
-            STARPORTS.add(Point2d.of(52.5f, 146.5f));
-            STARPORTS.add(Point2d.of(59.5f, 149.5f));
-            STARPORTS.add(Point2d.of(65.5f, 151.5f));
-            STARPORTS.add(Point2d.of(44.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 140.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(59.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(65.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 124.5f));
 
             TURRETS.add(Point2d.of(35.0f, 136.0f));
             TURRETS.add(Point2d.of(43.0f, 144.0f));
@@ -1001,21 +974,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(130.5f, 31.5f));
             FACTORIES.add(Point2d.of(134.5f, 26.5f));
 
-            STARPORTS.add(Point2d.of(154.5f, 24.5f));
-            STARPORTS.add(Point2d.of(154.5f, 28.5f));
-            STARPORTS.add(Point2d.of(154.5f, 32.5f));
-            STARPORTS.add(Point2d.of(152.5f, 35.5f));
-            STARPORTS.add(Point2d.of(142.5f, 43.5f));
-            STARPORTS.add(Point2d.of(128.5f, 26.5f));
-            STARPORTS.add(Point2d.of(128.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 23.5f));
             //STARPORTS.add(Point2d.of(134.5f, 26.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(134.5f, 23.5f));
-            STARPORTS.add(Point2d.of(140.5f, 17.5f));
-            STARPORTS.add(Point2d.of(145.5f, 17.5f));
-            STARPORTS.add(Point2d.of(148.5f, 19.5f));
-            STARPORTS.add(Point2d.of(151.5f, 21.5f));
-            STARPORTS.add(Point2d.of(122.5f, 18.5f));
-            STARPORTS.add(Point2d.of(117.5f, 17.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 17.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 17.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 19.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(122.5f, 18.5f));
+            _3x3AddonPosList.add(Point2d.of(117.5f, 17.5f));
 
             TURRETS.add(Point2d.of(149.0f, 32.0f));
             TURRETS.add(Point2d.of(141.0f, 24.0f));
@@ -1211,21 +1184,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(41.5f, 144.5f));
             FACTORIES.add(Point2d.of(46.5f, 152.5f));
 
-            STARPORTS.add(Point2d.of(37.5f, 135.5f));
-            STARPORTS.add(Point2d.of(40.5f, 148.5f));
-            STARPORTS.add(Point2d.of(29.5f, 146.5f));
-            STARPORTS.add(Point2d.of(32.5f, 148.5f));
-            STARPORTS.add(Point2d.of(35.5f, 150.5f));
-            STARPORTS.add(Point2d.of(26.5f, 142.5f));
-            STARPORTS.add(Point2d.of(27.5f, 134.5f));
-            STARPORTS.add(Point2d.of(28.5f, 130.5f));
-            STARPORTS.add(Point2d.of(34.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 129.5f));
             //STARPORTS.add(Point2d.of(47.5f, 146.5f)); removed for FACTORY2 pathing
             //STARPORTS.add(Point2d.of(46.5f, 152.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(48.5f, 156.5f));
-            STARPORTS.add(Point2d.of(65.5f, 155.5f));
-            STARPORTS.add(Point2d.of(60.5f, 158.5f));
-            STARPORTS.add(Point2d.of(54.5f, 158.5f));
+            _3x3AddonPosList.add(Point2d.of(48.5f, 156.5f));
+            _3x3AddonPosList.add(Point2d.of(65.5f, 155.5f));
+            _3x3AddonPosList.add(Point2d.of(60.5f, 158.5f));
+            _3x3AddonPosList.add(Point2d.of(54.5f, 158.5f));
 
             TURRETS.add(Point2d.of(38.0f, 144.0f));
             TURRETS.add(Point2d.of(33.0f, 136.0f));
@@ -1281,21 +1254,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(148.5f, 42.5f));
             FACTORIES.add(Point2d.of(141.5f, 42.5f));
 
-            STARPORTS.add(Point2d.of(148.5f, 39.5f));
-            STARPORTS.add(Point2d.of(154.5f, 39.5f));
-            STARPORTS.add(Point2d.of(153.5f, 36.5f));
-            STARPORTS.add(Point2d.of(160.5f, 40.5f));
-            STARPORTS.add(Point2d.of(163.5f, 45.5f));
-            STARPORTS.add(Point2d.of(162.5f, 54.5f));
-            STARPORTS.add(Point2d.of(156.5f, 58.5f));
-            STARPORTS.add(Point2d.of(152.5f, 52.5f));
-            STARPORTS.add(Point2d.of(152.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(160.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(163.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(162.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 55.5f));
             //STARPORTS.add(Point2d.of(141.5f, 42.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(143.5f, 35.5f));
-            STARPORTS.add(Point2d.of(141.5f, 31.5f));
-            STARPORTS.add(Point2d.of(136.5f, 28.5f));
-            STARPORTS.add(Point2d.of(131.5f, 28.5f));
-            STARPORTS.add(Point2d.of(125.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(141.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(125.5f, 32.5f));
 
             TURRETS.add(Point2d.of(153.0f, 44.0f));
             TURRETS.add(Point2d.of(159.0f, 52.0f));
@@ -1348,20 +1321,20 @@ public class PosConstants {
 
             BUNKER_NATURAL = Point2d.of(56.5f, 139.5f);
 
-            STARPORTS.add(Point2d.of(43.5f, 113.5f));
-            STARPORTS.add(Point2d.of(43.5f, 116.5f));
-            STARPORTS.add(Point2d.of(43.5f, 119.5f));
-            STARPORTS.add(Point2d.of(36.5f, 107.5f));
-            STARPORTS.add(Point2d.of(42.5f, 105.5f));
-            STARPORTS.add(Point2d.of(48.5f, 105.5f));
-            STARPORTS.add(Point2d.of(47.5f, 108.5f));
-            STARPORTS.add(Point2d.of(52.5f, 108.5f));
-            STARPORTS.add(Point2d.of(54.5f, 126.5f));
-            STARPORTS.add(Point2d.of(37.5f, 119.5f));
-            STARPORTS.add(Point2d.of(37.5f, 122.5f));
-            STARPORTS.add(Point2d.of(37.5f, 125.5f));
-            STARPORTS.add(Point2d.of(31.5f, 121.5f));
-            STARPORTS.add(Point2d.of(30.5f, 108.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 113.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 116.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 119.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 107.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 105.5f));
+            _3x3AddonPosList.add(Point2d.of(48.5f, 105.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 108.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 108.5f));
+            _3x3AddonPosList.add(Point2d.of(54.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 119.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 122.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 125.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 121.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 108.5f));
 
             TURRETS.add(Point2d.of(35.0f, 116.0f));
             TURRETS.add(Point2d.of(43.0f, 111.0f));
@@ -1409,21 +1382,21 @@ public class PosConstants {
 
             BUNKER_NATURAL = Point2d.of(143.5f, 40.5f);
 
-            STARPORTS.add(Point2d.of(168.5f, 72.5f));
-            STARPORTS.add(Point2d.of(162.5f, 74.5f));
-            STARPORTS.add(Point2d.of(157.5f, 74.5f));
-            STARPORTS.add(Point2d.of(145.5f, 58.5f));
-            STARPORTS.add(Point2d.of(160.5f, 60.5f));
-            STARPORTS.add(Point2d.of(160.5f, 57.5f));
-            STARPORTS.add(Point2d.of(161.5f, 54.5f));
-            STARPORTS.add(Point2d.of(156.5f, 55.5f));
-            STARPORTS.add(Point2d.of(166.5f, 58.5f));
-            STARPORTS.add(Point2d.of(168.5f, 52.5f));
-            STARPORTS.add(Point2d.of(165.5f, 50.5f));
-            STARPORTS.add(Point2d.of(167.5f, 55.5f));
-            STARPORTS.add(Point2d.of(160.5f, 32.5f));
-            STARPORTS.add(Point2d.of(151.5f, 28.5f));
-            STARPORTS.add(Point2d.of(157.5f, 29.5f));
+            _3x3AddonPosList.add(Point2d.of(168.5f, 72.5f));
+            _3x3AddonPosList.add(Point2d.of(162.5f, 74.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 74.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(160.5f, 60.5f));
+            _3x3AddonPosList.add(Point2d.of(160.5f, 57.5f));
+            _3x3AddonPosList.add(Point2d.of(161.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(166.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(168.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(165.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(160.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 29.5f));
 
             TURRETS.add(Point2d.of(157.0f, 68.0f));
             TURRETS.add(Point2d.of(165.0f, 64.0f));
@@ -1480,21 +1453,21 @@ public class PosConstants {
             _3x3Structures.add(Point2d.of(35.5f, 129.5f));
             _3x3Structures.add(Point2d.of(34.5f, 142.5f));
 
-            STARPORTS.add(Point2d.of(25.5f, 149.5f));
-            STARPORTS.add(Point2d.of(22.5f, 147.5f));
-            STARPORTS.add(Point2d.of(31.5f, 148.5f));
-            STARPORTS.add(Point2d.of(18.5f, 143.5f));
-            STARPORTS.add(Point2d.of(18.5f, 138.5f));
-            STARPORTS.add(Point2d.of(26.5f, 134.5f));
-            STARPORTS.add(Point2d.of(37.5f, 146.5f));
-            STARPORTS.add(Point2d.of(20.5f, 129.5f));
-            STARPORTS.add(Point2d.of(23.5f, 131.5f));
-            STARPORTS.add(Point2d.of(25.5f, 128.5f));
-            STARPORTS.add(Point2d.of(30.5f, 127.5f));
-            STARPORTS.add(Point2d.of(28.5f, 131.5f));
-            STARPORTS.add(Point2d.of(40.5f, 148.5f));
-            STARPORTS.add(Point2d.of(42.5f, 145.5f));
-            STARPORTS.add(Point2d.of(20.5f, 118.5f));
+            _3x3AddonPosList.add(Point2d.of(25.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(18.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(18.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(25.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 118.5f));
 
             TURRETS.add(Point2d.of(25.0f, 138.0f));
             TURRETS.add(Point2d.of(30.0f, 143.0f));
@@ -1543,21 +1516,21 @@ public class PosConstants {
             _3x3Structures.add(Point2d.of(132.5f, 26.5f));
             _3x3Structures.add(Point2d.of(123.5f, 13.5f));
 
-            STARPORTS.add(Point2d.of(127.5f, 27.5f));
-            STARPORTS.add(Point2d.of(130.5f, 29.5f));
-            STARPORTS.add(Point2d.of(135.5f, 28.5f));
-            STARPORTS.add(Point2d.of(138.5f, 30.5f));
-            STARPORTS.add(Point2d.of(140.5f, 24.5f));
-            STARPORTS.add(Point2d.of(140.5f, 20.5f));
-            STARPORTS.add(Point2d.of(140.5f, 16.5f));
-            STARPORTS.add(Point2d.of(137.5f, 14.5f));
-            STARPORTS.add(Point2d.of(134.5f, 12.5f));
-            STARPORTS.add(Point2d.of(129.5f, 11.5f));
-            STARPORTS.add(Point2d.of(133.5f, 31.5f));
-            STARPORTS.add(Point2d.of(128.5f, 32.5f));
-            STARPORTS.add(Point2d.of(120.5f, 32.5f));
-            STARPORTS.add(Point2d.of(117.5f, 30.5f));
-            STARPORTS.add(Point2d.of(114.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(127.5f, 27.5f));
+            _3x3AddonPosList.add(Point2d.of(130.5f, 29.5f));
+            _3x3AddonPosList.add(Point2d.of(135.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(138.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 16.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 14.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 12.5f));
+            _3x3AddonPosList.add(Point2d.of(129.5f, 11.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(120.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(117.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(114.5f, 28.5f));
 
             TURRETS.add(Point2d.of(127.0f, 17.0f));
             TURRETS.add(Point2d.of(135.0f, 22.0f));
@@ -1619,22 +1592,22 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(153.5f, 109.5f));
             BUNKER_NATURAL = Point2d.of(128.5f, 117.5f);
 
-            STARPORTS.add(Point2d.of(128.5f, 132.5f));
-            STARPORTS.add(Point2d.of(152.5f, 142.5f));
-            STARPORTS.add(Point2d.of(153.5f, 146.5f));
-            STARPORTS.add(Point2d.of(151.5f, 150.5f));
-            STARPORTS.add(Point2d.of(147.5f, 148.5f));
-            STARPORTS.add(Point2d.of(142.5f, 149.5f));
-            STARPORTS.add(Point2d.of(146.5f, 151.5f));
-            STARPORTS.add(Point2d.of(136.5f, 151.5f));
-            STARPORTS.add(Point2d.of(133.5f, 145.5f));
-            STARPORTS.add(Point2d.of(131.5f, 136.5f));
-            STARPORTS.add(Point2d.of(131.5f, 129.5f));
-            STARPORTS.add(Point2d.of(132.5f, 126.5f));
-            STARPORTS.add(Point2d.of(151.5f, 125.5f));
-            STARPORTS.add(Point2d.of(138.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(132.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 125.5f));
+            _3x3AddonPosList.add(Point2d.of(138.5f, 126.5f));
             //STARPORTS.add(Point2d.of(153.5f, 111.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(133.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 132.5f));
 
             TURRETS.add(Point2d.of(139.0f, 145.0f));
             TURRETS.add(Point2d.of(147.0f, 140.0f));
@@ -1691,21 +1664,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(31.5f, 36.5f));
             FACTORIES.add(Point2d.of(20.5f, 59.5f));
 
-            STARPORTS.add(Point2d.of(36.5f, 21.5f));
-            STARPORTS.add(Point2d.of(22.5f, 21.5f));
-            STARPORTS.add(Point2d.of(31.5f, 21.5f));
-            STARPORTS.add(Point2d.of(22.5f, 32.5f));
-            STARPORTS.add(Point2d.of(20.5f, 28.5f));
-            STARPORTS.add(Point2d.of(20.5f, 25.5f));
-            STARPORTS.add(Point2d.of(26.5f, 23.5f));
-            STARPORTS.add(Point2d.of(40.5f, 26.5f));
-            STARPORTS.add(Point2d.of(42.5f, 35.5f));
-            STARPORTS.add(Point2d.of(43.5f, 38.5f));
-            STARPORTS.add(Point2d.of(41.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 25.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(41.5f, 41.5f));
             //STARPORTS.add(Point2d.of(20.5f, 59.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(20.5f, 62.5f));
-            STARPORTS.add(Point2d.of(20.5f, 65.5f));
-            STARPORTS.add(Point2d.of(22.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 62.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 65.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 46.5f));
 
             TURRETS.add(Point2d.of(37.0f, 27.0f));
             TURRETS.add(Point2d.of(29.0f, 32.0f));
@@ -1766,20 +1739,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(144.5f, 157.5f));
             FACTORIES.add(Point2d.of(160.5f, 154.5f));
 
-            STARPORTS.add(Point2d.of(149.5f, 161.5f));
-            STARPORTS.add(Point2d.of(149.5f, 165.5f));
-            STARPORTS.add(Point2d.of(147.5f, 169.5f));
-            STARPORTS.add(Point2d.of(142.5f, 172.5f));
-            STARPORTS.add(Point2d.of(129.5f, 172.5f));
-            STARPORTS.add(Point2d.of(124.5f, 172.5f));
-            STARPORTS.add(Point2d.of(129.5f, 168.5f));
-            STARPORTS.add(Point2d.of(136.5f, 151.5f));
-            STARPORTS.add(Point2d.of(131.5f, 151.5f));
-            STARPORTS.add(Point2d.of(137.5f, 155.5f));
-            STARPORTS.add(Point2d.of(137.5f, 158.5f));
-            STARPORTS.add(Point2d.of(131.5f, 155.5f));
-            STARPORTS.add(Point2d.of(131.5f, 158.5f));
-            STARPORTS.add(Point2d.of(121.5f, 159.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 161.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 165.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 169.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 172.5f));
+            _3x3AddonPosList.add(Point2d.of(129.5f, 172.5f));
+            _3x3AddonPosList.add(Point2d.of(124.5f, 172.5f));
+            _3x3AddonPosList.add(Point2d.of(129.5f, 168.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 155.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 158.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 155.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 158.5f));
+            _3x3AddonPosList.add(Point2d.of(121.5f, 159.5f));
             //STARPORTS.add(Point2d.of(160.5f, 154.5f)); FACTORY2
 
             TURRETS.add(Point2d.of(135.0f, 168.0f));
@@ -1839,21 +1812,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(57.5f, 55.5f));
             FACTORIES.add(Point2d.of(62.5f, 58.5f));
 
-            STARPORTS.add(Point2d.of(57.5f, 38.5f));
-            STARPORTS.add(Point2d.of(62.5f, 38.5f));
-            STARPORTS.add(Point2d.of(67.5f, 38.5f));
-            STARPORTS.add(Point2d.of(72.5f, 38.5f));
-            STARPORTS.add(Point2d.of(55.5f, 41.5f));
-            STARPORTS.add(Point2d.of(48.5f, 50.5f));
-            STARPORTS.add(Point2d.of(48.5f, 47.5f));
-            STARPORTS.add(Point2d.of(71.5f, 42.5f));
-            STARPORTS.add(Point2d.of(60.5f, 52.5f));
-            STARPORTS.add(Point2d.of(62.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(57.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(62.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(67.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(72.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(55.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(48.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(48.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(71.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(60.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(62.5f, 55.5f));
             //STARPORTS.add(Point2d.of(62.5f, 58.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(73.5f, 52.5f));
-            STARPORTS.add(Point2d.of(79.5f, 50.5f));
-            STARPORTS.add(Point2d.of(73.5f, 55.5f));
-            STARPORTS.add(Point2d.of(37.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(73.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(79.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(73.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 58.5f));
 
             TURRETS.add(Point2d.of(65.0f, 44.0f));
             TURRETS.add(Point2d.of(56.0f, 49.0f));
@@ -2026,10 +1999,10 @@ public class PosConstants {
     private static void setLocationsForFlat48(boolean isTopPos) {
         if (isTopPos) {
             extraDepots.add(Point2d.of(23.0f, 51.0f));
-            STARPORTS.add(Point2d.of(23.0f, 52.0f));
+            _3x3AddonPosList.add(Point2d.of(23.0f, 52.0f));
         } else {
             extraDepots.add(Point2d.of(23.0f, 51.0f));
-            STARPORTS.add(Point2d.of(23.0f, 51.0f));
+            _3x3AddonPosList.add(Point2d.of(23.0f, 51.0f));
         }
     }
 
@@ -2062,20 +2035,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(34.5f, 57.5f));
             FACTORIES.add(Point2d.of(33.5f, 64.5f));
 
-            STARPORTS.add(Point2d.of(34.5f, 54.5f));
-            STARPORTS.add(Point2d.of(36.5f, 50.5f));
-            STARPORTS.add(Point2d.of(36.5f, 47.5f));
-            STARPORTS.add(Point2d.of(33.5f, 45.5f));
-            STARPORTS.add(Point2d.of(34.5f, 42.5f));
-            STARPORTS.add(Point2d.of(39.5f, 44.5f));
-            STARPORTS.add(Point2d.of(23.5f, 45.5f));
-            STARPORTS.add(Point2d.of(23.5f, 42.5f));
-            STARPORTS.add(Point2d.of(29.5f, 40.5f));
-            STARPORTS.add(Point2d.of(25.5f, 38.5f));
-            STARPORTS.add(Point2d.of(22.5f, 36.5f));
-            STARPORTS.add(Point2d.of(32.5f, 36.5f));
-            STARPORTS.add(Point2d.of(22.5f, 56.5f));
-            STARPORTS.add(Point2d.of(25.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(25.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 56.5f));
+            _3x3AddonPosList.add(Point2d.of(25.5f, 58.5f));
 //            STARPORTS.add(Point2d.of(30.5f, 61.5f)); replace by FACTORY2
 //            STARPORTS.add(Point2d.of(31.5f, 64.5f)); replace by FACTORY2
 
@@ -2133,21 +2106,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(174.5f, 61.5f));
             FACTORIES.add(Point2d.of(175.5f, 64.5f));
 
-            STARPORTS.add(Point2d.of(184.5f, 45.5f));
-            STARPORTS.add(Point2d.of(181.5f, 43.5f));
-            STARPORTS.add(Point2d.of(172.5f, 37.5f));
-            STARPORTS.add(Point2d.of(172.5f, 40.5f));
-            STARPORTS.add(Point2d.of(178.5f, 40.5f));
-            STARPORTS.add(Point2d.of(178.5f, 36.5f));
-            STARPORTS.add(Point2d.of(167.5f, 54.5f));
-            STARPORTS.add(Point2d.of(167.5f, 57.5f));
-            STARPORTS.add(Point2d.of(164.5f, 46.5f));
-            STARPORTS.add(Point2d.of(183.5f, 56.5f));
-            STARPORTS.add(Point2d.of(180.5f, 59.5f));
-            STARPORTS.add(Point2d.of(181.5f, 62.5f));
+            _3x3AddonPosList.add(Point2d.of(184.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(181.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(172.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(172.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(178.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(178.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 57.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(183.5f, 56.5f));
+            _3x3AddonPosList.add(Point2d.of(180.5f, 59.5f));
+            _3x3AddonPosList.add(Point2d.of(181.5f, 62.5f));
             //STARPORTS.add(Point2d.of(175.5f, 64.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(179.5f, 66.5f));
-            STARPORTS.add(Point2d.of(175.5f, 71.5f));
+            _3x3AddonPosList.add(Point2d.of(179.5f, 66.5f));
+            _3x3AddonPosList.add(Point2d.of(175.5f, 71.5f));
 
             TURRETS.add(Point2d.of(178.0f, 46.0f));
             TURRETS.add(Point2d.of(178.0f, 55.0f));
@@ -2399,20 +2372,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(114.5f, 149.5f));
             FACTORIES.add(Point2d.of(118.5f, 141.5f));
 
-            STARPORTS.add(Point2d.of(115.5f, 160.5f));
-            STARPORTS.add(Point2d.of(122.5f, 161.5f));
-            STARPORTS.add(Point2d.of(128.5f, 160.5f));
-            STARPORTS.add(Point2d.of(133.5f, 160.5f));
-            STARPORTS.add(Point2d.of(114.5f, 156.5f));
-            STARPORTS.add(Point2d.of(113.5f, 152.5f));
-            STARPORTS.add(Point2d.of(120.5f, 156.5f));
-            STARPORTS.add(Point2d.of(136.5f, 157.5f));
-            STARPORTS.add(Point2d.of(135.5f, 154.5f));
-            STARPORTS.add(Point2d.of(137.5f, 149.5f));
-            STARPORTS.add(Point2d.of(135.5f, 145.5f));
-            STARPORTS.add(Point2d.of(119.5f, 138.5f));
-            STARPORTS.add(Point2d.of(116.5f, 136.5f));
-            STARPORTS.add(Point2d.of(111.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(115.5f, 160.5f));
+            _3x3AddonPosList.add(Point2d.of(122.5f, 161.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 160.5f));
+            _3x3AddonPosList.add(Point2d.of(133.5f, 160.5f));
+            _3x3AddonPosList.add(Point2d.of(114.5f, 156.5f));
+            _3x3AddonPosList.add(Point2d.of(113.5f, 152.5f));
+            _3x3AddonPosList.add(Point2d.of(120.5f, 156.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 157.5f));
+            _3x3AddonPosList.add(Point2d.of(135.5f, 154.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(135.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(119.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(116.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(111.5f, 139.5f));
 
             TURRETS.add(Point2d.of(131.0f, 148.0f));
             TURRETS.add(Point2d.of(126.0f, 156.0f));
@@ -2465,20 +2438,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(49.5f, 38.5f));
             FACTORIES.add(Point2d.of(53.5f, 33.5f));
 
-            STARPORTS.add(Point2d.of(44.5f, 24.5f));
-            STARPORTS.add(Point2d.of(38.5f, 24.5f));
-            STARPORTS.add(Point2d.of(32.5f, 26.5f));
-            STARPORTS.add(Point2d.of(46.5f, 30.5f));
-            STARPORTS.add(Point2d.of(46.5f, 33.5f));
-            STARPORTS.add(Point2d.of(29.5f, 29.5f));
-            STARPORTS.add(Point2d.of(30.5f, 32.5f));
-            STARPORTS.add(Point2d.of(29.5f, 36.5f));
-            STARPORTS.add(Point2d.of(31.5f, 40.5f));
-            STARPORTS.add(Point2d.of(46.5f, 36.5f));
-            STARPORTS.add(Point2d.of(46.5f, 43.5f));
-            STARPORTS.add(Point2d.of(40.5f, 48.5f));
-            STARPORTS.add(Point2d.of(34.5f, 48.5f));
-            STARPORTS.add(Point2d.of(61.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(38.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 29.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(61.5f, 24.5f));
 
             TURRETS.add(Point2d.of(37.0f, 38.0f));
             TURRETS.add(Point2d.of(42.0f, 30.0f));
@@ -2542,21 +2515,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(41.5f, 123.5f));
             FACTORIES.add(Point2d.of(46.5f, 122.5f));
 
-            STARPORTS.add(Point2d.of(30.5f, 126.5f));
-            STARPORTS.add(Point2d.of(29.5f, 122.5f));
-            STARPORTS.add(Point2d.of(30.5f, 119.5f));
-            STARPORTS.add(Point2d.of(36.5f, 124.5f));
-            STARPORTS.add(Point2d.of(35.5f, 121.5f));
-            STARPORTS.add(Point2d.of(36.5f, 118.5f));
-            STARPORTS.add(Point2d.of(32.5f, 138.5f));
-            STARPORTS.add(Point2d.of(35.5f, 140.5f));
-            STARPORTS.add(Point2d.of(40.5f, 142.5f));
-            STARPORTS.add(Point2d.of(50.5f, 141.5f));
-            STARPORTS.add(Point2d.of(57.5f, 127.5f));
-            STARPORTS.add(Point2d.of(55.5f, 123.5f));
-            STARPORTS.add(Point2d.of(39.5f, 126.5f));
-            STARPORTS.add(Point2d.of(44.5f, 125.5f));
-            STARPORTS.add(Point2d.of(28.5f, 108.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 122.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 119.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 121.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 118.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 140.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(50.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(57.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(55.5f, 123.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 125.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 108.5f));
 
             TURRETS.add(Point2d.of(45.0f, 136.0f));
             TURRETS.add(Point2d.of(36.0f, 131.0f));
@@ -2611,21 +2584,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(142.5f, 45.5f));
             FACTORIES.add(Point2d.of(137.5f, 41.5f));
 
-            STARPORTS.add(Point2d.of(153.5f, 35.5f));
-            STARPORTS.add(Point2d.of(153.5f, 41.5f));
-            STARPORTS.add(Point2d.of(150.5f, 38.5f));
-            STARPORTS.add(Point2d.of(148.5f, 42.5f));
-            STARPORTS.add(Point2d.of(151.5f, 44.5f));
-            STARPORTS.add(Point2d.of(149.5f, 25.5f));
-            STARPORTS.add(Point2d.of(146.5f, 23.5f));
-            STARPORTS.add(Point2d.of(141.5f, 22.5f));
-            STARPORTS.add(Point2d.of(136.5f, 23.5f));
-            STARPORTS.add(Point2d.of(136.5f, 36.5f));
-            STARPORTS.add(Point2d.of(131.5f, 37.5f));
-            STARPORTS.add(Point2d.of(126.5f, 36.5f));
-            STARPORTS.add(Point2d.of(134.5f, 39.5f));
-            STARPORTS.add(Point2d.of(129.5f, 40.5f));
-            STARPORTS.add(Point2d.of(153.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 25.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(141.5f, 22.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(126.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(129.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 55.5f));
 
             TURRETS.add(Point2d.of(139.0f, 28.0f));
             TURRETS.add(Point2d.of(148.0f, 33.0f));
@@ -2682,21 +2655,21 @@ public class PosConstants {
             BUNKER_NATURAL = Point2d.of(52.5f, 113.5f);
             FACTORIES.add(Point2d.of(44.5f, 124.5f));
 
-            STARPORTS.add(Point2d.of(45.5f, 150.5f));
-            STARPORTS.add(Point2d.of(42.5f, 148.5f));
-            STARPORTS.add(Point2d.of(36.5f, 147.5f));
-            STARPORTS.add(Point2d.of(33.5f, 145.5f));
-            STARPORTS.add(Point2d.of(30.5f, 138.5f));
-            STARPORTS.add(Point2d.of(30.5f, 132.5f));
-            STARPORTS.add(Point2d.of(30.5f, 129.5f));
-            STARPORTS.add(Point2d.of(53.5f, 131.5f));
-            STARPORTS.add(Point2d.of(56.5f, 133.5f));
-            STARPORTS.add(Point2d.of(47.5f, 126.5f));
-            STARPORTS.add(Point2d.of(39.5f, 134.5f));
-            STARPORTS.add(Point2d.of(36.5f, 131.5f));
-            STARPORTS.add(Point2d.of(47.5f, 129.5f));
-            STARPORTS.add(Point2d.of(33.5f, 113.5f));
-            STARPORTS.add(Point2d.of(36.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(53.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(56.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 113.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 128.5f));
 
             TURRETS.add(Point2d.of(46.0f, 143.0f));
             TURRETS.add(Point2d.of(37.0f, 138.0f));
@@ -2754,21 +2727,21 @@ public class PosConstants {
             BUNKER_NATURAL = Point2d.of(138.5f, 58.5f);
             FACTORIES.add(Point2d.of(156.5f, 44.5f));
 
-            STARPORTS.add(Point2d.of(145.5f, 41.5f));
-            STARPORTS.add(Point2d.of(160.5f, 38.5f));
-            STARPORTS.add(Point2d.of(152.5f, 37.5f));
-            STARPORTS.add(Point2d.of(155.5f, 39.5f));
-            STARPORTS.add(Point2d.of(147.5f, 38.5f));
-            STARPORTS.add(Point2d.of(150.5f, 40.5f));
-            STARPORTS.add(Point2d.of(157.5f, 26.5f));
-            STARPORTS.add(Point2d.of(139.5f, 39.5f));
-            STARPORTS.add(Point2d.of(152.5f, 24.5f));
-            STARPORTS.add(Point2d.of(147.5f, 22.5f));
-            STARPORTS.add(Point2d.of(142.5f, 23.5f));
-            STARPORTS.add(Point2d.of(156.5f, 58.5f));
-            STARPORTS.add(Point2d.of(148.5f, 43.5f));
-            STARPORTS.add(Point2d.of(153.5f, 42.5f));
-            STARPORTS.add(Point2d.of(158.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(160.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(155.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(139.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 22.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 41.5f));
 
 
             TURRETS.add(Point2d.of(146.0f, 29.0f));
@@ -2830,20 +2803,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(134.5f, 146.5f));
             FACTORIES.add(Point2d.of(141.5f, 142.5f));
 
-            STARPORTS.add(Point2d.of(151.5f, 158.5f));
-            STARPORTS.add(Point2d.of(148.5f, 156.5f));
-            STARPORTS.add(Point2d.of(143.5f, 157.5f));
-            STARPORTS.add(Point2d.of(137.5f, 157.5f));
-            STARPORTS.add(Point2d.of(137.5f, 154.5f));
-            STARPORTS.add(Point2d.of(136.5f, 150.5f));
-            STARPORTS.add(Point2d.of(157.5f, 147.5f));
-            STARPORTS.add(Point2d.of(156.5f, 150.5f));
-            STARPORTS.add(Point2d.of(155.5f, 153.5f));
-            STARPORTS.add(Point2d.of(154.5f, 141.5f));
-            STARPORTS.add(Point2d.of(138.5f, 140.5f));
-            STARPORTS.add(Point2d.of(137.5f, 137.5f));
-            STARPORTS.add(Point2d.of(144.5f, 138.5f));
-            STARPORTS.add(Point2d.of(143.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 158.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 156.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 157.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 157.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 154.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(155.5f, 153.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(138.5f, 140.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 135.5f));
 
             TURRETS.add(Point2d.of(152.0f, 144.0f));
             TURRETS.add(Point2d.of(146.0f, 152.0f));
@@ -2898,19 +2871,19 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(55.5f, 57.5f));
             FACTORIES.add(Point2d.of(48.5f, 57.5f));
 
-            STARPORTS.add(Point2d.of(48.5f, 45.5f));
-            STARPORTS.add(Point2d.of(37.5f, 46.5f));
-            STARPORTS.add(Point2d.of(43.5f, 46.5f));
-            STARPORTS.add(Point2d.of(55.5f, 51.5f));
-            STARPORTS.add(Point2d.of(49.5f, 52.5f));
-            STARPORTS.add(Point2d.of(51.5f, 47.5f));
-            STARPORTS.add(Point2d.of(36.5f, 50.5f));
-            STARPORTS.add(Point2d.of(32.5f, 56.5f));
-            STARPORTS.add(Point2d.of(32.5f, 53.5f));
-            STARPORTS.add(Point2d.of(52.5f, 65.5f));
-            STARPORTS.add(Point2d.of(49.5f, 63.5f));
-            STARPORTS.add(Point2d.of(35.5f, 63.5f));
-            STARPORTS.add(Point2d.of(35.5f, 66.5f));
+            _3x3AddonPosList.add(Point2d.of(48.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(55.5f, 51.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(51.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 56.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 53.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 65.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 63.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 63.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 66.5f));
             //STARPORTS.add(Point2d.of(49.5f, 60.5f)); //removed to make space for 2nd factory tanks
 
             TURRETS.add(Point2d.of(40.0f, 60.0f));
@@ -2971,21 +2944,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(124.5f, 136.5f));
             FACTORIES.add(Point2d.of(119.5f, 147.5f));
 
-            STARPORTS.add(Point2d.of(130.5f, 147.5f));
-            STARPORTS.add(Point2d.of(131.5f, 143.5f));
-            STARPORTS.add(Point2d.of(137.5f, 146.5f));
-            STARPORTS.add(Point2d.of(137.5f, 143.5f));
-            STARPORTS.add(Point2d.of(143.5f, 142.5f));
-            STARPORTS.add(Point2d.of(145.5f, 139.5f));
-            STARPORTS.add(Point2d.of(145.5f, 127.5f));
-            STARPORTS.add(Point2d.of(142.5f, 125.5f));
-            STARPORTS.add(Point2d.of(139.5f, 123.5f));
-            STARPORTS.add(Point2d.of(134.5f, 124.5f));
-            STARPORTS.add(Point2d.of(134.5f, 128.5f));
-            STARPORTS.add(Point2d.of(136.5f, 121.5f));
-            STARPORTS.add(Point2d.of(131.5f, 122.5f));
-            STARPORTS.add(Point2d.of(131.5f, 119.5f));
-            STARPORTS.add(Point2d.of(123.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(130.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 125.5f));
+            _3x3AddonPosList.add(Point2d.of(139.5f, 123.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(134.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 121.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 122.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 119.5f));
+            _3x3AddonPosList.add(Point2d.of(123.5f, 128.5f));
             //STARPORTS.add(Point2d.of(119.5f, 147.5f)); FACTORY2
 
             TURRETS.add(Point2d.of(140.0f, 129.0f));
@@ -3040,22 +3013,22 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(41.5f, 35.5f));
             FACTORIES.add(Point2d.of(42.5f, 45.5f));
 
-            STARPORTS.add(Point2d.of(20.5f, 33.5f));
-            STARPORTS.add(Point2d.of(27.5f, 26.5f));
-            STARPORTS.add(Point2d.of(23.5f, 30.5f));
-            STARPORTS.add(Point2d.of(20.5f, 44.5f));
-            STARPORTS.add(Point2d.of(23.5f, 46.5f));
-            STARPORTS.add(Point2d.of(26.5f, 48.5f));
-            STARPORTS.add(Point2d.of(31.5f, 44.5f));
-            STARPORTS.add(Point2d.of(31.5f, 47.5f));
-            STARPORTS.add(Point2d.of(34.5f, 49.5f));
-            STARPORTS.add(Point2d.of(34.5f, 52.5f));
-            STARPORTS.add(Point2d.of(39.5f, 49.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(27.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 49.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 49.5f));
             //STARPORTS.add(Point2d.of(42.5f, 45.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(47.5f, 24.5f));
-            STARPORTS.add(Point2d.of(53.5f, 20.5f));
-            STARPORTS.add(Point2d.of(58.5f, 20.5f));
-            STARPORTS.add(Point2d.of(29.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(53.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(58.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 50.5f));
 
             TURRETS.add(Point2d.of(28.0f, 43.0f));
             TURRETS.add(Point2d.of(28.0f, 34.0f));
@@ -3117,20 +3090,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(38.5f, 114.5f));
             FACTORIES.add(Point2d.of(40.5f, 121.5f));
 
-            STARPORTS.add(Point2d.of(28.5f, 131.5f));
-            STARPORTS.add(Point2d.of(30.5f, 135.5f));
-            STARPORTS.add(Point2d.of(31.5f, 127.5f));
-            STARPORTS.add(Point2d.of(33.5f, 124.5f));
-            STARPORTS.add(Point2d.of(32.5f, 121.5f));
-            STARPORTS.add(Point2d.of(31.5f, 118.5f));
-            STARPORTS.add(Point2d.of(32.5f, 115.5f));
-            STARPORTS.add(Point2d.of(34.5f, 142.5f));
-            STARPORTS.add(Point2d.of(37.5f, 144.5f));
-            STARPORTS.add(Point2d.of(42.5f, 145.5f));
-            STARPORTS.add(Point2d.of(47.5f, 145.5f));
-            STARPORTS.add(Point2d.of(40.5f, 130.5f));
-            STARPORTS.add(Point2d.of(40.5f, 127.5f));
-            STARPORTS.add(Point2d.of(40.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 121.5f));
+            _3x3AddonPosList.add(Point2d.of(31.5f, 118.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 115.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 144.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 124.5f));
             //STARPORTS.add(Point2d.of(40.5f, 121.5f));
 
             TURRETS.add(Point2d.of(46.0f, 140.0f));
@@ -3189,20 +3162,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(161.5f, 57.5f));
             FACTORIES.add(Point2d.of(167.5f, 55.5f));
 
-            STARPORTS.add(Point2d.of(168.5f, 38.5f));
-            STARPORTS.add(Point2d.of(168.5f, 42.5f));
-            STARPORTS.add(Point2d.of(167.5f, 33.5f));
-            STARPORTS.add(Point2d.of(167.5f, 51.5f));
-            STARPORTS.add(Point2d.of(164.5f, 48.5f));
-            STARPORTS.add(Point2d.of(166.5f, 45.5f));
-            STARPORTS.add(Point2d.of(161.5f, 28.5f));
-            STARPORTS.add(Point2d.of(158.5f, 26.5f));
-            STARPORTS.add(Point2d.of(153.5f, 24.5f));
-            STARPORTS.add(Point2d.of(151.5f, 27.5f));
-            STARPORTS.add(Point2d.of(157.5f, 41.5f));
-            STARPORTS.add(Point2d.of(157.5f, 44.5f));
-            STARPORTS.add(Point2d.of(157.5f, 47.5f));
-            STARPORTS.add(Point2d.of(157.5f, 50.5f));
+            _3x3AddonPosList.add(Point2d.of(168.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(168.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 51.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(166.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(161.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 27.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 50.5f));
 
             TURRETS.add(Point2d.of(154.0f, 32.0f));
             TURRETS.add(Point2d.of(163.0f, 37.0f));
@@ -3261,21 +3234,21 @@ public class PosConstants {
             //REAPER_JUMP3 = Point2d.of(80.0f, 136.0f);
             FACTORIES.add(Point2d.of(54.5f, 132.5f));
 
-            STARPORTS.add(Point2d.of(43.5f, 145.5f));
-            STARPORTS.add(Point2d.of(43.5f, 139.5f));
-            STARPORTS.add(Point2d.of(43.5f, 136.5f));
-            STARPORTS.add(Point2d.of(43.5f, 133.5f));
-            STARPORTS.add(Point2d.of(49.5f, 133.5f));
-            STARPORTS.add(Point2d.of(49.5f, 136.5f));
-            STARPORTS.add(Point2d.of(47.5f, 148.5f));
-            STARPORTS.add(Point2d.of(50.5f, 150.5f));
-            STARPORTS.add(Point2d.of(56.5f, 149.5f));
-            STARPORTS.add(Point2d.of(61.5f, 148.5f));
-            STARPORTS.add(Point2d.of(65.5f, 145.5f));
-            STARPORTS.add(Point2d.of(65.5f, 141.5f));
-            STARPORTS.add(Point2d.of(60.5f, 139.5f));
-            STARPORTS.add(Point2d.of(60.5f, 136.5f));
-            STARPORTS.add(Point2d.of(39.5f, 119.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(50.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(56.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(61.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(65.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(65.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(60.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(60.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 119.5f));
 
             TURRETS.add(Point2d.of(58.0f, 144.0f));
             TURRETS.add(Point2d.of(50.0f, 139.0f));
@@ -3333,21 +3306,21 @@ public class PosConstants {
             BUNKER_NATURAL = Point2d.of(157.5f, 78.5f);
             FACTORIES.add(Point2d.of(151.5f, 52.5f));
 
-            STARPORTS.add(Point2d.of(170.5f, 38.5f));
-            STARPORTS.add(Point2d.of(156.5f, 33.5f));
-            STARPORTS.add(Point2d.of(161.5f, 33.5f));
-            STARPORTS.add(Point2d.of(151.5f, 37.5f));
-            STARPORTS.add(Point2d.of(164.5f, 35.5f));
-            STARPORTS.add(Point2d.of(170.5f, 45.5f));
-            STARPORTS.add(Point2d.of(164.5f, 48.5f));
-            STARPORTS.add(Point2d.of(164.5f, 51.5f));
-            STARPORTS.add(Point2d.of(159.5f, 48.5f));
-            STARPORTS.add(Point2d.of(162.5f, 54.5f));
-            STARPORTS.add(Point2d.of(167.5f, 54.5f));
-            STARPORTS.add(Point2d.of(148.5f, 42.5f));
-            STARPORTS.add(Point2d.of(149.5f, 46.5f));
-            STARPORTS.add(Point2d.of(150.5f, 49.5f));
-            STARPORTS.add(Point2d.of(174.5f, 64.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(161.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 51.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 48.5f));
+            _3x3AddonPosList.add(Point2d.of(162.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(167.5f, 54.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 49.5f));
+            _3x3AddonPosList.add(Point2d.of(174.5f, 64.5f));
 
             TURRETS.add(Point2d.of(158.0f, 40.0f));
             TURRETS.add(Point2d.of(166.0f, 45.0f));
@@ -3416,21 +3389,21 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(41.5f, 121.5f));
             FACTORIES.add(Point2d.of(32.5f, 118.5f));
 
-            STARPORTS.add(Point2d.of(20.5f, 122.5f));
-            STARPORTS.add(Point2d.of(23.5f, 118.5f));
-            STARPORTS.add(Point2d.of(26.5f, 120.5f));
-            STARPORTS.add(Point2d.of(20.5f, 131.5f));
-            STARPORTS.add(Point2d.of(20.5f, 134.5f));
-            STARPORTS.add(Point2d.of(23.5f, 137.5f));
-            STARPORTS.add(Point2d.of(29.5f, 137.5f));
-            STARPORTS.add(Point2d.of(35.5f, 137.5f));
-            STARPORTS.add(Point2d.of(40.5f, 136.5f));
-            STARPORTS.add(Point2d.of(43.5f, 138.5f));
-            STARPORTS.add(Point2d.of(47.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 122.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 118.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 120.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(20.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(23.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(35.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 132.5f));
             //STARPORTS.add(Point2d.of(32.5f, 118.5f)); FACTORY2
-            STARPORTS.add(Point2d.of(22.5f, 111.5f));
-            STARPORTS.add(Point2d.of(29.5f, 114.5f));
-            STARPORTS.add(Point2d.of(21.5f, 107.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 111.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 114.5f));
+            _3x3AddonPosList.add(Point2d.of(21.5f, 107.5f));
             //STARPORTS.add(Point2d.of(44.5f, 118.5f)); //to add after 2nd bunker is salvaged
 
 
@@ -3491,20 +3464,20 @@ public class PosConstants {
             FACTORIES.add(Point2d.of(124.5f, 42.5f));
             FACTORIES.add(Point2d.of(136.5f, 49.5f));
 
-            STARPORTS.add(Point2d.of(140.5f, 42.5f));
-            STARPORTS.add(Point2d.of(144.5f, 33.5f));
-            STARPORTS.add(Point2d.of(145.5f, 30.5f));
-            STARPORTS.add(Point2d.of(142.5f, 28.5f));
-            STARPORTS.add(Point2d.of(137.5f, 26.5f));
-            STARPORTS.add(Point2d.of(131.5f, 26.5f));
-            STARPORTS.add(Point2d.of(122.5f, 26.5f));
-            STARPORTS.add(Point2d.of(125.5f, 28.5f));
-            STARPORTS.add(Point2d.of(145.5f, 41.5f));
-            STARPORTS.add(Point2d.of(143.5f, 44.5f));
-            STARPORTS.add(Point2d.of(135.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 42.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(131.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(122.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(125.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(135.5f, 45.5f));
             //STARPORTS.add(Point2d.of(136.5f, 49.5f)); //FACTORY2
-            STARPORTS.add(Point2d.of(143.5f, 52.5f));
-            STARPORTS.add(Point2d.of(144.5f, 56.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 56.5f));
             //STARPORTS.add(Point2d.of(123.5f, 45.5f)); //FOR BUNKER SWAP
 
             TURRETS.add(Point2d.of(131.0f, 32.0f));
@@ -3559,19 +3532,19 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(54.0f, 123.0f); //moved to top of extraDepots
             FACTORIES.add(Point2d.of(28.5f, 125.5f));
 
-            STARPORTS.add(Point2d.of(42.5f, 145.5f));
-            STARPORTS.add(Point2d.of(45.5f, 137.5f));
-            STARPORTS.add(Point2d.of(45.5f, 141.5f));
-            STARPORTS.add(Point2d.of(39.5f, 126.5f));
-            STARPORTS.add(Point2d.of(51.5f, 141.5f));
-            STARPORTS.add(Point2d.of(28.5f, 128.5f));
-            STARPORTS.add(Point2d.of(33.5f, 143.5f));
-            STARPORTS.add(Point2d.of(39.5f, 143.5f));
-            STARPORTS.add(Point2d.of(34.5f, 127.5f));
-            STARPORTS.add(Point2d.of(34.5f, 124.5f));
-            STARPORTS.add(Point2d.of(37.5f, 129.5f));
-            STARPORTS.add(Point2d.of(32.5f, 110.5f));
-            STARPORTS.add(Point2d.of(29.5f, 103.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 145.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 137.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(51.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(33.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 124.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 129.5f));
+            _3x3AddonPosList.add(Point2d.of(32.5f, 110.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 103.5f));
 
             TURRETS.add(Point2d.of(42.0f, 138.0f));
             TURRETS.add(Point2d.of(34.0f, 133.0f));
@@ -3624,21 +3597,21 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(139.0f, 34.0f);
             FACTORIES.add(Point2d.of(160.5f, 30.5f));
 
-            STARPORTS.add(Point2d.of(159.5f, 15.5f));
-            STARPORTS.add(Point2d.of(156.5f, 13.5f));
-            STARPORTS.add(Point2d.of(151.5f, 12.5f));
-            STARPORTS.add(Point2d.of(146.5f, 12.5f));
-            STARPORTS.add(Point2d.of(154.5f, 26.5f));
-            STARPORTS.add(Point2d.of(157.5f, 28.5f));
-            STARPORTS.add(Point2d.of(142.5f, 25.5f));
-            STARPORTS.add(Point2d.of(137.5f, 28.5f));
-            STARPORTS.add(Point2d.of(137.5f, 31.5f));
-            STARPORTS.add(Point2d.of(143.5f, 29.5f));
-            STARPORTS.add(Point2d.of(146.5f, 31.5f));
-            STARPORTS.add(Point2d.of(161.5f, 53.5f)); //at nat
-            STARPORTS.add(Point2d.of(157.5f, 45.5f)); //at nat
-            STARPORTS.add(Point2d.of(136.5f, 25.5f));
-            STARPORTS.add(Point2d.of(155.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 15.5f));
+            _3x3AddonPosList.add(Point2d.of(156.5f, 13.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 12.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 12.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 26.5f));
+            _3x3AddonPosList.add(Point2d.of(157.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 25.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 29.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(161.5f, 53.5f)); //at nat
+            _3x3AddonPosList.add(Point2d.of(157.5f, 45.5f)); //at nat
+            _3x3AddonPosList.add(Point2d.of(136.5f, 25.5f));
+            _3x3AddonPosList.add(Point2d.of(155.5f, 31.5f));
 
             TURRETS.add(Point2d.of(149.0f, 18.0f));
             TURRETS.add(Point2d.of(158.0f, 23.0f));
@@ -3694,21 +3667,21 @@ public class PosConstants {
             _3x3Structures.add(Point2d.of(53.5f, 169.5f));
             _3x3Structures.add(Point2d.of(44.5f, 149.5f));
 
-            STARPORTS.add(Point2d.of(67.5f, 163.5f));
-            STARPORTS.add(Point2d.of(64.5f, 161.5f));
-            STARPORTS.add(Point2d.of(62.5f, 164.5f));
-            STARPORTS.add(Point2d.of(58.5f, 168.5f));
-            STARPORTS.add(Point2d.of(53.5f, 166.5f));
-            STARPORTS.add(Point2d.of(47.5f, 164.5f));
-            STARPORTS.add(Point2d.of(47.5f, 167.5f));
-            STARPORTS.add(Point2d.of(42.5f, 162.5f));
-            STARPORTS.add(Point2d.of(44.5f, 157.5f));
-            STARPORTS.add(Point2d.of(45.5f, 152.5f));
-            STARPORTS.add(Point2d.of(47.5f, 149.5f));
-            STARPORTS.add(Point2d.of(47.5f, 146.5f));
-            STARPORTS.add(Point2d.of(47.5f, 143.5f));
-            STARPORTS.add(Point2d.of(51.5f, 153.5f));
-            STARPORTS.add(Point2d.of(53.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(67.5f, 163.5f));
+            _3x3AddonPosList.add(Point2d.of(64.5f, 161.5f));
+            _3x3AddonPosList.add(Point2d.of(62.5f, 164.5f));
+            _3x3AddonPosList.add(Point2d.of(58.5f, 168.5f));
+            _3x3AddonPosList.add(Point2d.of(53.5f, 166.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 164.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 167.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 162.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 157.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 152.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(51.5f, 153.5f));
+            _3x3AddonPosList.add(Point2d.of(53.5f, 150.5f));
 
             TURRETS.add(Point2d.of(51.0f, 154.0f));
             TURRETS.add(Point2d.of(57.0f, 162.0f));
@@ -3759,22 +3732,22 @@ public class PosConstants {
             _3x3Structures.add(Point2d.of(171.5f, 48.5f));
             _3x3Structures.add(Point2d.of(160.5f, 51.5f));
 
-            STARPORTS.add(Point2d.of(152.5f, 36.5f));
-            STARPORTS.add(Point2d.of(159.5f, 37.5f));
-            STARPORTS.add(Point2d.of(158.5f, 34.5f));
-            STARPORTS.add(Point2d.of(165.5f, 36.5f));
-            STARPORTS.add(Point2d.of(165.5f, 39.5f));
-            STARPORTS.add(Point2d.of(170.5f, 44.5f));
-            STARPORTS.add(Point2d.of(170.5f, 41.5f));
-            STARPORTS.add(Point2d.of(170.5f, 52.5f));
-            STARPORTS.add(Point2d.of(170.5f, 55.5f));
-            STARPORTS.add(Point2d.of(164.5f, 52.5f));
-            STARPORTS.add(Point2d.of(164.5f, 55.5f));
-            STARPORTS.add(Point2d.of(164.5f, 58.5f));
-            STARPORTS.add(Point2d.of(164.5f, 58.5f));
-            STARPORTS.add(Point2d.of(164.5f, 61.5f));
-            STARPORTS.add(Point2d.of(158.5f, 60.5f));
-            STARPORTS.add(Point2d.of(158.5f, 63.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 34.5f));
+            _3x3AddonPosList.add(Point2d.of(165.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(165.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 44.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 41.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(170.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 52.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 55.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 58.5f));
+            _3x3AddonPosList.add(Point2d.of(164.5f, 61.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 60.5f));
+            _3x3AddonPosList.add(Point2d.of(158.5f, 63.5f));
 
             TURRETS.add(Point2d.of(165.0f, 50.0f));
             TURRETS.add(Point2d.of(159.0f, 42.0f));
@@ -3826,22 +3799,22 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(68.0f, 125.0f);
             REAPER_JUMP2 = Point2d.of(65.5f, 124.5f);
 
-            STARPORTS.add(Point2d.of(36.5f, 134.5f));
-            STARPORTS.add(Point2d.of(36.5f, 139.5f));
-            STARPORTS.add(Point2d.of(39.5f, 143.5f));
-            STARPORTS.add(Point2d.of(45.5f, 143.5f));
-            STARPORTS.add(Point2d.of(51.5f, 144.5f));
-            STARPORTS.add(Point2d.of(38.5f, 123.5f));
-            STARPORTS.add(Point2d.of(38.5f, 127.5f));
-            STARPORTS.add(Point2d.of(52.5f, 136.5f));
-            STARPORTS.add(Point2d.of(52.5f, 133.5f));
-            STARPORTS.add(Point2d.of(55.5f, 130.5f));
-            STARPORTS.add(Point2d.of(64.5f, 139.5f));
-            STARPORTS.add(Point2d.of(65.5f, 136.5f));
-            STARPORTS.add(Point2d.of(66.5f, 133.5f));
-            STARPORTS.add(Point2d.of(66.5f, 130.5f));
-            STARPORTS.add(Point2d.of(66.5f, 127.5f));
-            STARPORTS.add(Point2d.of(52.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 134.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(45.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(51.5f, 144.5f));
+            _3x3AddonPosList.add(Point2d.of(38.5f, 123.5f));
+            _3x3AddonPosList.add(Point2d.of(38.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(55.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(64.5f, 139.5f));
+            _3x3AddonPosList.add(Point2d.of(65.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(66.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(66.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(66.5f, 127.5f));
+            _3x3AddonPosList.add(Point2d.of(52.5f, 128.5f));
 
             TURRETS.add(Point2d.of(52.0f, 139.0f));
             TURRETS.add(Point2d.of(43.0f, 134.0f));
@@ -3890,22 +3863,22 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(124.0f, 39.0f);
             REAPER_JUMP2 = Point2d.of(126.5f, 39.5f);
 
-            STARPORTS.add(Point2d.of(154.5f, 28.5f));
-            STARPORTS.add(Point2d.of(153.5f, 24.5f));
-            STARPORTS.add(Point2d.of(150.5f, 20.5f));
-            STARPORTS.add(Point2d.of(144.5f, 20.5f));
-            STARPORTS.add(Point2d.of(137.5f, 20.5f));
-            STARPORTS.add(Point2d.of(125.5f, 24.5f));
-            STARPORTS.add(Point2d.of(125.5f, 27.5f));
-            STARPORTS.add(Point2d.of(123.5f, 33.5f));
-            STARPORTS.add(Point2d.of(124.5f, 30.5f));
-            STARPORTS.add(Point2d.of(123.5f, 36.5f));
-            STARPORTS.add(Point2d.of(129.5f, 36.5f));
-            STARPORTS.add(Point2d.of(130.5f, 39.5f));
-            STARPORTS.add(Point2d.of(147.5f, 45.5f));
-            STARPORTS.add(Point2d.of(153.5f, 47.5f));
-            STARPORTS.add(Point2d.of(150.5f, 35.5f));
-            STARPORTS.add(Point2d.of(136.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 28.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(144.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(125.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(125.5f, 27.5f));
+            _3x3AddonPosList.add(Point2d.of(123.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(124.5f, 30.5f));
+            _3x3AddonPosList.add(Point2d.of(123.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(129.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(130.5f, 39.5f));
+            _3x3AddonPosList.add(Point2d.of(147.5f, 45.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 47.5f));
+            _3x3AddonPosList.add(Point2d.of(150.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 38.5f));
 
             TURRETS.add(Point2d.of(140.0f, 25.0f));
             TURRETS.add(Point2d.of(149.0f, 30.0f));
@@ -3961,22 +3934,22 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(136.0f, 131.0f);
             REAPER_JUMP2 = Point2d.of(135.5f, 133.5f);
 
-            STARPORTS.add(Point2d.of(159.5f, 143.5f));
-            STARPORTS.add(Point2d.of(159.5f, 135.5f));
-            STARPORTS.add(Point2d.of(159.5f, 147.5f));
-            STARPORTS.add(Point2d.of(154.5f, 148.5f));
-            STARPORTS.add(Point2d.of(154.5f, 152.5f));
-            STARPORTS.add(Point2d.of(148.5f, 151.5f));
-            STARPORTS.add(Point2d.of(143.5f, 152.5f));
-            STARPORTS.add(Point2d.of(136.5f, 150.5f));
-            STARPORTS.add(Point2d.of(139.5f, 147.5f));
-            STARPORTS.add(Point2d.of(140.5f, 144.5f));
-            STARPORTS.add(Point2d.of(141.5f, 141.5f));
-            STARPORTS.add(Point2d.of(142.5f, 138.5f));
-            STARPORTS.add(Point2d.of(142.5f, 135.5f));
-            STARPORTS.add(Point2d.of(136.5f, 136.5f));
-            STARPORTS.add(Point2d.of(138.5f, 132.5f));
-            STARPORTS.add(Point2d.of(141.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 143.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(159.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(154.5f, 152.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 151.5f));
+            _3x3AddonPosList.add(Point2d.of(143.5f, 152.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(139.5f, 147.5f));
+            _3x3AddonPosList.add(Point2d.of(140.5f, 144.5f));
+            _3x3AddonPosList.add(Point2d.of(141.5f, 141.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 136.5f));
+            _3x3AddonPosList.add(Point2d.of(138.5f, 132.5f));
+            _3x3AddonPosList.add(Point2d.of(141.5f, 128.5f));
 
             TURRETS.add(Point2d.of(149.0f, 146.0f));
             TURRETS.add(Point2d.of(154.0f, 141.0f));
@@ -4023,22 +3996,22 @@ public class PosConstants {
             //REAPER_JUMP1 = Point2d.of(48.0f, 37.0f);
             REAPER_JUMP2 = Point2d.of(48.5f, 34.5f);
 
-            STARPORTS.add(Point2d.of(22.5f, 33.5f));
-            STARPORTS.add(Point2d.of(22.5f, 36.5f));
-            STARPORTS.add(Point2d.of(24.5f, 40.5f));
-            STARPORTS.add(Point2d.of(28.5f, 32.5f));
-            STARPORTS.add(Point2d.of(28.5f, 35.5f));
-            STARPORTS.add(Point2d.of(30.5f, 38.5f));
-            STARPORTS.add(Point2d.of(22.5f, 24.5f));
-            STARPORTS.add(Point2d.of(22.5f, 21.5f));
-            STARPORTS.add(Point2d.of(29.5f, 19.5f));
-            STARPORTS.add(Point2d.of(26.5f, 17.5f));
-            STARPORTS.add(Point2d.of(39.5f, 16.5f));
-            STARPORTS.add(Point2d.of(34.5f, 16.5f));
-            STARPORTS.add(Point2d.of(43.5f, 24.5f));
-            STARPORTS.add(Point2d.of(43.5f, 21.5f));
-            STARPORTS.add(Point2d.of(49.5f, 21.5f));
-            STARPORTS.add(Point2d.of(49.5f, 25.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 33.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 36.5f));
+            _3x3AddonPosList.add(Point2d.of(24.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 32.5f));
+            _3x3AddonPosList.add(Point2d.of(28.5f, 35.5f));
+            _3x3AddonPosList.add(Point2d.of(30.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(22.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(29.5f, 19.5f));
+            _3x3AddonPosList.add(Point2d.of(26.5f, 17.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 16.5f));
+            _3x3AddonPosList.add(Point2d.of(34.5f, 16.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(43.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 21.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 25.5f));
 
             TURRETS.add(Point2d.of(39.0f, 22.0f));
             TURRETS.add(Point2d.of(30.0f, 27.0f));
@@ -4095,21 +4068,21 @@ public class PosConstants {
             //REAPER_JUMP3 = Point2d.of(126.0f, 147.0f);
             FACTORIES.add(Point2d.of(144.5f, 134.5f));
 
-            STARPORTS.add(Point2d.of(146.5f, 131.5f));
-            STARPORTS.add(Point2d.of(153.5f, 138.5f));
-            STARPORTS.add(Point2d.of(152.5f, 135.5f));
-            STARPORTS.add(Point2d.of(128.5f, 148.5f));
-            STARPORTS.add(Point2d.of(149.5f, 133.5f));
-            STARPORTS.add(Point2d.of(151.5f, 130.5f));
-            STARPORTS.add(Point2d.of(148.5f, 128.5f));
-            STARPORTS.add(Point2d.of(145.5f, 126.5f));
-            STARPORTS.add(Point2d.of(145.5f, 123.5f));
-            STARPORTS.add(Point2d.of(152.5f, 142.5f));
-            STARPORTS.add(Point2d.of(149.5f, 146.5f));
-            STARPORTS.add(Point2d.of(142.5f, 148.5f));
-            STARPORTS.add(Point2d.of(145.5f, 150.5f));
-            STARPORTS.add(Point2d.of(137.5f, 149.5f));
-            STARPORTS.add(Point2d.of(136.5f, 152.5f));
+            _3x3AddonPosList.add(Point2d.of(146.5f, 131.5f));
+            _3x3AddonPosList.add(Point2d.of(153.5f, 138.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 135.5f));
+            _3x3AddonPosList.add(Point2d.of(128.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 133.5f));
+            _3x3AddonPosList.add(Point2d.of(151.5f, 130.5f));
+            _3x3AddonPosList.add(Point2d.of(148.5f, 128.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 126.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 123.5f));
+            _3x3AddonPosList.add(Point2d.of(152.5f, 142.5f));
+            _3x3AddonPosList.add(Point2d.of(149.5f, 146.5f));
+            _3x3AddonPosList.add(Point2d.of(142.5f, 148.5f));
+            _3x3AddonPosList.add(Point2d.of(145.5f, 150.5f));
+            _3x3AddonPosList.add(Point2d.of(137.5f, 149.5f));
+            _3x3AddonPosList.add(Point2d.of(136.5f, 152.5f));
 
             TURRETS.add(Point2d.of(139.0f, 144.0f));
             TURRETS.add(Point2d.of(147.0f, 139.0f));
@@ -4166,20 +4139,20 @@ public class PosConstants {
             BUNKER_NATURAL = Point2d.of(61.5f, 58.5f);
             FACTORIES.add(Point2d.of(49.5f, 36.5f));
 
-            STARPORTS.add(Point2d.of(36.5f, 37.5f));
-            STARPORTS.add(Point2d.of(36.5f, 34.5f));
-            STARPORTS.add(Point2d.of(37.5f, 40.5f));
-            STARPORTS.add(Point2d.of(42.5f, 38.5f));
-            STARPORTS.add(Point2d.of(40.5f, 43.5f));
-            STARPORTS.add(Point2d.of(41.5f, 46.5f));
-            STARPORTS.add(Point2d.of(47.5f, 46.5f));
-            STARPORTS.add(Point2d.of(44.5f, 49.5f));
-            STARPORTS.add(Point2d.of(37.5f, 31.5f));
-            STARPORTS.add(Point2d.of(39.5f, 27.5f));
-            STARPORTS.add(Point2d.of(46.5f, 20.5f));
-            STARPORTS.add(Point2d.of(49.5f, 22.5f));
-            STARPORTS.add(Point2d.of(44.5f, 23.5f));
-            STARPORTS.add(Point2d.of(55.5f, 24.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 37.5f));
+            _3x3AddonPosList.add(Point2d.of(36.5f, 34.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 40.5f));
+            _3x3AddonPosList.add(Point2d.of(42.5f, 38.5f));
+            _3x3AddonPosList.add(Point2d.of(40.5f, 43.5f));
+            _3x3AddonPosList.add(Point2d.of(41.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(47.5f, 46.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 49.5f));
+            _3x3AddonPosList.add(Point2d.of(37.5f, 31.5f));
+            _3x3AddonPosList.add(Point2d.of(39.5f, 27.5f));
+            _3x3AddonPosList.add(Point2d.of(46.5f, 20.5f));
+            _3x3AddonPosList.add(Point2d.of(49.5f, 22.5f));
+            _3x3AddonPosList.add(Point2d.of(44.5f, 23.5f));
+            _3x3AddonPosList.add(Point2d.of(55.5f, 24.5f));
 
             TURRETS.add(Point2d.of(53.0f, 28.0f));
             TURRETS.add(Point2d.of(45.0f, 33.0f));
@@ -4834,7 +4807,7 @@ public class PosConstants {
 //        Strategy.DO_DEFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
 //        Strategy.DO_OFFENSIVE_TANKS = false; //unreliable position for tank pathing so don't make tanks
 //        Strategy.DO_USE_CYCLONES = false; //unreliable position for cyclone pathing so don't make cyclones
-        return STARPORTS.remove(0);
+        return _3x3AddonPosList.remove(0);
     }
 
     public static boolean isMySpawnTop() {

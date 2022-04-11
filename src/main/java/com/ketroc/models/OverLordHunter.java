@@ -11,6 +11,8 @@ import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.UnitMicroList;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
@@ -164,7 +166,9 @@ public class OverLordHunter {
 
         //send barracks to land
         if (barracksLander == null) {
-            Point2d landingPos = PosConstants._3x3Structures.remove(0);
+            Point2d landingPos = Strategy.gamePlan == GamePlan.GHOST_HELLBAT ?
+                    PosConstants._3x3AddonPosList.remove(0) :
+            PosConstants._3x3AddonPosList.remove(0);
             UnitMicroList.add(new StructureFloater(barracks, landingPos, true));
         }
     }
@@ -192,8 +196,8 @@ public class OverLordHunter {
         //create new hunt
         if (overlordHunter == null &&
                 isReadyToHunt() &&
-                UnitUtils.numMyUnits(Units.TERRAN_MARINE, false) > 0 &&
-                UnitUtils.numMyUnits(UnitUtils.BARRACKS_TYPE, false) > 0) {
+                UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, false) > 0 &&
+                UnitUtils.numMyLooseUnits(UnitUtils.BARRACKS_TYPE, false) > 0) {
             getClosestOverlord().ifPresent(ol -> {
                 Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.BARRACKS_TYPE.contains(u.unit().getType()) &&
                                 !Ignored.contains(u.getTag()))

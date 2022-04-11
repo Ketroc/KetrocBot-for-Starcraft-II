@@ -51,7 +51,7 @@ public class CcManager {
         if (MannerMule.doTrollMule) {
             return;
         }
-        List<Unit> ocList = UnitUtils.getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        List<Unit> ocList = UnitUtils.myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         int ocCount = (int)ocList.stream().filter(oc -> oc.getEnergy().get() >= 50f).count(); //OCs with mule energy
         int numMulesAvailable = ocList.stream()
                 .mapToInt(oc -> oc.getEnergy().orElse(0f).intValue() / 50)
@@ -141,142 +141,143 @@ public class CcManager {
 
     private static void ccActivityLogic() {
         for (Unit cc : GameCache.ccList) {
-            if (cc.getBuildProgress() == 1.0f && UnitUtils.getOrder(cc) == null) {
-                switch ((Units) cc.getType()) {
-                    case TERRAN_COMMAND_CENTER:
-                        if (ccToBeOC(cc.getPosition().toPoint2d())) {
-                            if (UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
-                                Point2d expansionBasePos = getNextAvailableExpansionPosition();
+            if (cc.getBuildProgress() != 1.0f || !UnitUtils.canStructureProduce(cc)) {
+                continue;
+            }
+            switch ((Units) cc.getType()) {
+                case TERRAN_COMMAND_CENTER:
+                    if (ccToBeOC(cc.getPosition().toPoint2d())) {
+                        if (UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
+                            Point2d expansionBasePos = getNextAvailableExpansionPosition();
+                            if (expansionBasePos != null) {
+                                floatCCForExpansion(cc, expansionBasePos);
+                            }
+                            else {
+                                //send to a random enemy base
+                                expansionBasePos = UnitUtils.getRandomUnownedBasePos();
                                 if (expansionBasePos != null) {
-                                    floatCCForExpansion(cc, expansionBasePos);
-                                }
-                                else {
-                                    //send to a random enemy base
-                                    expansionBasePos = UnitUtils.getRandomUnownedBasePos();
-                                    if (expansionBasePos != null) {
-                                        if (GameCache.gasBank > 1500 && UnitMicroList.numOfUnitClass(StructureFloaterExpansionCC.class)
-                                                < Base.numEnemyBases() * 2) {
-                                            floatCCForPfHarass(cc, expansionBasePos);
-                                        }
-                                        else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                            KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
-                                        }
+                                    if (GameCache.gasBank > 1500 && UnitMicroList.numOfUnitClass(StructureFloaterExpansionCC.class)
+                                            < Base.numEnemyBases() * 2) {
+                                        floatCCForPfHarass(cc, expansionBasePos);
+                                    }
+                                    else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
                                     }
                                 }
                             }
-                            //float CC from danger if it isn't a base CC
-                            else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
-                                    GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
-                                UnitMicroList.add(new StructureFloater(cc));
-                            }
-                            else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                //TODO: handle logic of Strategy.PRIORITIZE_EXPANDING here
-                                //if not main cc, and if needed for expansion
-                                if (UnitUtils.getDistance(cc, PosConstants.baseLocations.get(0)) > 1 &&
-                                        !Base.isABasePos(cc.getPosition().toPoint2d()) &&
-                                        isCcNeededForExpansion()) {
-                                    Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
-                                    if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up TODO: make OC or wait??
-                                        if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                            KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
-                                        }
-                                    }
-                                    else {
-                                        floatCCForExpansion(cc, nextFreeBasePos);
-                                    }
-                                }
-                                else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
-                                }
-                                break; //don't queue scv
-                            }
                         }
-                        else { //if base that will become a PF TODO: use same logic as OC
-                            if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                if (!Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
-                                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
-                                    break; //don't queue scv
-                                }
-                            }
-                        }
-                        //build scv
-                        if (Bot.OBS.getMinerals() >= 50 &&
-                                UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
-                            ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
-                            Cost.updateBank(Units.TERRAN_SCV);
-                        }
-                        break;
-                    case TERRAN_ORBITAL_COMMAND:
-                        //float OC from danger if it isn't my main base OC
-                        if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
+                        //float CC from danger if it isn't a base CC
+                        else if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
                                 GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
                             UnitMicroList.add(new StructureFloater(cc));
                         }
-                        else if (cc.getEnergy().get() >= 50) {
-                            //scan enemy main at 4:30
-                            if (PosConstants.opponentRace == Race.PROTOSS &&
-                                    Strategy.gamePlan != GamePlan.MARINE_RUSH &&
-                                    Strategy.gamePlan != GamePlan.SCV_RUSH &&
-                                    !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
-                                ActionHelper.unitCommand(cc, Abilities.EFFECT_SCAN,
-                                        Position.towards(PosConstants.enemyMainBaseMidPos, PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 1), 3), false);
-                                Switches.scoutScanComplete = true;
+                        else if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_ORBITAL_COMMAND)) {
+                            //TODO: handle logic of Strategy.PRIORITIZE_EXPANDING here
+                            //if not main cc, and if needed for expansion
+                            if (UnitUtils.getDistance(cc, PosConstants.baseLocations.get(0)) > 1 &&
+                                    !Base.isABasePos(cc.getPosition().toPoint2d()) &&
+                                    isCcNeededForExpansion()) {
+                                Point2d nextFreeBasePos = getNextAvailableExpansionPosition();
+                                if (nextFreeBasePos == null) { //do nothing, waits for expansion to free up TODO: make OC or wait??
+                                    if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                        KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                                    }
+                                }
+                                else {
+                                    floatCCForExpansion(cc, nextFreeBasePos);
+                                }
                             }
-                            else if (!MannerMule.doTrollMule &&
-                                    GameCache.mineralBank < 3000 &&
-                                    !Switches.hasCastOCSpellThisFrame &&
-                                    UnitUtils.numScansAvailable() > Switches.numScansToSave) {
-                                //calldown mule
-                                boolean didMule = false;
-                                for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
-                                    Base base = GameCache.baseList.get(i);
-                                    if (base.isReadyForMining()) {
-                                        int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
-                                        if (numMules < base.getMineralPatchUnits().size()) {
-                                            Unit mineralToMule;
-                                            if (i == 2 && PosConstants.MAP.contains("Golden Wall")) { //special case so mules don't get trapped
-                                                mineralToMule = base.getMineralPatches().stream()
-                                                        .map(MineralPatch::getNode)
-                                                        .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit, base.getCcPos())))
-                                                        .orElse(null);
-                                            }
-                                            else { //mine the largest patch
-                                                mineralToMule = base.getMineralPatches().stream()
-                                                        .map(mineralPatch -> mineralPatch.getNode())
-                                                        .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
-                                                        .orElse(null);
-                                            }
-                                            if (mineralToMule != null) {
-                                                ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, mineralToMule, false);
-                                                didMule = true;
-                                                break;
-                                            }
+                            else if (!Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+                                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, cc));
+                            }
+                            break; //don't queue scv
+                        }
+                    }
+                    else { //if base that will become a PF TODO: use same logic as OC
+                        if (!PurchaseStructureMorph.isTechRequired(Abilities.MORPH_PLANETARY_FORTRESS)) {
+                            if (!Purchase.isMorphQueued(Abilities.MORPH_PLANETARY_FORTRESS)) {
+                                KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_PLANETARY_FORTRESS, cc));
+                                break; //don't queue scv
+                            }
+                        }
+                    }
+                    //build scv
+                    if (Bot.OBS.getMinerals() >= 50 &&
+                            UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
+                        ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
+                        Cost.updateBank(Units.TERRAN_SCV);
+                    }
+                    break;
+                case TERRAN_ORBITAL_COMMAND:
+                    //float OC from danger if it isn't my main base OC
+                    if (InfluenceMaps.getGroundThreatToStructure(cc) * 2 > InfluenceMaps.getAirThreatToStructure(cc) &&
+                            GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(cc, base.getCcPos()) < 2)) {
+                        UnitMicroList.add(new StructureFloater(cc));
+                    }
+                    else if (cc.getEnergy().get() >= 50) {
+                        //scan enemy main at 4:30
+                        if (PosConstants.opponentRace == Race.PROTOSS &&
+                                Strategy.gamePlan != GamePlan.MARINE_RUSH &&
+                                Strategy.gamePlan != GamePlan.SCV_RUSH &&
+                                !Switches.scoutScanComplete && Time.nowFrames() > Time.toFrames("4:30")) {
+                            ActionHelper.unitCommand(cc, Abilities.EFFECT_SCAN,
+                                    Position.towards(PosConstants.enemyMainBaseMidPos, PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 1), 3), false);
+                            Switches.scoutScanComplete = true;
+                        }
+                        else if (!MannerMule.doTrollMule &&
+                                GameCache.mineralBank < 3000 &&
+                                !Switches.hasCastOCSpellThisFrame &&
+                                UnitUtils.numScansAvailable() > Switches.numScansToSave) {
+                            //calldown mule
+                            boolean didMule = false;
+                            for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
+                                Base base = GameCache.baseList.get(i);
+                                if (base.isReadyForMining()) {
+                                    int numMules = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MULE, base.getCcPos(), 10).size();
+                                    if (numMules < base.getMineralPatchUnits().size()) {
+                                        Unit mineralToMule;
+                                        if (i == 2 && PosConstants.MAP.contains("Golden Wall")) { //special case so mules don't get trapped
+                                            mineralToMule = base.getMineralPatches().stream()
+                                                    .map(MineralPatch::getNode)
+                                                    .min(Comparator.comparing(unit -> UnitUtils.getDistance(unit, base.getCcPos())))
+                                                    .orElse(null);
+                                        }
+                                        else { //mine the largest patch
+                                            mineralToMule = base.getMineralPatches().stream()
+                                                    .map(mineralPatch -> mineralPatch.getNode())
+                                                    .max(Comparator.comparing(mineral -> mineral.getMineralContents().orElse(0)))
+                                                    .orElse(null);
+                                        }
+                                        if (mineralToMule != null) {
+                                            ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, mineralToMule, false);
+                                            didMule = true;
+                                            break;
                                         }
                                     }
                                 }
-                                //if no base minerals, then distance mule closest mineral patch
-                                if (!didMule) {
-                                    Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
-                                                    node.unit().getDisplayType() == DisplayType.VISIBLE)
-                                            .stream()
-                                            .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), cc)))
-                                            .map(UnitInPool::unit)
-                                            .ifPresent(nearestMineral -> {
-                                                ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, nearestMineral, false);
-                                            });
-                                }
-                                Switches.hasCastOCSpellThisFrame = true;
                             }
+                            //if no base minerals, then distance mule closest mineral patch
+                            if (!didMule) {
+                                Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
+                                                node.unit().getDisplayType() == DisplayType.VISIBLE)
+                                        .stream()
+                                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), cc)))
+                                        .map(UnitInPool::unit)
+                                        .ifPresent(nearestMineral -> {
+                                            ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, nearestMineral, false);
+                                        });
+                            }
+                            Switches.hasCastOCSpellThisFrame = true;
                         }
-                        //no break
-                    case TERRAN_PLANETARY_FORTRESS:
-                        //build scv
-                        if (UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
-                            ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
-                            Cost.updateBank(Units.TERRAN_SCV);
-                        }
-                        break;
-                }
+                    }
+                    //no break
+                case TERRAN_PLANETARY_FORTRESS:
+                    //build scv
+                    if (UnitUtils.numScvs(true) < Math.min(Base.scvsReqForMyBases() + 10, Strategy.maxScvs)) {
+                        ActionHelper.unitCommand(cc, Abilities.TRAIN_SCV, false);
+                        Cost.updateBank(Units.TERRAN_SCV);
+                    }
+                    break;
             }
         }
     }
@@ -371,7 +372,7 @@ public class CcManager {
         int mineralsRequired = 500;
         if (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_COMMAND_CENTER) == 0 &&
                 UnitUtils.numScvs(true) >= Math.min(Strategy.maxScvs,
-                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
+                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
             mineralsRequired = 400;
         }
 
@@ -381,7 +382,7 @@ public class CcManager {
                         !Placement.possibleCcPosList.isEmpty())) {
             if ((GameCache.mineralBank > GameCache.gasBank && GameCache.gasBank > 2000) ||
                     Base.numAvailableBases() > 0 ||
-                    UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
+                    UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
                 addCCToPurchaseQueue();
             }
         }

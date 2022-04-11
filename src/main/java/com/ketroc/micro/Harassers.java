@@ -107,7 +107,7 @@ public class Harassers {
             }
         }
         if (ArmyManager.doOffense) {
-            int numHellions = UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE).size();
+            int numHellions = UnitUtils.myUnitsOfType(UnitUtils.HELLION_TYPE).size();
             if (numHellions == 0) {
                 return;
             }
@@ -166,7 +166,7 @@ public class Harassers {
     }
 
     public static void addHellion() {
-        Optional<Unit> availableHellion = UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION).stream().findAny();
+        Optional<Unit> availableHellion = UnitUtils.myUnitsOfType(Units.TERRAN_HELLION).stream().findAny();
         availableHellion.ifPresent(hellion -> {
             boolean isClockWiseNeeded = numHellions(true) < numHellions(false);
             UnitMicroList.add(new HellionHarasser(hellion, isClockWiseNeeded));

@@ -19,6 +19,7 @@ public class MyUnitAbilities {
 
     public static void onStepStart() {
         List<Unit> myUnits = Bot.OBS.getUnits(Alliance.SELF).stream().map(UnitInPool::unit).collect(Collectors.toList());
+        map.clear();
         Bot.QUERY.getAbilitiesForUnits(myUnits, false)
                 .forEach(unitAbils -> {
                     //to spot missing abilities in Abilities enums

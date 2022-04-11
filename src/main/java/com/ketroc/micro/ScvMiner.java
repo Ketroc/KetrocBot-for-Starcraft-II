@@ -49,6 +49,6 @@ public class ScvMiner extends Scv {
     @Override
     public boolean isSafe() { //TODO: handle when to avoid damage
         return true;
-        //return InfluenceMaps.getValue(InfluenceMaps.pointPersistentDamageToGround, unit.unit().getPosition().toPoint2d());
+        //return !isInSplashDamage();
     }
 }

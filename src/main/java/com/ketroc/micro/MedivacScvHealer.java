@@ -10,8 +10,11 @@ import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Cost;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
@@ -20,12 +23,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MedivacScvHealer extends BasicUnitMicro {
-    private static Set<Units> FRIENDLY_AA_TYPES = Set.of(Units.TERRAN_CYCLONE, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_MISSILE_TURRET);
+    private static Set<Units> FRIENDLY_AA_TYPES =
+            Set.of(Units.TERRAN_CYCLONE, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_MISSILE_TURRET, Units.TERRAN_GHOST);
     private UnitInPool targetUip;
+    private float prevStepHealth = 150f;
 
     public MedivacScvHealer(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.SURVIVAL);
-        doDetourAroundEnemy = true;
+        doDetourAroundEnemy = Strategy.gamePlan != GamePlan.GHOST_HELLBAT;
     }
 
     public MedivacScvHealer(UnitInPool unit, Point2d targetPos) {
@@ -47,7 +52,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
                 .filter(u -> u.unit().getHealth().orElse(0f) < u.unit().getHealthMax().orElse(0f) &&
                         Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getAttributes().contains(UnitAttribute.BIOLOGICAL) &&
                         !otherMedivacTargets.contains(u.getTag()))
-                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit())))
+                .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), unit.unit()) * 10 + UnitUtils.getCost(u.unit()).getValue()))
                 .orElse(null);
         if (targetUip != null) {
             targetPos = targetUip.unit().getPosition().toPoint2d();
@@ -73,7 +78,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
 
     @Override
     public boolean[][] getThreatMap() {
-        return InfluenceMaps.pointThreatToAirPlusBuffer;
+        return Strategy.gamePlan == GamePlan.GHOST_HELLBAT ? InfluenceMaps.pointThreatToAir : InfluenceMaps.pointThreatToAirPlusBuffer;
     }
 
     @Override
@@ -82,7 +87,9 @@ public class MedivacScvHealer extends BasicUnitMicro {
             onDeath();
             return;
         }
-
+        if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_HEAL && unit.unit().getHealth().orElse(0f) == prevStepHealth) {
+            return;
+        }
         updateTargetPos();
         if (isSafe()) {
             if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_HEAL) {
@@ -129,6 +136,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
         }
 
         super.onStep();
+        prevStepHealth = unit.unit().getHealth().orElse(0f);
     }
 
     @Override
@@ -180,5 +188,15 @@ public class MedivacScvHealer extends BasicUnitMicro {
         return UnitUtils.numInProductionOfType(Units.TERRAN_MEDIVAC) == 0 &&
                 GameCache.allMyUnitsSet.stream().noneMatch(u -> u.unit().getType() == Units.TERRAN_MEDIVAC &&
                         u.unit().getEnergy().orElse(0f) > 10);
+    }
+
+    @Override
+    protected void detour() {
+        Point2d stepBackPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 3);
+        if (!InfluenceMaps.getValue(InfluenceMaps.pointThreatToAir, stepBackPos)) {
+            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, stepBackPos, false);
+            return;
+        }
+        super.detour();
     }
 }

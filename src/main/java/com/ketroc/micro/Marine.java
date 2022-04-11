@@ -42,7 +42,7 @@ public class Marine extends BasicUnitMicro {
     }
 
     @Override
-    public boolean isSafe() {
+    public boolean isSafe() {  //always return true when headed to a bunker
         Unit bunker = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 3f)
                 .stream()
                 .findFirst()

@@ -131,4 +131,8 @@ public class Cost {
     public String toString() {
         return minerals + "m/" + gas + "g/" + supplyFormat.format(supply) + "s";
     }
+
+    public float getValue() {
+        return minerals + gas*1.2f;
+    }
 }

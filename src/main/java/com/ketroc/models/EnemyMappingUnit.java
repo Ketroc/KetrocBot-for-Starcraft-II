@@ -3,14 +3,18 @@ package com.ketroc.models;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.UnitTypeData;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.micro.GhostBasic;
 import com.ketroc.utils.UnitUtils;
 
 public class EnemyMappingUnit extends EnemyMapping {
 
     public EnemyMappingUnit(Unit enemy) {
         unitType = (Units)enemy.getType();
+        unitRadius = enemy.getRadius();
+        empValue = getEmpValue(enemy);
         x = enemy.getPosition().getX();
         y = enemy.getPosition().getY();
         UnitTypeData unitTypeData = Bot.OBS.getUnitTypeData(false).get(unitType);
@@ -78,6 +82,43 @@ public class EnemyMappingUnit extends EnemyMapping {
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking
+    }
+
+    private float getEmpValue(Unit enemy) {
+        float shieldValue = Math.min(100, enemy.getShield().orElse(0f)) * getShieldMultiple(enemy);
+        float energyValue = Math.min(100, enemy.getEnergy().orElse(0f)) * getEnergyMultiple(enemy);
+        return shieldValue + energyValue + getCloakedEmpValue(enemy);
+    }
+
+    private float getShieldMultiple(Unit enemy) {
+        return (UnitUtils.isStructure(enemy.getType()) && !UnitUtils.canAttack(enemy)) ? 0.25f : 1f;
+    }
+
+    private float getEnergyMultiple(Unit enemy) {
+        switch ((Units)enemy.getType()) {
+            case ZERG_VIPER: case ZERG_INFESTOR_BURROWED: case ZERG_INFESTOR:
+            case TERRAN_GHOST: case TERRAN_BANSHEE: case PROTOSS_HIGH_TEMPLAR:
+            case PROTOSS_ORACLE: case PROTOSS_MOTHERSHIP:
+                return 3;
+            case ZERG_QUEEN: case TERRAN_MEDIVAC: case PROTOSS_SENTRY: case TERRAN_RAVEN:
+            case TERRAN_ORBITAL_COMMAND: case PROTOSS_PHOENIX:
+                return 1.75f;
+            case PROTOSS_NEXUS:
+                return 1;
+            case ZERG_OVERSEER: case ZERG_OVERSEER_SIEGED:
+                return 0;
+            case PROTOSS_SHIELD_BATTERY:
+                return enemy.getBuffs().contains(Buffs.BATTERY_OVERCHARGE) ? 0 : 2.5f;
+        }
+        return 0;
+    }
+
+    private float getCloakedEmpValue(Unit enemy) {
+        switch ((Units)enemy.getType()) {
+            case PROTOSS_DARK_TEMPLAR: case TERRAN_BANSHEE: case TERRAN_GHOST:
+                return enemy.getCloakState().stream().anyMatch(state -> state == CloakState.CLOAKED) ? GhostBasic.getEmpThreshold() : 0;
+        }
+        return 0;
     }
 
     private boolean isUnpoweredCannon(Unit enemy) {

@@ -19,16 +19,13 @@ import com.ketroc.managers.UpgradeManager;
 import com.ketroc.micro.Harassers;
 import com.ketroc.models.DelayedChat;
 import com.ketroc.purchases.PurchaseStructure;
-import com.ketroc.utils.Error;
 import com.ketroc.utils.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class Strategy {
     public static boolean ARCHON_MASS_RAVEN; //turn on for playing mass raven in archon mode
+    public static boolean TOURNAMENT_MODE; //turn on to use getTournamentGamePlan()
 
     public static final int NUM_OFFENSE_SCVS = 4;
     public static int NUM_BASES_TO_OC = 1;
@@ -65,6 +62,8 @@ public class Strategy {
     public static final float ENERGY_TO_SAVE = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
     public static final float BANSHEE_RANGE = 6.05f; //range in which banshee will be given the command to attack
+    public static final float HELLBAT_RANGE = 2.05f; //range in which banshee will be given the command to attack
+    public static final float GHOST_RANGE = 6.05f; //range in which ghost will be given the command to attack
     public static final float MARINE_RANGE = 5.05f; //range in which marine will be given the command to attack
     public static final float HELLION_RANGE = 5.05f; //range in which hellion will be given the command to attack
     public static float RAVEN_CAST_RANGE = 10f;
@@ -131,9 +130,9 @@ public class Strategy {
 
     private static void getGameStrategyChoice() {
         setRaceStrategies();
-//        if (!Bot.isRealTime) {
-//            setStrategyNumber(); //TODO: this is off for ladder
-//        }
+        if (TOURNAMENT_MODE) {
+            gamePlan = getTournamentGamePlan();
+        }
         switch (PosConstants.opponentRace) {
             case TERRAN:
                 chooseTvTStrategy();
@@ -153,18 +152,6 @@ public class Strategy {
         }
         DelayedChat.add("Strategy: " + gamePlan);
         Chat.tag(gamePlan.toString());
-
-        //TODO: delete - turning off 2nd factory based on strategy choice
-//        if (gamePlan != GamePlan.RAVEN_CYCLONE &&
-//                gamePlan != GamePlan.BANSHEE_CYCLONE &&
-//                gamePlan != GamePlan.TANK_VIKING &&
-//                gamePlan != GamePlan.ONE_BASE_BANSHEE_CYCLONE &&
-//                gamePlan != GamePlan.ONE_BASE_TANK_VIKING &&
-//                (gamePlan != GamePlan.BUNKER_CONTAIN_STRONG || LocationConstants.opponentRace != Race.TERRAN)) {
-//            if (LocationConstants.FACTORIES.size() == 2) {
-//                LocationConstants.STARPORTS.add(LocationConstants.FACTORIES.remove(1));
-//            }
-//        }
 
         applyOpponentSpecificTweaks();
         setRampWall();
@@ -289,7 +276,7 @@ public class Strategy {
         }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.TANK_VIKING;
+            gamePlan = GamePlan.GHOST_HELLBAT;
         }
 
         switch (gamePlan) {
@@ -462,10 +449,10 @@ public class Strategy {
     }
 
     private static HashSet<GamePlan> getAvailableTvZGamePlans() {
-        if (Launcher.isRealTime) { // TvP vs Humans
+        if (Launcher.isRealTime) { // TvZ vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
                     GamePlan.BANSHEE,
-                    GamePlan.BANSHEE_CYCLONE,
+                    GamePlan.GHOST_HELLBAT,
                     GamePlan.MASS_MINE_OPENER
             ));
             if (Math.random() < 0.5) {
@@ -505,7 +492,8 @@ public class Strategy {
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN,
-                        GamePlan.RAVEN_CYCLONE
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.GHOST_HELLBAT
                 ));
         }
     }
@@ -542,8 +530,9 @@ public class Strategy {
 
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.BANSHEE;
         }
+        gamePlan = GamePlan.MARINE_RUSH; //TODO: delete - for testing
 
         switch (gamePlan) {
             case BANSHEE:
@@ -605,8 +594,9 @@ public class Strategy {
         }
 
         if (gamePlan == GamePlan.NONE) {
-            gamePlan = GamePlan.BANSHEE_CYCLONE;
+            gamePlan = GamePlan.GHOST_HELLBAT;
         }
+        gamePlan = GamePlan.GHOST_HELLBAT; //TODO: delete: for testing
 
         switch (gamePlan) {
             case MASS_MINE_OPENER:
@@ -630,6 +620,22 @@ public class Strategy {
                 break;
             case RAVEN:
                 massRavenStrategy();
+                break;
+            case GHOST_HELLBAT:
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(
+                        List.of(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
+                                Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+                                Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+                                Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3,
+                                Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2,
+                                Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3)
+                );
+                UpgradeManager.engBayUpgradeList = new ArrayList<>(UpgradeManager.bioAttackThenArmorUpgrades);
+                UpgradeManager.engBayUpgradeList.addAll(UpgradeManager.structureUpgrades);
+                BUILD_EXPANDS_IN_MAIN = true;
+                AUTOTURRET_AT_ENERGY = 150;
+                NUM_BASES_TO_OC = 2;
+                MAX_MARINES = 0;
                 break;
             case RAVEN_CYCLONE:
                 useCyclonesAdjustments();
@@ -727,182 +733,6 @@ public class Strategy {
         DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
     }
 
-    private static void setStrategyNumber() {
-        //hardcoded strategies by ID
-        //gamePlan = getStrategyByOpponentId();
-        try {
-            // ====================================
-            // ===== For Best-of Series Below =====
-            // ====================================
-
-            //get list of previous results vs this opponent
-            String fileText = Files.readString(Paths.get("./data/prevResult.txt"));
-            List<String[]> prevResults = new ArrayList<>();
-            Print.print("fileText = " + fileText);
-            if (fileText.contains(KetrocBot.opponentId)) {
-                String[] rows = fileText.split("\r\n");
-                for (String row : rows) {
-                    Print.print(row);
-                    prevResults.add(row.split("~"));
-                }
-            }
-            playAllStrategiesFirst(fileText, prevResults);
-//            if (KetrocBot.opponentId.equals("81fa0acc-93ea-479c-9ba5-08ae63b9e3f5")) { //Micromachine
-//                playStrategyUntilItLoses(fileText, prevResults);
-//            }
-//            else {
-//                playAllStrategiesFirst(fileText, prevResults);
-//                playStrategyUntilItLoses(fileText, prevResults); //TODO: switch back
-//            }
-
-        }
-        catch (IOException e) {
-            Error.onException(e);
-        }
-    }
-
-//    private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResults) {
-//        //get strategy order by id
-//        GamePlan[] strategies = getTournamentStrategyOrder();
-//
-//        if (prevResults.isEmpty()) {
-//            return;
-//        }
-//        String[] prevGame = prevResults.get(prevResults.size()-1);
-//        GamePlan prevGamePlan = GamePlan.valueOf(prevGame[1]);
-//        String prevGameResult = prevGame[2];
-//        if (prevGameResult.equals("W")) {
-//            gamePlan = prevGamePlan;
-//            Print.print("Selecting strategy: " + gamePlan + " cuz it won last game.");
-//        }
-//        else {
-//            gamePlan = getNextGamePlan(prevGamePlan);
-//            Print.print("Selecting strategy: " + gamePlan + " cuz prev strategy lost last game.");
-//        }
-//
-//    }
-
-//    private static void playStrategyUntilItLoses(String fileText, List<String[]> prevResultList) {
-//        //get strategy order by id
-//        GamePlan[] strategies = getTournamentStrategyOrder();
-//
-//        //no opponent specific strategy, and no history
-//        if (strategies == null) {
-//            if (prevResultList.isEmpty() || !prevResultList.get(0)[0].equals(KetrocBot.opponentId)) {
-//                Print.print("using GamePlan.BANSHEES cuz no list and no history");
-//                gamePlan = GamePlan.BANSHEES;
-//            }
-//            //no opponent specific strategy, and with history
-//            else {
-//                String[] prevResult = prevResultList.get(prevResultList.size() - 1);
-//                if (prevResult[2].equals("L")) {
-//                    gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
-//                    Print.print("using " + gamePlan + " cuz no list and lost last game");
-//                }
-//                else {
-//                    gamePlan = GamePlan.valueOf(prevResult[1]);
-//                    Print.print("using " + gamePlan + " cuz no list and won last game");
-//                }
-//            }
-//            return;
-//        }
-//        //if opponent specific strategy, and no history
-//        if (prevResultList.isEmpty() || !prevResultList.get(0)[0].equals(KetrocBot.opponentId)) {
-//            gamePlan = GamePlan.valueOf(prevResultList.get(0)[1]);
-//            Print.print("using " + gamePlan + " cuz first in list and no history");
-//        }
-//        //if opponent specific strategy, and with history
-//        else {
-//            String[] prevResult = prevResultList.get(prevResultList.size() - 1);
-//            if (prevResult[2].equals("W")) {
-//                gamePlan = GamePlan.valueOf(prevResult[1]);
-//                Print.print("using " + gamePlan + " cuz no list and won last game");
-//            }
-//            else {
-//                int nextIndex = (strategies.indexOf(GamePlan.valueOf(prevResult[1])) + 1) % availableGamePlans.size();
-//                .get(nextIndex);
-//                gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
-//                Print.print("using " + gamePlan + " cuz no list and lost last game");
-//            }
-//        }
-//
-//
-//        if (!wereAllStrategiesUsed(strategies, fileText)) {
-//            for (GamePlan strategy : strategies) {
-//                Print.print("checking strategy: " + strategy);
-//                if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
-//                    if (strategy == GamePlan.SCV_RUSH &&
-//                            (LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || LocationConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
-//                        Print.print("skipping scv rush cuz it's Pillars of Gold");
-//                        continue;
-//                    }
-//                    gamePlan = strategy;
-//                    Print.print("using " + gamePlan + " cuz it's in the strategy list");
-//                    return;
-//                }
-//            }
-//        }
-//
-//        //if no more planned strategies, pick whichever one won
-//        gamePlan = prevResultList.stream()
-//                .filter(result -> result[0].equals(KetrocBot.opponentId) && result[2].equals("W"))
-//                .map(result -> GamePlan.valueOf(result[1]))
-//                .findFirst()
-//                .orElse(GamePlan.valueOf(prevResultList.get(0)[1]));
-//        Print.print("using " + gamePlan + " cuz list finished and this is a strat that won (default: first in list)");
-//    }
-
-
-    private static void playAllStrategiesFirst(String fileText, List<String[]> prevResults) {
-        //get strategy order by id
-        GamePlan[] strategies = getTournamentStrategyOrder();
-
-        //no opponent specific strategy, and no history
-        if (strategies == null) {
-            if (prevResults.isEmpty() || !prevResults.get(0)[0].equals(KetrocBot.opponentId)) {
-                Print.print("using GamePlan.BANSHEES cuz no list and no history");
-                gamePlan = GamePlan.BANSHEE;
-            }
-            //no opponent specific strategy, and with history
-            else {
-                String[] prevResult = prevResults.get(prevResults.size() - 1);
-                if (prevResult[2].equals("L")) {
-                    gamePlan = getNextGamePlan(GamePlan.valueOf(prevResult[1]));
-                    Print.print("using " + gamePlan + " cuz no list and lost last game");
-                }
-                else {
-                    gamePlan = GamePlan.valueOf(prevResult[1]);
-                    Print.print("using " + gamePlan + " cuz no list and won last game");
-                }
-            }
-            return;
-        }
-        //select next planned strategy
-        if (!wereAllStrategiesUsed(strategies, fileText)) {
-            for (GamePlan strategy : strategies) {
-                Print.print("checking strategy: " + strategy);
-                if (!fileText.contains(KetrocBot.opponentId + "~" + strategy + "~")) {
-                    if (strategy == GamePlan.SCV_RUSH &&
-                            (PosConstants.MAP.equals(MapNames.PILLARS_OF_GOLD) || PosConstants.MAP.equals(MapNames.PILLARS_OF_GOLD506))) {
-                        Print.print("skipping scv rush cuz it's Pillars of Gold");
-                        continue;
-                    }
-                    gamePlan = strategy;
-                    Print.print("using " + gamePlan + " cuz it's in the strategy list");
-                    return;
-                }
-            }
-        }
-
-        //if no more planned strategies, pick whichever one won
-        gamePlan = prevResults.stream()
-                .filter(result -> result[0].equals(KetrocBot.opponentId) && result[2].equals("W"))
-                .map(result -> GamePlan.valueOf(result[1]))
-                .findFirst()
-                .orElse(GamePlan.valueOf(prevResults.get(0)[1]));
-        Print.print("using " + gamePlan + " cuz list finished and this is a strat that won (default: first in list)");
-    }
-
     private static boolean wereAllStrategiesUsed(GamePlan[] strategies, String fileText) {
         for (GamePlan strategy : strategies) {
             if (!fileText.contains("~" + strategy + "~")) {
@@ -913,7 +743,10 @@ public class Strategy {
     }
 
     private static GamePlan[] getTournamentStrategyOrder() {
-        switch (KetrocBot.opponentId) { //0 standard, 1 proxy bunker, 2 scv rush, 3 mass raven, 4 marine all-in
+        switch (KetrocBot.opponentId) {
+            //TODO: add ghost_hellbat
+            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
+                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE };
             case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
             case "10ecc3c36541ead": //RStrelok (LM)
                 return new GamePlan[]{GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_STRONG};
@@ -929,7 +762,7 @@ public class Strategy {
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
-                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.BANSHEE, GamePlan.BANSHEE_CYCLONE};
+                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.TANK_VIKING};
 //            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
 //                return new int[]{0, 1, 2};
 //            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
@@ -939,7 +772,7 @@ public class Strategy {
 //            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
 //                return new int[]{3, 1};
         }
-        return null;
+        return new GamePlan[]{};
     }
 
 //    public static int getMaxScvs() {
@@ -1131,7 +964,7 @@ public class Strategy {
         opponentRecords.filterToGamePlans(gamePlans);
 
         //play 4 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1);
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
 
         //pick the winningest strategy (exclude most recent loss strategy)
         if (gamePlan == GamePlan.NONE) {
@@ -1143,9 +976,24 @@ public class Strategy {
         if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
             Strategy.BUILD_EXPANDS_IN_MAIN = true;
             Strategy.WALL_OFF_IMMEDIATELY = true;
-            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+            //DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
         }
         return gamePlan;
     }
 
+    //plays each strategy once NOTE: make sure data is empty for this bot
+    public static GamePlan getTournamentGamePlan() {
+        GamePlan[] gamePlans = getTournamentStrategyOrder();
+        Opponent opponentRecords = JsonUtil.getOpponentRecords();
+
+        //return an unused gameplan
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1,
+                winLossRecord -> Arrays.asList(gamePlans).contains(winLossRecord.getGamePlan()));
+        if (gamePlan != GamePlan.NONE) {
+            return gamePlan;
+        }
+
+        //or else return the winningest gameplan
+        return opponentRecords.getWinningestGamePlan();
+    }
 }

@@ -127,7 +127,7 @@ public class DroneRush {
                     ActionHelper.unitCommand(dronesWithMinerals, Abilities.HARVEST_RETURN_DRONE, false);
                 }
 
-                if (UnitUtils.getMyUnitsOfType(Units.ZERG_EGG).isEmpty()) {
+                if (UnitUtils.myUnitsOfType(Units.ZERG_EGG).isEmpty()) {
                     droneList.addAll(DroneDrill.lateDrones);
                     DroneDrill.lateDrones.clear();
                     ActionHelper.unitCommand(UnitUtils.toUnitList(droneList), Abilities.ATTACK,

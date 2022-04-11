@@ -7,6 +7,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.GameCache;
 import com.ketroc.micro.BasicUnitMicro;
 import com.ketroc.micro.Chaser;
+import com.ketroc.micro.Hellbat;
+import com.ketroc.micro.UnitMicroList;
+import com.ketroc.utils.InfluenceMaps;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
@@ -18,15 +21,17 @@ import java.util.List;
 //banshee, overlord/seer, observer,
 public class GroundUnitKillSquad {
     public static final int MAX_THREAT = 3;
+    public static long prevHellionMorphFrame;
+    public static long createdFrame;
 
     public static List<GroundUnitKillSquad> enemyGroundTargets = new ArrayList<>();
 
     private Chaser chaser;
     private Chaser raven;
-    private UnitInPool targetUnit;
+    private UnitInPool targetUip;
 
-    public GroundUnitKillSquad(UnitInPool targetUnit) {
-        this.targetUnit = targetUnit;
+    public GroundUnitKillSquad(UnitInPool targetUip) {
+        this.targetUip = targetUip;
     }
 
     public BasicUnitMicro getRaven() {
@@ -37,12 +42,12 @@ public class GroundUnitKillSquad {
         this.raven = raven;
     }
 
-    public UnitInPool getTargetUnit() {
-        return targetUnit;
+    public UnitInPool getTargetUip() {
+        return targetUip;
     }
 
-    public void setTargetUnit(UnitInPool targetUnit) {
-        this.targetUnit = targetUnit;
+    public void setTargetUip(UnitInPool targetUip) {
+        this.targetUip = targetUip;
     }
 
     public Chaser getChaser() {
@@ -91,13 +96,13 @@ public class GroundUnitKillSquad {
     }
 
     public boolean isRavenRequired() {
-        return targetUnit.unit().getType() == Units.TERRAN_GHOST ||
-                targetUnit.unit().getType() == Units.PROTOSS_DARK_TEMPLAR ||
-                targetUnit.unit().getType() == Units.ZERG_LURKER_MP; //TODO: add zerg units when burrow-tech is detected
+        return targetUip.unit().getType() == Units.TERRAN_GHOST ||
+                targetUip.unit().getType() == Units.PROTOSS_DARK_TEMPLAR ||
+                targetUip.unit().getType() == Units.ZERG_LURKER_MP; //TODO: add zerg units when burrow-tech is detected
     }
 
     public List<Units> getChaserTypes() {
-        switch ((Units)targetUnit.unit().getType()) {
+        switch ((Units) targetUip.unit().getType()) {
 //            case ZERG_DRONE: case PROTOSS_PROBE: case TERRAN_SCV:
 //            case ZERG_ZERGLING: case ZERG_BANELING: case PROTOSS_ZEALOT:
 //            case TERRAN_REAPER: case TERRAN_HELLION_TANK:
@@ -113,7 +118,7 @@ public class GroundUnitKillSquad {
             case ZERG_DRONE: case ZERG_ZERGLING: case ZERG_BANELING: case PROTOSS_DARK_TEMPLAR:
             case PROTOSS_PROBE: case PROTOSS_ZEALOT: case PROTOSS_ADEPT:
             case TERRAN_SCV: case TERRAN_HELLION_TANK:
-                return List.of(Units.TERRAN_HELLION);
+                return List.of(Units.TERRAN_HELLION, Units.TERRAN_MARAUDER);
         }
         return Collections.emptyList();
     }
@@ -128,38 +133,62 @@ public class GroundUnitKillSquad {
         raven = null;
     }
 
+    //FIXME: marauders are never picked cuz they are all objects in UnitMicroList
     private void addChaser() {
         List<Units> validChaserTypes = getChaserTypes();
         for (Units chaserType : validChaserTypes) {
-            List<Unit> validChasers = UnitUtils.getMyUnitsOfType(chaserType); //TODO: handle removing ignoreds from unit lists/maps in gamecache
+            List<Unit> validChasers = UnitUtils.myUnitsOfType(chaserType); //TODO: handle removing ignoreds from unit lists/maps in gamecache
             if (validChasers.isEmpty()) {
                 continue;
             }
             validChasers.stream()
                     .filter(u -> !Ignored.contains(u.getTag()))
-                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u, targetUnit.unit())))
+                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u, targetUip.unit())))
                     .ifPresent(u -> {
-                        chaser = new Chaser(u, targetUnit);
+                        chaser = new Chaser(u, targetUip);
                         Ignored.add(new IgnoredUnit(u.getTag()));
                     });
             return;
         }
+        //if no chaser found, try morphing the nearest hellbat
+        if (Time.after(prevHellionMorphFrame + 24) &&
+                Time.after(createdFrame + 24) && //don't morph on the step where I see the first unit of a bigger army
+                validChaserTypes.contains(Units.TERRAN_HELLION) &&
+                UnitMicroList.numOfUnitClass(Hellbat.class) > 0 &&
+                !Hellbat.isAnyMorphing()) {
+            morphNearestHellbat();
+        }
+    }
+
+    private void morphNearestHellbat() {
+        UnitMicroList.getUnitSubList(Hellbat.class).stream()
+                .filter(hellbat ->
+                        !InfluenceMaps.getValue(
+                                InfluenceMaps.pointThreatToGroundPlusBuffer,
+                                hellbat.unit.unit().getPosition().toPoint2d()
+                        )
+                )
+                .min(Comparator.comparing(hellbat -> UnitUtils.getDistance(hellbat.unit.unit(), targetUip.unit())))
+                .ifPresent(hellbat -> {
+                    hellbat.morph();
+                    prevHellionMorphFrame = Time.nowFrames();
+                });
     }
 
     private void addRaven() {
         GameCache.ravenList.stream()
                 .filter(closestRaven -> !Ignored.contains(closestRaven.getTag()))
-                .min(Comparator.comparing(closestRaven -> UnitUtils.getDistance(closestRaven, targetUnit.unit())))
+                .min(Comparator.comparing(closestRaven -> UnitUtils.getDistance(closestRaven, targetUip.unit())))
                 .ifPresent(closestRaven -> {
-                    raven = new Chaser(closestRaven, targetUnit);
+                    raven = new Chaser(closestRaven, targetUip);
                     Ignored.add(new IgnoredUnit(closestRaven.getTag()));
                     GameCache.ravenList.remove(closestRaven);
                 });
     }
 
     private void removeAll() {
-        if (targetUnit != null) {
-            Ignored.remove(targetUnit.getTag());
+        if (targetUip != null) {
+            Ignored.remove(targetUip.getTag());
         }
         if (chaser != null) {
             Ignored.remove(chaser.unit.getTag());
@@ -171,9 +200,9 @@ public class GroundUnitKillSquad {
 
     //cancel killsquad is target is dead, in fog (for over 4s), or protected from vikings
     private boolean shouldCancelKillSquad() {
-        return !targetUnit.isAlive() ||
-                targetUnit.getLastSeenGameLoop() + 96 <= Time.nowFrames() ||
-                !UnitUtils.isEnemyUnitSolo(targetUnit.unit());
+        return !targetUip.isAlive() ||
+                targetUip.getLastSeenGameLoop() + 96 <= Time.nowFrames() ||
+                !UnitUtils.isEnemyUnitSolo(targetUip.unit());
     }
 
 
@@ -195,10 +224,10 @@ public class GroundUnitKillSquad {
     }
 
     public static boolean contains(Tag targetTag) {
-        return enemyGroundTargets.stream().anyMatch(killSquad -> killSquad.targetUnit.getTag().equals(targetTag));
+        return enemyGroundTargets.stream().anyMatch(killSquad -> killSquad.targetUip.getTag().equals(targetTag));
     }
 
-    public static void add(UnitInPool newTarget) {
+    public static void add(UnitInPool newTarget) { //TODO: don't create object if no chasers available
         if (!contains(newTarget.getTag())) {
             enemyGroundTargets.add(new GroundUnitKillSquad(newTarget));
             Ignored.add(new IgnoredUnit(newTarget.getTag()));
@@ -207,9 +236,9 @@ public class GroundUnitKillSquad {
 
     public static void remove(Tag targetTagToRemove) {
         enemyGroundTargets.stream()
-                .filter(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove))
+                .filter(killSquad -> killSquad.targetUip.getTag().equals(targetTagToRemove))
                 .forEach(killSquad -> killSquad.removeAll());
-        enemyGroundTargets.removeIf(killSquad -> killSquad.targetUnit.getTag().equals(targetTagToRemove));
+        enemyGroundTargets.removeIf(killSquad -> killSquad.targetUip.getTag().equals(targetTagToRemove));
     }
 
     public static boolean isValidEnemyType(Units unitType) {

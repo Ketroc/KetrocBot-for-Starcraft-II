@@ -65,4 +65,11 @@ public class Time {
         return periodic(numMinutes, Launcher.STEP_SIZE);
     }
 
+    public static boolean after(long frame) {
+        return Time.nowFrames() > frame;
+    }
+
+    public static boolean before(long frame) {
+        return Time.nowFrames() < frame;
+    }
 }

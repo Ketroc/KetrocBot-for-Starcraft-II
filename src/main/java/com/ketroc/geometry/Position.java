@@ -377,7 +377,7 @@ public class Position {
 
     // 0 = right, 90 = up, 180 = left, 270 = down
     public static float getAngle(Point2d origin, Point2d target) {
-        return ((float)Math.toDegrees(Math.atan2(origin.getX() - target.getX(), target.getY() - origin.getY())) + 270) % 360;
+        return ((float)Math.toDegrees(Math.atan2(target.getX() - origin.getX(), origin.getY() - target.getY())) + 270) % 360;
     }
 
     public static float getAngleDifference(float angle1, float angle2) {

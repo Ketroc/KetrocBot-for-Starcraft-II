@@ -216,7 +216,7 @@ public class BunkerContain {
 
     private static boolean readyToBuildFactory() {
         return Bot.OBS.getVespene() > 55 &&
-                UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
+                UnitUtils.numMyLooseUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
                 barracks != null;
     }
 
@@ -279,7 +279,7 @@ public class BunkerContain {
     }
 
     private static void siegeTankTargetting() {
-        for (Unit tank : UnitUtils.getMyUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)) {
+        for (Unit tank : UnitUtils.myUnitsOfType(Units.TERRAN_SIEGE_TANK_SIEGED)) {
             //only find a target if tank is about to fire
             if (!UnitUtils.isWeaponAvailable(tank)) {
                 continue;
@@ -496,7 +496,7 @@ public class BunkerContain {
     }
     private static int getMarineCount() {
         int marineCount = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MARINE).size();
-        marineCount += UnitUtils.getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
+        marineCount += UnitUtils.myUnitsOfType(Units.TERRAN_BUNKER).stream()
                 .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
                 .sum();
         return marineCount;
@@ -634,7 +634,7 @@ public class BunkerContain {
         if (!isContainBroken()) {
             if (bunkerDied) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.proxyBunkerPos));
-                UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).stream()
+                UnitUtils.myUnitsOfType(Units.TERRAN_MARINE).stream()
                         .forEach(marine -> UnitMicroList.add(new MarineProxyBunker(marine, PosConstants.proxyBunkerPos)));
             }
             return false;
@@ -668,6 +668,9 @@ public class BunkerContain {
                 }
             }
         }
+
+        //cancel all siege tanks queued
+        Purchase.removeAll(Units.TERRAN_SIEGE_TANK);
 
         //float barracks home
         if (barracks != null && barracks.isAlive() && barracks.unit().getBuildProgress() == 1) {

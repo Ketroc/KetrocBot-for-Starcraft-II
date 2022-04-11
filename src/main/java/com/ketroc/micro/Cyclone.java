@@ -64,15 +64,15 @@ public class Cyclone extends BasicUnitMicro {
 
     @Override
     public void onStep() {
-        removeLockTarget();
-        updateTargetPos();
-        visualizeLock();
-        visualizeCooldown();
-
         if (!isAlive()) {
             onDeath();
             return;
         }
+
+        removeLockTarget();
+        updateTargetPos();
+        visualizeLock();
+        visualizeCooldown();
 
         //if currently trying to lock on
         if (lockTarget != null && UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
@@ -129,12 +129,17 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private boolean stayInDamageRange() {
-        //always false unless at edge of lock range
-        if (lockTarget == null || aboutToLoseVision()) {
+        //no lock on
+        if (lockTarget == null) {
             return false;
         }
 
-        //be suicidal vs tempests
+        //not about to lose lock
+        if (!aboutToLoseLock()) {
+            return false;
+        }
+
+        //always maintain lock vs tempests
         if (lockTarget.unit().getType() == Units.PROTOSS_TEMPEST) {
             return true;
         }
@@ -144,13 +149,13 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     //enemy near maxed lock range of about to step into fog of war
-    private boolean aboutToLoseVision() {
-        float range = UnitUtils.getRange(lockTarget.unit(), unit.unit());
-        return range > 13f || (range > 10f &&
+    private boolean aboutToLoseLock() {
+        return UnitUtils.getRange(lockTarget.unit(), unit.unit()) > 13f ||
                 Bot.OBS.getVisibility(
                         Position.towards(lockTarget.unit().getPosition().toPoint2d(),
                                 unit.unit().getPosition().toPoint2d(),
-                                -2)) != Visibility.VISIBLE);
+                                -2)
+                ) != Visibility.VISIBLE;
     }
 
     private boolean targetNearDeath() {
@@ -236,7 +241,7 @@ public class Cyclone extends BasicUnitMicro {
                             !SOFT_LOCK_TYPES.contains(enemy.unit().getType()) &&
                             enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
                             !UnitUtils.isSnapshot(enemy.unit()) &&
-                            (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit().getType())) && //units or attacking structures
+                            (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit())) && //units or attacking structures
                             UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <=
                                     getRangeToCheck((Units) enemy.unit().getType()) &&
                             targetAcceptingMoreLocks(enemy) &&
@@ -286,9 +291,9 @@ public class Cyclone extends BasicUnitMicro {
         int numLocks = Cyclone.numLocks(enemy.getTag());
         return numLocks == 0 || (
                 UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) && (
-                        UnitUtils.getTotalHealth(enemy.unit())/numLocks > 900 || ( //1:pylon/extractor, 2:gateway/barracks/cc, 3:nexus/lair/hive
-                                UnitUtils.canAttack(enemy.unit().getType()) &&
-                                UnitUtils.getTotalHealth(enemy.unit())/numLocks > 160 //1:stalker/ravager, 2:tempest/tank, 3:BC/thor
+                        UnitUtils.getCurHp(enemy.unit())/numLocks > 900 || ( //1:pylon/extractor, 2:gateway/barracks/cc, 3:nexus/lair/hive
+                                UnitUtils.canAttack(enemy.unit()) &&
+                                UnitUtils.getCurHp(enemy.unit())/numLocks > 160 //1:stalker/ravager, 2:tempest/tank, 3:BC/thor
                         )
                 )
         );

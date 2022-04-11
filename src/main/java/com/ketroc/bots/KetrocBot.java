@@ -55,11 +55,11 @@ public class KetrocBot extends Bot {
             Print.print("opponentId = " + opponentId);
 
             //set map
-            LocationConstants.MAP = OBS.getGameInfo().getMapName();
-            System.out.println("LocationConstants.MAP = " + LocationConstants.MAP);
+            PosConstants.MAP = OBS.getGameInfo().getMapName();
+            System.out.println("LocationConstants.MAP = " + PosConstants.MAP);
 
             //set enemy race
-            LocationConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
+            PosConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
                     .filter(playerInfo -> playerInfo.getPlayerId() != OBS.getPlayerId())
                     .findFirst()
                     .get()
@@ -68,7 +68,7 @@ public class KetrocBot extends Bot {
             UnitInPool mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
 
             //get map, get hardcoded map locations
-            LocationConstants.onGameStart(mainCC);
+            PosConstants.onGameStart(mainCC);
 
             //initialize list of extra cc positions
             Placement.onGameStart();
@@ -83,7 +83,7 @@ public class KetrocBot extends Bot {
             GameCache.setInitialEnemyBases();
 
             //set main midpoint (must be done after GameState.onStep())
-            LocationConstants.setRepairBayLocation();
+            PosConstants.setRepairBayLocation();
             PlacementMap.onGameStart();
 
             BuildOrder.onGameStart();
@@ -91,6 +91,7 @@ public class KetrocBot extends Bot {
             MarineAllIn.onGameStart();
             //WorkerRushDefense2.onGameStart();
             Base.onGameStart();
+            MannerMule.onGameStart();
 
             Strategy.printStrategySettings();
 
@@ -121,7 +122,7 @@ public class KetrocBot extends Bot {
             //first step of the game
             if (Time.at(Launcher.STEP_SIZE)) {
                 //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
-                JsonUtil.chatAllWinRates(true);
+                //JsonUtil.chatAllWinRates(true); //TODO: turned off for probots
             }
 
             TurretingRaven.onStepStart();
@@ -130,22 +131,22 @@ public class KetrocBot extends Bot {
             EnemyScan.onStepStart(); //remove expired enemy scans
             GameCache.onStepStart(); //rebuild unit cache every frame
             WorkerManager.onStepStart(); //fix workers, make refineries
+            NukeTracker.onStep();
 
-            switch (LocationConstants.opponentRace) {
+            switch (PosConstants.opponentRace) {
                 case ZERG:
                     BileTracker.onStep();
                     break;
                 case PROTOSS:
                     AdeptShadeTracker.onStep();
                     break;
-                case TERRAN:
-                    NukeTracker.onStep();
-                    break;
             }
             //PlacementMap.visualizePlacementMap();
 
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
-            OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
+            if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
+                OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
+            }
 
 //            StructureScv.updateBank(); //update bank for build commands which haven't been given yet
             GasStealDefense.onStep(); //check for early-game gas steal and respond
@@ -220,13 +221,13 @@ public class KetrocBot extends Bot {
             //Strategy.onStep(); //effect game strategy
             UpgradeManager.onStep();
             BuildManager.onStep(); //build structures
-            ArmyManager.onStep(); //decide army movements
+            ArmyManager.onStep(); //decide army movements (GroundUnitKillSquad required to run before UnitMicroList)
             UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads
             GroundUnitKillSquad.onStep(); //micro kill squads for solo enemy ground units
             Harassers.onStep();
-            MuleMessages.onStep(); //make minimap troll messages with mules
-            LocationConstants.onStep(); //manage which enemy base to target
+            MannerMule.onStep(); //make minimap troll messages with mules
+            PosConstants.onStep(); //manage which enemy base to target
 
             purchaseQueue.remove(toRemove);
 
@@ -258,27 +259,23 @@ public class KetrocBot extends Bot {
                         if (BunkerContain.proxyBunkerLevel != 0) {
                             BunkerContain.onBarracksComplete();
                         }
-                        else {
-                            //set rally
-                            ActionHelper.unitCommand(unit, Abilities.RALLY_BUILDING, LocationConstants.insideMainWall, false);
-                        }
 
-                        //get OC
-                        if (GameCache.baseList.get(0).getCc() != null &&
-                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER &&
-                                !Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
-                        }
-
-                        //put factory at top of queue
-                        if (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
-                            if (GameCache.gasBank > 0) {
-                                purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-                            }
-                            else {
-                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, LocationConstants.getFactoryPos()));
-                            }
-                        }
+//                        //get OC TODO: testing having these off as it really shouldn't be done here.
+//                        if (GameCache.baseList.get(0).getCc() != null &&
+//                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER &&
+//                                !Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
+//                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+//                        }
+//
+//                        //put factory at top of queue
+//                        if (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
+//                            if (GameCache.gasBank > 0) {
+//                                purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
+//                            }
+//                            else {
+//                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
+//                            }
+//                        }
 
                         break;
                     case TERRAN_BARRACKS_TECHLAB: //queue up marauders after the 2nd depot
@@ -288,12 +285,12 @@ public class KetrocBot extends Bot {
 //                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
                         break;
                     case TERRAN_BUNKER:
-                        if (BunkerContain.proxyBunkerLevel != 0 && UnitUtils.getDistance(unit, LocationConstants.proxyBunkerPos) < 1) {
+                        if (BunkerContain.proxyBunkerLevel != 0 && UnitUtils.getDistance(unit, PosConstants.proxyBunkerPos) < 1) {
                             BunkerContain.onBunkerComplete();
                         }
                         else {
                             //rally bunker to inside main base wall
-                            ActionHelper.unitCommand(unit, Abilities.SMART, LocationConstants.insideMainWall, false);
+                            ActionHelper.unitCommand(unit, Abilities.SMART, PosConstants.insideMainWall, false);
 
                             //load bunker with nearby marines
                             List<UnitInPool> nearbyMarines = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_MARINE, unit.getPosition().toPoint2d(), 60);
@@ -322,7 +319,7 @@ public class KetrocBot extends Bot {
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:
-                        if (BunkerContain.proxyBunkerLevel == 2 && UnitUtils.getDistance(unit, LocationConstants.proxyBarracksPos) < 5) {
+                        if (BunkerContain.proxyBunkerLevel == 2 && UnitUtils.getDistance(unit, PosConstants.proxyBarracksPos) < 5) {
                             BunkerContain.onFactoryTechLabComplete();
                         }
                         //TODO: testing cyclones
@@ -338,8 +335,8 @@ public class KetrocBot extends Bot {
 //                        break;
                     case TERRAN_COMMAND_CENTER:
                         //start mining out mineral wall
-                        if (LocationConstants.MAP.contains("Golden Wall") &&
-                                UnitUtils.numMyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
+                        if (PosConstants.MAP.contains("Golden Wall") &&
+                                UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
                                         >= (Strategy.MASS_RAVENS ? 3 : 4)) {
                             IgnoredMineralWallScv.addScv();
                         }
@@ -428,6 +425,14 @@ public class KetrocBot extends Bot {
                         }
                     }
                     break;
+                case TERRAN_BARRACKS:
+                    if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
+                        ActionHelper.unitCommand(unit, Abilities.RALLY_BUILDING, PosConstants.insideMainWall, false);
+                    } else {
+                        //set rally on factories to left side
+                        Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
+                    }
+                    break;
                 case TERRAN_FACTORY:
                     //set rally on factories to left side
                     Bot.ACTION.unitCommand(unit, Abilities.RALLY_BUILDING, unit.getPosition().toPoint2d().add(-2, -1), false);
@@ -465,7 +470,7 @@ public class KetrocBot extends Bot {
                     case SELF:
                         switch ((Units) unit.getType()) {
                             case TERRAN_COMMAND_CENTER: //ignore CCs in enemy territory
-                                Point2d enemyNatPos = LocationConstants.baseLocations.get(LocationConstants.baseLocations.size() - 2);
+                                Point2d enemyNatPos = PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 2);
                                 if (UnitUtils.getDistance(unit, enemyNatPos) <= Placement.MIN_DISTANCE_FROM_ENEMY_NAT){
                                     break;
                                 }
@@ -477,21 +482,22 @@ public class KetrocBot extends Bot {
                                 break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list
                                 if (UnitUtils.isWallingStructure(unit)) {
-                                    LocationConstants.extraDepots.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                    PosConstants.extraDepots.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
                                 }
                                 else {
-                                    LocationConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                    PosConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
                                 }
-                                if (UnitUtils.getDistance(unit, LocationConstants.WALL_2x2) < 1) {
+                                if (UnitUtils.getDistance(unit, PosConstants.WALL_2x2) < 1) {
                                     Chat.tag("main_base_breached");
+                                    Chat.chatNeverRepeat("What are you doing in my SWAMP?");
                                 }
                                 break;
                             case TERRAN_BARRACKS: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY: case TERRAN_ARMORY:
                                 if (UnitUtils.isWallingStructure(unit)) {
-                                    LocationConstants._3x3Structures.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
+                                    PosConstants._3x3Structures.add(0, Position.toWholePoint(unit.getPosition().toPoint2d()));
                                 }
                                 else {
-                                    LocationConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                                    PosConstants._3x3Structures.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 }
                                 purchaseQueue.addFirst(new PurchaseStructure((Units) unit.getType()));
                                 break;
@@ -499,7 +505,7 @@ public class KetrocBot extends Bot {
 //                                LocationConstants.FACTORIES.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
 //                                break;
                             case TERRAN_STARPORT:
-                                LocationConstants.STARPORTS.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                                PosConstants._3x3AddonPosList.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 break;
                             case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                                 //remove from base defense tank
@@ -533,9 +539,9 @@ public class KetrocBot extends Bot {
                         //turn on trolling if game is all but over
                         // (check to turn on when command structure dies)
                         // (check to turn off when any enemy unit dies)
-                        if (MuleMessages.doTrollMule ||
+                        if (MannerMule.doTrollMule ||
                                 (ArmyManager.doOffense && UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()))) {
-                            MuleMessages.checkIfGameIsWon();
+                            MannerMule.checkIfGameIsWon();
                         }
                 }
             }
@@ -551,25 +557,10 @@ public class KetrocBot extends Bot {
         try {
             Print.print(upgrade + " finished at: " + Time.nowClock());
 
-            switch ((Upgrades) upgrade) {
-                case LIBERATOR_AG_RANGE_UPGRADE:
-                    Liberator.castRange = 8;
-                    break;
-                case TERRAN_SHIP_WEAPONS_LEVEL1:
-                case TERRAN_SHIP_WEAPONS_LEVEL2:
-                case TERRAN_SHIP_WEAPONS_LEVEL3:
-                case TERRAN_VEHICLE_WEAPONS_LEVEL1:
-                case TERRAN_VEHICLE_WEAPONS_LEVEL2:
-                case TERRAN_VEHICLE_WEAPONS_LEVEL3:
-                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1:
-                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2:
-                case TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3:
-                case BANSHEE_CLOAK:
-                case BANSHEE_SPEED:
-                case RAVEN_CORVID_REACTOR:
-                    UpgradeManager.updateUpgradeList(upgrade);
-                    break;
+            if (upgrade == Upgrades.LIBERATOR_AG_RANGE_UPGRADE) {
+                Liberator.castRange = 8;
             }
+            UpgradeManager.updateUpgradeList(upgrade); //remove for upgrade lists
         } catch (Throwable e) {
             Error.onException(e);
         }
@@ -686,8 +677,8 @@ public class KetrocBot extends Bot {
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
         //Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
-        Print.print("LocationConstants.STARPORTS.toString() = " + LocationConstants.STARPORTS.toString());
-        Print.print("LocationConstants.MACRO_OCS.toString() = " + LocationConstants.MACRO_OCS.toString());
+        Print.print("LocationConstants.STARPORTS.toString() = " + PosConstants._3x3AddonPosList.toString());
+        Print.print("LocationConstants.MACRO_OCS.toString() = " + PosConstants.MACRO_OCS.toString());
         Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());
         Print.print("UpgradeManager.armoryAttackUpgrades.toString() = " + UpgradeManager.airAttackUpgrades.toString());
         Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
@@ -732,7 +723,17 @@ public class KetrocBot extends Bot {
         UnitMicroList.unitMicroList.forEach(micro -> {
             Print.print(micro.getClass().toString() + " " +
                     micro.unit.unit().getType() + " " +
+                    micro.unit.unit().getTag() + " " +
                     micro.unit.unit().getPosition());
         });
+        Print.print("\n\n");
+
+        Print.print("ExpansionClearing.expoClearList");
+        Print.print("===============================");
+        ExpansionClearing.expoClearList.forEach(exp -> {
+            Print.print(exp.expansionPos +
+                    (exp.raven != null ? exp.raven.unit.getTag() + " " : ""));
+        });
+        Print.print("\n\n");
     }
 }

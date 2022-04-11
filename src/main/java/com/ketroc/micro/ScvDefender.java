@@ -100,7 +100,7 @@ public class ScvDefender extends Scv {
     }
 
     protected List<UnitInPool> getScvAttackTargets() {
-        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.canAttack(enemy.unit().getType()) &&
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.canAttack(enemy.unit()) &&
                 UnitUtils.getDistance(unit.unit(), enemy.unit()) <= enemy.unit().getRadius() + unit.unit().getRadius() + 0.3f);
     }
 

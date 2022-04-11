@@ -65,7 +65,7 @@ public class WorkerManager {
 
     //any mule in one of my bases that can't complete another mining round, will a-move + autorepair instead
     private static void preventMulesFromDyingWithMineralsInHand() {
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_MULE).stream()
+        UnitUtils.myUnitsOfType(Units.TERRAN_MULE).stream()
                 .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
                         mule.getBuffDurationRemain().orElse(0) < 144 &&
                         UnitUtils.getDistance(mule,
@@ -89,7 +89,7 @@ public class WorkerManager {
         if (UnitUtils.getVisibleEnemySupplyInMyMainorNat() > 2 ||
                 GameCache.allVisibleEnemiesList.stream().anyMatch(enemy ->
                         !UnitUtils.WORKER_TYPE.contains(enemy.unit().getType()) &&
-                        UnitUtils.canAttack(enemy.unit().getType()))) {
+                        UnitUtils.canAttack(enemy.unit()))) {
             UnitMicroList.getUnitSubList(ScvAttackTarget.class).forEach(ScvAttackTarget::remove);
         }
         else {
@@ -101,7 +101,8 @@ public class WorkerManager {
     }
 
     private static void repairLogic() {
-        if (Bot.OBS.getMinerals() < 15) {
+        if (Bot.OBS.getMinerals() < 15 &&
+                Bot.OBS.getScore().getDetails().getCollectionRateMinerals() < 250) {
             return;
         }
 
@@ -170,7 +171,7 @@ public class WorkerManager {
                     .collect(Collectors.toSet()));
 
         //add missile turrets
-        unitsToRepair.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MISSILE_TURRET));
+        unitsToRepair.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MISSILE_TURRET));
 
         //add liberators if TvZ/TvT
         if (PosConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
@@ -219,7 +220,7 @@ public class WorkerManager {
 //        }
         //don't make 3rd+ refinery until factory and PF are started
         if (Time.nowFrames() < Time.toFrames("5:00") &&
-                (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
+                (UnitUtils.numMyLooseUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
             return;
         }
 
@@ -539,6 +540,9 @@ public class WorkerManager {
                 }
                 break;
             case 3:
+                if (minerals > 3100) {
+                    break;
+                }
                 if (gas > minerals + 3000 || (
                         minerals < 2750 &&
                         gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&

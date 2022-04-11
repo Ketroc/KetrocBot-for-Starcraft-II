@@ -5,6 +5,7 @@ import com.ketroc.strategies.GamePlan;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Opponent {
@@ -93,17 +94,21 @@ public class Opponent {
                 //find max win rate strategy with the least games played
                 .filter(winLossRecord -> winLossRecord.getGamePlan() != prevLossPlan)
                 .max(Comparator.comparing(record -> record.winRate() - ((float)record.numGames()) / 1000))
-                .orElse(strategyWinRates.iterator().next())
-                .getGamePlan();
+                .map(WinLossRecord::getGamePlan)
+                .orElse(GamePlan.NONE);
     }
 
     //randomly select a game plan that requires more test games
     public GamePlan getGamePlanNeedingMoreTests(int minTestGames) {
-        return GamePlan.NONE;
-//TODO: turn on        return strategyWinRates.stream()
-//                .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
-//                .min(Comparator.comparing(winLossRecord -> Math.random()))
-//                .map(WinLossRecord::getGamePlan)
-//                .orElse(GamePlan.NONE);
+        return getGamePlanNeedingMoreTests(minTestGames, winLossRecord -> true);
+    }
+    //randomly select a game plan that requires more test games
+    public GamePlan getGamePlanNeedingMoreTests(int minTestGames, Predicate<WinLossRecord> searchFilter) {
+        return strategyWinRates.stream()
+                .filter(winLossRecord -> winLossRecord.numGames() < minTestGames)
+                .filter(searchFilter)
+                .min(Comparator.comparing(winLossRecord -> Math.random()))
+                .map(WinLossRecord::getGamePlan)
+                .orElse(GamePlan.NONE);
     }
 }

@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.bots.Bot;
 import com.ketroc.strategies.Strategy;
+import com.ketroc.utils.DebugHelper;
 
 /*
 onBuildingConstructionComplete(UnitInPool unitInPool)
@@ -37,12 +38,14 @@ onNydusDetected()
 
 public class Ladder {
     public static void main(String[] args) {
-        System.out.println("Hello");
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.out.println("In DefaultUncaughtExceptionHandler");
             e.printStackTrace();
         });
-        
+        DebugHelper.doTestingSpawns = false;
+        DebugHelper.isDebugOn = false;
+
+
         String opponentId = null;
         for (int i=0; i<args.length; i++) {
             String arg = args[i];

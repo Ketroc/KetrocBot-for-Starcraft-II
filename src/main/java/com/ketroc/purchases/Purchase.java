@@ -68,7 +68,8 @@ public interface Purchase {
         return KetrocBot.purchaseQueue.stream()
                 .filter(purchase -> purchase instanceof PurchaseStructureMorph)
                 .map(purchase -> (PurchaseStructureMorph)purchase)
-                .anyMatch(p -> p.getProductionStructure().getTag().equals(structureUnit.getTag()));
+                .anyMatch(p -> p.getProductionStructure() != null &&
+                        p.getProductionStructure().getTag().equals(structureUnit.getTag()));
     }
 
     static boolean isStructureQueued(Units unitType, Point2d pos) {
@@ -102,6 +103,8 @@ public interface Purchase {
     static void removeAll(Units unitType) {
         KetrocBot.purchaseQueue.removeIf(p -> p instanceof PurchaseStructure &&
                 ((PurchaseStructure) p).getStructureType() == unitType);
+        KetrocBot.purchaseQueue.removeIf(p -> p instanceof PurchaseUnit &&
+                ((PurchaseUnit) p).getUnitType() == unitType);
     }
 
     static void removeFirst(Units unitType) {
@@ -115,6 +118,15 @@ public interface Purchase {
                 .skip(numSkip)
                 .findFirst()
                 .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
+        KetrocBot.purchaseQueue.stream()
+                .filter(p -> p instanceof PurchaseUnit &&
+                        ((PurchaseUnit) p).getUnitType() == unitType)
+                .skip(numSkip)
+                .findFirst()
+                .ifPresent(purchase -> KetrocBot.purchaseQueue.removeFirstOccurrence(purchase));
     }
 
+    static boolean isBuildOrderComplete() {
+        return KetrocBot.purchaseQueue.stream().noneMatch(p -> p instanceof BuildOrderComplete);
+    }
 }

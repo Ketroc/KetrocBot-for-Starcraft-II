@@ -13,6 +13,8 @@ public class EnemyMapping {
     public static float CYCLONE_GROUND_ATTACK_RANGE = 4.5f;
 
     public Units unitType;
+    public float unitRadius;
+    public float empValue;
     public float x;
     public float y;
     public float supply;
@@ -47,6 +49,9 @@ public class EnemyMapping {
     protected int getDamage(Units unitType, Weapon.TargetType excludeTargetType) {
         if (unitType.toString().contains("CHANGELING")) {
             return 0;
+        }
+        if (unitType == Units.TERRAN_BUNKER) {
+            return 24;
         }
         return Bot.OBS.getUnitTypeData(false).get(unitType).getWeapons().stream()
                 .filter(weapon -> weapon.getTargetType() != excludeTargetType)

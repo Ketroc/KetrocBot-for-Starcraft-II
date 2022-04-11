@@ -11,29 +11,21 @@ import java.nio.file.Paths;
 
 public class TestingBotLauncher {
     public static void main(String[] args) {
-        S2Coordinator s2Coordinator = S2Coordinator.setup()
-                .loadSettings(args)
-                .setRealtime(false)
-                .setWindowLocation(900, 0)
-                .setNeedsSupportDir(true)
-                .setShowCloaked(true)
-                .setShowBurrowed(true)
-                .setRawAffectsSelection(true)
-                .setTimeoutMS(600 * 1000)
-//                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
-//                .setDataVersion("B89B5D6FA7CBF6452E721311BFBC6CB2")
-                .setParticipants(
-                        S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(null)),
-                        S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
-//                        S2Coordinator.createComputer(Race.TERRAN, Difficulty.VERY_EASY, AiBuild.MACRO))
-                .launchStarcraft()
-
-//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+S2Coordinator s2Coordinator = S2Coordinator.setup()
+        .loadSettings(args)
+        .setRealtime(true)
+        .setWindowLocation(900, 0)
+        .setNeedsSupportDir(true)
+        .setShowCloaked(true)
+        .setShowBurrowed(true)
+        .setRawAffectsSelection(true)
+        .setTimeoutMS(600 * 1000)
+        .setParticipants(
+                S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(null)),
+                S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
+        .launchStarcraft()
+        .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));

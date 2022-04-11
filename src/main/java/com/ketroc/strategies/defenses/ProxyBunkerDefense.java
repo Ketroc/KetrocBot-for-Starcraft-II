@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.ketroc.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.micro.ScvAttacker;
+import com.ketroc.micro.ScvAttackerBunkerDefense;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.utils.Chat;
 import com.ketroc.utils.Time;
@@ -22,8 +22,8 @@ public class ProxyBunkerDefense {
         if (isProxyBunker) {
             //send initial scvs
             if (!isScvsSent) {
-                GameCache.baseList.get(0).getAndReleaseAvailableScvs(6)
-                        .forEach(scv -> UnitMicroList.add(new ScvAttacker(scv)));
+                GameCache.baseList.get(0).getAndReleaseAvailableScvs(5)
+                        .forEach(scv -> UnitMicroList.add(new ScvAttackerBunkerDefense(scv)));
                 isScvsSent = true;
                 return;
             }
@@ -47,15 +47,15 @@ public class ProxyBunkerDefense {
             }
         }
         else {
-            //cancel if bunker dies or completes without being near dead
-            if (!bunker.isAlive() ||
+            //cancel if all enemies are gone or if bunker completes without being near dead
+            if (UnitUtils.getVisibleEnemyUnitsOfType(ScvAttackerBunkerDefense.ENEMY_TYPES).size() == 0 ||
                     (bunker.unit().getBuildProgress() == 1 &&
                             bunker.unit().getDisplayType() == DisplayType.VISIBLE &&
                             UnitUtils.getHealthPercentage(bunker.unit()) > 8)) {
                 isProxyBunker = false;
                 isScvsSent = false;
                 bunker = null;
-                UnitMicroList.removeAll(ScvAttacker.class);
+                UnitMicroList.removeAll(ScvAttackerBunkerDefense.class);
             }
         }
     }

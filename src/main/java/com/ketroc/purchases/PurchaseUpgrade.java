@@ -23,7 +23,8 @@ public class PurchaseUpgrade implements Purchase {
             Upgrades.INFERNAL_PRE_IGNITERS,
             Upgrades.HISEC_AUTO_TRACKING,
             Upgrades.TERRAN_BUILDING_ARMOR,
-            Upgrades.BANSHEE_SPEED
+            Upgrades.BANSHEE_SPEED,
+            Upgrades.MEDIVAC_INCREASE_SPEED_BOOST
     );
 
     private UnitInPool productionStructure;
@@ -113,17 +114,17 @@ public class PurchaseUpgrade implements Purchase {
     private boolean hasEnoughRelatedArmyUnits() {
         switch (upgrade) { //TODO: complete for all upgrades (that I don't currently use)
             case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
-                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
+                return UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
-                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
+                return UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) >= 4;
             case BANSHEE_CLOAK:
-                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
+                return UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) >= 1;
             case BANSHEE_SPEED:
-                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 2;
+                return UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) >= 2;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
-                return UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) >= 2 ||
-                        (UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) +
-                        UnitUtils.numMyUnits(Units.TERRAN_MISSILE_TURRET, true) >= 1);
+                return UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true) >= 2 ||
+                        (UnitUtils.numMyLooseUnits(Units.TERRAN_PLANETARY_FORTRESS, true) +
+                        UnitUtils.numMyLooseUnits(Units.TERRAN_MISSILE_TURRET, true) >= 1);
         }
         return true;
     }
@@ -162,16 +163,18 @@ public class PurchaseUpgrade implements Purchase {
                 return Units.TERRAN_ARMORY;
             case INFERNAL_PRE_IGNITERS: case CYCLONE_LOCK_ON_DAMAGE_UPGRADE: case DRILL_CLAWS: case TRANSFORMATION_SERVOS:
                 return Units.TERRAN_FACTORY_TECHLAB;
+            case PUNISHER_GRENADES: case STIMPACK: case COMBAT_SHIELD:
+                return Units.TERRAN_BARRACKS_TECHLAB;
             case TERRAN_INFANTRY_WEAPONS_LEVEL1: case TERRAN_INFANTRY_WEAPONS_LEVEL2: case TERRAN_INFANTRY_WEAPONS_LEVEL3:
             case TERRAN_INFANTRY_ARMORS_LEVEL1: case TERRAN_INFANTRY_ARMORS_LEVEL2: case TERRAN_INFANTRY_ARMORS_LEVEL3:
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
                 return Units.TERRAN_ENGINEERING_BAY;
             case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
-            case MEDIVAC_CADUCEUS_REACTOR: case LIBERATOR_AG_RANGE_UPGRADE:
+            case MEDIVAC_INCREASE_SPEED_BOOST: case LIBERATOR_AG_RANGE_UPGRADE:
                 return Units.TERRAN_STARPORT_TECHLAB;
             case YAMATO_CANNON:
                 return Units.TERRAN_FUSION_CORE;
-            case PERSONAL_CLOAKING:
+            case PERSONAL_CLOAKING: case ENHANCED_SHOCKWAVES:
                 return Units.TERRAN_GHOST_ACADEMY;
         }
         return Units.INVALID;
@@ -216,9 +219,9 @@ public class PurchaseUpgrade implements Purchase {
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
             }
             return true;

@@ -40,14 +40,14 @@ public class ActionIssued { //TODO: handle queued commands
     public static void add(Tag unitTag, Ability ability, Unit target) {
         UnitInPool uip = Bot.OBS.getUnit(unitTag);
         if (uip != null) {
-            lastActionIssued.put(Bot.OBS.getUnit(unitTag), new ActionIssued(ability, target.getTag(), null));
+            lastActionIssued.put(uip, new ActionIssued(ability, target.getTag(), null));
         }
     }
 
     public static void add(Tag unitTag, Ability ability, Point2d targetPos) {
         UnitInPool uip = Bot.OBS.getUnit(unitTag);
         if (uip != null) {
-            lastActionIssued.put(Bot.OBS.getUnit(unitTag), new ActionIssued(ability, null, targetPos));
+            lastActionIssued.put(uip, new ActionIssued(ability, null, targetPos));
         }
     }
 
@@ -69,7 +69,6 @@ public class ActionIssued { //TODO: handle queued commands
     public static Optional<ActionIssued> getCurOrder(Unit unit) {
         return getCurOrder(Bot.OBS.getUnit(unit.getTag()));
     }
-
     public static Optional<ActionIssued> getCurOrder(UnitInPool uip) {
         if (uip == null) {
             return Optional.empty();
@@ -90,6 +89,18 @@ public class ActionIssued { //TODO: handle queued commands
         return Optional.empty();
     }
 
+    //does this unit have an action issued, but no order yet
+    public static boolean isRealTimeDelayed(Unit unit) {
+        return isRealTimeDelayed(Bot.OBS.getUnit(unit.getTag()));
+    }
+    public static boolean isRealTimeDelayed(UnitInPool uip) {
+        if (uip == null) {
+            return true;
+        }
+        return lastActionIssued.get(uip) != null &&
+                uip.unit().getOrders().stream().anyMatch(order -> order.getAbility() == lastActionIssued.get(uip).ability);
+    }
+
     public static void updateDelayedOrders() {
         for (Map.Entry<UnitInPool,ActionIssued> entry : lastActionIssued.entrySet()) {
             UnitInPool uip = entry.getKey();
@@ -99,15 +110,15 @@ public class ActionIssued { //TODO: handle queued commands
             if (!uip.isAlive()) continue;
 
             //update bank for train/build purchases that aren't in unit orders yet
-            if (orderNotInUnitOrdersYet(uip.unit().getOrders(), action, "BUILD_") ||
-                    orderNotInUnitOrdersYet(uip.unit().getOrders(), action, "TRAIN_")) {
+            if (isOrderNotInUnitOrdersYet(uip.unit().getOrders(), action, "BUILD_") ||
+                    isOrderNotInUnitOrdersYet(uip.unit().getOrders(), action, "TRAIN_")) {
                 Cost.updateBank(action.ability);
             }
         };
     }
 
-    private static boolean orderNotInUnitOrdersYet(List<UnitOrder> orders, ActionIssued action, String abilityStartsWith) {
-        return action.ability.toString().contains(abilityStartsWith) &&
+    private static boolean isOrderNotInUnitOrdersYet(List<UnitOrder> orders, ActionIssued actionIssued, String abilityStartsWith) {
+        return actionIssued.ability.toString().contains(abilityStartsWith) &&
                 orders.stream().noneMatch(unitOrder -> unitOrder.getAbility().toString().startsWith(abilityStartsWith));
     }
 

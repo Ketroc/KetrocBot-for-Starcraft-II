@@ -43,13 +43,12 @@ public class PurchaseStructureMorph implements Purchase {
         setCost();
     }
 
-
     public static void remove(Tag structureTag) {
         KetrocBot.purchaseQueue.removeIf(p ->
                 p instanceof PurchaseStructureMorph &&
+                ((PurchaseStructureMorph) p).productionStructure != null &&
                 ((PurchaseStructureMorph) p).productionStructure.getTag().equals(structureTag));
     }
-
 
     // ========== GETTERS AND SETTERS ============
 
@@ -171,6 +170,20 @@ public class PurchaseStructureMorph implements Purchase {
         return morphOrAddOn.toString();
     }
 
+    private void selectProductionStructure() {
+        Units unitType = Bot.abilityToUnitType.get(morphOrAddOn);
+        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
+                .filter(u -> (!unitType.toString().contains("_REACTOR") && !unitType.toString().contains("_TECHLAB")) ||
+                        UnitUtils.getAddOn(u.unit()).isEmpty())
+                .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
+                .ifPresent(structure -> productionStructure = structure);
+    }
+
+
+    // ***************************************
+    // ********** STATIC METHODS *************
+    // ***************************************
+
     public static boolean isTechRequired(Abilities morphType) {
         Units techStructureNeeded = null;
         switch (morphType) {
@@ -185,9 +198,9 @@ public class PurchaseStructureMorph implements Purchase {
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
             }
             return true;
@@ -195,12 +208,11 @@ public class PurchaseStructureMorph implements Purchase {
         return false;
     }
 
-    private void selectProductionStructure() {
-        Units unitType = Bot.abilityToUnitType.get(morphOrAddOn);
-        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
-                .filter(u -> (!unitType.toString().contains("_REACTOR") && !unitType.toString().contains("_TECHLAB")) ||
-                        UnitUtils.getAddOn(u.unit()).isEmpty())
-                .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
-                .ifPresent(structure -> productionStructure = structure);
+    public static boolean contains(Unit structure) {
+        return KetrocBot.purchaseQueue.stream()
+                .filter(p -> p instanceof PurchaseStructureMorph)
+                .map(p -> ((PurchaseStructureMorph)p).getProductionStructure())
+                .anyMatch(s -> s != null && s.getTag().equals(structure.getTag()));
     }
+
 }

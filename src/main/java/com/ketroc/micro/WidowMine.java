@@ -220,12 +220,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     @Override
-    public boolean isSafe() {
-        return this.isSafe(unit.unit().getPosition().toPoint2d());
-    }
-
-    @Override
-    protected boolean isSafe(Point2d p) { //TODO: splash effects like storm, ravager bile
+    protected boolean isSafe(Point2d p) {
         if (hasLockOnBuff()) {
             return false;
         }
@@ -395,8 +390,8 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     public static boolean canBeOneShot(UnitInPool target) {
-        return UnitUtils.getTotalHealth(target.unit()) < 125f + getShieldDamage(target) &&
-                UnitUtils.getTotalHealth(target.unit()) > 90f + getShieldDamage(target);
+        return UnitUtils.getCurHp(target.unit()) < 125f + getShieldDamage(target) &&
+                UnitUtils.getCurHp(target.unit()) > 90f + getShieldDamage(target);
     }
 
     public static boolean hasFastBurrow() {
@@ -404,7 +399,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     public static boolean hasPermaCloak() {
-        return !UnitUtils.getMyUnitsOfType(Units.TERRAN_ARMORY).isEmpty();
+        return !UnitUtils.myUnitsOfType(Units.TERRAN_ARMORY).isEmpty();
     }
 
     public static boolean isTargetted(Tag targetTag) {

@@ -72,10 +72,16 @@ public class PurchaseUnit implements Purchase {
             if (productionStructure != null &&
                     productionStructure.unit().getBuildProgress() == 1 &&
                     UnitUtils.getOrder(productionStructure.unit()) == null &&
-                    (!UnitUtils.requiresTechLab(unitType) || isAddOnComplete())) {
+                    (!UnitUtils.isTechLabRequired(unitType) || isAddOnComplete())) {
                 ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);
                 return PurchaseResult.SUCCESS;
+            }
+            if (productionStructure == null) {
+                Units reqProductionStructure = UnitUtils.getRequiredStructureType(unitType);
+                if (UnitUtils.numMyLooseUnits(reqProductionStructure, true) == 0) {
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(reqProductionStructure));
+                }
             }
         }
         //if production structure exists
@@ -91,7 +97,7 @@ public class PurchaseUnit implements Purchase {
 
     private void selectProductionStructure() {
         Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
-                .filter(u -> !UnitUtils.requiresTechLab(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
+                .filter(u -> !UnitUtils.isTechLabRequired(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
                 //.filter(u -> !PurchaseUnit.contains(u)) //commented out as it's been replaced to handle timing out PurchaseUnits in purchase queue
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
@@ -118,8 +124,8 @@ public class PurchaseUnit implements Purchase {
 
     public static boolean contains(UnitInPool structure) {
         return KetrocBot.purchaseQueue.stream()
-                .anyMatch(purchase -> purchase instanceof PurchaseUnit &&
-                        ((PurchaseUnit) purchase).getProductionStructure() != null &&
-                        ((PurchaseUnit) purchase).getProductionStructure().getTag().equals(structure.getTag()));
+                .filter(p -> p instanceof PurchaseUnit)
+                .map(p -> ((PurchaseUnit) p).getProductionStructure())
+                .anyMatch(s -> s != null && s.getTag().equals(structure.getTag()));
     }
 }

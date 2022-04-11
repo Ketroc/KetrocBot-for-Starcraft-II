@@ -149,9 +149,9 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
     @Override
     //ignores a marine when far away... ignores 3 marines or a missile turret when close
-    public boolean isSafe() {
-        boolean isCloseToBase = UnitUtils.getDistance(unit.unit(), basePos) < 20;
-        return InfluenceMaps.getAirThreatToStructure(unit.unit()) <= (isCloseToBase ? 7 : 3);
+    public boolean isSafe(Point2d pos) {
+        boolean isCloseToBase = pos.distance(basePos) < 20;
+        return InfluenceMaps.getAirThreatToStructure((Units)unit.unit().getType(), pos) <= (isCloseToBase ? 7 : 3);
     }
 
     private Point2d calcSafeLandingPos() {

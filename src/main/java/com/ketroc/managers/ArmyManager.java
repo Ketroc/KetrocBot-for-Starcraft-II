@@ -100,15 +100,43 @@ public class ArmyManager {
             }
         }
 
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
+        //FIXME: just for testing below
+        if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) { //morph unused hellions back into hellbats
+            UnitUtils.myUnitsOfType(Units.TERRAN_HELLION).forEach(hellion -> {
+                ActionHelper.unitCommand(hellion, Abilities.MORPH_HELLBAT, false);
+            });
+        }
+
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
             UnitMicroList.add(new Cyclone(cyclone, PosConstants.insideMainWall));
         });
 
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_WIDOWMINE).forEach(mine -> {
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_GHOST).forEach(ghost -> {
+            UnitMicroList.add(new GhostBasic(ghost, PosConstants.insideMainWall));
+        });
+        if (UnitUtils.isNukeAvailable() && UnitMicroList.numOfUnitClass(GhostNuke.class) == 0) {
+            GhostNuke.addGhost();
+        }
+
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_MARAUDER).forEach(marauder -> {
+            UnitMicroList.add(new Marauder(marauder, PosConstants.insideMainWall));
+        });
+
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_HELLION_TANK).forEach(hellbat -> {
+            UnitMicroList.add(new Hellbat(hellbat, PosConstants.insideMainWall));
+        });
+
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_WIDOWMINE).forEach(mine -> {
             UnitMicroList.add(new WidowMine(mine, PosConstants.insideMainWall));
         });
 
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_MEDIVAC).forEach(medivac -> {
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_MEDIVAC).forEach(medivac -> {
             UnitMicroList.add(new MedivacScvHealer(medivac, PosConstants.REPAIR_BAY));
         });
 
@@ -169,12 +197,12 @@ public class ArmyManager {
     //new marines get a marine object TODO: move
     private static void addMarines() {
         if (Strategy.gamePlan == GamePlan.MARINE_RUSH) {
-            UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
+            UnitUtils.myUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
                 UnitMicroList.add(new MarineOffense(unit, PosConstants.insideMainWall));
             });
         }
         else {
-            UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
+            UnitUtils.myUnitsOfType(Units.TERRAN_MARINE).forEach(unit -> {
                 UnitMicroList.add(new MarineBasic(unit, PosConstants.insideMainWall));
             });
         }
@@ -272,7 +300,9 @@ public class ArmyManager {
         vikingMidPoint = (!GameCache.vikingList.isEmpty())
                 ? Position.midPointUnitsMedian(GameCache.vikingList)
                 : PosConstants.baseLocations.get(0);
-        List<Unit> groundAttackers = UnitUtils.getMyUnitsOfType(UnitUtils.GROUND_ARMY_ATTACKERS_TYPE);
+        List<Unit> groundAttackers = UnitUtils.toUnitList(
+                Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.GROUND_ARMY_ATTACKERS_TYPE.contains(u.unit().getType()))
+        );
         groundAttackersMidPoint = (!groundAttackers.isEmpty())
                 ? Position.midPointUnitsMedian(groundAttackers)
                 : PosConstants.baseLocations.get(0);
@@ -281,13 +311,13 @@ public class ArmyManager {
     private static void searchForLastStructures() {
         spreadArmy(GameCache.bansheeList);
         spreadArmy(GameCache.vikingList);
-        spreadArmy(UnitUtils.getMyUnitsOfType(UnitUtils.HELLION_TYPE));
+        spreadArmy(UnitUtils.myUnitsOfType(UnitUtils.HELLION_TYPE));
     }
 
     private static void sendMarinesHellbats() {
         if (UnitUtils.isOutOfGas()) {
-            List<Unit> army = UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE);
-            army.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION_TANK));
+            List<Unit> army = UnitUtils.myUnitsOfType(Units.TERRAN_MARINE);
+            army.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_HELLION_TANK));
             if (Bot.OBS.getFoodUsed() >= 198 || Cost.isMineralBroke(50)) {
                 if (army.stream().anyMatch(unit -> ActionIssued.getCurOrder(unit).isPresent())) {
                     ActionHelper.unitCommand(army, Abilities.ATTACK, attackGroundPos, false);
@@ -298,7 +328,7 @@ public class ArmyManager {
 
     //shoot best target, otherwise changelings, otherwise let autoattack happen
     private static void autoturretTargetting() {
-        UnitUtils.getMyUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
+        UnitUtils.myUnitsOfType(Units.TERRAN_AUTO_TURRET).stream()
                 .filter(turret -> UnitUtils.isWeaponAvailable(turret))
                 .forEach(turret -> {
                     selectTarget(turret).ifPresentOrElse(target -> ActionHelper.unitCommand(turret, Abilities.ATTACK, target, false),
@@ -352,7 +382,7 @@ public class ArmyManager {
     }
 
     private static void hellionMicro() {
-        for (Unit hellion : UnitUtils.getMyUnitsOfType(Units.TERRAN_HELLION)) {
+        for (Unit hellion : UnitUtils.myUnitsOfType(Units.TERRAN_HELLION)) {
             giveHellionCommand(hellion);
         }
     }
@@ -423,6 +453,17 @@ public class ArmyManager {
     }
 
     private static void setDoOffense() {
+        if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+            int numHellbats = UnitUtils.numMyLooseUnits(Units.TERRAN_HELLION_TANK, false);
+            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numHellbats < 6) {
+                doOffense = false;
+            }
+            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numHellbats >= 6)) {
+                doOffense = true;
+            }
+            return;
+        }
+
         //attack if no mining (prevents draws) (ignore start of game)
         if (Bot.OBS.getScore().getDetails().getCollectionRateMinerals() == 0 &&
                 Bot.OBS.getScore().getDetails().getCollectionRateVespene() == 0 &&
@@ -534,8 +575,8 @@ public class ArmyManager {
             );
         }
 
-        //protect 3rd if OC
-        if (Strategy.NUM_BASES_TO_OC >= 3 && GameCache.baseList.get(2).isMyBase()) {
+        //protect 3rd
+        if (GameCache.baseList.get(2).isMyBase()) {
             return GameCache.baseList.get(2).inFrontPos();
         }
         //protect nat if OC or if no base but bunker is up there
@@ -701,15 +742,9 @@ public class ArmyManager {
             return;
         }
 
-        GameCache.allVisibleEnemiesList.stream()
-                .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
-                        !enemyAirUip.unit().getHallucination().orElse(false) &&
-                        !Ignored.contains(enemyAirUip.getTag()) &&
-                        AirUnitKillSquad.canAdd(enemyAirUip) &&
-                        InfluenceMaps.getValue(
-                                InfluenceMaps.pointThreatToAirValue,
-                                Position.towards(enemyAirUip.unit(), ArmyManager.vikingMidPoint, 9)
-                        ) < AirUnitKillSquad.MAX_THREAT)
+        List<UnitInPool> enemyAirTargets = AirUnitKillSquad.getAvailableEnemyAirTargets();
+        enemyAirTargets.stream()
+                .filter(enemyAirUip -> AirUnitKillSquad.canAdd(enemyAirUip))
                 .min(Comparator.comparing(enemyAirUip ->
                         UnitUtils.getDistance(enemyAirUip.unit(), PosConstants.baseLocations.get(0))))
                 .ifPresent(enemyAirUip -> AirUnitKillSquad.add(enemyAirUip));
@@ -738,6 +773,7 @@ public class ArmyManager {
                         (!UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) ||
                                 u.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT && AdeptShadeTracker.shouldTargetShade(u)) &&
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
+                        !UnitUtils.CREEP_TUMOR_TYPES.contains(u.unit().getType()) && //FIXME: creep tumors turned off for probots
                         !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u ->
                         UnitUtils.getDistance(u.unit(), PosConstants.baseLocations.get(0)) +
@@ -754,6 +790,7 @@ public class ArmyManager {
                         UnitUtils.isAir(u.unit()) &&
                         (!GameCache.ravenList.isEmpty() || u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) && //ignore cloaked units with no raven TODO: handle banshees DTs etc with scan
                         u.unit().getType() != Units.ZERG_PARASITIC_BOMB_DUMMY &&
+                        u.unit().getType() != Units.ZERG_OVERLORD && //FIXME: overlords turned off for probots
                         !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), PosConstants.baseLocations.get(0)) +
                         UnitUtils.getDistance(u.unit(), vikingMidPoint)))
@@ -767,9 +804,9 @@ public class ArmyManager {
                 .anyMatch(nydusUIP -> InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, nydusUIP.unit().getPosition().toPoint2d()))) {
             GameResult.setNydusRushed(); //TODO: temp for Spiny
             List<Unit> nydusDivers = new ArrayList<>();
-            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE));
-            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARAUDER));
-            nydusDivers.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_SIEGE_TANK));
+            nydusDivers.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MARINE));
+            nydusDivers.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MARAUDER));
+            nydusDivers.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_SIEGE_TANK));
             //add 10 close scvs
             List<UnitInPool> scvs = Bot.OBS.getUnits(Alliance.SELF, scv ->
                     scv.unit().getType() == Units.TERRAN_SCV &&
@@ -799,7 +836,7 @@ public class ArmyManager {
 
 
     public static void pfTargetting() {
-        List<Unit> pfList = UnitUtils.getMyUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
+        List<Unit> pfList = UnitUtils.myUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .filter(unit -> unit.getBuildProgress() == 1 &&
                         (unit.getWeaponCooldown().orElse(0f) > 8 || //keep target to let turret rotation complete
                                 unit.getWeaponCooldown().orElse(0f) == 0))
@@ -820,7 +857,7 @@ public class ArmyManager {
         int targetValue = 0;
         //min value immortals with barrier, disabled units, or banes in detonate range
         if (target.unit().getBuffs().contains(Buffs.PROTECTIVE_BARRIER) ||
-                !UnitUtils.canAttack(target.unit().getType()) ||
+                !UnitUtils.canAttack(target.unit()) ||
                 (target.unit().getType().toString().contains("BANELING") && UnitUtils.getDistance(pf, target.unit()) < 5.2)) { //bane range = 2.2, pf radius = 2.5, bane radius = ??
             return 1;
         }
@@ -932,7 +969,7 @@ public class ArmyManager {
     }
 
     private static void positionLiberators() { //positions only 1 liberator per game loop
-        Unit idleLib = UnitUtils.getMyUnitsOfType(Units.TERRAN_LIBERATOR).stream()
+        Unit idleLib = UnitUtils.myUnitsOfType(Units.TERRAN_LIBERATOR).stream()
                 .filter(unit -> ActionIssued.getCurOrder(unit).isEmpty())
                 .findFirst().orElse(null);
 
@@ -1024,7 +1061,7 @@ public class ArmyManager {
     }
 
     private static void raiseAndLowerDepots() {
-        List<Unit> depots = UnitUtils.getMyUnitsOfType(UnitUtils.SUPPLY_DEPOT_TYPE);
+        List<Unit> depots = UnitUtils.myUnitsOfType(UnitUtils.SUPPLY_DEPOT_TYPE);
 
         for (Unit depot : depots) {
             boolean isDepotLowered = depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED;
@@ -1148,14 +1185,14 @@ public class ArmyManager {
         if (hasTempests) { //minimum 10 vikings at all times if enemy has a tempest
             numVikings = Math.max(10, numVikings);
         }
-        else if (hasMobileDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        else if (hasMobileDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) > 0) {
             numVikings = Math.max(3, numVikings); //minimum vikings if he has a detector
         }
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
             numVikings = Math.max(2, numVikings);
         }
 
-        if (UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, false) > 0) {
+        if (UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, false) > 0) {
             numVikings--;
         }
         numVikings = Math.max(numVikings, GameCache.bansheeList.size() * Strategy.VIKING_BANSHEE_RATIO); //at least 1 safety viking for every 5 banshees
@@ -1167,7 +1204,7 @@ public class ArmyManager {
         boolean isUnsafe = !isVsOnlyAdepts() ?
                 InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d()) :
                 false;
-        boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointInHellionRange, hellion.getPosition().toPoint2d());
+        boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointIn5RangeVsGround, hellion.getPosition().toPoint2d());
         boolean canAttack = UnitUtils.isWeaponAvailable(hellion) &&
                 InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, hellion.getPosition().toPoint2d()) < 200;
 
@@ -1202,7 +1239,7 @@ public class ArmyManager {
 
     private static boolean isVsOnlyAdepts() {
         return attackUnit != null && UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 3).stream()
-                .noneMatch(u -> UnitUtils.canAttack(u.unit().getType()) && !u.unit().getType().toString().contains("ADEPT"));
+                .noneMatch(u -> UnitUtils.canAttack(u.unit()) && !u.unit().getType().toString().contains("ADEPT"));
     }
 
     public static void giveBansheeCommand(Unit banshee) {
@@ -1215,7 +1252,7 @@ public class ArmyManager {
         boolean canRepair = !Cost.isGasBroke() && !Cost.isMineralBroke() &&
                 UnitUtils.isRepairBaySafe();
         boolean isInDetectionRange = InfluenceMaps.pointDetected[x][y];
-        boolean isInBansheeRange = InfluenceMaps.pointInBansheeRange[x][y];
+        boolean isInBansheeRange = InfluenceMaps.point6RangevsGround[x][y];
         boolean canAttack = UnitUtils.isWeaponAvailable(banshee) && InfluenceMaps.pointThreatToAirValue[x][y] < 200;
         CloakState cloakState = banshee.getCloakState().orElse(CloakState.NOT_CLOAKED);
         boolean canCloak = banshee.getEnergy().orElse(0f) > 25 &&
@@ -1565,7 +1602,7 @@ public class ArmyManager {
     private static Optional<UnitInPool> getRavenTurretTarget(Unit raven) {
         List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getType().toString().contains("CHANGELING") &&
-                isTargetImportant(enemy.unit().getType()) &&
+                isTargetImportant(enemy.unit()) &&
                 UnitUtils.getDistance(raven, enemy.unit()) < 11); //radius 1, cast range 2, attack range 7, 1 enemy radius/buffer
         if (targets.isEmpty() && raven.getEnergy().orElse(0f) > 175) {
             targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
@@ -1601,11 +1638,11 @@ public class ArmyManager {
     }
 
     private static boolean isAttackUnitImportant() {
-        return attackUnit != null && isTargetImportant(attackUnit.getType());
+        return attackUnit != null && isTargetImportant(attackUnit);
     }
 
-    private static boolean isTargetImportant(UnitType targetType) {
-        return !UnitUtils.isStructure(targetType) || UnitUtils.canAttack(targetType);
+    private static boolean isTargetImportant(Unit targetUnit) {
+        return !UnitUtils.isStructure(targetUnit.getType()) || UnitUtils.canAttack(targetUnit);
     }
 
     private static boolean castAutoTurret(Unit raven, Unit enemyTarget) {
@@ -1668,7 +1705,7 @@ public class ArmyManager {
         int threatThreshold = 0;
         //with mass raven... periodically let them go deep into threat range to lay turrets
         if ((UnitUtils.isStructure(enemyTarget.getType()) || UnitUtils.THOR_TYPE.contains(enemyTarget.getType())) &&
-                UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) >= 10 &&
+                UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, false) >= 10 &&
                 Time.periodic(3, 96)) {
             threatThreshold = 14;
         }
@@ -1825,8 +1862,8 @@ public class ArmyManager {
     }
 
     public static void sendBioProtection(Point2d expansionPos) {
-        List<Unit> bio = UnitUtils.getMyUnitsOfType(Units.TERRAN_MARINE);
-        bio.addAll(UnitUtils.getMyUnitsOfType(Units.TERRAN_MARAUDER));
+        List<Unit> bio = UnitUtils.myUnitsOfType(Units.TERRAN_MARINE);
+        bio.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MARAUDER));
         if (!bio.isEmpty()) {
             ActionHelper.unitCommand(bio, Abilities.ATTACK, expansionPos, true);
         }
@@ -1870,7 +1907,7 @@ public class ArmyManager {
                 .filter(enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                         InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos()) +
-                        (!UnitUtils.canAttack(enemy.unit().getType()) ? 1000 : 0)))
+                        (!UnitUtils.canAttack(enemy.unit()) ? 1000 : 0)))
                 .map(UnitInPool::unit)
                 .orElse(null);
     }

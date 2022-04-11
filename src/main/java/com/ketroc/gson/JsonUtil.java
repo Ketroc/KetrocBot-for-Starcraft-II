@@ -19,27 +19,12 @@ public class JsonUtil {
     public static final String DIRECTORY_PATH = "./data";
 
     public static void main(String[] args) {
-        try {
-            String[] jsonPaths = getAllJsonFilePaths();
-
-            Gson gson = new Gson();
-
-            for (String pathName : jsonPaths) {
-                Path path = Path.of(DIRECTORY_PATH + "/" + pathName);
-                Opponent opp = getOpponentRecords(gson, path);
-                opp.setRecord(GamePlan.MARINE_RUSH, 0, 0);
-                Files.write(path, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
-            }
-
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        resetWinRates(GamePlan.GHOST_HELLBAT);
     }
 
     private static String[] getAllJsonFilePaths() {
         File f = new File(DIRECTORY_PATH);
-        String[] pathnames = f.list((dir, name) -> name.endsWith(".json"));
+        String[] pathnames = f.list((dir, name) -> name.endsWith(".json") && !name.equals("tournament_ids.json"));
         return pathnames;
     }
 
@@ -131,4 +116,22 @@ public class JsonUtil {
         return Path.of(DIRECTORY_PATH + "/" + fileName + ".json");
     }
 
+    private static void resetWinRates(GamePlan gamePlan) {
+        try {
+            String[] jsonPaths = getAllJsonFilePaths();
+
+            Gson gson = new Gson();
+
+            for (String pathName : jsonPaths) {
+                Path path = Path.of(DIRECTORY_PATH + "/" + pathName);
+                Opponent opp = getOpponentRecords(gson, path);
+                opp.setRecord(gamePlan, 0, 0);
+                Files.write(path, gson.toJson(opp).getBytes(StandardCharsets.UTF_8));
+            }
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

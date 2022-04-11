@@ -10,7 +10,6 @@ public class EnemyMappingEffect extends EnemyMapping {
     public EnemyMappingEffect(EffectLocations effect) {
         unitType = Units.INVALID;
         isEffect = true;
-        isPersistentDamage = true;
         Point2d position = effect.getPositions().iterator().next();
         x = position.getX();
         y = position.getY();
@@ -33,15 +32,17 @@ public class EnemyMappingEffect extends EnemyMapping {
                 groundAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
                 airDamage = 60;
                 groundDamage = 60;
+                isPersistentDamage = true;
                 break;
             case NUKE_PERSISTENT:
                 isDetector = true;
-                detectRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 1 to make room for all units to get out of range
+                detectRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 2 to make room for all units to get out of range
                 threatLevel = 200;
-                airAttackRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 1 to make room for all units to get out of range
+                airAttackRange = 8 + Strategy.STATIONARY_KITING_BUFFER + 2; //additional 2 to make room for all units to get out of range
                 groundAttackRange = airAttackRange;
                 airDamage = 300;
                 groundDamage = 300;
+                isPersistentDamage = true;
                 break;
             case PSI_STORM_PERSISTENT:
                 isDetector = true;
@@ -51,6 +52,7 @@ public class EnemyMappingEffect extends EnemyMapping {
                 groundAttackRange = airAttackRange;
                 groundDamage = 80;
                 airDamage = 80;
+                isPersistentDamage = true;
                 break;
         }
         calcMaxRange(); //largest range of airattack, detection, range from banshee/viking

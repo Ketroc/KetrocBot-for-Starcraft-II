@@ -261,12 +261,12 @@ public class ExpansionClearing {
     public static void add(Point2d expansionPos) {
         if (!contains(expansionPos)) {
             expoClearList.add(new ExpansionClearing(expansionPos));
-            //Bot.ACTION.sendChat("Blocked expansion at: " + expansionPos, ActionChat.Channel.BROADCAST);
+            Chat.chat("Adding blocked expansion at: " + expansionPos);
         }
     }
 
     public static void remove(ExpansionClearing expo) {
-        //Bot.ACTION.sendChat("Expansion cleared at: " + expo.expansionPos, ActionChat.Channel.BROADCAST);
+        Chat.chat("Expansion cleared at: " + expo.expansionPos);
         expoClearList.remove(expo);
         expo.removeTurret();
         expo.removeRaven();

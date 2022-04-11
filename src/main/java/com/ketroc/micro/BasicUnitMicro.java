@@ -57,22 +57,25 @@ public class BasicUnitMicro {
         if (priority != MicroPriority.SURVIVAL && priority != MicroPriority.CHASER) {
             switch ((Units) unit.unit().getType()) {
                 case TERRAN_BANSHEE:
-                    return InfluenceMaps.pointInBansheeRange;
+                    return InfluenceMaps.point6RangevsGround;
                 case TERRAN_VIKING_FIGHTER:
                     return InfluenceMaps.enemyInVikingRange;
                 case TERRAN_MARINE:
-                    return InfluenceMaps.pointInMarineRange;
+                    return InfluenceMaps.pointIn5RangeVsBoth;
                 case TERRAN_HELLION:
-                    return InfluenceMaps.pointInHellionRange;
+                    return InfluenceMaps.pointIn5RangeVsGround;
+                case TERRAN_GHOST:
+                    return InfluenceMaps.pointIn7RangeVsBoth;
+                case TERRAN_MARAUDER:
+                    return InfluenceMaps.point6RangevsGround;
+                case TERRAN_HELLION_TANK:
+                    return InfluenceMaps.point2RangevsGround;
             }
         }
         if (priority == MicroPriority.SURVIVAL && unit.unit().getType() == Units.TERRAN_SCV) {
             return InfluenceMaps.pointThreatToGroundPlusBuffer;
         }
-        if (isGround) {
-            return InfluenceMaps.pointThreatToGround;
-        }
-        return InfluenceMaps.pointThreatToAir;
+        return isGround ? InfluenceMaps.pointThreatToGround : InfluenceMaps.pointThreatToAir;
     }
 
     public void onStep() {
@@ -123,9 +126,11 @@ public class BasicUnitMicro {
         }
     }
 
+    //only dodge splash damage for short-range DPS and all GET_TO_DESTINATION units
     private boolean neverDetour() {
-        return priority == MicroPriority.GET_TO_DESTINATION ||
-                (priority == MicroPriority.DPS && canAttackGround && groundAttackRange - unit.unit().getRadius() < 2);
+        return (priority == MicroPriority.GET_TO_DESTINATION ||
+                        (priority == MicroPriority.DPS && canAttackGround && groundAttackRange - unit.unit().getRadius() < 2)) &&
+                !isInSplashDamage();
     }
 
     protected void setTargetPos() {
@@ -188,9 +193,8 @@ public class BasicUnitMicro {
     }
 
     protected boolean isTargettingUnit(Unit target) {
-        Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
-        return order.isPresent() &&
-                target.getTag().equals(order.get().targetTag);
+        return target != null && ActionIssued.getCurOrder(unit).stream()
+                .anyMatch(order -> target.getTag().equals(order.targetTag));
     }
 
     protected boolean hasLockOnBuff() {
@@ -205,36 +209,51 @@ public class BasicUnitMicro {
         }
         return selectedTarget;
     }
+
+    //prefers targets it can do bonus damage to
     public UnitInPool selectTarget(boolean includeIgnoredTargets) {
-        List<UnitInPool> enemiesInRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
-                ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) &&
-                UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
-                        (isAir(enemy) ? airAttackRange : groundAttackRange) + enemy.unit().getRadius() &&
-                !UnitUtils.UNTARGETTABLES.contains(enemy.unit().getType()) &&
-                (includeIgnoredTargets || !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType())) &&
-                enemy.unit().getDisplayType() == DisplayType.VISIBLE);
-        Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
+        List<UnitInPool> enemiesInRange = getValidTargetList(includeIgnoredTargets);
+        float bestTargetValue = 0;
+        UnitInPool bestTargetUip = null;
         for (UnitInPool enemy : enemiesInRange) {
-            float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
-            UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
-            float enemyCost;
+            //ignore barriered immortals
+            if (enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
+                continue;
+            }
+
+            //tanks target other tanks first
             if (UnitUtils.SIEGE_TANK_TYPE.contains(enemy.unit().getType()) &&
-                    UnitUtils.SIEGE_TANK_TYPE.contains(unit.unit().getType())) { //focus on winning siege tank war first TODO: move to my siege tanks only
+                    (UnitUtils.SIEGE_TANK_TYPE.contains(unit.unit().getType()) ||
+                            unit.unit().getType() == Units.TERRAN_MARAUDER)) {
                 return enemy;
             }
-            else if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
-                enemyCost = 75;
-            }
-            else {
-                enemyCost = Math.max(1,
-                        enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f)); //value gas more than minerals
-            }
-            float enemyValue = enemyCost/enemyHP;
-            if (enemyValue > bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {
-                bestTarget.update(enemy, enemyValue, enemyHP);
+
+            float numShotsToKill = Math.max(
+                    1,
+                    (enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f)) /
+                            UnitUtils.getDamage(unit.unit(), enemy.unit())
+            );
+            float enemyCost = (enemy.unit().getType() == UnitUtils.enemyWorkerType) ?
+                    75 : //inflate value of workers as they impact income
+                    Math.max(1, UnitUtils.getCost(enemy.unit()).getValue()); //value gas more than minerals
+            float enemyValue = enemyCost/numShotsToKill;
+            if (enemyValue > bestTargetValue) {
+                bestTargetValue = enemyValue;
+                bestTargetUip = enemy;
             }
         }
-        return bestTarget.unit;
+        return bestTargetUip;
+    }
+
+    private List<UnitInPool> getValidTargetList(boolean includeIgnoredTargets) {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) && //can attack ground/air
+                UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
+                        (isAir(enemy) ? airAttackRange : groundAttackRange) + enemy.unit().getRadius() && //in attack range
+                !UnitUtils.UNTARGETTABLES.contains(enemy.unit().getType()) && //not a dummy unit
+                (includeIgnoredTargets || !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType())) && //handle lesser targets
+                !UnitUtils.isSnapshot(enemy.unit()) && //not in fog / unspotted high ground
+                enemy.unit().getDisplayType() == DisplayType.VISIBLE); //not cloaked/burrowed
     }
 
     protected boolean isAir(UnitInPool enemy) {
@@ -285,7 +304,7 @@ public class BasicUnitMicro {
     }
 
     protected boolean isSafe(Point2d pos) {
-        return !InfluenceMaps.getValue(getThreatMap(), pos);
+        return !InfluenceMaps.getValue(getThreatMap(), pos) && !isInSplashDamage(pos);
     }
 
     protected Point2d findDetourPos() {
@@ -328,6 +347,12 @@ public class BasicUnitMicro {
 
     //retreats as straight back as possible from the threat
     protected Point2d findDetourPos(float rangeCheck) {
+        //first try going straight back home
+        Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 2);
+        if (isSafe(towardsRetreatPos)) {
+            return ArmyManager.retreatPos;
+        }
+
         Point2d towardsTarget = Position.towards(unit.unit(), targetPos, rangeCheck);
         for (int i=180; i<360; i+=15) {
             int angle = (isDodgeClockwise) ? i : -i;
@@ -393,13 +418,6 @@ public class BasicUnitMicro {
         Base.releaseScv(newUnit.unit());
         unit = newUnit;
         Ignored.add(new IgnoredUnit(newUnit.getTag()));
-    }
-
-    protected boolean isEnemyFacingMe(Unit enemy) {
-        float facing = (float)Math.toDegrees(enemy.getFacing());
-        float attackAngle = Position.getAngle(enemy.getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d());
-        float angleDiff = Position.getAngleDifference(facing, attackAngle);
-        return angleDiff <= 90;
     }
 
     public boolean isAlive() {
@@ -476,5 +494,47 @@ public class BasicUnitMicro {
 
     protected boolean requiresRepairs(int healthToRepairAt) {
         return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
+    }
+
+    //excludes reapers, hellions, adepts, oracles, when on offense
+    protected Unit getClosestEnemyThreatToGround() {
+        return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
+                        !enemy.unit().getHallucination().orElse(false) &&
+                                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                                (!ArmyManager.doOffense || !UnitUtils.DONT_CHASE_TYPES.contains(enemy.unit().getType())) &&
+                                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                                (!UnitUtils.isSnapshot(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
+                                (UnitUtils.canAttackGround(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
+                                UnitUtils.getDistance(unit.unit(), enemy.unit()) < 15)
+                .stream()
+                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy.unit())))
+                .map(UnitInPool::unit)
+                .orElse(null);
+    }
+
+    protected boolean doStutterForward(Unit attackUnit, Unit closestEnemyThreat) {
+        if (closestEnemyThreat == null) {
+            return true;
+        }
+        //doStutterForward if enemy outranges me (or is weaponless)
+        double myAttackRange = UnitUtils.getAttackRange(attackUnit, closestEnemyThreat);
+        double enemyAttackRange = UnitUtils.getAttackRange(closestEnemyThreat, attackUnit);
+        return myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat) ||
+                myAttackRange < enemyAttackRange;
+    }
+
+    protected boolean isFlying() {
+        return unit.unit().getFlying().orElse(false);
+    }
+
+    protected boolean isInSplashDamage() {
+        return isInSplashDamage(unit.unit().getPosition().toPoint2d());
+    }
+
+    protected boolean isInSplashDamage(Point2d pos) {
+        return InfluenceMaps.getValue(
+                (isFlying() ? InfluenceMaps.pointPersistentDamageToAir : InfluenceMaps.pointPersistentDamageToGround),
+                pos
+        );
     }
 }

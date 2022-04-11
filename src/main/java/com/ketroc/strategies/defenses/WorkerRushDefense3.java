@@ -14,6 +14,7 @@ import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.Chat;
 import com.ketroc.utils.PosConstants;
+import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -29,9 +30,29 @@ public class WorkerRushDefense3 {
         manageScvDefenders();
         toggleIsWorkerRushed();
         if (isWorkerRushed) {
+            //manageProductionCancelling(); //TODO: uncomment - off for probots
             UnitMicroList.removeAll(ScvAttackTarget.class); //free up scvs
             manageScvRepairers();
         }
+    }
+
+    private static void manageProductionCancelling() {
+        //only at start, cancel any structure in production
+        //   if enemy worker count >= 11 && game time < 2:00 && something to do with mineral bank
+        //re-add structure to top of build order queue
+        if (numEnemyWorkersAttacking() >= 11 &&
+                Time.nowSeconds() < 120 &&
+                Bot.OBS.getMinerals() < 125) {
+            cancelStructuresInProduction();
+        }
+    }
+
+    private static void cancelStructuresInProduction() {
+        StructureScv.scvBuildingList.forEach(productionStructure -> {
+            productionStructure.cancelProduction();
+            KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(productionStructure.structureType));
+        });
+        StructureScv.scvBuildingList.clear();
     }
 
     private static void manageScvDefenders() {
@@ -49,7 +70,7 @@ public class WorkerRushDefense3 {
         int numDefendersNeeded = (int)(numAttackers * 1.34) - numDefenders;
         if (numDefendersNeeded > 0) {
             Comparator<Unit> compareByHealth = Comparator.comparing(scv -> scv.getHealth().orElse(0f));
-            UnitUtils.getMyUnitsOfType(Units.TERRAN_SCV).stream()
+            UnitUtils.myUnitsOfType(Units.TERRAN_SCV).stream()
                     .filter(scv -> scv.getHealth().orElse(0f) > 15)
                     .sorted(compareByHealth.reversed())
                     .limit(numDefendersNeeded)
@@ -70,7 +91,7 @@ public class WorkerRushDefense3 {
 
     private static void manageScvRepairers() {
         if (Bot.OBS.getMinerals() >= 40) {
-            List<Unit> lowHpScvs = UnitUtils.getMyUnitsOfType(Units.TERRAN_SCV).stream()
+            List<Unit> lowHpScvs = UnitUtils.myUnitsOfType(Units.TERRAN_SCV).stream()
                     .filter(scv -> scv.getHealth().orElse(0f) <= 25 &&
                             UnitUtils.getDistance(scv, GameCache.baseList.get(0).getResourceMidPoint()) < 5)
                     .collect(Collectors.toList());
@@ -99,19 +120,20 @@ public class WorkerRushDefense3 {
     }
 
     //open depot rax gas
-    private static void changeBuildOrder() {
+    private static void changeBuildOrder() { //depot, rax, gas
         //cancel gas, requeue it (after barracks)
         if (StructureScv.cancelProduction(Units.TERRAN_REFINERY)) {
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));
         }
         //move barracks to top of purchase queue (and position far from ramp)
-        if (Purchase.isStructureQueued(Units.TERRAN_BARRACKS)) {
+        if (Purchase.isStructureQueued(Units.TERRAN_BARRACKS) &&
+                UnitUtils.numInProductionOfType(Units.TERRAN_BARRACKS) == 0) {
             Purchase.removeFirst(Units.TERRAN_BARRACKS);
-            Point2d deepRaxPos = PosConstants._3x3Structures.stream()
+            Point2d deepRaxPos = PosConstants._3x3AddonPosList.stream()
                     .filter(pos -> UnitUtils.isInMyMain(pos))
                     .max(Comparator.comparing(pos -> pos.distance(PosConstants.myRampPos)))
                     .get();
-            PosConstants._3x3Structures.remove(deepRaxPos);
+            PosConstants._3x3AddonPosList.remove(deepRaxPos);
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_BARRACKS, deepRaxPos));
         }
     }

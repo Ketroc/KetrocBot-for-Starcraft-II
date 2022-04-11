@@ -24,7 +24,7 @@ public class DebugHelper {
     public static float z;
     private static final int TEXT_SIZE = 18;
     public static boolean isDebugOn;
-    public static boolean doTestingSpawns;
+    public static boolean doTestingSpawns = true;
     private static int lineNum;
 
     public static void onGameStart() {
@@ -47,17 +47,20 @@ public class DebugHelper {
     private static void testingStuff() {
         //spawn at start
         if (Time.at(1)) {
-//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_REAPER, LocationConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_CYCLONE, PosConstants.baseLocations.get(1), Bot.myId, 3);
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, PosConstants.baseLocations.get(1), Bot.myId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH_BURROWED, PosConstants.BUNKER_NATURAL, Bot.enemyId, 15);
         }
 
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("8:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("3:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_IMMORTAL, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_BANELING, PosConstants.proxyBarracksPos, Bot.enemyId, 4);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_STALKER, PosConstants.proxyBarracksPos, Bot.enemyId, 7);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_OBSERVER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_OVERLORD, PosConstants.proxyBarracksPos, Bot.enemyId, 3);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 12);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_DRONE, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+//            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
 //                    .forEach(cyclone -> {
 //                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
@@ -268,7 +271,7 @@ public class DebugHelper {
         }
         float x = pos.getX();
         float y = pos.getY();
-        Bot.DEBUG.debugTextOut(text, Point.of(x, y, z), color, textSize);
+        Bot.DEBUG.debugTextOut(text, Point.of(x, y, Bot.OBS.terrainHeight(pos) + 0.2f), color, textSize);
     }
 
     public static void addInfoLine(String text) {

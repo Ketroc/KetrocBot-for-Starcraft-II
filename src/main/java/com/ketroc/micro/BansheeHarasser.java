@@ -298,13 +298,12 @@ public class BansheeHarasser {
         Target bestTarget = new Target(null, Float.MIN_VALUE, Float.MAX_VALUE); //best target will be lowest hp unit without barrier
         for (UnitInPool enemy : enemiesInRange) {
             float enemyHP = enemy.unit().getHealth().orElse(0f) + enemy.unit().getShield().orElse(0f);
-            UnitTypeData enemyData = Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType());
             float enemyCost;
             if (enemy.unit().getType() == UnitUtils.enemyWorkerType) { //inflate value of workers as they impact income
                 enemyCost = 75;
             }
             else {
-                enemyCost = enemyData.getMineralCost().orElse(1) + (enemyData.getVespeneCost().orElse(1) * 1.2f); //value gas more than minerals
+                enemyCost = UnitUtils.getCost(enemy.unit()).getValue();
             }
             float enemyValue = enemyCost/enemyHP;
             if (enemyValue > bestTarget.value && !enemy.unit().getBuffs().contains(Buffs.IMMORTAL_OVERLOAD)) {

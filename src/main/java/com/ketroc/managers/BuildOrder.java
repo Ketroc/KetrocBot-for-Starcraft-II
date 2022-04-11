@@ -16,8 +16,6 @@ import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.PosConstants;
 
-import java.util.Comparator;
-
 public class BuildOrder {
     public static UnitInPool proxyScv;
 
@@ -26,6 +24,8 @@ public class BuildOrder {
             case TERRAN:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
+                } else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+                    ghostMarauderOpener();
                 }
 //                else if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
 //                    _1_1_1_Opener();
@@ -42,7 +42,7 @@ public class BuildOrder {
                 else if (Strategy.gamePlan == GamePlan.ONE_BASE_TANK_VIKING) {
                     _111ExpandOpener();
                 }
-                else {
+                else if (Strategy.gamePlan == GamePlan.TANK_VIKING) {
                     Switches.fastDepotBarracksOpener = true;
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     //KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SCV, GameCache.baseList.get(0).getCc()));
@@ -88,10 +88,15 @@ public class BuildOrder {
                     //KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_SIEGE_TANK));
 //                    build3rdCC();
                 }
+                else { //mass raven, mass banshee, etc
+                    pfExpandOpener();
+                }
                 break;
             case PROTOSS:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
+                } else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+                    ghostMarauderOpener();
                 }
                 else if (Strategy.gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE) {
                     _1base2FactOpener();
@@ -115,6 +120,8 @@ public class BuildOrder {
             case ZERG:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
+                } else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+                    ghostHellbatOpener(); //FIXME: for testing of ghost hellbat
                 } else if (BunkerContain.proxyBunkerLevel != 0) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, PosConstants.proxyBarracksPos));
@@ -141,6 +148,7 @@ public class BuildOrder {
                 _1base2FactOpener();
                 break;
         }
+        KetrocBot.purchaseQueue.add(new BuildOrderComplete());
     }
 
     private static void tvtBunkerContainWeak() {
@@ -245,6 +253,62 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+    }
+
+    private static void ghostMarauderOpener() {
+        Switches.fastDepotBarracksOpener = true;
+        WorkerManager.numScvsPerGas = 3;
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_MARINE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_MARINE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_GHOST_ACADEMY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        build3rdCC();
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.PUNISHER_GRENADES));
+    }
+
+    private static void ghostHellbatOpener() {
+        Switches.fastDepotBarracksOpener = true;
+        WorkerManager.numScvsPerGas = 3;
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_MARINE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_MARINE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_GHOST_ACADEMY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        build3rdCC();
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_FACTORY));
     }
 
     private static void _2FactExpandHellionOpener() {
@@ -460,15 +524,14 @@ public class BuildOrder {
 
     public static void build3rdCC() {
         if (Strategy.BUILD_EXPANDS_IN_MAIN) {
-            Point2d thirdCcPos = PosConstants.MACRO_OCS.stream()
-                    .min(Comparator.comparing(p -> p.distance(PosConstants.baseLocations.get(2))))
-                    .get();
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, thirdCcPos));
-            PosConstants.MACRO_OCS.remove(thirdCcPos);
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(
+                    Units.TERRAN_COMMAND_CENTER, PosConstants.MACRO_OCS.remove(0))
+            );
         }
         else {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(
-                    Units.TERRAN_COMMAND_CENTER, PosConstants.baseLocations.remove(2)));
+                    Units.TERRAN_COMMAND_CENTER, PosConstants.baseLocations.remove(2))
+            );
         }
     }
 }

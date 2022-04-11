@@ -22,6 +22,7 @@ import com.ketroc.models.Cost;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.Purchase;
+import com.ketroc.purchases.PurchaseStructureMorph;
 import com.ketroc.purchases.PurchaseUnit;
 import com.ketroc.strategies.Strategy;
 
@@ -30,7 +31,23 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class UnitUtils {
-
+    public static final Set<Units> DONT_CHASE_TYPES = Set.of(
+            Units.TERRAN_REAPER, Units.TERRAN_HELLION,
+            Units.PROTOSS_ADEPT, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.PROTOSS_ORACLE, Units.PROTOSS_INTERCEPTOR);
+    public static final Set<Units> BARRACKS_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_MARINE, Units.TERRAN_MARAUDER, Units.TERRAN_GHOST, Units.TERRAN_REAPER));
+    public static final Set<Units> BARRACKS_TECHLAB_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_MARAUDER, Units.TERRAN_GHOST));
+    public static final Set<Units> FACTORY_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED, Units.TERRAN_HELLION, Units.TERRAN_HELLION_TANK,
+            Units.TERRAN_SIEGE_TANK, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
+    public static final Set<Units> FACTORY_TECHLAB_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_SIEGE_TANK, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
+    public static final Set<Units> STARPORT_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_MEDIVAC, Units.TERRAN_VIKING_FIGHTER, Units.TERRAN_VIKING_ASSAULT, Units.TERRAN_LIBERATOR,
+            Units.TERRAN_LIBERATOR_AG, Units.TERRAN_BANSHEE, Units.TERRAN_RAVEN, Units.TERRAN_BATTLECRUISER));
+    public static final Set<Units> STARPORT_TECHLAB_ARMY_TYPE = new HashSet<>(Set.of(
+            Units.TERRAN_BANSHEE, Units.TERRAN_RAVEN, Units.TERRAN_BATTLECRUISER));
     public static final Set<Units> WORKER_TYPE = new HashSet<>(Set.of(
             Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE, Units.TERRAN_SCV, Units.TERRAN_MULE));
 
@@ -120,6 +137,9 @@ public class UnitUtils {
             Units.ZERG_OVERLORD, Units.ZERG_OVERSEER, Units.ZERG_OVERLORD_COCOON,
             Units.ZERG_OVERLORD_TRANSPORT, Units.ZERG_OVERSEER_SIEGED));
 
+    public static final Set<Units> OVERSEER_TYPE = new HashSet<>(Set.of(
+            Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED));
+
     public static final Set<Units> DETECTION_REQUIRED_TYPE = new HashSet<>(Set.of(
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.TERRAN_BANSHEE, Units.TERRAN_GHOST,
             Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
@@ -130,7 +150,9 @@ public class UnitUtils {
     public static final Set<Units> GROUND_ARMY_ATTACKERS_TYPE = new HashSet<>(Set.of(
             Units.TERRAN_MARINE, Units.TERRAN_MARAUDER, Units.TERRAN_REAPER, Units.TERRAN_GHOST,
             Units.TERRAN_CYCLONE, Units.TERRAN_HELLION, Units.TERRAN_WIDOWMINE, Units.TERRAN_WIDOWMINE_BURROWED,
-            Units.TERRAN_HELLION_TANK, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER, Units.TERRAN_LIBERATOR_AG));
+            Units.TERRAN_HELLION_TANK, Units.TERRAN_THOR, Units.TERRAN_THOR_AP, Units.TERRAN_SIEGE_TANK_SIEGED,
+            Units.TERRAN_SIEGE_TANK, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER, Units.TERRAN_LIBERATOR_AG,
+            Units.TERRAN_VIKING_ASSAULT));
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -213,7 +235,7 @@ public class UnitUtils {
     public static Units enemyWorkerType;
 
     //includes units in Ignored List
-    public static int numMyUnits(Units unitType, boolean includeProducing) {
+    public static int numMyLooseUnits(Units unitType, boolean includeProducing) {
         int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
             if (isStructure(unitType)) {
@@ -223,14 +245,14 @@ public class UnitUtils {
             }
         }
         if (unitType == Units.TERRAN_MARINE) { //FIXME: assuming bunkers only contain marines
-            numUnits += UnitUtils.getMyUnitsOfType(Units.TERRAN_BUNKER).stream()
+            numUnits += UnitUtils.myUnitsOfType(Units.TERRAN_BUNKER).stream()
                     .mapToInt(bunker -> bunker.getCargoSpaceTaken().orElse(0))
                     .sum();
         }
         return numUnits;
     }
 
-    public static int numMyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int numMyLooseUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = 0;
         for (Units unitType : unitTypes) {
             //numUnits += getFriendlyUnitsOfType(unitType).size();
@@ -256,8 +278,8 @@ public class UnitUtils {
 
     public static boolean canAfford(Units unitType, boolean doIgnorePurchaseQueueSaving) {
         return canAfford(unitType,
-                doIgnorePurchaseQueueSaving ? Bot.OBS.getMinerals() : GameCache.mineralBank,
-                doIgnorePurchaseQueueSaving ? Bot.OBS.getVespene() : GameCache.gasBank,
+                doIgnorePurchaseQueueSaving ? Bot.OBS.getMinerals() : Math.max(0, GameCache.mineralBank),
+                doIgnorePurchaseQueueSaving ? Bot.OBS.getVespene() : Math.max(0, GameCache.gasBank),
                 GameCache.freeSupply);
     }
 
@@ -303,7 +325,7 @@ public class UnitUtils {
     }
 
     public static int numRepairingScvs(Unit repairTarget) {
-        return (int) getMyUnitsOfType(Units.TERRAN_SCV).stream()
+        return (int) myUnitsOfType(Units.TERRAN_SCV).stream()
                 .filter(scv ->
                         ActionIssued.getCurOrder(scv).stream()
                                 .anyMatch(curAction -> curAction.ability == Abilities.EFFECT_REPAIR &&
@@ -327,8 +349,12 @@ public class UnitUtils {
         if (GameCache.wallStructures.contains(unit)) {
             if (structureHealth > 75) {
                 return (Strategy.WALL_OFF_IMMEDIATELY) ? 2 : 1;
-            } else {
+            }
+            else if (structureHealth > 33) {
                 return (Strategy.WALL_OFF_IMMEDIATELY) ? 3 : 2;
+            }
+            else {
+                return 3;
             }
         }
         switch ((Units) unit.getType()) {
@@ -346,7 +372,7 @@ public class UnitUtils {
             case TERRAN_SIEGE_TANK_SIEGED:
                 return 2;
             case TERRAN_BUNKER:
-                return 3;
+                return 4;
             default: //other burning structures
                 return InfluenceMaps.getThreatToStructure(unit) == 0 ? 1 : 0;
         }
@@ -358,6 +384,13 @@ public class UnitUtils {
 
     public static float getGroundAttackRange(Unit unit) {
         return getAttackRange(unit, Weapon.TargetType.GROUND);
+    }
+
+    public static float getAttackRange(Unit unit, Unit target) {
+        Weapon.TargetType targetType = target.getFlying().orElse(false) ?
+                Weapon.TargetType.AIR :
+                Weapon.TargetType.GROUND;
+        return getAttackRange(unit, targetType);
     }
 
     public static float getAttackRange(Unit unit, Weapon.TargetType targetType) {
@@ -395,7 +428,7 @@ public class UnitUtils {
             case ZERG_BANELING:
             case ZERG_BANELING_BURROWED:
                 if (targetType == Weapon.TargetType.GROUND) {
-                    attackRange = 2; //real range is 0.25 (2.2splash)
+                    attackRange = 1.99f; //real range is 0.25 (2.2splash) - 1.99 so that hellbat outranges it
                 }
                 break;
             case TERRAN_PLANETARY_FORTRESS:
@@ -457,6 +490,13 @@ public class UnitUtils {
         if (unit.getDisplayType() == DisplayType.SNAPSHOT) {
             return true;
         }
+
+        //flying units over high ground are targettable
+        if (unit.getFlying().orElse(false)) {
+            return false;
+        }
+
+        //check visibility of the ground the unit is standing on
         float unitRadius = unit.getRadius();
         Point2d unitPos = unit.getPosition().toPoint2d();
         return Bot.OBS.getVisibility(unitPos.add(unitRadius, 0)) != Visibility.VISIBLE &&
@@ -532,7 +572,7 @@ public class UnitUtils {
     }
 
     public static boolean canScan() {
-        List<Unit> orbitals = getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        List<Unit> orbitals = myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         return orbitals.stream().anyMatch(unit -> unit.getEnergy().orElse(0f) >= 50);
     }
 
@@ -566,11 +606,13 @@ public class UnitUtils {
         return result;
     }
 
-    public static List<Unit> getMyUnitsOfType(Units unitType) {
+    //warning: ignores units in Ignored
+    public static List<Unit> myUnitsOfType(Units unitType) {
         return GameCache.allMyUnitsMap.getOrDefault(unitType, new ArrayList<>());
     }
 
-    public static List<Unit> getMyUnitsOfType(Set<Units> unitTypes) {
+    //warning: ignores units in Ignored
+    public static List<Unit> myUnitsOfType(Set<Units> unitTypes) {
         List<Unit> result = new ArrayList<>();
         for (Units unitType : unitTypes) {
             List<Unit> myUnitsOfType = GameCache.allMyUnitsMap.getOrDefault(unitType, new ArrayList<>());
@@ -604,7 +646,8 @@ public class UnitUtils {
             case PROTOSS_DISRUPTOR_PHASED:
                 return true;
             case TERRAN_BUNKER:
-                return !Strategy.DO_IGNORE_BUNKERS;
+                return !Strategy.DO_IGNORE_BUNKERS &&
+                        (unit.getDisplayType() == DisplayType.SNAPSHOT || unit.getBuildProgress() == 1f);
         }
         return Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().stream().anyMatch(weapon -> weapon.getTargetType() == Weapon.TargetType.GROUND || weapon.getTargetType() == Weapon.TargetType.ANY);
@@ -1092,14 +1135,18 @@ public class UnitUtils {
                 unit.getLastSeenGameLoop() >= (Time.nowFrames() - Launcher.STEP_SIZE);
     }
 
-    public static boolean canAttack(UnitType unitType) {
-        if (unitType.toString().contains("CHANGELING")) {
+    public static boolean canAttack(Unit unit) {
+        if (unit.getType().toString().contains("CHANGELING")) {
             return false;
         }
-        if (unitType == Units.TERRAN_BUNKER && !Strategy.DO_IGNORE_BUNKERS) {
-            return true;
+        if (unit.getType() == Units.TERRAN_BUNKER) {
+            return unit.getCargoSpaceTaken().orElse(0) > 0 ||
+                    (unit.getAlliance() == Alliance.ENEMY && !Strategy.DO_IGNORE_BUNKERS);
         }
-        return !Bot.OBS.getUnitTypeData(false).get(unitType)
+        if (!unit.getPowered().orElse(true)) {
+            return false;
+        }
+        return !Bot.OBS.getUnitTypeData(false).get(unit.getType())
                 .getWeapons().isEmpty();
     }
 
@@ -1107,7 +1154,7 @@ public class UnitUtils {
         return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getAttributes();
     }
 
-    public static float getTotalHealth(Unit unit) {
+    public static float getCurHp(Unit unit) {
         return unit.getHealth().orElse(0f) + unit.getShield().orElse(0f);
     }
 
@@ -1252,13 +1299,13 @@ public class UnitUtils {
     }
 
     public static int numScansAvailable() {
-        return getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+        return myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
                 .mapToInt(oc -> (int) (oc.getEnergy().orElse(1f) / 50))
                 .sum();
     }
 
     public static void scan(Point2d pos) {
-        getMyUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
+        myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND).stream()
                 .filter(oc -> oc.getEnergy().orElse(0f) >= 50)
                 .max(Comparator.comparing(oc -> oc.getEnergy().get()))
                 .ifPresent(oc -> {
@@ -1322,11 +1369,6 @@ public class UnitUtils {
         return Cost.isGasBroke(25) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
     }
 
-    //TODO: correctly identify this, rather than using time
-    public static boolean withinOpeningBuildOrder() {
-        return Time.nowFrames() < Time.toFrames("3:30");
-    }
-
     //time (s) until a structure is available
     public static int secondsUntilAvailable(Unit structure) {
         //include time of units in purchase queue for this structure
@@ -1380,7 +1422,7 @@ public class UnitUtils {
     public static List<UnitInPool> getEnemyGroundArmyUnitsNearby(Point2d origin, int range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 !u.unit().getFlying().orElse(true) &&
-                        canAttack(u.unit().getType()) &&
+                        canAttack(u.unit()) &&
                         UnitUtils.getDistance(u.unit(), origin) < range);
     }
 
@@ -1399,7 +1441,7 @@ public class UnitUtils {
         float facing = (float) Math.toDegrees(enemyUnit.getFacing());
         float attackAngle = Position.getAngle(enemyUnit.getPosition().toPoint2d(), myUnitPos);
         float angleDiff = Position.getAngleDifference(facing, attackAngle);
-        return angleDiff > 100;
+        return angleDiff > 120;
     }
 
     public static Optional<UnitInPool> getNatBunker() {
@@ -1431,27 +1473,11 @@ public class UnitUtils {
         }
     }
 
-    public static boolean requiresTechLab(Units unitType) {
-        switch (unitType) {
-            case TERRAN_MARAUDER:
-            case TERRAN_GHOST:
-            case TERRAN_CYCLONE:
-            case TERRAN_SIEGE_TANK:
-            case TERRAN_THOR:
-            case TERRAN_BANSHEE:
-            case TERRAN_RAVEN:
-            case TERRAN_BATTLECRUISER:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     //gets production structure that is available or best one to cancel current production of
     public static Optional<Unit> getEmergencyProductionStructure(Units unitToTrain) {
         Units structureType = getRequiredStructureType(unitToTrain);
-        boolean requiresTechLab = requiresTechLab(unitToTrain);
-        return getMyUnitsOfType(structureType).stream()
+        boolean requiresTechLab = isTechLabRequired(unitToTrain);
+        return myUnitsOfType(structureType).stream()
                 .filter(structure -> !requiresTechLab || structure.getAddOnTag().isPresent())
                 .min(Comparator.comparing(structure -> trainingTimeRemaining(structure)));
     }
@@ -1565,10 +1591,9 @@ public class UnitUtils {
 
     //TODO: consider damage upgrades and armor upgrades
     //TODO: include abilities like widow mine and baneling attack
-    public static float getDps(Unit unit, Unit target) {
-        UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unit.getType());
-        UnitTypeData targetData = Bot.OBS.getUnitTypeData(false).get(target.getType());
-        Weapon unitWeapon = UnitUtils.getWeapon(unit, target).orElse(null);
+    public static float getDps(Unit attackingUnit, Unit targetUnit) {
+        UnitTypeData targetData = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType());
+        Weapon unitWeapon = UnitUtils.getWeapon(attackingUnit, targetUnit).orElse(null);
         if (unitWeapon == null) {
             return 0;
         }
@@ -1579,6 +1604,21 @@ public class UnitUtils {
                 .mapToDouble(DamageBonus::getBonus)
                 .sum();
         return weaponDmg / unitWeapon.getSpeed();
+    }
+
+    public static float getDamage(Unit attackingUnit, Unit targetUnit) {
+        UnitTypeData targetData = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType());
+        Weapon unitWeapon = UnitUtils.getWeapon(attackingUnit, targetUnit).orElse(null);
+        if (unitWeapon == null) {
+            return 0;
+        }
+        float weaponDmg = unitWeapon.getDamage();
+        weaponDmg += unitWeapon.getDamageBonuses().stream()
+                .filter(damageBonus -> targetData.getAttributes().stream()
+                        .anyMatch(attrib -> attrib.equals(damageBonus.getAttribute())))
+                .mapToDouble(DamageBonus::getBonus)
+                .sum();
+        return weaponDmg;
     }
 
     public static boolean isEnemyGroundUnitsNearby(Point2d targetPos, int range) {
@@ -1698,5 +1738,89 @@ public class UnitUtils {
         float totalBuildTime = Bot.OBS.getUpgradeData(false).get(upgrade).getResearchTime().orElse(0f);
         float upgradeProgress = (structure.getOrders().isEmpty()) ? 0 : structure.getOrders().get(0).getProgress().orElse(1f);
         return (int)Math.ceil(totalBuildTime * (1 - upgradeProgress));
+    }
+
+    public static boolean isTechLabRequired(Units unitType) {
+        switch (unitType) {
+            case TERRAN_MARAUDER: case TERRAN_GHOST:
+            case TERRAN_SIEGE_TANK: case TERRAN_THOR:
+            case TERRAN_BANSHEE: case TERRAN_BATTLECRUISER: case TERRAN_RAVEN:
+                return true;
+        }
+        return false;
+    }
+
+    //TODO: combine with canStructureProduce() considering numUnits in purchase queue and isReactored
+    public static boolean isStructureAvailableForProduction(Unit structure) {
+        //if structure is already in purchase queue from PurchaseStructureMorph
+        if (PurchaseStructureMorph.contains(structure)) {
+            return false;
+        }
+
+        //if structure is already in purchase queue for PurchaseUnit
+        Set<Units> structureUnits;
+        switch ((Units)structure.getType()) {
+            case TERRAN_BARRACKS:
+                structureUnits = UnitUtils.BARRACKS_ARMY_TYPE;
+                break;
+            case TERRAN_FACTORY:
+                structureUnits = UnitUtils.FACTORY_ARMY_TYPE;
+                break;
+            case TERRAN_STARPORT:
+                structureUnits = UnitUtils.STARPORT_ARMY_TYPE;
+                break;
+            default:
+                return true;
+        }
+        return KetrocBot.purchaseQueue.stream()
+                .filter(p -> p instanceof PurchaseUnit)
+                .map(p -> (PurchaseUnit)p)
+                .noneMatch(p -> structureUnits.contains(p.getUnitType()) &&
+                        (p.getProductionStructure() == null || structure.getTag().equals(p.getProductionStructure().getTag())));
+    }
+
+    public static boolean isReactored(Unit structure) {
+        return hasAddOn(structure, "_REACTOR");
+    }
+
+    public static boolean isTechLabbed(Unit structure) {
+        return hasAddOn(structure, "_TECHLAB");
+    }
+
+    //addOnTypeSuffix = "_REACTOR" or "_TECHLAB"
+    private static boolean hasAddOn(Unit structure, String addOnTypeSuffix) {
+        return getAddOn(structure).stream()
+                .anyMatch(addOn -> addOn.unit().getType().toString().endsWith(addOnTypeSuffix));
+    }
+
+    public static boolean canStructureProduce(Unit structure) {
+        if (ActionIssued.isRealTimeDelayed(structure)) { //wait for order to show up in realtime before committing to more production
+            return false;
+        }
+        return structure.getOrders().size() < (isReactored(structure) ? 2 : 1);
+    }
+
+    public static boolean isDetected(Point2d pos) {
+        return InfluenceMaps.getValue(InfluenceMaps.pointDetected, pos) &&
+                InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, pos);
+    }
+    public static boolean isDetected(Unit myUnit) {
+        return myUnit.getBuffs().contains(Buffs.FUNGAL_GROWTH) ||
+                myUnit.getBuffs().contains(Buffs.EMP_DECLOAK) ||
+                myUnit.getBuffs().contains(Buffs.LOCK_ON) ||
+                myUnit.getBuffs().contains(Buffs.NEURAL_PARASITE) ||
+                myUnit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) ||
+                myUnit.getBuffs().contains(Buffs.ORACLE_REVELATION) ||
+                (InfluenceMaps.getValue(InfluenceMaps.pointDetected, myUnit.getPosition().toPoint2d()) &&
+                        InfluenceMaps.getValue(InfluenceMaps.pointInEnemyVision, myUnit.getPosition().toPoint2d()));
+    }
+
+    //no ghosts return false (could be wrong)
+    public static boolean isNukeAvailable() {
+        return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_GHOST).stream()
+                        .findFirst()
+                        .stream()
+                        .anyMatch(ghost -> MyUnitAbilities.isAbilityAvailable(ghost.unit(), Abilities.EFFECT_NUKE_CALL_DOWN)) &&
+                Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_NUKE).isEmpty();
     }
 }

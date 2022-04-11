@@ -41,7 +41,7 @@ public class FlyingCC {
     // ***************
 
     public boolean isMoving() {
-        return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit).isPresent();
+        return unit.unit().getFlying().orElse(false) && ActionIssued.getCurOrder(unit).isPresent();
     }
     public boolean hasLanded() {
         return unit.unit().getType() == Units.TERRAN_COMMAND_CENTER;
@@ -51,9 +51,8 @@ public class FlyingCC {
     }
 
     public void keepCCMoving() {
-        Unit cc = unit.unit();
-        if (cc.getType() == Units.TERRAN_COMMAND_CENTER_FLYING && ActionIssued.getCurOrder(unit).isEmpty()) {
-            ActionHelper.unitCommand(cc, Abilities.LAND, destination, false);
+        if (unit.unit().getFlying().orElse(false) && ActionIssued.getCurOrder(unit).isEmpty()) {
+            ActionHelper.unitCommand(unit.unit(), Abilities.LAND, destination, false);
         }
     }
 
@@ -63,7 +62,7 @@ public class FlyingCC {
 
     public static void addFlyingCC(UnitInPool cc, Point2d destination, boolean makeMacroOC) {
         flyingCCs.add(new FlyingCC(cc, destination, makeMacroOC));
-        ActionHelper.unitCommand(cc.unit(), Abilities.LIFT_COMMAND_CENTER, false);
+        ActionHelper.unitCommand(cc.unit(), Abilities.LIFT, false);
     }
 
     public static void addFlyingCC(Unit cc, Point2d destination, boolean makeMacroOC) {

@@ -7,6 +7,7 @@ import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.GameCache;
 import com.ketroc.geometry.Position;
+import com.ketroc.managers.ArmyManager;
 import com.ketroc.micro.BasicUnitMicro;
 import com.ketroc.micro.MicroPriority;
 import com.ketroc.micro.VikingChaser;
@@ -15,6 +16,7 @@ import com.ketroc.utils.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //banshee, overlord/seer, observer,
 public class AirUnitKillSquad {
@@ -28,6 +30,18 @@ public class AirUnitKillSquad {
 
     public AirUnitKillSquad(UnitInPool targetUnit) {
         this.targetUnit = targetUnit;
+    }
+
+    public static List<UnitInPool> getAvailableEnemyAirTargets() {
+        return GameCache.allVisibleEnemiesList.stream()
+                .filter(enemyAirUip -> UnitUtils.VIKING_PEEL_TARGET_TYPES.contains(enemyAirUip.unit().getType()) &&
+                        !enemyAirUip.unit().getHallucination().orElse(false) &&
+                        !Ignored.contains(enemyAirUip.getTag()) &&
+                        InfluenceMaps.getValue(
+                                InfluenceMaps.pointThreatToAirValue,
+                                Position.towards(enemyAirUip.unit(), ArmyManager.vikingMidPoint, 9)
+                        ) < MAX_THREAT)
+                .collect(Collectors.toList());
     }
 
     public BasicUnitMicro getRaven() {

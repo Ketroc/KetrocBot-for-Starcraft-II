@@ -300,7 +300,7 @@ public class StructureScv {
     }
 
     //makes structure position available again, then requeues structure purchase (sometimes)
-    private static void requeueCancelledStructure(StructureScv structureScv) {
+    public static void requeueCancelledStructure(StructureScv structureScv) {
         Print.print("structure requeued:" + structureScv.structureType);
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
@@ -317,7 +317,7 @@ public class StructureScv {
 //                LocationConstants.FACTORIES.add(structureScv.structurePos);
 //                break;
             case TERRAN_STARPORT:
-                PosConstants.STARPORTS.add(structureScv.structurePos);
+                PosConstants._3x3AddonPosList.add(structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:
                 if (PosConstants.proxyBarracksPos == null || structureScv.structurePos.distance(PosConstants.proxyBarracksPos) > 10) {
