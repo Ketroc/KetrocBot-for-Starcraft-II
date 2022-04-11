@@ -496,7 +496,8 @@ public class BasicUnitMicro {
         return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
     }
 
-    //excludes reapers, hellions, adepts, oracles, when on offense
+    //excludes reapers, hellions, adepts, oracles, when on offense, excludes structures
+    //priority on overcharged batteries, then units that shoot ground, then everything else
     protected Unit getClosestEnemyThreatToGround() {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                         !enemy.unit().getHallucination().orElse(false) &&
@@ -507,7 +508,11 @@ public class BasicUnitMicro {
                                 (UnitUtils.canAttackGround(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
                                 UnitUtils.getDistance(unit.unit(), enemy.unit()) < 15)
                 .stream()
-                .min(Comparator.comparing(enemy -> UnitUtils.getDistance(unit.unit(), enemy.unit())))
+                .min(Comparator.comparing(enemy ->
+                        UnitUtils.getDistance(unit.unit(), enemy.unit()) +
+                        (!enemy.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE) ? 1000 : 0) +
+                        (!UnitUtils.canAttackGround(enemy.unit()) ? 100 : 0)
+                ))
                 .map(UnitInPool::unit)
                 .orElse(null);
     }
@@ -519,8 +524,9 @@ public class BasicUnitMicro {
         //doStutterForward if enemy outranges me (or is weaponless)
         double myAttackRange = UnitUtils.getAttackRange(attackUnit, closestEnemyThreat);
         double enemyAttackRange = UnitUtils.getAttackRange(closestEnemyThreat, attackUnit);
-        return myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat) ||
-                myAttackRange < enemyAttackRange;
+        return enemyAttackRange == 0 ||
+                myAttackRange < enemyAttackRange ||
+                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat);
     }
 
     protected boolean isFlying() {
