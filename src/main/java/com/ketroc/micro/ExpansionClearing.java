@@ -69,7 +69,7 @@ public class ExpansionClearing {
         }
 
         //raven is travelling to expansion
-        else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 3 && !isTurretActive) {
+        else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 4.5f && !isTurretActive) {
             //if raven can't reach position, turret now
             if (destinationUnreachable()) {
                 Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit(), 2.9f);
@@ -110,6 +110,9 @@ public class ExpansionClearing {
                 }
                 //check if base is cleared of obstructions
                 else {
+                    if (raven.unit.unit().getOrders().size() < 3) {
+                        UnitUtils.patrolSquare(raven.unit.unit(), expansionPos, 3);
+                    }
                     return testExpansionPos();
                 }
             }

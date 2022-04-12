@@ -892,6 +892,14 @@ public class UnitUtils {
         ActionHelper.unitCommand(unit, Abilities.PATROL, Position.towards(pos, PosConstants.mainBaseMidPos, 1.5f), true);
     }
 
+    public static void patrolSquare(Unit unit, Point2d pos, float radius) {
+        ActionHelper.unitCommand(unit, Abilities.MOVE, pos.add(-radius, -radius), false);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, pos.add(-radius, radius), true);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, pos.add(radius, radius), true);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, pos.add(radius, -radius), true);
+        ActionHelper.unitCommand(unit, Abilities.PATROL, pos.add(-radius, -radius), true);
+    }
+
     public static void patrolInPlace(List<Unit> unitList, Point2d pos) {
         ActionHelper.unitCommand(unitList, Abilities.PATROL, Position.towards(pos, PosConstants.mainBaseMidPos, 1.5f), true);
     }
