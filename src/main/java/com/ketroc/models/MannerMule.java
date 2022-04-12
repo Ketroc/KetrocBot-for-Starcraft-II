@@ -76,12 +76,12 @@ public class MannerMule {
         }
 
         //change to EZ and smiley
-        if (Time.nowFrames() > lastMulingFrame + Time.toFrames(13)) {
+        if (Time.nowFrames() > lastMulingFrame + Time.toFrames(15)) {
             int muleTime = Time.toSeconds(Time.nowFrames() - lastMulingFrame);
             List<Point2d> posList;
-            if (muleTime > 31) {
+            if (muleTime > 37) {
                 posList = pacmanPosList;
-            } else if (muleTime > 21) {
+            } else if (muleTime > 25) {
                 posList = heartPosList;
             } else {
                 posList = ezPosList;
