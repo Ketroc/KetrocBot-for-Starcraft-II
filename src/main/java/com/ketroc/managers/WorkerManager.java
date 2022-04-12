@@ -44,7 +44,7 @@ public class WorkerManager {
         fixOverSaturation();
         setNumScvsPerGas();
         buildRefineryLogic();
-        defendWorkerHarass();
+        //defendWorkerHarass();
         preventMulesFromDyingWithMineralsInHand();
     }
 
