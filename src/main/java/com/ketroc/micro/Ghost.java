@@ -55,6 +55,7 @@ public class Ghost extends BasicUnitMicro {
 
     protected void snipe(Unit target) {
         ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_GHOST_SNIPE, target,false);
+        Ghost.prevSnipeFrame = Time.nowFrames();
     }
 
     protected void emp(Point2d pos) {

@@ -180,9 +180,6 @@ public class PlacementMap {
         PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
         visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
         //create2CellColumns();
-
-        Bot.DEBUG.sendDebug();
-        int weqruio = 0;
     }
 
     private static void populateDepotPos(int mainBaseColumn) {

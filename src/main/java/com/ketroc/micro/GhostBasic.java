@@ -1,7 +1,9 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
-import com.github.ocraft.s2client.protocol.data.*;
+import com.github.ocraft.s2client.protocol.data.UnitAttribute;
+import com.github.ocraft.s2client.protocol.data.UnitTypeData;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
@@ -9,7 +11,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.utils.*;
+import com.ketroc.utils.InfluenceMaps;
+import com.ketroc.utils.PosConstants;
+import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -28,9 +32,6 @@ public class GhostBasic extends Ghost {
             Units.TERRAN_HELLION_TANK, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_AUTO_TURRET,
             Units.TERRAN_BUNKER
     );
-    public static final int EMP_RANGE = 10;
-    public static long prevEmpFrame;
-    public static long prevSnipeFrame;
 
     public GhostBasic(Unit unit, Point2d targetPos) {
         super(unit, targetPos);
@@ -58,14 +59,13 @@ public class GhostBasic extends Ghost {
             UnitInPool snipeTarget = selectSnipeTarget();
             if (snipeTarget != null) {
                 snipe(snipeTarget.unit());
-                System.out.println("snipeTarget.getTag() = " + snipeTarget.getTag());
-                System.out.println("snipeTarget.unit().getDisplayType() = " + snipeTarget.unit().getDisplayType());
-                System.out.println("UnitUtils.getCurHp(snipeTarget.unit()) = " + UnitUtils.getCurHp(snipeTarget.unit()));
-                System.out.println("Ghost.prevSnipeFrame (before) = " + GhostBasic.prevSnipeFrame);
-                System.out.println("numSnipesInProgress(snipeTarget.unit()) = " + numSnipesInProgress(snipeTarget.unit()));
-                GhostBasic.prevSnipeFrame = Time.nowFrames();
-                System.out.println("Time.nowFrames() = " + Time.nowFrames());
-                System.out.println("Ghost.prevSnipeFrame (after) = " + GhostBasic.prevSnipeFrame);
+//                System.out.println("snipeTarget.getTag() = " + snipeTarget.getTag());
+//                System.out.println("snipeTarget.unit().getDisplayType() = " + snipeTarget.unit().getDisplayType());
+//                System.out.println("UnitUtils.getCurHp(snipeTarget.unit()) = " + UnitUtils.getCurHp(snipeTarget.unit()));
+//                System.out.println("Ghost.prevSnipeFrame (before) = " + Ghost.prevSnipeFrame);
+//                System.out.println("numSnipesInProgress(snipeTarget.unit()) = " + numSnipesInProgress(snipeTarget.unit()));
+//                System.out.println("Time.nowFrames() = " + Time.nowFrames());
+//                System.out.println("Ghost.prevSnipeFrame (after) = " + Ghost.prevSnipeFrame);
                 return;
             }
         }
@@ -154,15 +154,6 @@ public class GhostBasic extends Ghost {
 
     //targets when target far away and tanking units in front of ghost
     protected boolean shouldSnipe(Unit target) {
-        //ignore overlords unless only reachable by snipe
-        if (target.getType() == Units.ZERG_OVERLORD) {
-            return !Bot.OBS.isPathable(target.getPosition().toPoint2d()) &&
-                    UnitUtils.getDistance(unit.unit(), target) > 7 &&
-                    !Bot.OBS.isPathable(
-                            Position.towards(target.getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d(), 6)
-                    );
-        }
-
         //hallucination
         if (target.getHallucination().orElse(false)) {
             return false;
@@ -179,6 +170,15 @@ public class GhostBasic extends Ghost {
         int numSnipesToKill = (int)Math.ceil((UnitUtils.getCurHp(target)-10) / 170) - numSnipesInProgress(target); //note: -10hp to prevent sniping near dead targets. eg, double tapping queens (snipe: 170dmg, queen: 175hp)
         if (numSnipesToKill < 1) {
             return false;
+        }
+
+        //ignore overlords unless only reachable by snipe
+        if (target.getType() == Units.ZERG_OVERLORD) {
+            return !Bot.OBS.isPathable(target.getPosition().toPoint2d()) &&
+                    UnitUtils.getDistance(unit.unit(), target) > 7 &&
+                    !Bot.OBS.isPathable(
+                            Position.towards(target.getPosition().toPoint2d(), unit.unit().getPosition().toPoint2d(), 6)
+                    );
         }
 
         //not detected, then snipe
