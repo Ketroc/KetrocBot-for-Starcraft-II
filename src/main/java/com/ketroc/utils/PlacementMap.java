@@ -168,7 +168,7 @@ public class PlacementMap {
 
         populateSecondary3x3WithAddonPos(secondaryColumn, true);
         replace1StarportWith1CommandCenter();
-
+        replace3StarportsWith2Ccs();
 
         visualizePlacementMap();
         PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
@@ -180,6 +180,9 @@ public class PlacementMap {
         PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
         visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
         //create2CellColumns();
+
+        Bot.DEBUG.sendDebug();
+        int weqruio = 0;
     }
 
     private static void populateDepotPos(int mainBaseColumn) {
@@ -762,7 +765,8 @@ public class PlacementMap {
             i -= 2;
 
             //exit if starport:cc ratio is good enough
-            if (PosConstants.MACRO_OCS.size()*2 + 3 >= PosConstants._3x3AddonPosList.size()) {
+            if (PosConstants._3x3AddonPosList.size() < 20 &&
+                    PosConstants.MACRO_OCS.size()*2 + 3 >= PosConstants._3x3AddonPosList.size()) {
                 return;
             }
         }

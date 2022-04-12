@@ -110,7 +110,8 @@ public class ExpansionClearing {
                 }
                 //check if base is cleared of obstructions
                 else {
-                    if (raven.unit.unit().getOrders().size() < 3) {
+                    if (raven.unit.unit().getOrders().stream()
+                            .noneMatch(order -> order.getAbility() == Abilities.PATROL)) {
                         UnitUtils.patrolSquare(raven.unit.unit(), expansionPos, 3);
                     }
                     return testExpansionPos();
@@ -242,7 +243,7 @@ public class ExpansionClearing {
                         UnitUtils.getDistance(enemy.unit(), expansionPos) < 8.5f) ||
                 ((enemy.unit().getType() == Units.ZERG_CREEP_TUMOR ||
                         enemy.unit().getType() == Units.ZERG_CREEP_TUMOR_BURROWED) &&
-                        UnitUtils.getDistance(enemy.unit(), expansionPos) < 14.5f) ||
+                        UnitUtils.getDistance(enemy.unit(), expansionPos) < 15f) ||
                 (!enemy.unit().getFlying().orElse(true) &&
                         UnitUtils.getDistance(enemy.unit(), expansionPos) < 4f);
         });
