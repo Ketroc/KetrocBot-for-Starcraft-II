@@ -19,7 +19,6 @@ import com.ketroc.models.Cost;
 import com.ketroc.models.Gas;
 import com.ketroc.models.StructureScv;
 import com.ketroc.strategies.BunkerContain;
-import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
@@ -308,9 +307,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 if (techStructureNeeded == Units.TERRAN_FACTORY) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
                 }
@@ -412,29 +411,26 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 }
                 return false;
             case TERRAN_BARRACKS:
-                if (Strategy.MARINE_ALLIN) {
-                    return set3x3AddOnPos();
+                switch (Strategy.gamePlan) {
+                    case GHOST_HELLBAT:
+                        //first rax near wall for ghost marauder build
+                        if (!Purchase.isBuildOrderComplete() &&
+                                Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BARRACKS).isEmpty()) {
+                            position = PosConstants._3x3AddonPosList.stream()
+                                    .filter(raxPos -> UnitUtils.isInMyMain(raxPos))
+                                    .min(Comparator.comparing(p -> p.distance(PosConstants.WALL_2x2)))
+                                    .orElse(null);
+                            if (position != null) {
+                                PosConstants._3x3AddonPosList.remove(position);
+                                return true;
+                            }
+                            return false;
+                        }
+                    case MARINE_RUSH: case MECH_ALL_IN:
+                        return set3x3AddOnPos();
+                    default:
+                        return set3x3Pos();
                 }
-
-                // all builds that don't use barracks
-                if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
-                    return set3x3Pos();
-                }
-
-                //first rax near wall for ghost marauder build
-                if (!Purchase.isBuildOrderComplete() &&
-                        Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_BARRACKS).isEmpty()) {
-                    position = PosConstants._3x3AddonPosList.stream()
-                            .filter(raxPos -> UnitUtils.isInMyMain(raxPos))
-                            .min(Comparator.comparing(p -> p.distance(PosConstants.WALL_2x2)))
-                            .orElse(null);
-                    if (position != null) {
-                        PosConstants._3x3AddonPosList.remove(position);
-                        return true;
-                    }
-                    return false;
-                }
-                //no break;
             case TERRAN_FACTORY:
             case TERRAN_STARPORT:
                 return set3x3AddOnPos();
@@ -498,23 +494,23 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     public static int countUnitType(Units unitType) {
-        int numUnitType = UnitUtils.numMyLooseUnits(unitType, false);
+        int numUnitType = UnitUtils.numMyUnits(unitType, false);
         switch (unitType) {
             case TERRAN_STARPORT:
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_STARPORT_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_STARPORT_FLYING, false);
                 break;
             case TERRAN_FACTORY:
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_FACTORY_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_FACTORY_FLYING, false);
                 break;
             case TERRAN_BARRACKS:
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_BARRACKS_FLYING, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_BARRACKS_FLYING, false);
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_SUPPLY_DEPOT_LOWERED, false);
                 break;
             case TERRAN_COMMAND_CENTER:
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_ORBITAL_COMMAND, false);
-                numUnitType += UnitUtils.numMyLooseUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_ORBITAL_COMMAND, false);
+                numUnitType += UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, false);
                 break;
         }
         return numUnitType;

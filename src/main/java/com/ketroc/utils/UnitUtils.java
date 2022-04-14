@@ -235,7 +235,7 @@ public class UnitUtils {
     public static Units enemyWorkerType;
 
     //includes units in Ignored List
-    public static int numMyLooseUnits(Units unitType, boolean includeProducing) {
+    public static int numMyUnits(Units unitType, boolean includeProducing) {
         int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
             if (isStructure(unitType)) {
@@ -252,7 +252,7 @@ public class UnitUtils {
         return numUnits;
     }
 
-    public static int numMyLooseUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
+    public static int numMyUnits(Set<Units> unitTypes, boolean includeProducing) { //includeProducing==true will make in-production command centers and refineries counted twice
         int numUnits = 0;
         for (Units unitType : unitTypes) {
             //numUnits += getFriendlyUnitsOfType(unitType).size();
@@ -1344,6 +1344,14 @@ public class UnitUtils {
                     return Bot.OBS.getUnitTypeData(false).get(enemy.unit().getType()).getFoodRequired().orElse(0f);
                 })
                 .sum();
+    }
+
+    public static boolean hasReactor(Unit structure) {
+        return getAddOn(structure).stream().anyMatch(addOn -> addOn.unit().getType().toString().endsWith("_REACTOR"));
+    }
+
+    public static boolean hasTechLab(Unit structure) {
+        return getAddOn(structure).stream().anyMatch(addOn -> addOn.unit().getType().toString().endsWith("_TECHLAB"));
     }
 
     public static Optional<UnitInPool> getAddOn(Unit structure) {

@@ -115,7 +115,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
         }
 
         //approaching landing zone
-        if (unit.unit().getFlying().orElse(true) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
+        if (unit.unit().getFlying().orElse(false) && UnitUtils.getDistance(unit.unit(), basePos) < 13.5) {
             if (isBaseBlockedByEnemyCommandStructure()) {
                 //Chat.chatWithoutSpam("Recalculating landing pos for offensive PF", 120);
                 removeCCFromBaseList();
@@ -124,6 +124,9 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                     ActionHelper.unitCommand(unit.unit(), Abilities.LAND, safeLandingPos, false);
                     return;
                 }
+            }
+            else if (UnitUtils.isExpansionCreepBlocked(basePos)) {
+                ExpansionClearing.add(basePos);
             }
             else {
                 ActionHelper.unitCommand(unit.unit(), Abilities.LAND, basePos, false);
@@ -138,7 +141,7 @@ public class StructureFloaterExpansionCC extends StructureFloater {
 
     @Override
     public void onArrival() {
-        return;
+
     }
 
     @Override
@@ -223,10 +226,5 @@ public class StructureFloaterExpansionCC extends StructureFloater {
                 UnitUtils.COMMAND_STRUCTURE_TYPE.contains(u.unit().getType()) &&
                 !u.unit().getFlying().orElse(true) &&
                 UnitUtils.getDistance(u.unit(), basePos) < 2).isEmpty();
-    }
-
-    @Override
-    public void onDeath() {
-        removeMe = true;
     }
 }

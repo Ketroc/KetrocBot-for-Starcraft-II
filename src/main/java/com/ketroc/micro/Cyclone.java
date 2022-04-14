@@ -144,6 +144,11 @@ public class Cyclone extends BasicUnitMicro {
             return true;
         }
 
+        //abandon lock if too much damage nearby
+        if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, unit.unit().getPosition().toPoint2d()) > 9) {
+            return false;
+        }
+
         //maintain lock if target near dead
         return targetNearDeath();
     }

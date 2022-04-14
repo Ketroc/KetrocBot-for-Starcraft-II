@@ -454,11 +454,26 @@ public class ArmyManager {
 
     private static void setDoOffense() {
         if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
-            int numHellbats = UnitUtils.numMyLooseUnits(Units.TERRAN_HELLION_TANK, false);
+            int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, false);
             if (doOffense && Bot.OBS.getFoodUsed() < 190 && numHellbats < 6) {
                 doOffense = false;
             }
             else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numHellbats >= 6)) {
+                doOffense = true;
+            }
+            return;
+        }
+
+        if (Strategy.gamePlan == GamePlan.MECH_ALL_IN) {
+            int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, false);
+            int numTanksSieged = UnitUtils.numMyUnits(Units.TERRAN_SIEGE_TANK_SIEGED, false);
+
+            //retreat home when all unsieged and numTanks < 4
+            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 4 && numTanksSieged == 0) {
+                doOffense = false;
+            }
+            //go on offense with 6 siege tanks
+            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 6)) {
                 doOffense = true;
             }
             return;
@@ -1185,14 +1200,14 @@ public class ArmyManager {
         if (hasTempests) { //minimum 10 vikings at all times if enemy has a tempest
             numVikings = Math.max(10, numVikings);
         }
-        else if (hasMobileDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) > 0) {
+        else if (hasMobileDetector && Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) && UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) > 0) {
             numVikings = Math.max(3, numVikings); //minimum vikings if he has a detector
         }
         else if (Switches.enemyCanProduceAir) { //set minimum vikings if enemy can produce air
             numVikings = Math.max(2, numVikings);
         }
 
-        if (UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, false) > 0) {
+        if (UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, false) > 0) {
             numVikings--;
         }
         numVikings = Math.max(numVikings, GameCache.bansheeList.size() * Strategy.VIKING_BANSHEE_RATIO); //at least 1 safety viking for every 5 banshees
@@ -1705,7 +1720,7 @@ public class ArmyManager {
         int threatThreshold = 0;
         //with mass raven... periodically let them go deep into threat range to lay turrets
         if ((UnitUtils.isStructure(enemyTarget.getType()) || UnitUtils.THOR_TYPE.contains(enemyTarget.getType())) &&
-                UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, false) >= 10 &&
+                UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) >= 10 &&
                 Time.periodic(3, 96)) {
             threatThreshold = 14;
         }

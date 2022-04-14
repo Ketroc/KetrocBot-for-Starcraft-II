@@ -79,7 +79,7 @@ public class PurchaseUnit implements Purchase {
             }
             if (productionStructure == null) {
                 Units reqProductionStructure = UnitUtils.getRequiredStructureType(unitType);
-                if (UnitUtils.numMyLooseUnits(reqProductionStructure, true) == 0) {
+                if (UnitUtils.numMyUnits(reqProductionStructure, true) == 0) {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(reqProductionStructure));
                 }
             }
@@ -97,7 +97,7 @@ public class PurchaseUnit implements Purchase {
 
     private void selectProductionStructure() {
         Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).stream()
-                .filter(u -> !UnitUtils.isTechLabRequired(unitType) || UnitUtils.getAddOn(u.unit()).isPresent())
+                .filter(u -> !UnitUtils.isTechLabRequired(unitType) || UnitUtils.hasTechLab(u.unit()))
                 //.filter(u -> !PurchaseUnit.contains(u)) //commented out as it's been replaced to handle timing out PurchaseUnits in purchase queue
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);

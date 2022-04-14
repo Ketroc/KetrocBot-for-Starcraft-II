@@ -95,8 +95,12 @@ public class BuildOrder {
             case PROTOSS:
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
-                } else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+                }
+                else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
                     ghostMarauderOpener();
+                }
+                else if (Strategy.gamePlan == GamePlan.MECH_ALL_IN) {
+                    mechAllIn();
                 }
                 else if (Strategy.gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE) {
                     _1base2FactOpener();
@@ -246,13 +250,28 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
         KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+    }
+
+    public static void mechAllIn() {
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY));
     }
 
     private static void ghostMarauderOpener() {

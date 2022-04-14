@@ -336,7 +336,7 @@ public class KetrocBot extends Bot {
                     case TERRAN_COMMAND_CENTER:
                         //start mining out mineral wall
                         if (PosConstants.MAP.contains("Golden Wall") &&
-                                UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
+                                UnitUtils.numMyUnits(UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, false)
                                         >= (Strategy.MASS_RAVENS ? 3 : 4)) {
                             IgnoredMineralWallScv.addScv();
                         }

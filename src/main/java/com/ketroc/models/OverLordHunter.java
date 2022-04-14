@@ -196,8 +196,8 @@ public class OverLordHunter {
         //create new hunt
         if (overlordHunter == null &&
                 isReadyToHunt() &&
-                UnitUtils.numMyLooseUnits(Units.TERRAN_MARINE, false) > 0 &&
-                UnitUtils.numMyLooseUnits(UnitUtils.BARRACKS_TYPE, false) > 0) {
+                UnitUtils.numMyUnits(Units.TERRAN_MARINE, false) > 0 &&
+                UnitUtils.numMyUnits(UnitUtils.BARRACKS_TYPE, false) > 0) {
             getClosestOverlord().ifPresent(ol -> {
                 Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.BARRACKS_TYPE.contains(u.unit().getType()) &&
                                 !Ignored.contains(u.getTag()))

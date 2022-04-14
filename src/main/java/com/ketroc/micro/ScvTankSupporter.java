@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /*
     Scv for repairing TankOffense units and other ScvRepairer units
  */
-public class ScvTankSupporter extends Scv {
+public class ScvTankSupporter extends Scv { //TODO: include thors
 
     public UnitInPool targetUnit;
 

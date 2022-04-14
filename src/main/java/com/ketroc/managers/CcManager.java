@@ -147,7 +147,7 @@ public class CcManager {
             switch ((Units) cc.getType()) {
                 case TERRAN_COMMAND_CENTER:
                     if (ccToBeOC(cc.getPosition().toPoint2d())) {
-                        if (UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
+                        if (UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) >= Strategy.MAX_OCS) {
                             Point2d expansionBasePos = getNextAvailableExpansionPosition();
                             if (expansionBasePos != null) {
                                 floatCCForExpansion(cc, expansionBasePos);
@@ -372,7 +372,7 @@ public class CcManager {
         int mineralsRequired = 500;
         if (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_COMMAND_CENTER) == 0 &&
                 UnitUtils.numScvs(true) >= Math.min(Strategy.maxScvs,
-                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyLooseUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
+                        Base.scvsReqForMyBases() - (4 * UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, false)))) {
             mineralsRequired = 400;
         }
 
@@ -382,7 +382,7 @@ public class CcManager {
                         !Placement.possibleCcPosList.isEmpty())) {
             if ((GameCache.mineralBank > GameCache.gasBank && GameCache.gasBank > 2000) ||
                     Base.numAvailableBases() > 0 ||
-                    UnitUtils.numMyLooseUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
+                    UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
                 addCCToPurchaseQueue();
             }
         }

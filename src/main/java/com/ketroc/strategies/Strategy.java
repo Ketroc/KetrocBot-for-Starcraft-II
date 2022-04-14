@@ -257,9 +257,16 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
+        //TODO: delete - for testing
+        Set<GamePlan> randomTvTGamePlans = getAvailableTvTGamePlans();
+        gamePlan = randomTvTGamePlans.stream()
+                .skip(new Random().nextInt(randomTvTGamePlans.size()))
+                .findFirst()
+                .get();
+
+
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
-
             if (!Launcher.isRealTime) {
                 gamePlan = getStrategyForLadder(availableTvTGamePlans);
             }
@@ -443,6 +450,7 @@ public class Strategy {
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.BUNKER_CONTAIN_STRONG,
+                        //GamePlan.MECH_ALL_IN,
                         GamePlan.RAVEN
                 ));
         }
@@ -509,9 +517,15 @@ public class Strategy {
     }
 
     private static void chooseTvPStrategy() {
+        //TODO: delete - for testing
+        Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
+        gamePlan = randomTvPGamePlans.stream()
+                .skip(new Random().nextInt(randomTvPGamePlans.size()))
+                .findFirst()
+                .get();
+
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
-
             if (!Launcher.isRealTime) {
                 gamePlan = getStrategyForLadder(availableTvPGamePlans);
             }
@@ -532,7 +546,6 @@ public class Strategy {
         if (gamePlan == GamePlan.NONE) {
             gamePlan = GamePlan.BANSHEE;
         }
-        gamePlan = GamePlan.MARINE_RUSH; //TODO: delete - for testing
 
         switch (gamePlan) {
             case BANSHEE:
@@ -570,10 +583,22 @@ public class Strategy {
             case MARINE_RUSH:
                 marineAllinStrategy();
                 break;
+            case MECH_ALL_IN:
+                DO_OFFENSIVE_TANKS = true;
+                techBuilt = true;
+                break;
         }
     }
 
     private static void chooseTvZStrategy() {
+        //TODO: delete - for testing
+        Set<GamePlan> randomTvZGamePlans = getAvailableTvZGamePlans();
+        gamePlan = randomTvZGamePlans.stream()
+                .skip(new Random().nextInt(randomTvZGamePlans.size()))
+                .findFirst()
+                .get();
+
+
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
@@ -596,7 +621,6 @@ public class Strategy {
         if (gamePlan == GamePlan.NONE) {
             gamePlan = GamePlan.GHOST_HELLBAT;
         }
-        gamePlan = GamePlan.GHOST_HELLBAT; //TODO: delete: for testing
 
         switch (gamePlan) {
             case MASS_MINE_OPENER:
@@ -840,6 +864,11 @@ public class Strategy {
         //marine all-in without an expansion
         if (MARINE_ALLIN && !GameCache.baseList.get(1).isMyBase()) {
             return 19;
+        }
+
+        //marine all-in without an expansion
+        if (gamePlan == GamePlan.MECH_ALL_IN && !GameCache.baseList.get(1).isMyBase()) {
+            return GameCache.baseList.get(0).getMineralPatches().size()*2 + 6 + NUM_OFFENSE_SCVS + 1;
         }
 
         //if maxed out on macro OCs

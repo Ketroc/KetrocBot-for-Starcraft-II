@@ -154,7 +154,7 @@ public class UpgradeManager {
     }
 
     private static boolean bioUpgradesNeedArmory(List<Unit> engBays) {
-        return UnitUtils.numMyLooseUnits(Units.TERRAN_ARMORY, true) == 0 &&
+        return UnitUtils.numMyUnits(Units.TERRAN_ARMORY, true) == 0 &&
                 (engBayUpgradeList.contains(Upgrades.TERRAN_INFANTRY_ARMORS_LEVEL2) ||
                         engBayUpgradeList.contains(Upgrades.TERRAN_INFANTRY_WEAPONS_LEVEL2)) &&
                 engBays.stream()
@@ -195,7 +195,7 @@ public class UpgradeManager {
         //don't start blue flame until 4 total hellions exist
         if (!Strategy.DO_USE_HELLIONS &&
                 Strategy.gamePlan != GamePlan.GHOST_HELLBAT &&
-                UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) > 0) {
+                UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0) {
             Strategy.DO_USE_HELLIONS = true;
             PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);
 
@@ -214,7 +214,7 @@ public class UpgradeManager {
 
     private static void checkStarportTechLabs() {
         //don't start cloak/speed until 1 banshee in production
-        if (UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) == 0) {
+        if (UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) == 0) {
             return;
         }
 

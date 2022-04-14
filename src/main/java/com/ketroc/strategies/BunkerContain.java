@@ -216,7 +216,7 @@ public class BunkerContain {
 
     private static boolean readyToBuildFactory() {
         return Bot.OBS.getVespene() > 55 &&
-                UnitUtils.numMyLooseUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
+                UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true) < 1 &&
                 barracks != null;
     }
 

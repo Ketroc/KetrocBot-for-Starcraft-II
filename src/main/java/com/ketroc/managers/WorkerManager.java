@@ -220,7 +220,7 @@ public class WorkerManager {
 //        }
         //don't make 3rd+ refinery until factory and PF are started
         if (Time.nowFrames() < Time.toFrames("5:00") &&
-                (UnitUtils.numMyLooseUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
+                (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
             return;
         }
 
@@ -492,7 +492,9 @@ public class WorkerManager {
         }
 
         //max gas with Tank_Viking and BunkerContain TvT
-        if ((Strategy.gamePlan == GamePlan.TANK_VIKING || BunkerContain.proxyBunkerLevel == 2) &&
+        if ((Strategy.gamePlan == GamePlan.TANK_VIKING ||
+                Strategy.gamePlan == GamePlan.MECH_ALL_IN ||
+                BunkerContain.proxyBunkerLevel == 2) &&
                 Time.nowFrames() < Time.toFrames("4:00")) {
             numScvsPerGas = 3;
             return;

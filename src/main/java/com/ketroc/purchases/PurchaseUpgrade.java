@@ -114,17 +114,17 @@ public class PurchaseUpgrade implements Purchase {
     private boolean hasEnoughRelatedArmyUnits() {
         switch (upgrade) { //TODO: complete for all upgrades (that I don't currently use)
             case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
-                return UnitUtils.numMyLooseUnits(Units.TERRAN_CYCLONE, true) >= 2;
+                return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
-                return UnitUtils.numMyLooseUnits(UnitUtils.HELLION_TYPE, true) >= 4;
+                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
             case BANSHEE_CLOAK:
-                return UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) >= 1;
+                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
             case BANSHEE_SPEED:
-                return UnitUtils.numMyLooseUnits(Units.TERRAN_BANSHEE, true) >= 2;
+                return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 2;
             case HISEC_AUTO_TRACKING: case TERRAN_BUILDING_ARMOR:
-                return UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true) >= 2 ||
-                        (UnitUtils.numMyLooseUnits(Units.TERRAN_PLANETARY_FORTRESS, true) +
-                        UnitUtils.numMyLooseUnits(Units.TERRAN_MISSILE_TURRET, true) >= 1);
+                return UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) >= 2 ||
+                        (UnitUtils.numMyUnits(Units.TERRAN_PLANETARY_FORTRESS, true) +
+                        UnitUtils.numMyUnits(Units.TERRAN_MISSILE_TURRET, true) >= 1);
         }
         return true;
     }
@@ -219,9 +219,9 @@ public class PurchaseUpgrade implements Purchase {
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
             }
             return true;

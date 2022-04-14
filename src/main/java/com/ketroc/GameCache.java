@@ -868,7 +868,7 @@ public class GameCache {
 
     private static void purchaseEmergencyRaven() {
         //do nothing if I already have a raven
-        if (UnitUtils.numMyLooseUnits(Units.TERRAN_RAVEN, true) > 0) {
+        if (UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) > 0) {
             return;
         }
 

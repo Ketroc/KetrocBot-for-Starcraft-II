@@ -9,6 +9,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.Switches;
 import com.ketroc.micro.StructureFloaterExpansionCC;
 import com.ketroc.bots.Bot;
 import com.ketroc.micro.ExpansionClearing;
@@ -71,14 +72,16 @@ public class ActionErrorManager {
                     }
                 }
                 else if (isBlockedByUnit(actionResult)) {
+                    //blocked by burrowed zerg unit
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, Units.TERRAN_COMMAND_CENTER) == 0) {
+                        Switches.enemyHasCloakThreat = true;
                         ExpansionClearing.add(pos);
                     }
+                    //blocked by visible unit, or not an expansion
                     else {
                         //TODO: do nothing?? check threat? (nothing = same scv keeps trying to build the structure)
                         System.out.println("No expansion clear added for: " + ability.toString());
-                        int q=0;
                     }
                 }
                 else if (isPathBlocked(actionResult)) {

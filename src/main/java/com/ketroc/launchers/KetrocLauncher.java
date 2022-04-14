@@ -1,6 +1,7 @@
 package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
+import com.github.ocraft.s2client.protocol.Defaults;
 import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
@@ -23,14 +24,15 @@ public class KetrocLauncher {
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.ZERG;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.GHOST_HELLBAT;
+        Strategy.gamePlan = GamePlan.MECH_ALL_IN;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
                 .setRealtime(Launcher.isRealTime)
+                .setFeatureLayers(Defaults.defaultSpatialSetup())
                 .setMultithreaded(true)
                 .setWindowLocation(560, 20)
                 .setNeedsSupportDir(true)
@@ -52,8 +54,8 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));

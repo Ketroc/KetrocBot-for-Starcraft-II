@@ -115,7 +115,7 @@ public class PurchaseStructureMorph implements Purchase {
 
         //wait for structure to be available and decide whether to set funds aside
         if (productionStructure != null &&
-                (productionStructure.unit().getBuildProgress() < 0.99 || UnitUtils.getOrder(productionStructure.unit()) != null)) {
+                (productionStructure.unit().getBuildProgress() < 1f || UnitUtils.getOrder(productionStructure.unit()) != null)) {
             if (UnitUtils.framesUntilAvailable(productionStructure.unit()) < 100) {
                 Cost.updateBank(cost);
             }
@@ -198,9 +198,9 @@ public class PurchaseStructureMorph implements Purchase {
             return false;
         }
         Set<Units> techStructureUnitsSet = UnitUtils.getUnitTypeSet(techStructureNeeded);
-        if (UnitUtils.numMyLooseUnits(techStructureUnitsSet, false) == 0) {
+        if (UnitUtils.numMyUnits(techStructureUnitsSet, false) == 0) {
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
-                    UnitUtils.numMyLooseUnits(techStructureUnitsSet, true) == 0) {
+                    UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));
             }
             return true;
