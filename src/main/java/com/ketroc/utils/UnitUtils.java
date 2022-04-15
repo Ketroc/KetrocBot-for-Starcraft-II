@@ -191,6 +191,16 @@ public class UnitUtils {
             Units.PROTOSS_TEMPEST, Units.PROTOSS_OBSERVER, Units.ZERG_OVERSEER,
             Units.TERRAN_RAVEN, Units.TERRAN_THOR, Units.TERRAN_THOR_AP));
 
+    public static final Set<Units> MASSIVE_AIR_TYPES = new HashSet<>(Set.of(
+            Units.PROTOSS_TEMPEST, Units.PROTOSS_CARRIER, Units.PROTOSS_MOTHERSHIP,
+            Units.TERRAN_BATTLECRUISER, Units.ZERG_BROODLORD
+    ));
+
+    public static final Set<Units> LIGHT_AIR_TYPES = new HashSet<>(Set.of(
+            Units.PROTOSS_PHOENIX, Units.ZERG_MUTALISK, Units.TERRAN_RAVEN,
+            Units.ZERG_VIPER, Units.TERRAN_BANSHEE
+    ));
+
     public static final Set<Abilities> BUILD_ABILITIES = new HashSet<>(Set.of(
             Abilities.BUILD_SUPPLY_DEPOT, Abilities.BUILD_REFINERY, Abilities.BUILD_COMMAND_CENTER,
             Abilities.BUILD_BARRACKS, Abilities.BUILD_ENGINEERING_BAY, Abilities.BUILD_MISSILE_TURRET,
@@ -509,6 +519,12 @@ public class UnitUtils {
         return !unit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) &&
                 !unit.getBuffs().contains(Buffs.NEURAL_PARASITE) &&
                 Bot.OBS.getUnitTypeData(false).get(unit.getType()).getMovementSpeed().orElse(0f) > 0f;
+    }
+
+    public static boolean isDisabled(Unit unit) {
+        return unit.getBuffs().contains(Buffs.ORACLE_STASIS_TRAP_TARGET) ||
+                unit.getBuffs().contains(Buffs.NEURAL_PARASITE) ||
+                unit.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE);
     }
 
     public static boolean canCast(Unit unit) {

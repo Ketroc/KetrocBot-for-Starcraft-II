@@ -997,7 +997,7 @@ public class BuildManager {
     private static Units chooseFactoryUnitMechAllIn() {
         //hellion when gas starved
         if (GameCache.gasBank < 100 && GameCache.mineralBank > 200) {
-            return Units.TERRAN_HELLION_TANK;
+            return Units.TERRAN_HELLION;
         }
 
         //1 thor per tempest
@@ -1047,16 +1047,16 @@ public class BuildManager {
     }
 
     private static Units chooseStarportUnit() {
-        //maintain 1 raven
+        //maintain 2 ravens
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
-        if (numRavens < 1) {
+        if (numRavens < 2) {
             return Units.TERRAN_RAVEN;
         }
 
-        //maintain 2 ravens vs burrow
-        if (Switches.enemyHasCloakThreat && numRavens < 2) {
-            return Units.TERRAN_RAVEN;
-        }
+//        //maintain 2 ravens vs burrow
+//        if (Switches.enemyHasCloakThreat && numRavens < 2) {
+//            return Units.TERRAN_RAVEN;
+//        }
 
         //build more vikings when more needed for KillSquads
         if (!AirUnitKillSquad.getAvailableEnemyAirTargets().isEmpty() &&
@@ -1069,10 +1069,10 @@ public class BuildManager {
             return Units.TERRAN_VIKING_FIGHTER;
         }
 
-        //maintain 2 ravens for creep when not defending
-        if (ArmyManager.doOffense && numRavens <= 2) {
-            return Units.TERRAN_RAVEN;
-        }
+//        //maintain 2 ravens for creep when not defending
+//        if (ArmyManager.doOffense && numRavens <= 2) {
+//            return Units.TERRAN_RAVEN;
+//        }
 
         //maintain at least 1 medivac per 4 bio units unless floating medivac energy
         float totalMedivacEnergy = (float) Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).stream()

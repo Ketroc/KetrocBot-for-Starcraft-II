@@ -518,11 +518,16 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         //TODO: delete - for testing
-        Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
-        gamePlan = randomTvPGamePlans.stream()
-                .skip(new Random().nextInt(randomTvPGamePlans.size()))
-                .findFirst()
-                .get();
+        if (Bot.opponentId == "6da0eb84-2422-4d21-9f47-f44ff7c9f472") { //buckshot
+            gamePlan = GamePlan.MECH_ALL_IN;
+        }
+        else {
+            Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
+            gamePlan = randomTvPGamePlans.stream()
+                    .skip(new Random().nextInt(randomTvPGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
 
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();

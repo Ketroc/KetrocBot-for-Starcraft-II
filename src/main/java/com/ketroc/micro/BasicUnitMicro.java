@@ -140,8 +140,11 @@ public class BasicUnitMicro {
         else if (canAttackAir) {
             targetPos = ArmyManager.attackAirPos;
         }
-        else {
+        else if (ArmyManager.attackGroundPos != null) {
             targetPos = ArmyManager.attackGroundPos;
+        }
+        else {
+            setFinishHimTarget();
         }
     }
 

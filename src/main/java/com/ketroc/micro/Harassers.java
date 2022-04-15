@@ -11,6 +11,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.Chat;
@@ -106,7 +107,7 @@ public class Harassers {
                 }
             }
         }
-        if (ArmyManager.doOffense) {
+        if (ArmyManager.doOffense && Strategy.gamePlan != GamePlan.MECH_ALL_IN) {
             int numHellions = UnitUtils.myUnitsOfType(UnitUtils.HELLION_TYPE).size();
             if (numHellions == 0) {
                 return;

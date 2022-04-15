@@ -1253,8 +1253,11 @@ public class ArmyManager {
     }
 
     private static boolean isVsOnlyAdepts() {
-        return attackUnit != null && UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 3).stream()
-                .noneMatch(u -> UnitUtils.canAttack(u.unit()) && !u.unit().getType().toString().contains("ADEPT"));
+        return attackUnit != null &&
+                UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 3)
+                        .stream()
+                        .noneMatch(u -> UnitUtils.canAttack(u.unit()) &&
+                                !u.unit().getType().toString().contains("ADEPT"));
     }
 
     public static void giveBansheeCommand(Unit banshee) {
