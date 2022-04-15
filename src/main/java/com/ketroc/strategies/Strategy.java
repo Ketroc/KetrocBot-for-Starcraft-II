@@ -258,12 +258,13 @@ public class Strategy {
 
     private static void chooseTvTStrategy() {
         //TODO: delete - for testing
-        Set<GamePlan> randomTvTGamePlans = getAvailableTvTGamePlans();
-        gamePlan = randomTvTGamePlans.stream()
-                .skip(new Random().nextInt(randomTvTGamePlans.size()))
-                .findFirst()
-                .get();
-
+        if (gamePlan == GamePlan.NONE) {
+            Set<GamePlan> randomTvTGamePlans = getAvailableTvTGamePlans();
+            gamePlan = randomTvTGamePlans.stream()
+                    .skip(new Random().nextInt(randomTvTGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
 
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
@@ -518,15 +519,16 @@ public class Strategy {
 
     private static void chooseTvPStrategy() {
         //TODO: delete - for testing
-        if (Bot.opponentId == "6da0eb84-2422-4d21-9f47-f44ff7c9f472") { //buckshot
-            gamePlan = GamePlan.MECH_ALL_IN;
-        }
-        else {
-            Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
-            gamePlan = randomTvPGamePlans.stream()
-                    .skip(new Random().nextInt(randomTvPGamePlans.size()))
-                    .findFirst()
-                    .get();
+        if (gamePlan == GamePlan.NONE) {
+            if (Bot.opponentId.equals("6da0eb84-2422-4d21-9f47-f44ff7c9f472")) { //buckshot
+                gamePlan = GamePlan.MECH_ALL_IN;
+            } else {
+                Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
+                gamePlan = randomTvPGamePlans.stream()
+                        .skip(new Random().nextInt(randomTvPGamePlans.size()))
+                        .findFirst()
+                        .get();
+            }
         }
 
         if (gamePlan == GamePlan.NONE) {
@@ -590,19 +592,19 @@ public class Strategy {
                 break;
             case MECH_ALL_IN:
                 DO_OFFENSIVE_TANKS = true;
-                techBuilt = true;
                 break;
         }
     }
 
     private static void chooseTvZStrategy() {
         //TODO: delete - for testing
-        Set<GamePlan> randomTvZGamePlans = getAvailableTvZGamePlans();
-        gamePlan = randomTvZGamePlans.stream()
-                .skip(new Random().nextInt(randomTvZGamePlans.size()))
-                .findFirst()
-                .get();
-
+        if (gamePlan == GamePlan.NONE) {
+            Set<GamePlan> randomTvZGamePlans = getAvailableTvZGamePlans();
+            gamePlan = randomTvZGamePlans.stream()
+                    .skip(new Random().nextInt(randomTvZGamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
 
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
@@ -961,6 +963,7 @@ public class Strategy {
         else {
             if (gamePlan == GamePlan.ONE_BASE_BANSHEE_CYCLONE ||
                     gamePlan == GamePlan.MARINE_RUSH ||
+                    gamePlan == GamePlan.MECH_ALL_IN ||
                     Strategy.NUM_BASES_TO_OC > 1) {
                 PosConstants._3x3Structures.remove(PosConstants.MID_WALL_3x3);
             }

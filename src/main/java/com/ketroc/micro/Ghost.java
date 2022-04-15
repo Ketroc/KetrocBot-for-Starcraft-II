@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.utils.*;
 
 import java.util.Set;
@@ -82,7 +83,7 @@ public class Ghost extends BasicUnitMicro {
         }
 
         //one snipe per frame as hack to handle multiple snipes of same target
-        return Ghost.prevSnipeFrame != Time.nowFrames() && canCast(50);
+        return Ghost.prevSnipeFrame + Launcher.STEP_SIZE < Time.nowFrames() && canCast(50);
     }
 
     protected boolean canCloak() {

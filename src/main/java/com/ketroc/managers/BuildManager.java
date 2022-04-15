@@ -323,6 +323,16 @@ public class BuildManager {
             return;
         }
 
+        if (Strategy.gamePlan == GamePlan.MECH_ALL_IN) {
+            if (ArmyManager.doOffense) {
+                Strategy.techBuilt = true;
+                if (Bot.OBS.getMinerals() > Bot.OBS.getVespene() * 2) {
+                    KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS, PosConstants._3x3Structures.remove(0)));
+                }
+            }
+            return;
+        }
+
         if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
             if (ArmyManager.doOffense) {
                 Strategy.techBuilt = true;
@@ -818,18 +828,22 @@ public class BuildManager {
                 continue;
             }
 
-            if (Purchase.isBuildOrderComplete() && UnitUtils.getAddOn(barracksUip.unit()).isEmpty()) {
-                if (!PurchaseStructureMorph.contains(barracksUip.unit()) && UnitUtils.canAfford(Units.TERRAN_BARRACKS_REACTOR, true)) {
-                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_BARRACKS, barracksUip));
-                    Cost.updateBank(Units.TERRAN_BARRACKS_REACTOR);
-                }
-                continue;
-            }
+//            if (Purchase.isBuildOrderComplete() &&
+//                    UnitUtils.getAddOn(barracksUip.unit()).isEmpty() &&
+//                    UnitUtils.numMyUnits(Units.TERRAN_BARRACKS_REACTOR, true) == 0) {
+//                if (!PurchaseStructureMorph.contains(barracksUip.unit()) &&
+//                        UnitUtils.canAfford(Units.TERRAN_BARRACKS_REACTOR, true)) {
+//                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_BARRACKS, barracksUip));
+//                    Cost.updateBank(Units.TERRAN_BARRACKS_REACTOR);
+//                }
+//                continue;
+//            }
 
 
             Units unitType = Units.TERRAN_MARINE;
 
-            if (UnitUtils.canAfford(unitType, true)) {
+            if (UnitUtils.canAfford(unitType, true) &&
+                    (!Purchase.isBuildOrderComplete() || GameCache.gasBank < 125 || GameCache.mineralBank > 200)) { //save minerals for tanks
                 Abilities trainCmd = (Abilities)Bot.OBS.getUnitTypeData(false).get(unitType)
                         .getAbility()
                         .orElse(Abilities.INVALID);
@@ -1553,7 +1567,7 @@ public class BuildManager {
 
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
-        return (int)(Math.min(Strategy.maxScvs - UnitUtils.numScvs(true), Base.numMyBases()) * 2.34 + //scvs (2 cuz 1 supply * 1/2 build time of depot)
+        return (int)(Math.min(Base.numMyBases(), Math.max(0, Strategy.maxScvs - UnitUtils.numScvs(true))) * 2.34 + //scvs (2.34 cuz 1 supply * 1/2 build time of depot)
                 UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT).size() * 2.34 +
                 UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).size() * 3.34 +
                 (Strategy.gamePlan == GamePlan.GHOST_HELLBAT || Strategy.gamePlan == GamePlan.MECH_ALL_IN ? UnitUtils.myUnitsOfType(Units.TERRAN_BARRACKS).size() * 3.34 : 0));

@@ -1123,7 +1123,7 @@ public class UnitUtils {
                         UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
     }
 
-    public static int numScvs(boolean includeProducing) {
+    public static int numScvs(boolean includeProducing) { //TODO: does getFoodWorkers already include those producing
         return Bot.OBS.getFoodWorkers() + (includeProducing ? numInProductionOfType(Units.TERRAN_SCV) : 0);
     }
 
