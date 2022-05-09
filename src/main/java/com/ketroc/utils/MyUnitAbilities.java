@@ -42,6 +42,8 @@ public class MyUnitAbilities {
     }
 
     public static boolean isAbilityAvailable(Unit myUnit, Abilities ability) {
-        return map.get(myUnit.getTag()).contains(ability);
+        Set<Abilities> unitAbilities = map.get(myUnit.getTag());
+        return unitAbilities != null &&
+                unitAbilities.contains(ability);
     }
 }

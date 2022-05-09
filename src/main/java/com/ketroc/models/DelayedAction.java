@@ -4,10 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.launchers.Launcher;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.Print;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +26,14 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.gameFrame = getDelayedGameFrame(delaySeconds);
         this.ability = ability;
         this.unit = unit;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
     public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit) {
         this.gameFrame = gameFrame;
         this.ability = ability;
         this.unit = unit;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
     public DelayedAction(int delaySeconds, Abilities ability, UnitInPool unit, UnitInPool targetUnit) {
@@ -42,6 +41,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.ability = ability;
         this.unit = unit;
         this.targetUnit = targetUnit;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
     public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit, UnitInPool targetUnit) {
@@ -49,6 +49,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.ability = ability;
         this.unit = unit;
         this.targetUnit = targetUnit;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
     public DelayedAction(int delaySeconds, Abilities ability, UnitInPool unit, Point2d targetPos) {
@@ -56,6 +57,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.ability = ability;
         this.unit = unit;
         this.targetPos = targetPos;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
     public DelayedAction(long gameFrame, Abilities ability, UnitInPool unit, Point2d targetPos) {
@@ -63,6 +65,7 @@ public class DelayedAction { //TODO: add functionality for List of units if requ
         this.ability = ability;
         this.unit = unit;
         this.targetPos = targetPos;
+        ActionIssued.add(unit.getTag(), ability);
     }
 
 

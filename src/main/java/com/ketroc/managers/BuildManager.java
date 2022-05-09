@@ -10,7 +10,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -97,7 +97,8 @@ public class BuildManager {
                 if (numTanks < 4) {
                     buildFactoryUnitsLogic();
                 }
-            } else {
+            }
+            else {
                 //build factory units
                 if (numTanks < 12) {
                     buildFactoryUnitsLogic();
@@ -106,19 +107,14 @@ public class BuildManager {
                 //build starport units
                 buildStarportUnitsLogic();
             }
-        } else {
+        }
+        else {
             //build factory units
-            if (BunkerContain.proxyBunkerLevel != 2 || Strategy.DO_USE_CYCLONES) {
-                if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
-//TODO: turned off to test keeping factory production vs protoss
-//                    if (!UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).isEmpty()) { //end factory production vs tempests
-//                        UnitUtils.getMyUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
-//                    } else {
-                        buildFactoryUnitsLogic();
-//                    }
-                } else if (!UnitUtils.isOutOfGas() && !UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
-                    UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
-                }
+            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_USE_CYCLONES || Strategy.DO_OFFENSIVE_TANKS) {
+                buildFactoryUnitsLogic();
+            }
+            else if (!UnitUtils.isOutOfGas() && !UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).isEmpty()) {
+                UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).forEach(factory -> liftFactory(factory));
             }
 
             //build starport units
@@ -149,7 +145,9 @@ public class BuildManager {
 //        }
 
         //build starport logic
-        buildStarportLogic();
+        if (Purchase.isBuildOrderComplete()) {
+            buildStarportLogic();
+        }
 
         //build command center logic
         if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
@@ -800,8 +798,11 @@ public class BuildManager {
         ActionHelper.unitCommand(factory, Abilities.LIFT, false);
         if (BunkerContain.proxyBunkerLevel == 2) {
             BunkerContain.onFactoryLift();
-            DelayedAction.delayedActions.add(new DelayedAction(
-                    1, Abilities.LAND, Bot.OBS.getUnit(factory.getTag()), PosConstants.getFactoryPos()));
+            if (!PosConstants._3x3AddonPosList.isEmpty()) {
+                DelayedAction.delayedActions.add(
+                        new DelayedAction(1, Abilities.LAND,
+                                Bot.OBS.getUnit(factory.getTag()), PosConstants._3x3AddonPosList.remove(0)));
+            }
         }
         else {
             DelayedAction.delayedActions.add(new DelayedAction(
@@ -1061,21 +1062,21 @@ public class BuildManager {
     }
 
     private static Units chooseStarportUnit() {
-        //maintain 2 ravens
-        int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
-        if (numRavens < 2) {
-            return Units.TERRAN_RAVEN;
-        }
-
-//        //maintain 2 ravens vs burrow
-//        if (Switches.enemyHasCloakThreat && numRavens < 2) {
-//            return Units.TERRAN_RAVEN;
-//        }
-
         //build more vikings when more needed for KillSquads
         if (!AirUnitKillSquad.getAvailableEnemyAirTargets().isEmpty() &&
                 UnitUtils.numInProductionOfType(Units.TERRAN_VIKING_FIGHTER) == 0) {
             return Units.TERRAN_VIKING_FIGHTER;
+        }
+
+        //maintain 1 raven
+        int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
+        if (numRavens < 1) {
+            return Units.TERRAN_RAVEN;
+        }
+
+        //maintain 2 ravens vs burrow
+        if (Switches.enemyHasCloakThreat && numRavens < 2) {
+            return Units.TERRAN_RAVEN;
         }
 
         //maintain 1 viking
@@ -1088,16 +1089,16 @@ public class BuildManager {
 //            return Units.TERRAN_RAVEN;
 //        }
 
-        //maintain at least 1 medivac per 4 bio units unless floating medivac energy
+        //maintain at least 1 medivac per 3 bio units unless floating medivac energy
         float totalMedivacEnergy = (float) Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).stream()
                 .mapToDouble(u -> u.unit().getEnergy().orElse(0f))
                 .sum();
-        if (totalMedivacEnergy < 600) {
+        if (totalMedivacEnergy < 900) { //forget unit ratio is medivacs are banking energy
             int numMarauders = UnitUtils.numMyUnits(Units.TERRAN_MARAUDER, true);
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, true);
             int numGhosts = UnitUtils.numMyUnits(Units.TERRAN_GHOST, true);
             int numMedivacs = UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, true);
-            if (numMedivacs * 4 < numMarauders + numGhosts + numHellbats) {
+            if (numMedivacs * 3 < numMarauders + numGhosts + numHellbats) {
                 return Units.TERRAN_MEDIVAC;
             }
         }

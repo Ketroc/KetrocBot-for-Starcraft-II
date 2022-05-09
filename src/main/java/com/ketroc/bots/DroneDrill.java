@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;

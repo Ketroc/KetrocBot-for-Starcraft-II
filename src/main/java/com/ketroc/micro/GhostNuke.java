@@ -3,14 +3,17 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.models.Base;
+import com.ketroc.models.BileTracker;
 import com.ketroc.utils.InfluenceMaps;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -47,7 +50,7 @@ public class GhostNuke extends Ghost {
         }
 
         //nuke when in range
-        if (isSafe()) {
+        if (isSafe() && canSurviveRavagers()) {
             if (UnitUtils.getDistance(unit.unit(), targetPos) <= 11) {
                 nuke(targetPos);
                 return;
@@ -64,6 +67,27 @@ public class GhostNuke extends Ghost {
         }
 
         super.onStep();
+    }
+
+    //try to nuke if 1 ravager and 1 bile is nearby (hard for this ravager to launch 2 more in time)
+    private boolean canSurviveRavagers() {
+        if (PosConstants.opponentRace != Race.ZERG) {
+            return true;
+        }
+
+        int numRavagersNearby = UnitUtils.getUnitsNearbyOfType(
+                Alliance.ENEMY, Units.ZERG_RAVAGER, unit.unit().getPosition().toPoint2d(), 9).size();
+        if (numRavagersNearby == 0) {
+            return true;
+        }
+        if (numRavagersNearby >= 2) {
+            return false;
+        }
+
+        boolean isBileNearby = BileTracker.activeBiles.stream()
+                .flatMap(bile -> bile.getEffect().getPositions().stream())
+                .anyMatch(bilePos -> UnitUtils.getDistance(unit.unit(), bilePos) < 9);
+        return isBileNearby;
     }
 
     @Override

@@ -90,7 +90,7 @@ public class TankOffense extends Tank {
         if (!ArmyManager.doOffense &&
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
-            return isUnsiegeWaitTimeComplete();
+            return true; //isUnsiegeWaitTimeComplete(); changed cuz when retreating, just go immediately (don't stagger)
         }
 
         return super.doUnsiege();

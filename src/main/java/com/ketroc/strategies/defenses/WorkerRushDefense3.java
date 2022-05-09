@@ -4,7 +4,7 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.micro.*;
@@ -30,7 +30,7 @@ public class WorkerRushDefense3 {
         manageScvDefenders();
         toggleIsWorkerRushed();
         if (isWorkerRushed) {
-            //manageProductionCancelling(); //TODO: uncomment - off for probots
+            manageProductionCancelling();
             UnitMicroList.removeAll(ScvAttackTarget.class); //free up scvs
             manageScvRepairers();
         }
@@ -120,7 +120,7 @@ public class WorkerRushDefense3 {
     }
 
     //open depot rax gas
-    private static void changeBuildOrder() { //depot, rax, gas
+    private static void changeBuildOrder() {
         //cancel gas, requeue it (after barracks)
         if (StructureScv.cancelProduction(Units.TERRAN_REFINERY)) {
             KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_REFINERY));

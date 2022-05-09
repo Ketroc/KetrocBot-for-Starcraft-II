@@ -130,21 +130,21 @@ public class Tank extends BasicUnitMicro {
     //alternate between ~2s and ~5s for unsiege delay to stagger the tanks
     protected int getFrameDelayToUnsiege() {
         isLongDelayedUnsiege = !isLongDelayedUnsiege;
-        return isLongDelayedUnsiege ? 120 : 48;
+        return isLongDelayedUnsiege ? 144 : 36;
     }
 
     protected boolean doUnsiege() {
         //unsiege immediately if no targets but threat from enemy air or enemy ground in my blind spot exists
         if (getEnemyTargetsInRange(13).isEmpty() &&
                 (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) ||
-                        isEnemyTargetsInBlindSpot())) {
+                        isEnemyTargetsInTankBlindSpot())) {
             return true;
         }
 
         //unsiege when no enemy targets for awhile
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > TARGET_POS_RADIUS + 2 &&
-                getEnemyTargetsInRange(15).isEmpty()) {
+                getEnemyTargetsInRange(13).isEmpty()) {
             return isUnsiegeWaitTimeComplete();
         }
         lastActiveFrame = Time.nowFrames();
@@ -155,7 +155,7 @@ public class Tank extends BasicUnitMicro {
         return lastActiveFrame + framesDelayToUnSiege < Time.nowFrames();
     }
 
-    protected boolean isEnemyTargetsInBlindSpot() {
+    protected boolean isEnemyTargetsInTankBlindSpot() {
         return !Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) - unit.unit().getRadius() - enemy.unit().getRadius() < 2 &&
                     !enemy.unit().getFlying().orElse(true) &&

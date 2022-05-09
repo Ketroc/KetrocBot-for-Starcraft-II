@@ -9,7 +9,7 @@ import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
@@ -311,7 +311,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             if (!Purchase.isStructureQueued(techStructureNeeded) &&
                     UnitUtils.numMyUnits(techStructureUnitsSet, true) == 0) {
                 if (techStructureNeeded == Units.TERRAN_FACTORY) {
-                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY));
                 }
                 else {
                     KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(techStructureNeeded));

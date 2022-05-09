@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -294,10 +294,14 @@ public class DebugHelper {
     }
 
     public static void boxUnit(Unit unit) {
+        boxUnit(unit, Color.GREEN);
+    }
+
+    public static void boxUnit(Unit unit, Color color) {
         if (!isDebugOn) {
             return;
         }
-        draw3dBox(unit.getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        draw3dBox(unit.getPosition().toPoint2d(), color, 0.5f);
     }
 
     public static void gridTheMap() {

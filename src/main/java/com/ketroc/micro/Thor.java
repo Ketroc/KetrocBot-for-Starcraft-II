@@ -36,6 +36,7 @@ public class Thor extends BasicUnitMicro {
                 return;
             }
             else if (isSafe() && doToggleAirAttackMode()) {
+                toggleModes();
                 return;
             }
         }
@@ -50,19 +51,9 @@ public class Thor extends BasicUnitMicro {
 
     }
 
-
     protected boolean doToggleAirAttackMode() {
-        if (isHiImpactMode()) {
-            if (!shouldHiImpact()) {
-                toggleModes();
-                return true;
-            }
-        }
-        else if (shouldHiImpact()) {
-            toggleModes();
-            return true;
-        }
-        return false;
+        return ((isHiImpactMode() && !shouldHiImpact())
+                || (!isHiImpactMode() && shouldHiImpact()));
     }
 
     protected boolean shouldHiImpact() {

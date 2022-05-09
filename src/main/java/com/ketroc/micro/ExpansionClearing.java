@@ -7,7 +7,7 @@ import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.models.Ignored;
@@ -265,12 +265,10 @@ public class ExpansionClearing {
     public static void add(Point2d expansionPos) {
         if (!contains(expansionPos)) {
             expoClearList.add(new ExpansionClearing(expansionPos));
-            Chat.chat("Adding blocked expansion at: " + expansionPos);
         }
     }
 
     public static void remove(ExpansionClearing expo) {
-        Chat.chat("Expansion cleared at: " + expo.expansionPos);
         expoClearList.remove(expo);
         expo.removeTurret();
         expo.removeRaven();

@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -161,7 +161,6 @@ public class Strategy {
     private static void applyOpponentSpecificTweaks() {
         switch (KetrocBot.opponentId) {
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-                NO_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 Switches.phoenixAreReal = true;
                 break;
@@ -257,15 +256,6 @@ public class Strategy {
     }
 
     private static void chooseTvTStrategy() {
-        //TODO: delete - for testing
-        if (gamePlan == GamePlan.NONE) {
-            Set<GamePlan> randomTvTGamePlans = getAvailableTvTGamePlans();
-            gamePlan = randomTvTGamePlans.stream()
-                    .skip(new Random().nextInt(randomTvTGamePlans.size()))
-                    .findFirst()
-                    .get();
-        }
-
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
             if (!Launcher.isRealTime) {
@@ -304,6 +294,7 @@ public class Strategy {
                 break;
             case BUNKER_CONTAIN_STRONG:
                 BunkerContain.proxyBunkerLevel = 2;
+                BUILD_EXPANDS_IN_MAIN = false;
                 useTanksAdjustments();
                 break;
             case SCV_RUSH:
@@ -338,7 +329,7 @@ public class Strategy {
             if (Math.random() < 0.4) {
                 humansGamePlans.add(GamePlan.RAVEN);
             }
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.3) {
                 humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
             }
             if (Math.random() < 0.3) {
@@ -447,10 +438,10 @@ public class Strategy {
                         GamePlan.BANSHEE,
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH,
+                        //GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        //GamePlan.BUNKER_CONTAIN_WEAK,
+                        //GamePlan.BUNKER_CONTAIN_STRONG,
                         //GamePlan.MECH_ALL_IN,
                         GamePlan.RAVEN
                 ));
@@ -518,19 +509,6 @@ public class Strategy {
     }
 
     private static void chooseTvPStrategy() {
-        //TODO: delete - for testing
-        if (gamePlan == GamePlan.NONE) {
-            if (Bot.opponentId.equals("6da0eb84-2422-4d21-9f47-f44ff7c9f472")) { //buckshot
-                gamePlan = GamePlan.MECH_ALL_IN;
-            } else {
-                Set<GamePlan> randomTvPGamePlans = getAvailableTvPGamePlans();
-                gamePlan = randomTvPGamePlans.stream()
-                        .skip(new Random().nextInt(randomTvPGamePlans.size()))
-                        .findFirst()
-                        .get();
-            }
-        }
-
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
             if (!Launcher.isRealTime) {
@@ -575,7 +553,10 @@ public class Strategy {
                 break;
             case BUNKER_CONTAIN_STRONG:
                 BunkerContain.proxyBunkerLevel = 2;
-                DO_USE_CYCLONES = true;
+                DO_USE_CYCLONES = false;
+                DO_OFFENSIVE_TANKS = true;
+                BUILD_EXPANDS_IN_MAIN = false;
+                Strategy.DO_USE_HELLIONS = false;
                 break;
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
@@ -597,15 +578,6 @@ public class Strategy {
     }
 
     private static void chooseTvZStrategy() {
-        //TODO: delete - for testing
-        if (gamePlan == GamePlan.NONE) {
-            Set<GamePlan> randomTvZGamePlans = getAvailableTvZGamePlans();
-            gamePlan = randomTvZGamePlans.stream()
-                    .skip(new Random().nextInt(randomTvZGamePlans.size()))
-                    .findFirst()
-                    .get();
-        }
-
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
 
@@ -775,25 +747,30 @@ public class Strategy {
 
     private static GamePlan[] getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) {
-            //TODO: add ghost_hellbat
-            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
-                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE };
-            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-            case "10ecc3c36541ead": //RStrelok (LM)
-                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_STRONG};
-            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE};
-            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-            //case "b7b611bdaa2e2d1": //Spiny (LM)
-                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN};
-            case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-            case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
-                return new GamePlan[]{GamePlan.RAVEN, GamePlan.BANSHEE, GamePlan.BUNKER_CONTAIN_STRONG};
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+                return new GamePlan[] { GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER };
+            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+                return new GamePlan[] { GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER };
+            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+                return new GamePlan[] { GamePlan.MECH_ALL_IN, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MARINE_RUSH };
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
-                return new GamePlan[]{GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.TANK_VIKING};
+                return new GamePlan[]{ GamePlan.TANK_VIKING, GamePlan.BUNKER_CONTAIN_STRONG };
+//            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
+//                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE };
+//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
+//            case "10ecc3c36541ead": //RStrelok (LM)
+//                return new GamePlan[]{ GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_STRONG };
+//            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+//            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+//                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE};
+//            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
+//            //case "b7b611bdaa2e2d1": //Spiny (LM)
+//                return new GamePlan[]{ GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN };
+//            case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
+//            case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
+//                return new GamePlan[]{ GamePlan.RAVEN, GamePlan.BANSHEE, GamePlan.BUNKER_CONTAIN_STRONG };
 //            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
 //                return new int[]{0, 1, 2};
 //            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot

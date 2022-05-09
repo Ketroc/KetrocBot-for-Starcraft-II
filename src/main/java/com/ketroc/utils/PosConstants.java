@@ -5,7 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
@@ -4418,10 +4418,6 @@ public class PosConstants {
         float avgX = (xBaseLeft + xBaseRight) / 2f;
         float avgY = (yBaseTop + yBaseBottom) / 2f;
         return Point2d.of(avgX/2f, avgY/2f);
-    }
-
-    public static Point2d getFactoryPos() {
-        return _3x3AddonPosList.remove(0);
     }
 
     public static boolean isMySpawnTop() {

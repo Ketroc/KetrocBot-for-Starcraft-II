@@ -2,6 +2,7 @@ package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
@@ -9,6 +10,7 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
+import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.Comparator;
@@ -40,7 +42,16 @@ public class ScvTankSupporter extends Scv { //TODO: include thors
             return;
         }
 
-        //DebugHelper.draw3dBox(unit.unit().getPosition().toPoint2d(), Color.GREEN, 0.5f);
+        //remove ScvRepairer if no tanks exist, or on defense with all tanks full hp
+        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
+        if (tankList.isEmpty() ||
+                (!ArmyManager.doOffense && tankList.stream()
+                        .noneMatch(tank -> UnitUtils.getHealthPercentage(tank.unit.unit()) < 99))) {
+            remove();
+            return;
+        }
+
+        DebugHelper.boxUnit(unit.unit(), Color.WHITE);
 
         //set repair target
         selectTargetUnit();
@@ -62,26 +73,14 @@ public class ScvTankSupporter extends Scv { //TODO: include thors
             return;
         }
 
-        //remove ScvRepairer if no tanks exist
-        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
-        if (tankList.isEmpty()) {
-            remove();
-            return;
-        }
-
         //set target to closest injured tank
+        List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
         TankOffense repairTank = tankList.stream()
                 .filter(tank -> UnitUtils.getHealthPercentage(tank.unit.unit()) < 99)
                 .min(Comparator.comparing(tank -> UnitUtils.getDistance(unit.unit(), tank.unit.unit())))
                 .orElse(null);
         if (repairTank != null) {
             targetUnit = repairTank.unit;
-            return;
-        }
-
-        //if on defense and everything repaired, send scvs back to mining
-        if (!ArmyManager.doOffense) {
-            remove();
             return;
         }
 

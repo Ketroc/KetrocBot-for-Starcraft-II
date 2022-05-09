@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PlacementMap {
     public static boolean[][] placementMap = new boolean[400][400];
@@ -123,46 +124,15 @@ public class PlacementMap {
         int secondaryColumn = getColumnSecondary();
         populateMainBase3x3WithAddonPos(mainBaseColumn, true);
 
-        visualizePlacementMap();
-        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
-        visualStructureListOrder(PosConstants._3x3AddonPosList, Color.RED);
-        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
-        visualStructureListOrder(PosConstants.extraDepots, Color.TEAL);
-        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
-        visualStructureListOrder(PosConstants._3x3Structures, Color.BLUE);
-        PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
-        visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
-        Bot.DEBUG.sendDebug();
-
         replace1StarportWith1CommandCenter();
-
-        visualizePlacementMap();
-        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
-        visualStructureListOrder(PosConstants._3x3AddonPosList, Color.RED);
-        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
-        visualStructureListOrder(PosConstants.extraDepots, Color.TEAL);
-        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
-        visualStructureListOrder(PosConstants._3x3Structures, Color.BLUE);
-        PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
-        visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
-        Bot.DEBUG.sendDebug();
 
         replace3StarportsWith2Ccs();
 
-        visualizePlacementMap();
-        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
-        visualStructureListOrder(PosConstants._3x3AddonPosList, Color.RED);
-        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
-        visualStructureListOrder(PosConstants.extraDepots, Color.TEAL);
-        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
-        visualStructureListOrder(PosConstants._3x3Structures, Color.BLUE);
-        PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
-        visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
-        Bot.DEBUG.sendDebug();
-
         PosConstants._3x3AddonPosList.sort(Comparator.comparing(point2d -> point2d.distance(PosConstants.getBackCorner())));
         populateMainBase3x3Pos(mainBaseColumn, true);
-        topUp5x5List();
+        if (PosConstants.MACRO_OCS.isEmpty()) {
+            replace2StarportsWith1Cc();
+        }
         populateDepotPos(mainBaseColumn);
         topUp3x3List();
 
@@ -170,15 +140,15 @@ public class PlacementMap {
         replace1StarportWith1CommandCenter();
         replace3StarportsWith2Ccs();
 
-        visualizePlacementMap();
-        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
-        visualStructureListOrder(PosConstants._3x3AddonPosList, Color.RED);
-        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
-        visualStructureListOrder(PosConstants.extraDepots, Color.TEAL);
-        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
-        visualStructureListOrder(PosConstants._3x3Structures, Color.BLUE);
-        PosConstants.MACRO_OCS.forEach(p -> visualize5x5(p));
-        visualStructureListOrder(PosConstants.MACRO_OCS, Color.YELLOW);
+        List<Point2d> ccsOutsideMain = PosConstants.MACRO_OCS.stream()
+                .filter(pos -> !UnitUtils.isInMyMain(pos))
+                .sorted(Comparator.comparing(pos -> 1000 - pos.distance(PosConstants.baseLocations.get(1))))
+                .collect(Collectors.toList());
+        ccsOutsideMain.forEach(ccPos -> {
+            PosConstants.MACRO_OCS.remove(ccPos);
+            makeAvailable(Units.TERRAN_COMMAND_CENTER, ccPos);
+            Placement.possibleCcPosList.add(0, ccPos);
+        });
         //create2CellColumns();
     }
 
@@ -220,11 +190,7 @@ public class PlacementMap {
         }
     }
 
-    private static void topUp5x5List() {
-        if (!PosConstants.MACRO_OCS.isEmpty()) {
-            return;
-        }
-
+    private static void replace2StarportsWith1Cc() {
         //replaces 2 stacked starports with 1 command center
         for (int i = PosConstants._3x3AddonPosList.size() - 1; i >= 0; i--) {
             Point2d starportPos = PosConstants._3x3AddonPosList.get(i);

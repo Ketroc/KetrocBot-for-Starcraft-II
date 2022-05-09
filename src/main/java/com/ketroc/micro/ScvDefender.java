@@ -5,11 +5,11 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.models.MineralPatch;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
@@ -18,16 +18,14 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ScvDefender extends Scv {
-    Unit centerMineral;
+    UnitInPool centerMineral;
 
     public ScvDefender(Unit unit) {
         super(unit, ArmyManager.attackGroundPos, MicroPriority.DPS);
-        setCenterMineral();
     }
 
     public ScvDefender(UnitInPool unit) {
         super(unit, ArmyManager.attackGroundPos, MicroPriority.DPS);
-        setCenterMineral();
     }
 
     @Override
@@ -47,24 +45,14 @@ public class ScvDefender extends Scv {
 
         //mineral-walk back when on weapon cooldown
         if (!UnitUtils.isWeaponAvailable(unit.unit())) {
-            if (!isTargettingUnit(centerMineral)) {
-                ActionHelper.unitCommand(unit.unit(), Abilities.SMART, centerMineral, false);
+            if (getCenterMineral() != null && !isTargettingUnit(getCenterMineral())) {
+                ActionHelper.unitCommand(unit.unit(), Abilities.SMART, getCenterMineral(), false);
             }
             return;
         }
 
-//        //when out of attack range, repair instead
-        List<UnitInPool> attackTargets = getScvAttackTargets();
-//        List<UnitInPool> repairTargets = getScvRepairTargets();
-//        if (attackTargets.isEmpty() && !repairTargets.isEmpty()) {
-//            repairTargets.stream()
-//                    .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
-//                    .ifPresent(target -> ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_REPAIR, target.unit(), false));
-//            return;
-//        }
-
         //when in attack range, attack-move
-        if (!attackTargets.isEmpty()) {
+        if (!getScvAttackTargets().isEmpty()) {
             if (UnitUtils.getOrder(unit.unit()) != Abilities.ATTACK) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, getLeadEnemyWorkerPos(), false);
             }
@@ -72,8 +60,8 @@ public class ScvDefender extends Scv {
         }
 
         //when low hp, mineral-walk back and release for mining
-        if (unit.unit().getHealth().orElse(45f) <= 15) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.SMART, centerMineral, false);
+        if (getCenterMineral() != null && unit.unit().getHealth().orElse(45f) <= 15) {
+            ActionHelper.unitCommand(unit.unit(), Abilities.SMART, getCenterMineral(), false);
             removeMe = true;
             return;
         }
@@ -92,10 +80,18 @@ public class ScvDefender extends Scv {
                 .orElse(null);
     }
 
+    protected Unit getCenterMineral() {
+        if (centerMineral == null || !centerMineral.isAlive()) {
+            setCenterMineral();
+        }
+        return (centerMineral == null) ? null : centerMineral.unit();
+    }
+
     protected void setCenterMineral() {
-        centerMineral = GameCache.baseList.get(0).getMineralPatches().stream()
-                .map(MineralPatch::getNode)
-                .min(Comparator.comparing(node -> UnitUtils.getDistance(node, GameCache.baseList.get(0).getResourceMidPoint())))
+        centerMineral = Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) &&
+                        u.unit().getDisplayType() == DisplayType.VISIBLE)
+                .stream()
+                .min(Comparator.comparing(mineral -> UnitUtils.getDistance(mineral.unit(), GameCache.baseList.get(0).getResourceMidPoint())))
                 .orElse(null);
     }
 

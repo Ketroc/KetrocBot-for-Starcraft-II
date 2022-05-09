@@ -69,6 +69,7 @@ public class ActionIssued { //TODO: handle queued commands
     public static Optional<ActionIssued> getCurOrder(Unit unit) {
         return getCurOrder(Bot.OBS.getUnit(unit.getTag()));
     }
+
     public static Optional<ActionIssued> getCurOrder(UnitInPool uip) {
         if (uip == null) {
             return Optional.empty();

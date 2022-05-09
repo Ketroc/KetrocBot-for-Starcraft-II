@@ -6,7 +6,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
@@ -1123,7 +1123,7 @@ public class UnitUtils {
                         UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
     }
 
-    public static int numScvs(boolean includeProducing) { //TODO: does getFoodWorkers already include those producing
+    public static int numScvs(boolean includeProducing) {
         return Bot.OBS.getFoodWorkers() + (includeProducing ? numInProductionOfType(Units.TERRAN_SCV) : 0);
     }
 

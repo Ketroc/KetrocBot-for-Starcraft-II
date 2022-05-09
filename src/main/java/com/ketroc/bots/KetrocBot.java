@@ -12,7 +12,7 @@ import com.github.ocraft.s2client.protocol.score.CategoryScoreDetails;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
 import com.ketroc.geometry.Position;
@@ -21,7 +21,10 @@ import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.*;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
-import com.ketroc.purchases.*;
+import com.ketroc.purchases.Purchase;
+import com.ketroc.purchases.PurchaseResult;
+import com.ketroc.purchases.PurchaseStructure;
+import com.ketroc.purchases.PurchaseUpgrade;
 import com.ketroc.strategies.*;
 import com.ketroc.strategies.defenses.*;
 import com.ketroc.utils.Error;
@@ -86,6 +89,12 @@ public class KetrocBot extends Bot {
             PosConstants.setRepairBayLocation();
             PlacementMap.onGameStart();
 
+            //TODO: delete - hack for probots
+            if (Strategy.gamePlan == GamePlan.MARINE_RUSH &&
+                    KetrocBot.opponentId.equals("71089047-c9cc-42f9-8657-8bafa0df89a0")) {
+                PosConstants.extraDepots.add(2, PosConstants.extraDepots.remove(1));
+            }
+
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
             MarineAllIn.onGameStart();
@@ -97,6 +106,13 @@ public class KetrocBot extends Bot {
 
             //initialize starting scvs
             WorkerManager.sendScvsToMine(OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV));
+
+            if (!Launcher.isRealTime) {
+                JsonUtil.chatAllWinRates(true);
+            }
+            else {
+                JsonUtil.chatTotalWinLossRecord(true);
+            }
 
             DEBUG.sendDebug();
             ACTION.sendActions();
@@ -119,11 +135,11 @@ public class KetrocBot extends Bot {
                     .filter(chat -> chat.getPlayerId() != OBS.getPlayerId())
                     .forEach(chat -> Chat.respondToBots(chat));
 
-            //first step of the game
-            if (Time.at(Launcher.STEP_SIZE)) {
-                //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
-                //JsonUtil.chatAllWinRates(true); //TODO: turned off for probots
-            }
+//            //first step of the game
+//            if (Time.at(Launcher.STEP_SIZE)) {
+//                //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
+//                JsonUtil.chatAllWinRates(true);
+//            }
 
             TurretingRaven.onStepStart();
             MyUnitAbilities.onStepStart();
@@ -319,11 +335,8 @@ public class KetrocBot extends Bot {
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:
-                        if (BunkerContain.proxyBunkerLevel == 2 && UnitUtils.getDistance(unit, PosConstants.proxyBarracksPos) < 5) {
-                            BunkerContain.onFactoryTechLabComplete();
-                        }
                         //TODO: testing cyclones
-                        else if (Strategy.DO_USE_CYCLONES) {
+                        if (Strategy.DO_USE_CYCLONES) {
                             PurchaseUpgrade.add(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE);
                         }
                         break;

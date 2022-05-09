@@ -4,6 +4,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -13,6 +14,7 @@ import com.ketroc.purchases.PurchaseUpgrade;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.ActionIssued;
+import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.ArrayList;
@@ -195,6 +197,7 @@ public class UpgradeManager {
         //don't start blue flame until 4 total hellions exist
         if (!Strategy.DO_USE_HELLIONS &&
                 Strategy.gamePlan != GamePlan.GHOST_HELLBAT &&
+                (Strategy.gamePlan != GamePlan.BUNKER_CONTAIN_STRONG || PosConstants.opponentRace != Race.PROTOSS) &&
                 UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) > 0) {
             Strategy.DO_USE_HELLIONS = true;
             PurchaseUpgrade.add(Upgrades.INFERNAL_PRE_IGNITERS);

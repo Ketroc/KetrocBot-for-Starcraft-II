@@ -8,7 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
@@ -110,6 +110,11 @@ public class ArmyManager {
         //FIXME: just for testing below
         UnitUtils.myUnitsOfType(Units.TERRAN_CYCLONE).forEach(cyclone -> {
             UnitMicroList.add(new Cyclone(cyclone, PosConstants.insideMainWall));
+        });
+
+        //FIXME: just for testing below
+        UnitUtils.myUnitsOfType(Units.TERRAN_THOR).forEach(thor -> {
+            UnitMicroList.add(new Thor(thor));
         });
 
         //FIXME: just for testing below

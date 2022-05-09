@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 
 public class JsonUtil {
     public static final String DIRECTORY_PATH = "./data";
@@ -97,6 +98,28 @@ public class JsonUtil {
             Path filePath = getPathForCurrentOpponentJson();
             Opponent opp = getOpponentRecords(gson, filePath);
             Chat.chatNeverRepeat(opp.toString());
+            if (doLog) {
+                System.out.println(opp);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void chatTotalWinLossRecord(boolean doLog) {
+        try {
+            Gson gson = new Gson();
+            Path filePath = getPathForCurrentOpponentJson();
+            Opponent opp = getOpponentRecords(gson, filePath);
+            int wins = 0;
+            int losses = 0;
+            Set<WinLossRecord> strategyWinRates = opp.getStrategyWinRates();
+            for (WinLossRecord winLossRecord : strategyWinRates) {
+                wins += winLossRecord.getWins();
+                losses += winLossRecord.getLosses();
+            }
+            Chat.chatNeverRepeat("You are " + wins + "-" + losses + " against me.");
             if (doLog) {
                 System.out.println(opp);
             }

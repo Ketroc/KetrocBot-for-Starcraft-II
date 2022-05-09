@@ -2,7 +2,7 @@ package com.ketroc.models;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.ketroc.GameCache;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
