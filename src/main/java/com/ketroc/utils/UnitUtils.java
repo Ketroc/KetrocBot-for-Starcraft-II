@@ -1849,7 +1849,7 @@ public class UnitUtils {
 
     //no ghosts return false (could be wrong)
     public static boolean isNukeAvailable() {
-        return Bot.OBS.getUnits(Alliance.SELF, u - > u.unit().getType() == Units.TERRAN_GHOST).stream()
+        return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_GHOST).stream()
                         .findFirst()
                         .stream()
                         .anyMatch(ghost -> MyUnitAbilities.isAbilityAvailable(ghost.unit(), Abilities.EFFECT_NUKE_CALL_DOWN)) &&
