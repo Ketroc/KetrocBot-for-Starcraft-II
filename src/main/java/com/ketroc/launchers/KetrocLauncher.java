@@ -22,9 +22,9 @@ public class KetrocLauncher {
 
         DebugHelper.doTestingSpawns = false;
         DebugHelper.isDebugOn = true;
-        Launcher.isRealTime = true;
+        Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.TERRAN;
+        Race oppRace = Race.ZERG;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.TANK_VIKING;

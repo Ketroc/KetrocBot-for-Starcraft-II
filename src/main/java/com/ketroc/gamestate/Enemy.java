@@ -35,4 +35,9 @@ public class Enemy {
     public boolean is(Tag unitTag) {
         return uip.getTag().equals(unitTag);
     }
+
+    @Override
+    public String toString() {
+        return uip.unit().getType() + " " + uip.getTag() + " " + uip.unit().getPosition().toPoint2d();
+    }
 }

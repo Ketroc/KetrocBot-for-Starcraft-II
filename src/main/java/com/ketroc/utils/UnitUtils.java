@@ -1849,10 +1849,20 @@ public class UnitUtils {
 
     //no ghosts return false (could be wrong)
     public static boolean isNukeAvailable() {
-        return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_GHOST).stream()
+        return Bot.OBS.getUnits(Alliance.SELF, u - > u.unit().getType() == Units.TERRAN_GHOST).stream()
                         .findFirst()
                         .stream()
                         .anyMatch(ghost -> MyUnitAbilities.isAbilityAvailable(ghost.unit(), Abilities.EFFECT_NUKE_CALL_DOWN)) &&
                 Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_NUKE).isEmpty();
+    }
+
+    public static boolean canNeverMove(Units unitType) {
+        switch (unitType) {
+            case TERRAN_COMMAND_CENTER: case TERRAN_ORBITAL_COMMAND:
+            case TERRAN_BARRACKS: case TERRAN_FACTORY: case TERRAN_STARPORT:
+            case ZERG_SPINE_CRAWLER: case ZERG_SPORE_CRAWLER:
+                return false;
+        }
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f) == 0f;
     }
 }

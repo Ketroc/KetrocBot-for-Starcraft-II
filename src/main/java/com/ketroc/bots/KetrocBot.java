@@ -12,6 +12,7 @@ import com.github.ocraft.s2client.protocol.score.CategoryScoreDetails;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
@@ -141,6 +142,7 @@ public class KetrocBot extends Bot {
 //                JsonUtil.chatAllWinRates(true);
 //            }
 
+            EnemyCache.onStepStart();
             TurretingRaven.onStepStart();
             MyUnitAbilities.onStepStart();
             Ignored.onStepStart(); //free up ignored units
@@ -248,6 +250,8 @@ public class KetrocBot extends Bot {
             purchaseQueue.remove(toRemove);
 
             TurretingRaven.onStepEnd();
+
+            EnemyCache.onStepEnd();
 
             DebugHelper.onStep();
             ACTION.sendActions();
@@ -583,6 +587,9 @@ public class KetrocBot extends Bot {
     public void onUnitEnterVision(UnitInPool uip) {
         try {
             Unit unit = uip.unit();
+
+            EnemyCache.onUnitEnteredVision(uip);
+
             //make unavailable non-flying enemy structures
             if (unit.getAlliance() == Alliance.ENEMY &&
                     UnitUtils.isStructure(unit.getType()) &&
