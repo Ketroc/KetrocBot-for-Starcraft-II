@@ -725,6 +725,15 @@ public class KetrocBot extends Bot {
                     Print.print("Patch " + patch.getNode().getTag() + ": ");
                     patch.getScvs().forEach(scv -> Print.print(scv.getTag()));
                 });
+                //tag if there's a bunch of unassigned scvs mining here
+                if (base.getCc() != null &&
+                        base.getCc().unit().getAssignedHarvesters().orElse(0) >
+                                base.getMineralPatches().stream()
+                                        .flatMap(m -> m.getScvs().stream())
+                                        .count()) {
+                    Chat.tag("SATURATION_ERROR");
+                }
+
             }
         }
         Print.print("\n\n");
