@@ -103,11 +103,14 @@ public class EnemyCache {
     }
 
     public static void print() {
-        System.out.println("ENEMY CACHE");
-        System.out.println("===========");
+        System.out.println("\nENEMY UNIT CACHE");
+        System.out.println("================");
         enemyList.stream()
                 .collect(Collectors.groupingBy(enemy -> enemy.getUip().unit().getType()))
                 .forEach((unitType, enemies) -> System.out.println(enemies.size() + ": " + unitType));
+        System.out.println("\nENEMY UPGRADES");
+        System.out.println("==============");
+        enemyUpgrades.forEach(upgrade -> System.out.println(upgrade));
     }
 
 
