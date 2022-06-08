@@ -6,10 +6,10 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.gson.GameResult;
 import com.ketroc.gson.JsonUtil;
 import com.ketroc.gson.Opponent;
@@ -347,6 +347,10 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
+            case "360550d0-4659-417e-b0c0-184f74e6385e": //Roro FIXME: for testing worker saturation
+                return new HashSet<>(Set.of(
+                        GamePlan.MARINE_RUSH
+                ));
 //            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
 //            case "f50a7f8d4d49792": //RStrelok (LM)
 //                return new HashSet<>(Set.of(

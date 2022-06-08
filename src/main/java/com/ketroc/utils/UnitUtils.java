@@ -1863,6 +1863,10 @@ public class UnitUtils {
             case ZERG_SPINE_CRAWLER: case ZERG_SPORE_CRAWLER:
                 return false;
         }
-        return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f) == 0f;
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE);
+    }
+
+    public static boolean isBurrowed(Unit unit) {
+        return unit.getType().toString().endsWith("_BURROWED");
     }
 }

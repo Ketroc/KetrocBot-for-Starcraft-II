@@ -8,6 +8,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
@@ -1545,9 +1546,11 @@ public class ArmyManager {
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
-        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY))
+        boolean[][] threatMap =
+                (EnemyCache.enemyUpgrades.contains(Upgrades.BURROW)) ||
+                        (raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY))
                 ? InfluenceMaps.pointThreatToAir
-                : (Strategy.MASS_RAVENS ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer);
+                : InfluenceMaps.pointThreatToAirPlusBuffer;
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
 
         Optional<UnitInPool> turretTarget = getRavenTurretTarget(raven);
