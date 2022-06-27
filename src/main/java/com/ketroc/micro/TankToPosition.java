@@ -18,17 +18,17 @@ public class TankToPosition extends Tank {
 
     @Override
     public void onStep() {
-        if (isMorphing()) {
-            return;
-        }
-
-        //DebugHelper.boxUnit(unit.unit());
-
         //no tank
         if (!isAlive()) {
             onDeath();
             return;
         }
+
+        if (isMorphing()) {
+            return;
+        }
+
+        randomFrameDelayToggle();
 
         //tank vs tank special case
         Unit enemyTankToSiege = getEnemyTankToSiege();

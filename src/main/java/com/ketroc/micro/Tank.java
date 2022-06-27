@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.*;
 
@@ -52,7 +53,7 @@ public class Tank extends BasicUnitMicro {
         }
 
         //if no targets in range
-        List<UnitInPool> enemyTargetsInRange = getEnemyTargetsInRange(13);
+        List<UnitInPool> enemyTargetsInRange = getEnemyTargetsInRange(12.8f);
         if (enemyTargetsInRange.isEmpty()) {
             return null;
         }
@@ -133,9 +134,16 @@ public class Tank extends BasicUnitMicro {
         return isLongDelayedUnsiege ? 144 : 36;
     }
 
+    //random change unsiege delay
+    protected void randomFrameDelayToggle() {
+        if (Math.random() < 0.0005 * Launcher.STEP_SIZE) {
+            framesDelayToUnSiege =  framesDelayToUnSiege == 36 ? 144 : 36;
+        }
+    }
+
     protected boolean doUnsiege() {
         //unsiege immediately if no targets but threat from enemy air or enemy ground in my blind spot exists
-        if (getEnemyTargetsInRange(13).isEmpty() &&
+        if (getEnemyTargetsInRange(12.8f).isEmpty() &&
                 (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, unit.unit().getPosition().toPoint2d()) ||
                         isEnemyTargetsInTankBlindSpot())) {
             return true;
@@ -144,7 +152,7 @@ public class Tank extends BasicUnitMicro {
         //unsiege when no enemy targets for awhile
         if (unit.unit().getWeaponCooldown().orElse(1f) == 0f &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > TARGET_POS_RADIUS + 2 &&
-                getEnemyTargetsInRange(13).isEmpty()) {
+                getEnemyTargetsInRange(12.8f).isEmpty()) {
             return isUnsiegeWaitTimeComplete();
         }
         lastActiveFrame = Time.nowFrames();
@@ -221,7 +229,7 @@ public class Tank extends BasicUnitMicro {
         super.detour();
     }
 
-    protected List<UnitInPool> getEnemyTargetsInRange(int range) {
+    protected List<UnitInPool> getEnemyTargetsInRange(float range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy -> {
             if (enemy.unit().getFlying().orElse(true) ||
                     UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) ||
@@ -231,7 +239,7 @@ public class Tank extends BasicUnitMicro {
                 return false;
             }
             float distance = UnitUtils.getDistance(enemy.unit(), unit.unit());
-            return distance <= (UnitUtils.canMove(enemy.unit()) ? range : Math.min(range, 13)) +
+            return distance <= (UnitUtils.canMove(enemy.unit()) ? range : Math.min(range, 12.8f)) +
                             unit.unit().getRadius() + enemy.unit().getRadius() &&
                     distance - unit.unit().getRadius() + enemy.unit().getRadius() > 2;
         });
