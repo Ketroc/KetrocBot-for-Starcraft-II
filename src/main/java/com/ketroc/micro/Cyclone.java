@@ -175,7 +175,12 @@ public class Cyclone extends BasicUnitMicro {
     //choose targets to auto-attack
     private Optional<Unit> getAutoAttackTarget() {
         //if unsafe, attack fast units like zerglings/workers/hellions/reapers/etc, or 1shot kills
-        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsInRange(unit.unit());
+        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsInRange(unit.unit(), enemy -> (
+                        enemy.unit().getType() != Units.ZERG_ROACH && //animation takes too long to kite these
+                        enemy.unit().getType() != Units.PROTOSS_ARCHON && //animation takes too long to kite these
+                        enemy.unit().getType() != Units.ZERG_ULTRALISK //animation takes too long to kite these
+                ) || UnitUtils.canOneShotEnemy(unit.unit(), enemy.unit())
+        );
         if (!isSafe()) {
             return enemiesInRange.stream()
                     .filter(enemyInRange -> AUTOATTACK_WHEN_UNSAFE.contains(enemyInRange.unit().getType()) ||

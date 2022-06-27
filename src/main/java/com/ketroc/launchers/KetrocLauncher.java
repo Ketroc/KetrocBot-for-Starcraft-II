@@ -20,14 +20,14 @@ public class KetrocLauncher {
             e.printStackTrace();
         });
 
-        DebugHelper.doTestingSpawns = false;
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.ZERG;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.TANK_VIKING;
+        Strategy.gamePlan = GamePlan.GHOST_HELLBAT;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)

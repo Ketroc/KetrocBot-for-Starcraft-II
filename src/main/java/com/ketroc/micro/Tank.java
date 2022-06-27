@@ -236,5 +236,4 @@ public class Tank extends BasicUnitMicro {
                     distance - unit.unit().getRadius() + enemy.unit().getRadius() > 2;
         });
     }
-
 }

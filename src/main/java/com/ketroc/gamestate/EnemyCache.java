@@ -40,7 +40,8 @@ public class EnemyCache {
         switch (PosConstants.opponentRace) {
             case ZERG:
                 if (!enemyUpgrades.contains(Upgrades.BURROW) &&
-                        enemyList.stream().anyMatch(enemy -> UnitUtils.isBurrowed(enemy.getUip().unit()))) {
+                        enemyList.stream().anyMatch(enemy -> UnitUtils.isBurrowed(enemy.getUip().unit()) &&
+                                enemy.getType() != Units.ZERG_CREEP_TUMOR_BURROWED)) {
                     enemyUpgrades.add(Upgrades.BURROW);
                     Chat.chat("Burrow Upgrade Detected");
                 }

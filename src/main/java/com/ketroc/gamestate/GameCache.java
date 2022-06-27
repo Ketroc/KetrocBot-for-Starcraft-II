@@ -282,8 +282,8 @@ public class GameCache {
                         Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
                         Strategy.DO_DEFENSIVE_LIBS = false;
+                        Strategy.DO_DEFENSIVE_TANKS = false;
                         if (PosConstants.opponentRace != Race.TERRAN) {
-                            //Strategy.DO_DEFENSIVE_TANKS = false;
                             Strategy.DO_OFFENSIVE_TANKS = false;
                         }
                     }
