@@ -503,11 +503,11 @@ public class ArmyManager {
             int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, false);
             int numTanksSieged = UnitUtils.numMyUnits(Units.TERRAN_SIEGE_TANK_SIEGED, false);
 
-            //retreat home when all unsieged and numTanks < 4
+            //retreat home when all unsieged and numTanks < 2
             if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 2 && numTanksSieged == 0) {
                 doOffense = false;
             }
-            //go on offense with 6 siege tanks
+            //go on offense with 4 siege tanks
             else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 4)) {
                 doOffense = true;
             }

@@ -773,5 +773,12 @@ public class KetrocBot extends Bot {
         Print.print("\n\n");
         EnemyCache.print();
         Print.print("\n\n");
+
+        //memory usage
+        Print.print("\n\n");
+        Runtime runtime = Runtime.getRuntime();
+        long memoryInMb = runtime.totalMemory() - runtime.freeMemory() / 1_048_576L;
+        Print.print("Memory usage: " + memoryInMb);
+        Print.print("\n\n");
     }
 }
