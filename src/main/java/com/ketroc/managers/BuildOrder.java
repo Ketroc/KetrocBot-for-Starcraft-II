@@ -97,7 +97,8 @@ public class BuildOrder {
                     marineAllInBuild();
                 }
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
-                    ghostMarauderOpener();
+                    //ghostMarauderOpener();
+                    ccFirstGhosts();
                 }
                 else if (Strategy.gamePlan == GamePlan.MECH_ALL_IN) {
                     mechAllIn();
@@ -427,6 +428,25 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_WIDOWMINE));
         KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_CYCLONE));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+    }
+
+    private static void ccFirstGhosts() {
+        WorkerManager.numScvsPerGas = 3;
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_MARINE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_GHOST_ACADEMY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseUnit(Units.TERRAN_GHOST));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
     }
 
     private static void _1base2Fact2StarportOpener() {

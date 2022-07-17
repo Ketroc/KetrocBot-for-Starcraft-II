@@ -364,7 +364,7 @@ public class UnitUtils {
                 return (Strategy.WALL_OFF_IMMEDIATELY) ? 3 : 2;
             }
             else {
-                return 3;
+                return 4;
             }
         }
         switch ((Units) unit.getType()) {
@@ -588,6 +588,9 @@ public class UnitUtils {
     }
 
     public static boolean canScan() {
+        if (Time.before(ArmyManager.prevScanFrame + 24)) {
+            return false;
+        }
         List<Unit> orbitals = myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
         return orbitals.stream().anyMatch(unit -> unit.getEnergy().orElse(0f) >= 50);
     }
@@ -1863,6 +1866,10 @@ public class UnitUtils {
             case ZERG_SPINE_CRAWLER: case ZERG_SPORE_CRAWLER:
                 return false;
         }
-        return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f) == 0f;
+        return Bot.OBS.getUnitTypeData(false).get(unitType).getAttributes().contains(UnitAttribute.STRUCTURE);
+    }
+
+    public static boolean isBurrowed(Unit unit) {
+        return unit.getType().toString().endsWith("_BURROWED");
     }
 }

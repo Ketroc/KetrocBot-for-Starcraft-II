@@ -8,10 +8,10 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.gamestate.GameCache;
 import com.ketroc.GameResult;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.geometry.Position;
 import com.ketroc.micro.Target;
 import com.ketroc.micro.*;
@@ -23,7 +23,10 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.ProxyBunkerDefense;
 import com.ketroc.utils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -80,6 +83,8 @@ public class ArmyManager {
 
         //respond to nydus
         nydusResponse();
+
+        scanCloakedUnits();
 
         //positioning siege tanks && tank targetting
         if (!BunkerContain.requiresTanks()) {
@@ -188,6 +193,31 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    //TODO: create influence maps for my units (need total damage vs cloaked unit)
+    //TODO: smarter when other units around
+    //TODO: include burrowed
+    //for now, just a hack to scan obs with 11 marines nearby (marine 6dmg/5range, obs 60hp)
+    private static void scanCloakedUnits() {
+        if (!UnitUtils.canScan()) {
+            return;
+        }
+        List<UnitInPool> obsList = UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE);
+        for (UnitInPool obs : obsList) {
+            if (obs.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED) {
+                continue;
+            }
+            int numNearbyMarines = Bot.OBS.getUnits(Alliance.SELF, u ->
+                    u.unit().getType() == Units.TERRAN_MARINE &&
+                            u.unit().getWeaponCooldown().orElse(1f) <= 0 &&
+                            UnitUtils.getDistance(u.unit(), obs.unit()) < 6
+            ).size();
+            if (numNearbyMarines >= 11) {
+                UnitUtils.scan(obs.unit().getPosition().toPoint2d());
+                return;
+            }
+        }
     }
 
     private static void setLeadTank() {
@@ -473,12 +503,12 @@ public class ArmyManager {
             int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, false);
             int numTanksSieged = UnitUtils.numMyUnits(Units.TERRAN_SIEGE_TANK_SIEGED, false);
 
-            //retreat home when all unsieged and numTanks < 4
-            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 4 && numTanksSieged == 0) {
+            //retreat home when all unsieged and numTanks < 2
+            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 2 && numTanksSieged == 0) {
                 doOffense = false;
             }
-            //go on offense with 6 siege tanks
-            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 6)) {
+            //go on offense with 4 siege tanks
+            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 4)) {
                 doOffense = true;
             }
             return;
@@ -1546,9 +1576,10 @@ public class ArmyManager {
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
-        boolean[][] threatMap = (raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY))
+        boolean[][] threatMap =
+                raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY)
                 ? InfluenceMaps.pointThreatToAir
-                : (Strategy.MASS_RAVENS ? InfluenceMaps.pointVikingsStayBack : InfluenceMaps.pointThreatToAirPlusBuffer);
+                : InfluenceMaps.pointThreatToAirPlusBuffer;
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
 
         Optional<UnitInPool> turretTarget = getRavenTurretTarget(raven);
@@ -1597,14 +1628,18 @@ public class ArmyManager {
         }
 
         //back up if in range
-        if (isUnsafe || inRange) {
-            if (!Strategy.DO_SEEKER_MISSILE || !castSeeker(raven)) {
-                if (!Strategy.DO_MATRIX || !castMatrix(raven)) {
-                    if (!doCastTurrets || !doAutoTurret(raven, turretTarget)) {
-                        kiteBackAirUnit(raven, lastCommand);
-                    }
-                }
-            }
+        if (Strategy.DO_SEEKER_MISSILE && castSeeker(raven)) {
+            return;
+        }
+        if (Strategy.DO_MATRIX && castMatrix(raven)) {
+            return;
+        }
+        if (doCastTurrets && inRange && doAutoTurret(raven, turretTarget)) {
+            return;
+        }
+
+        if (isUnsafe) {
+            kiteBackAirUnit(raven, lastCommand);
             return;
         }
 
@@ -1624,7 +1659,8 @@ public class ArmyManager {
     }
 
     private static Optional<UnitInPool> getRavenTurretTarget(Unit raven) {
-        List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY, enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+        List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY,
+                        enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
                 !enemy.unit().getType().toString().contains("CHANGELING") &&
                 isTargetImportant(enemy.unit()) &&
                 UnitUtils.getDistance(raven, enemy.unit()) < 11); //radius 1, cast range 2, attack range 7, 1 enemy radius/buffer
@@ -1636,17 +1672,6 @@ public class ArmyManager {
         return targets.stream()
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(raven, enemy.unit())));
     }
-
-//    //drop auto-turrets near enemy before going home to repair
-//    private static boolean doAutoTurretOnRetreat(Unit raven) {
-//        if (raven.getEnergy().orElse(0f) >= 50 &&
-//                !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE) &&
-//                UnitUtils.getDistance(raven, attackGroundPos) < 12 &&
-//                attackUnit != null) {
-//            return castAutoTurret(raven, 0);
-//        }
-//        return false;
-//    }
 
     //drop auto-turrets near enemy
     private static boolean doAutoTurret(Unit raven, Optional<UnitInPool> turretTarget) {

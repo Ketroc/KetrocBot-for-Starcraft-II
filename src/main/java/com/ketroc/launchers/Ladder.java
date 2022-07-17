@@ -2,8 +2,8 @@ package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.ketroc.bots.KetrocBot;
 import com.ketroc.bots.Bot;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.DebugHelper;
 

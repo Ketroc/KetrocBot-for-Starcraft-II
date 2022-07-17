@@ -87,10 +87,15 @@ public class MedivacScvHealer extends BasicUnitMicro {
             onDeath();
             return;
         }
+
+        //continue healing if not taking damage
         if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_HEAL && unit.unit().getHealth().orElse(0f) == prevStepHealth) {
             return;
         }
+
         updateTargetPos();
+
+
         if (isSafe()) {
             if (UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_HEAL) {
                 return;

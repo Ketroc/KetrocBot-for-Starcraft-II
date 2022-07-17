@@ -25,6 +25,8 @@ public class TankOffense extends Tank {
             return;
         }
 
+        randomFrameDelayToggle();
+
         //ignore when morphing
         if (isMorphing()) {
             return;

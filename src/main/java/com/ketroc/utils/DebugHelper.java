@@ -58,8 +58,7 @@ public class DebugHelper {
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
             Bot.DEBUG.debugCreateUnit(Units.ZERG_OVERLORD, PosConstants.proxyBarracksPos, Bot.enemyId, 3);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 12);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_DRONE, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
 //                    .forEach(cyclone -> {

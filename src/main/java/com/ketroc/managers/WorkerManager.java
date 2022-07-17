@@ -123,7 +123,7 @@ public class WorkerManager {
                 }
                 Point2d behindPFPos = Position.towards(pfBase.getCcPos(), pfBase.getResourceMidPoint(), 5.4f);
                 for (int i=0; i<numScvsToAdd; i++) {
-                    UnitInPool repairScv = WorkerManager.getScv(
+                    UnitInPool repairScv = WorkerManager.getScvEmptyHands(
                             unitToRepair.getPosition().toPoint2d(),
                             scv -> UnitUtils.getDistance(unitToRepair, scv.unit()) < 9
                     );

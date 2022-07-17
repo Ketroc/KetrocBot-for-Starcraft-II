@@ -636,6 +636,7 @@ public class KetrocBot extends Bot {
             }
             Print.print("opponentId = " + opponentId);
             GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
+            EnemyCache.print();
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
         } catch (Throwable e) {
             Error.onException(e);
@@ -719,6 +720,21 @@ public class KetrocBot extends Bot {
             Print.print("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
             Print.print("base.lastScoutedFrame = " + base.lastScoutedFrame);
             Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + OBS.getVisibility(base.getCcPos()).toString());
+            if (!base.isEnemyBase) {
+                base.getMineralPatches().forEach(patch -> {
+                    Print.print("Patch " + patch.getNode().getTag() + ": ");
+                    patch.getScvs().forEach(scv -> Print.print(scv.getTag()));
+                });
+                //tag if there's a bunch of unassigned scvs mining here
+                if (base.getCc() != null &&
+                        base.getCc().unit().getAssignedHarvesters().orElse(0) >
+                                base.getMineralPatches().stream()
+                                        .flatMap(m -> m.getScvs().stream())
+                                        .count()) {
+                    Chat.tag("SATURATION_ERROR");
+                }
+
+            }
         }
         Print.print("\n\n");
 
@@ -754,6 +770,15 @@ public class KetrocBot extends Bot {
             Print.print(exp.expansionPos +
                     (exp.raven != null ? exp.raven.unit.getTag() + " " : ""));
         });
+        Print.print("\n\n");
+        EnemyCache.print();
+        Print.print("\n\n");
+
+        //memory usage
+        Print.print("\n\n");
+        Runtime runtime = Runtime.getRuntime();
+        long memoryInMb = (runtime.totalMemory() - runtime.freeMemory()) / 1_048_576L;
+        Print.print("Memory usage: " + memoryInMb);
         Print.print("\n\n");
     }
 }
