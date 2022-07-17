@@ -123,11 +123,16 @@ public class Tank extends BasicUnitMicro {
             return false;
         }
 
+        //don't siege if on enemy ramp
+        if (UnitUtils.getDistance(unit.unit(), PosConstants.enemyRampPos) < 3.5f) {
+            return false;
+        }
+
         int rangeToSiege = (ArmyManager.doOffense && UnitUtils.numMyOffensiveSiegedTanks() < 2) ? 18 : 13;
         return !getEnemyTargetsInRange(rangeToSiege).isEmpty();
     }
 
-    //alternate between ~2s and ~5s for unsiege delay to stagger the tanks
+    //alternate between ~1.5s and ~6s for unsiege delay to stagger the tanks
     protected int getFrameDelayToUnsiege() {
         isLongDelayedUnsiege = !isLongDelayedUnsiege;
         return isLongDelayedUnsiege ? 144 : 36;

@@ -4,9 +4,12 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.*;
+
+import java.util.List;
 
 public class TankOffense extends Tank {
 
@@ -91,6 +94,22 @@ public class TankOffense extends Tank {
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
             return true; //isUnsiegeWaitTimeComplete(); changed cuz when retreating, just go immediately (don't stagger)
+        }
+
+        //don't unsiege if this is the last tank sieged nearby
+        List<UnitInPool> nearbyTanks = UnitUtils.getUnitsNearbyOfType(
+                Alliance.SELF,
+                UnitUtils.SIEGE_TANK_TYPE,
+                unit.unit().getPosition().toPoint2d(),
+                6
+        );
+        boolean unsiegedTankNearby = nearbyTanks.stream()
+                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK);
+        boolean siegedTankNearby = nearbyTanks.stream()
+                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+
+        if (unsiegedTankNearby && !siegedTankNearby) {
+            return false;
         }
 
         return super.doUnsiege();

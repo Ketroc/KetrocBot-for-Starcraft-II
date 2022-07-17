@@ -719,9 +719,15 @@ public class BuildManager {
                     UnitUtils.numMyUnits(UnitUtils.WIDOW_MINE_TYPE, true) < 3) {
                 return Units.TERRAN_WIDOWMINE;
             }
-            if (UnitUtils.canAfford(Units.TERRAN_CYCLONE) &&
-                    UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) < 10) {
-                return Units.TERRAN_CYCLONE;
+            int numTanks = UnitMicroList.getUnitSubList(TankOffense.class).size();
+            int numCyclones = UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true);
+            if (numCyclones + numTanks < 12 && UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
+                if (numTanks >= numCyclones) {
+                    return Units.TERRAN_CYCLONE;
+                }
+                else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
+                    return Units.TERRAN_SIEGE_TANK;
+                }
             }
         }
 

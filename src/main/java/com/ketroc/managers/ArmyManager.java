@@ -522,7 +522,8 @@ public class ArmyManager {
         //TODO: testing cyclones
         //move out with 5 core attack units (with at least 1 air unit)
         if (Strategy.DO_USE_CYCLONES) {
-            doOffense = UnitMicroList.numOfUnitClass(Cyclone.class) + GameCache.bansheeList.size() + GameCache.ravenList.size() > 5 &&
+            doOffense = UnitMicroList.numOfUnitClass(Cyclone.class) + UnitMicroList.numOfUnitClass(TankOffense.class) +
+                            GameCache.bansheeList.size() + GameCache.ravenList.size() > 5 &&
                     (!GameCache.bansheeList.isEmpty() || !GameCache.vikingList.isEmpty() || !GameCache.ravenList.isEmpty());
             return;
         }

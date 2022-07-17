@@ -473,12 +473,11 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-//            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-//            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-//                return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE_CYCLONE,
-//                        GamePlan.MASS_MINE_OPENER
-//                ));
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris TODO:  comment out this..  just for testing new strategy vs Eris
+            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE_CYCLONE
+                ));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
 //                return new HashSet<>(Set.of(
 //                        GamePlan.BANSHEE
