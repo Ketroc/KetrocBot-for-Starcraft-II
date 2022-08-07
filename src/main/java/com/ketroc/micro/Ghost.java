@@ -38,6 +38,12 @@ public class Ghost extends BasicUnitMicro {
         super(unit, targetPos, MicroPriority.SURVIVAL);
     }
 
+    public static int totalGhostEnergy() {
+        return (int)UnitMicroList.getUnitSubList(Ghost.class).stream()
+                .mapToDouble(ghost -> ghost.unit.unit().getEnergy().orElse(0f))
+                .sum();
+    }
+
     @Override
     public void onStep() {
         super.onStep();

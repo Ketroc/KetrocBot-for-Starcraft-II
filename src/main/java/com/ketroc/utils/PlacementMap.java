@@ -128,7 +128,7 @@ public class PlacementMap {
 
         replace3StarportsWith2Ccs();
 
-        PosConstants._3x3AddonPosList.sort(Comparator.comparing(point2d -> point2d.distance(PosConstants.getBackCorner())));
+        PosConstants._3x3AddonPosList.sort(Comparator.comparing(p -> 1000 - p.distance(PosConstants.myRampPos)));
         populateMainBase3x3Pos(mainBaseColumn, true);
         if (PosConstants.MACRO_OCS.isEmpty()) {
             replace2StarportsWith1Cc();

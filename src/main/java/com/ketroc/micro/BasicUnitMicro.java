@@ -167,6 +167,9 @@ public class BasicUnitMicro {
             if (!isTargettingUnit(attackTarget.unit())) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, attackTarget.unit(), false);
             }
+            if (unit.unit().getType() == Units.TERRAN_THOR_AP) {
+                Chat.chat("Thor Targetting: " + attackTarget.unit().getType());
+            }
             return true;
         }
         return false;
@@ -520,16 +523,23 @@ public class BasicUnitMicro {
                 .orElse(null);
     }
 
-    protected boolean doStutterForward(Unit attackUnit, Unit closestEnemyThreat) {
+    protected boolean doStutterForward(Unit closestEnemyThreat) {
         if (closestEnemyThreat == null) {
             return true;
         }
+
+        boolean isEnemyRetreating = UnitUtils.isEnemyRetreating(closestEnemyThreat, unit.unit().getPosition().toPoint2d());
+        double myAttackRange = UnitUtils.getAttackRange(unit.unit(), closestEnemyThreat);
+        double enemyAttackRange = (closestEnemyThreat.getType() == Units.ZERG_BANELING || closestEnemyThreat.getType() == Units.ZERG_BANELING_BURROWED) ?
+                4 :
+                UnitUtils.getAttackRange(closestEnemyThreat, unit.unit());
+
+
         //doStutterForward if enemy outranges me (or is weaponless)
-        double myAttackRange = UnitUtils.getAttackRange(attackUnit, closestEnemyThreat);
-        double enemyAttackRange = UnitUtils.getAttackRange(closestEnemyThreat, attackUnit);
         return enemyAttackRange == 0 ||
+                isEnemyRetreating ||
                 myAttackRange < enemyAttackRange ||
-                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat);
+                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(unit.unit(), closestEnemyThreat);
     }
 
     protected boolean isFlying() {
@@ -545,5 +555,13 @@ public class BasicUnitMicro {
                 (isFlying() ? InfluenceMaps.pointPersistentDamageToAir : InfluenceMaps.pointPersistentDamageToGround),
                 pos
         );
+    }
+
+    protected void move(Unit targetUnit) {
+        ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetUnit.getPosition().toPoint2d(), false);
+    }
+
+    protected void move(Point2d targetPos) {
+        ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
     }
 }

@@ -2,6 +2,9 @@ package com.ketroc;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.ketroc.gamestate.EnemyCache;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.UnitUtils;
 
@@ -33,7 +36,8 @@ public class Switches {
         //2 scans saved for observers, banshees, tank vs tank wars TODO: include all cloaked/burrowed units
         if (!UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE).isEmpty() ||
                 !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BANSHEE).isEmpty() ||
-                (Strategy.DO_OFFENSIVE_TANKS && !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty())) {
+                (Strategy.DO_OFFENSIVE_TANKS && !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty()) ||
+                (Strategy.gamePlan == GamePlan.BC_RUSH && EnemyCache.enemyUpgrades.contains(Upgrades.BURROW))) {
             numScansToSave = 2;
         }
     }

@@ -295,8 +295,9 @@ public class Base {
                     return;
                 }
 
-                //mine normally if 3 scvs
-                if (mineralPatch.getScvs().size() >= 3 &&
+                //mine normally if 3 scvs (exclude distance mining)
+                if (cc != null &&
+                        mineralPatch.getScvs().size() >= 3 &&
                         mineralPatch.getScvs().stream().allMatch(mineralScv -> UnitUtils.getDistance(mineralScv.unit(), mineralPatch.getByNodePos()) < 5)) {
                     Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(scv);
                     if (curOrder.isEmpty() ||

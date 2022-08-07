@@ -3,6 +3,7 @@ package com.ketroc.strategies.defenses;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
@@ -71,7 +72,7 @@ public class WorkerRushDefense3 {
         if (numDefendersNeeded > 0) {
             Comparator<Unit> compareByHealth = Comparator.comparing(scv -> scv.getHealth().orElse(0f));
             UnitUtils.myUnitsOfType(Units.TERRAN_SCV).stream()
-                    .filter(scv -> scv.getHealth().orElse(0f) > 15)
+                    .filter(scv -> scv.getHealth().orElse(0f) > 15 || isEnemyWorkersDeep())
                     .sorted(compareByHealth.reversed())
                     .limit(numDefendersNeeded)
                     .forEach(scv -> {
@@ -90,7 +91,10 @@ public class WorkerRushDefense3 {
     }
 
     private static void manageScvRepairers() {
-        if (Bot.OBS.getMinerals() >= 40) {
+        if (Bot.OBS.getMinerals() < 5 || isEnemyWorkersDeep()) {
+            cancelScvRepairers();
+        }
+        else if (Bot.OBS.getMinerals() >= 40) {
             List<Unit> lowHpScvs = UnitUtils.myUnitsOfType(Units.TERRAN_SCV).stream()
                     .filter(scv -> scv.getHealth().orElse(0f) <= 25 &&
                             UnitUtils.getDistance(scv, GameCache.baseList.get(0).getResourceMidPoint()) < 5)
@@ -102,9 +106,13 @@ public class WorkerRushDefense3 {
                 UnitMicroList.add(new ScvRepairer(scv1, scv2));
                 UnitMicroList.add(new ScvRepairer(scv2, scv1));
             }
-        } else if (Bot.OBS.getMinerals() < 5) {
-            cancelScvRepairers();
         }
+    }
+
+    public static boolean isEnemyWorkersDeep() {
+        return !Bot.OBS.getUnits(Alliance.ENEMY, u ->
+                UnitUtils.WORKER_TYPE.contains(u.unit().getType()) &&
+                UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 6).isEmpty();
     }
 
     private static void cancelScvRepairers() {

@@ -120,6 +120,9 @@ public class BunkerContain {
                             .orElse(repairScvList.get(0));
                     factorySwap = new AddonSwap(barracks, Abilities.BUILD_TECHLAB_BARRACKS, Units.TERRAN_FACTORY, availableRepairScv);
                     KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
+                    if (PosConstants.opponentRace == Race.TERRAN) {
+                        KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
+                    }
                 }
             }
             else if (factorySwap.removeMe) {
@@ -174,7 +177,7 @@ public class BunkerContain {
 
         }
         if (barracks != null && factorySwap == null) {
-            if (UnitUtils.getOrder(barracks.unit()) == null) {
+            if (UnitUtils.getOrder(barracks.unit()) == null && barracks.unit().getBuildProgress() == 1) {
                 if (getMarineCount() < marinesNeeded) {
                     buildMarines();
                     return;

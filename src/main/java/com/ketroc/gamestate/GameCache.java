@@ -16,7 +16,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.micro.MarineBasic;
+import com.ketroc.micro.MarineOffense;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
 import com.ketroc.purchases.PurchaseUnit;
@@ -303,6 +303,7 @@ public class GameCache {
                                 Switches.enemyHasCloakThreat = true;
                                 //if burrowed unit, or cloaked unit without ghosts available
                                 if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
+                                        Strategy.gamePlan != GamePlan.BC_RUSH ||
                                         PosConstants.opponentRace == Race.ZERG ||
                                         UnitUtils.WIDOW_MINE_TYPE.contains(unitType)) {
                                     purchaseEmergencyRaven();
@@ -667,6 +668,7 @@ public class GameCache {
         InfluenceMaps.pointEnemyAttackersWith10Range = new int[800][800];
         InfluenceMaps.pointThreatToAir = new boolean[800][800];
         InfluenceMaps.pointThreatToAirFromGround = new int[800][800];
+        InfluenceMaps.pointThreatToGroundFromGround = new int[800][800];
         InfluenceMaps.pointThreatToGroundValue = new int[800][800];
         InfluenceMaps.pointDamageToGroundValue = new int[800][800];
         InfluenceMaps.pointDamageToAirValue = new int[800][800];
@@ -830,6 +832,12 @@ public class GameCache {
                         float airAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 9 : enemy.airAttackRange;
                         if (distance < airAttackRange) {
                             InfluenceMaps.pointThreatToAirFromGround[x][y] += enemy.threatLevel;
+                        }
+
+                        //threat to ground from ground
+                        float groundAttackRange = (enemy.unitType == Units.TERRAN_CYCLONE) ? 9 : enemy.groundAttackRange;
+                        if (distance < groundAttackRange) {
+                            InfluenceMaps.pointThreatToGroundFromGround[x][y] += enemy.threatLevel;
                         }
 
                         //PF target value (for PF & tank targetting)

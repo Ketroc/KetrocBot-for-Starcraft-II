@@ -24,8 +24,9 @@ public class Marine extends BasicUnitMicro {
 
     @Override
     public void onArrival() {
-        Unit bunker = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 3f)
+        Unit bunker = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 10f)
                 .stream()
+                .filter(b -> b.unit().getCargoSpaceTaken().orElse(4) < 4)
                 .findFirst()
                 .map(UnitInPool::unit)
                 .orElse(null);

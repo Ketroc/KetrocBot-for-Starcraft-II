@@ -108,7 +108,7 @@ public class ScvRush {
 
         List<UnitInPool> enemyWorkers = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.enemyWorkerType, enemyCommand.getPosition().toPoint2d(), 10);
 
-        //if scv count is 1.5x probe count then kill his command structure
+        //if scv count is 2x probe count then kill his command structure
         if ((scvList.size() >= enemyWorkers.size() * 2 ||
                 scvList.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() >
                         enemyWorkers.stream().mapToDouble(u -> u.unit().getHealth().orElse(0f)).sum() * 2) ||

@@ -53,12 +53,12 @@ public class DebugHelper {
         }
 
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("3:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("7:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_OVERLORD, PosConstants.proxyBarracksPos, Bot.enemyId, 3);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_TEMPEST, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
 //                    .forEach(cyclone -> {

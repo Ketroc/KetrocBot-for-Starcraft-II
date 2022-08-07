@@ -500,6 +500,12 @@ public class WorkerManager {
             return;
         }
 
+        //max gas with Tank_Viking and BunkerContain TvT
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+            numScvsPerGas = 3;
+            return;
+        }
+
         //max gas during slow 3rd base build order
         if (Strategy.EXPAND_SLOWLY && Time.nowFrames() < Time.toFrames("5:00")) {
             numScvsPerGas = 3;

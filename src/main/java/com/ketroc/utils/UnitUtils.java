@@ -1467,7 +1467,7 @@ public class UnitUtils {
     }
 
     public static boolean isEnemyRetreating(Unit enemyUnit, Point2d myUnitPos) {
-        //always consider burrowed units and units unable to move as: not retreating
+        //always consider immobile burrowed units and units unable to move as: not retreating
         if (enemyUnit.getType().toString().endsWith("_BURROWED") || !canMove(enemyUnit)) {
             return false;
         }
@@ -1778,7 +1778,7 @@ public class UnitUtils {
     public static boolean isTechLabRequired(Units unitType) {
         switch (unitType) {
             case TERRAN_MARAUDER: case TERRAN_GHOST:
-            case TERRAN_SIEGE_TANK: case TERRAN_THOR:
+            case TERRAN_SIEGE_TANK: case TERRAN_THOR: case TERRAN_CYCLONE:
             case TERRAN_BANSHEE: case TERRAN_BATTLECRUISER: case TERRAN_RAVEN:
                 return true;
         }

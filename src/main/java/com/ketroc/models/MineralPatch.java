@@ -194,7 +194,7 @@ public class MineralPatch {
     }
 
     public void distanceReturnMicro(Unit scv) {
-        if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability != Abilities.HARVEST_RETURN)) {
+        if (ActionIssued.getCurOrder(scv).stream().noneMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
         }
     }

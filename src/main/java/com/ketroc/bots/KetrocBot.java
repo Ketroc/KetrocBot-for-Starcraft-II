@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
@@ -90,10 +91,12 @@ public class KetrocBot extends Bot {
             PosConstants.setRepairBayLocation();
             PlacementMap.onGameStart();
 
-            //TODO: delete - hack for probots
-            if (Strategy.gamePlan == GamePlan.MARINE_RUSH &&
-                    KetrocBot.opponentId.equals("71089047-c9cc-42f9-8657-8bafa0df89a0")) {
-                PosConstants.extraDepots.add(2, PosConstants.extraDepots.remove(1));
+            //remove 3x3 positions outside of main/nat
+            if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+                PosConstants._3x3AddonPosList.removeIf(pos -> !UnitUtils.isInMyMainOrNat(pos));
+                PosConstants._3x3Structures.removeIf(pos -> !UnitUtils.isInMyMainOrNat(pos));
+                PosConstants._3x3AddonPosList.addAll(PosConstants._3x3Structures);
+                PosConstants._3x3Structures.clear();
             }
 
             BuildOrder.onGameStart();
@@ -250,7 +253,6 @@ public class KetrocBot extends Bot {
             purchaseQueue.remove(toRemove);
 
             TurretingRaven.onStepEnd();
-
             EnemyCache.onStepEnd();
 
             DebugHelper.onStep();

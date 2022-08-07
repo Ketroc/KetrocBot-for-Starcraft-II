@@ -116,7 +116,7 @@ public class PurchaseUpgrade implements Purchase {
             case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
                 return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
-                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 4;
+                return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 5;
             case BANSHEE_CLOAK:
                 return UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true) >= 1;
             case BANSHEE_SPEED:
@@ -132,6 +132,9 @@ public class PurchaseUpgrade implements Purchase {
     private Ability getUpgradeAbility() {
         if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
             return Abilities.RESEARCH_INFERNAL_PREIGNITER;
+        }
+        if (upgrade == Upgrades.YAMATO_CANNON) {
+            return Abilities.RESEARCH_BATTLECRUISER_WEAPON_REFIT;
         }
 
         Ability upgradeAbility = Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);

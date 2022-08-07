@@ -16,5 +16,6 @@ public enum GamePlan {
     MASS_MINE_OPENER,
     GHOST_HELLBAT,
     MECH_ALL_IN,
+    BC_RUSH,
     NONE;
 }

@@ -150,6 +150,14 @@ public class ArmyManager {
             UnitMicroList.add(new MedivacScvHealer(medivac, PosConstants.REPAIR_BAY));
         });
 
+        //FIXME: just for testing below
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+            UnitUtils.myUnitsOfType(Units.TERRAN_BATTLECRUISER).forEach(bc -> {
+                UnitMicroList.add(new BattlecruiserHarass(bc));
+            });
+            //muleBCs();
+        }
+
         //repair station
         manageRepairBay();
 
@@ -193,6 +201,35 @@ public class ArmyManager {
 
         //send out marine+hellbat army
         sendMarinesHellbats();
+    }
+
+    private static void muleBCs() { //TODO
+        callDownNewMules();
+        giveMulesRepairTarget();
+    }
+
+    private static void callDownNewMules() {
+        List<Unit> ocList = UnitUtils.myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
+        if (ocList.stream().anyMatch(oc -> oc.getEnergy().orElse(0f) >= 50)) {
+            UnitMicroList.getUnitSubList(Battlecruiser.class).stream()
+                    .map(bc -> bc.unit.unit())
+                    .filter(bc -> bc.getHealth().get() < bc.getHealthMax().get() - 100)
+                    .filter(bc -> !InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, bc.getPosition().toPoint2d()))
+                    .findAny()
+                    .ifPresent(bc -> ActionHelper.unitCommand(ocList, Abilities.EFFECT_CALL_DOWN_MULE, bc.getPosition().toPoint2d(), false));
+        }
+    }
+
+    private static void giveMulesRepairTarget() {
+        UnitUtils.myUnitsOfType(Units.TERRAN_MULE).stream()
+                .filter(mule -> ActionIssued.getCurOrder(mule).isEmpty())
+                .forEach(mule ->
+                        UnitMicroList.getUnitSubList(Battlecruiser.class).stream()
+                                .map(bc -> bc.unit.unit())
+                                .filter(bc -> bc.getHealth().get() < bc.getHealthMax().get())
+                                .min(Comparator.comparing(bc -> UnitUtils.getDistance(mule, bc)))
+                                .ifPresent(bc -> ActionHelper.unitCommand(mule, Abilities.EFFECT_REPAIR, bc, false))
+                );
     }
 
     //TODO: create influence maps for my units (need total damage vs cloaked unit)
@@ -488,6 +525,17 @@ public class ArmyManager {
     }
 
     private static void setDoOffense() {
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+            int numMarines = UnitUtils.numMyUnits(Units.TERRAN_MARINE, false);
+            if (doOffense && Bot.OBS.getFoodUsed() <= 190 && numMarines < 10) {
+                doOffense = false;
+            }
+            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numMarines >= 20)) {
+                doOffense = true;
+            }
+            return;
+        }
+
         if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, false);
             if (doOffense && Bot.OBS.getFoodUsed() < 190 && numHellbats < 6) {
@@ -503,12 +551,12 @@ public class ArmyManager {
             int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, false);
             int numTanksSieged = UnitUtils.numMyUnits(Units.TERRAN_SIEGE_TANK_SIEGED, false);
 
-            //retreat home when all unsieged and numTanks < 2
-            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 2 && numTanksSieged == 0) {
+            //retreat home when all unsieged and numTanks < 1
+            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numTanks < 1 && numTanksSieged == 0) {
                 doOffense = false;
             }
-            //go on offense with 4 siege tanks
-            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 4)) {
+            //go on offense with 3 siege tanks
+            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numTanks >= 3)) {
                 doOffense = true;
             }
             return;
@@ -690,6 +738,7 @@ public class ArmyManager {
                 (u.unit().getType() == Units.TERRAN_VIKING_FIGHTER ||
                 u.unit().getType() == Units.TERRAN_BANSHEE ||
                 u.unit().getType() == Units.TERRAN_MEDIVAC ||
+                u.unit().getType() == Units.TERRAN_BATTLECRUISER ||
                 u.unit().getType() == Units.TERRAN_RAVEN) &&
                 UnitUtils.getHealthPercentage(u.unit()) < 100 &&
                 UnitUtils.getDistance(u.unit(), GameCache.baseList.get(0).getResourceMidPoint()) < 2.5)
@@ -1627,7 +1676,6 @@ public class ArmyManager {
             return;
         }
 
-        //back up if in range
         if (Strategy.DO_SEEKER_MISSILE && castSeeker(raven)) {
             return;
         }
@@ -1638,6 +1686,7 @@ public class ArmyManager {
             return;
         }
 
+        //back up if in range
         if (isUnsafe) {
             kiteBackAirUnit(raven, lastCommand);
             return;

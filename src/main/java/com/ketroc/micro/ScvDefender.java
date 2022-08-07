@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
@@ -60,7 +61,9 @@ public class ScvDefender extends Scv {
         }
 
         //when low hp, mineral-walk back and release for mining
-        if (getCenterMineral() != null && unit.unit().getHealth().orElse(45f) <= 15) {
+        if (getCenterMineral() != null &&
+                unit.unit().getHealth().orElse(45f) <= 15 &&
+                (!WorkerRushDefense3.isWorkerRushed || !WorkerRushDefense3.isEnemyWorkersDeep())) {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, getCenterMineral(), false);
             removeMe = true;
             return;

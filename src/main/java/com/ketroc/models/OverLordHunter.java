@@ -213,6 +213,7 @@ public class OverLordHunter {
         }
     }
 
+    //get closest overlord last seen near my main/nat/3rd
     private static Optional<UnitInPool> getClosestOverlord() {
         return UnitUtils.getEnemyUnitsOfType(Units.ZERG_OVERLORD).stream()
                 .filter(ol -> !OverLordHunter.isOverlordLost(ol))

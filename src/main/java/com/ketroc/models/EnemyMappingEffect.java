@@ -26,10 +26,10 @@ public class EnemyMappingEffect extends EnemyMapping {
                 break;
             case RAVAGER_CORROSIVE_BILE_CP:
                 isDetector = true;
-                detectRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
+                detectRange = 1f + Strategy.STATIONARY_KITING_BUFFER;
                 threatLevel = 200;
-                airAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
-                groundAttackRange = 0.5f + Strategy.STATIONARY_KITING_BUFFER;
+                airAttackRange = 1f + Strategy.STATIONARY_KITING_BUFFER;
+                groundAttackRange = 1f + Strategy.STATIONARY_KITING_BUFFER;
                 airDamage = 60;
                 groundDamage = 60;
                 isPersistentDamage = true;

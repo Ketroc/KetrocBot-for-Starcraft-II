@@ -359,13 +359,13 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.BANSHEE
 //                ));
-//            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
-//            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
-//            case "1e0db23f174f455": //MM local
-//                return new HashSet<>(Set.of(
-//                        GamePlan.TANK_VIKING
-////                        GamePlan.BUNKER_CONTAIN_STRONG
-//                ));
+            case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
+            case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
+            case "1e0db23f174f455": //MM local
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING,
+                        GamePlan.BUNKER_CONTAIN_STRONG
+                ));
 //            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
 //                return new HashSet<>(Set.of(
 //                        GamePlan.TANK_VIKING,
@@ -429,10 +429,10 @@ public class Strategy {
             return humansGamePlans;
         }
         switch (Bot.opponentId) {
-//            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-//                return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE
-//                ));
+            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE_CYCLONE
+                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
@@ -474,9 +474,22 @@ public class Strategy {
         }
         switch (Bot.opponentId) {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris TODO:  comment out this..  just for testing new strategy vs Eris
-            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+            //case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE_CYCLONE
+                ));
+            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE,
+                        //GamePlan.MASS_MINE_OPENER,
+                        //GamePlan.BC_RUSH,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.SCV_RUSH,
+                        //GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.RAVEN,
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.GHOST_HELLBAT
                 ));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
 //                return new HashSet<>(Set.of(
@@ -487,6 +500,7 @@ public class Strategy {
                         GamePlan.BANSHEE,
                         GamePlan.MASS_MINE_OPENER,
                         GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BC_RUSH,
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
@@ -572,6 +586,8 @@ public class Strategy {
                 break;
             case MECH_ALL_IN:
                 DO_OFFENSIVE_TANKS = true;
+                UpgradeManager.armoryUpgradeList = new ArrayList<>();
+                UpgradeManager.armoryUpgradeList.add(Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1);
                 break;
         }
     }
@@ -611,6 +627,11 @@ public class Strategy {
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;
                 PRIORITIZE_EXPANDING = true;
+                break;
+            case BC_RUSH:
+                NUM_BASES_TO_OC = PosConstants.baseLocations.size();
+                Strategy.techBuilt = true;
+                Strategy.NO_TURRETS = true;
                 break;
             case BANSHEE:
                 break;
@@ -985,12 +1006,12 @@ public class Strategy {
         }
 
         //don't lose to worker rush twice TODO: turn on for tournaments
-        GameResult prevGameResult = opponentRecords.getPrevGameResult();
-        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
-            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-            Strategy.WALL_OFF_IMMEDIATELY = true;
-            //DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
-        }
+//        GameResult prevGameResult = opponentRecords.getPrevGameResult();
+//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
+//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+//            Strategy.WALL_OFF_IMMEDIATELY = true;
+//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+//        }
         return gamePlan;
     }
 

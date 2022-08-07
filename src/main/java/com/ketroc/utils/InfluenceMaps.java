@@ -26,6 +26,7 @@ public class InfluenceMaps {
     public static int[][] pointEnemyAttackersWith10Range;
     public static boolean[][] pointThreatToAir;
     public static int[][] pointThreatToAirFromGround;
+    public static int[][] pointThreatToGroundFromGround;
     public static int[][] pointThreatToAirPlusBufferValue;
     public static boolean[][] pointThreatToAirPlusBuffer;
     public static float[][] pointSupplyInSeekerRange;

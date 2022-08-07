@@ -426,7 +426,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             return false;
                         }
-                    case MARINE_RUSH: case MECH_ALL_IN:
+                    case MARINE_RUSH: case MECH_ALL_IN: case BC_RUSH:
                         return set3x3AddOnPos();
                     default:
                         return set3x3Pos();
@@ -434,7 +434,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
             case TERRAN_FACTORY:
             case TERRAN_STARPORT:
                 return set3x3AddOnPos();
-            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY:
+            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY: case TERRAN_FUSION_CORE:
                 return set3x3Pos();
             default:
                 return false;

@@ -98,20 +98,31 @@ public class TankOffense extends Tank {
             return true; //isUnsiegeWaitTimeComplete(); changed cuz when retreating, just go immediately (don't stagger)
         }
 
-        //don't unsiege if this is the last tank sieged nearby
-        List<UnitInPool> nearbyTanks = UnitUtils.getUnitsNearbyOfType(
-                Alliance.SELF,
-                UnitUtils.SIEGE_TANK_TYPE,
-                unit.unit().getPosition().toPoint2d(),
-                6
-        );
-        boolean unsiegedTankNearby = nearbyTanks.stream()
-                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK);
-        boolean siegedTankNearby = nearbyTanks.stream()
-                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+//        //don't unsiege if this is the last tank sieged nearby
+//        List<UnitInPool> nearbyTanks = UnitUtils.getUnitsNearbyOfType(
+//                Alliance.SELF,
+//                UnitUtils.SIEGE_TANK_TYPE,
+//                unit.unit().getPosition().toPoint2d(),
+//                6
+//        );
+//        boolean unsiegedTankNearby = nearbyTanks.stream()
+//                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK);
+//        boolean siegedTankNearby = nearbyTanks.stream()
+//                .anyMatch(u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
+//
+//        if (unsiegedTankNearby && !siegedTankNearby) {
+//            return false;
+//        }
 
-        if (unsiegedTankNearby && !siegedTankNearby) {
-            return false;
+        //don't unsiege if this is the closest tank to attackPos and enemy is nearby
+        if (ArmyManager.attackGroundPos != null &&
+                UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) < 20 &&
+                UnitUtils.getDistance(unit.unit(), PosConstants.enemyRampPos) > 5 &&
+                UnitMicroList.getUnitSubList(TankOffense.class).size() > 1) {
+            Unit leadSiegedTank = UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SIEGE_TANK_SIEGED, ArmyManager.attackGroundPos);
+            if (leadSiegedTank.getTag().equals(unit.getTag())) {
+                return false;
+            }
         }
 
         return super.doUnsiege();

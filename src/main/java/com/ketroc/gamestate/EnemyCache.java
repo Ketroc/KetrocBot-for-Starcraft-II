@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.ketroc.bots.Bot;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.Chat;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
@@ -66,6 +67,7 @@ public class EnemyCache {
                                 enemy.getDistanceFromPrevStep() > 3 && enemy.getDistanceFromPrevStep() <= 8.1f)) {
                     enemyUpgrades.add(Upgrades.BLINK_TECH);
                     Chat.chat("Blink Upgrade Detected");
+                    Strategy.DO_USE_CYCLONES = false;
                 }
 
             case TERRAN:
