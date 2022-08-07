@@ -166,9 +166,9 @@ public class OverLordHunter {
 
         //send barracks to land
         if (barracksLander == null) {
-            Point2d landingPos = Strategy.gamePlan == GamePlan.GHOST_HELLBAT ?
+            Point2d landingPos = Strategy.gamePlan == GamePlan.GHOST_HELLBAT || PosConstants._3x3Structures.isEmpty() ?
                     PosConstants._3x3AddonPosList.remove(0) :
-            PosConstants._3x3AddonPosList.remove(0);
+            PosConstants._3x3Structures.remove(0);
             UnitMicroList.add(new StructureFloater(barracks, landingPos, true));
         }
     }
