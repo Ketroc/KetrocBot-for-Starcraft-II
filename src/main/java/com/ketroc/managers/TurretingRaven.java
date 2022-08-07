@@ -17,15 +17,17 @@ import java.util.stream.Collectors;
 
 public class TurretingRaven {
     public static Set<TurretingRaven> list = new HashSet<>();
-    private static float attackRange = 7f;
+    private static float attackRange = 7f;  //1 radius + 6 range
     private static float castRange = 2.5f;
 
     private Unit raven;
+    private boolean doPlaceFarBack; //vs stationary targets and targets that currently aren't retreating
     private List<Point2d> posList;
 
 
-    public TurretingRaven(Unit raven, Point2d targetPos) {
+    public TurretingRaven(Unit raven, Point2d targetPos, boolean doPlaceFarBack) {
         this.raven = raven;
+        this.doPlaceFarBack = doPlaceFarBack;
         posList = getPotentialPositions(targetPos);
     }
 
@@ -54,7 +56,10 @@ public class TurretingRaven {
         }
 
         //sort by closest to target (with positions in cast range first)
-        posList.sort(Comparator.comparing(p -> p.distance(targetPos) + (UnitUtils.getDistance(raven, p) > castRange ? 99 : 0)));
+        posList.sort(Comparator.comparing(p -> doPlaceFarBack ?
+                        UnitUtils.getDistance(raven, p) : //place near raven
+                        p.distance(Position.towards(targetPos, raven.getPosition().toPoint2d(), 3)) //place near 3cells in front of target
+                ));
         return posList;
     }
 
@@ -78,7 +83,12 @@ public class TurretingRaven {
                     .findFirst()
                     .ifPresentOrElse(
                             pos -> {
-                                ActionHelper.unitCommand(turRaven.raven, Abilities.EFFECT_AUTO_TURRET, pos, false);
+                                if (UnitUtils.getDistance(turRaven.raven, pos) < 4) {
+                                    ActionHelper.unitCommand(turRaven.raven, Abilities.EFFECT_AUTO_TURRET, pos, false);
+                                }
+                                else {
+                                    ActionHelper.unitCommand(turRaven.raven, Abilities.MOVE, pos, false);
+                                }
                                 //remove all valid positions blocked by this autoturret
                                 validPosList.remove(pos);
                                 validPosList.remove(pos.add(1, 0));
@@ -122,7 +132,7 @@ public class TurretingRaven {
         return allPosList;
     }
 
-    public static void add(Unit raven, Point2d targetPos) {
-        list.add(new TurretingRaven(raven, targetPos));
+    public static void add(Unit raven, Point2d targetPos, boolean doPlaceFarBack) {
+        list.add(new TurretingRaven(raven, targetPos, doPlaceFarBack));
     }
 }

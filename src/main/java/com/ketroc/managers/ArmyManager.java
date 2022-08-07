@@ -1695,7 +1695,10 @@ public class ArmyManager {
     }
 
     private static boolean castAutoTurret(Unit raven, Unit enemyTarget) {
-        TurretingRaven.add(raven, enemyTarget.getPosition().toPoint2d());
+        //place it far back if the enemy isn't running away
+        boolean doPlaceFarBack = !UnitUtils.canMove(enemyTarget) ||
+                !UnitUtils.isEnemyRetreating(enemyTarget, raven.getPosition().toPoint2d());
+        TurretingRaven.add(raven, enemyTarget.getPosition().toPoint2d(), doPlaceFarBack);
         return true;
     }
 
