@@ -5,8 +5,10 @@ import com.ketroc.bots.KetrocBot;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.Strategy;
+import com.ketroc.utils.Chat;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
+import com.ketroc.utils.UnitUtils;
 
 public class WorkerRushDefense2 {
 
@@ -34,6 +36,7 @@ public class WorkerRushDefense2 {
 //            });
 
         //TODO: move first depot to wall (in case it's on reaper wall vs scv rush)
+        System.out.println("walling off fast");
         //build 1st depot on wall
         Purchase.removeFirst(Units.TERRAN_SUPPLY_DEPOT);
         KetrocBot.purchaseQueue.add(0, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT, PosConstants.WALL_2x2));
@@ -65,9 +68,19 @@ public class WorkerRushDefense2 {
     }
 
     public static void onStep() {
+        //tag worker rush
+        if (Chat.usedTags.stream().noneMatch(t -> t.endsWith("VS_WORKER_RUSH") && Time.nowSeconds() < 300)) {
+            if (UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()
+                    .filter(enemy -> UnitUtils.isInMyMainOrNat(enemy.unit()))
+                    .count() >= 5) {
+                Chat.tag("VS_WORKER_RUSH");
+            }
+        }
+
         //turn off worker rush code
         if (Strategy.WALL_OFF_IMMEDIATELY && Time.nowSeconds() > 300) {
             Strategy.WALL_OFF_IMMEDIATELY = false;
+
         }
     }
 }

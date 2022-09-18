@@ -225,6 +225,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         }
 
         //select an scv if none was provided
+        if (scv != null && Bot.OBS.getUnit(scv.getTag()) == null) {
+            scv = null;
+        }
         if (scv == null) {
             if (BunkerContain.proxyBunkerLevel > 0 && Time.nowFrames() < Time.toFrames("5:00") && PosConstants.baseLocations.get(0).distance(position) > 50) {
                 scv = BunkerContain.getClosestAvailableRepairScvs(position);

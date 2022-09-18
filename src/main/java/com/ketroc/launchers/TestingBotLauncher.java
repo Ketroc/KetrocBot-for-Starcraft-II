@@ -18,7 +18,7 @@ S2Coordinator s2Coordinator = S2Coordinator.setup()
         .setNeedsSupportDir(true)
         .setShowCloaked(true)
         .setShowBurrowed(true)
-        .setRawAffectsSelection(true)
+        .setRawAffectsSelection(false)
         .setTimeoutMS(600 * 1000)
         .setParticipants(
                 S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(null)),

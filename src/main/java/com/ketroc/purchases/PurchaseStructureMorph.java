@@ -12,6 +12,7 @@ import com.github.ocraft.s2client.protocol.unit.UnitOrder;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.models.Base;
 import com.ketroc.models.Cost;
 import com.ketroc.utils.*;
@@ -138,6 +139,9 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     private boolean shouldCancelPreviousOrder() {
+//        if (Launcher.isRealTime) { //FIXME: this is a hack to hopefully negate the constant cancel scv + build scv loop that happens when trying to morph OC/PF
+//            return false;
+//        }
         if (productionStructure == null || productionStructure.unit().getOrders().isEmpty()) {
             return false;
         }

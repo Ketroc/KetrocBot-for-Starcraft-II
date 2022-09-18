@@ -46,18 +46,19 @@ public class DebugHelper {
 
     private static void testingStuff() {
         //spawn at start
-        if (Time.at(1)) {
+        if (Time.at(2500)) {
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_CYCLONE, PosConstants.baseLocations.get(1), Bot.myId, 3);
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, PosConstants.baseLocations.get(1), Bot.myId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH_BURROWED, PosConstants.BUNKER_NATURAL, Bot.enemyId, 15);
+//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_BATTLECRUISER, PosConstants.baseLocations.get(0), Bot.enemyId, 15);
         }
 
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("7:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("2:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_TEMPEST, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
@@ -131,10 +132,14 @@ public class DebugHelper {
                 .filter(unitType -> unitType == Units.TERRAN_SCV)
                 .count());
         DebugHelper.addInfoLine("doOffense: " + ArmyManager.doOffense);
-        DebugHelper.addInfoLine("banshees: " + GameCache.bansheeList.size());
-        DebugHelper.addInfoLine("liberators: " + GameCache.liberatorList.size());
-        DebugHelper.addInfoLine("ravens: " + GameCache.ravenList.size());
-        DebugHelper.addInfoLine("vikings: " + GameCache.vikingList.size());
+        DebugHelper.addInfoLine("banshees: " + UnitUtils.numMyUnits(Units.TERRAN_BANSHEE, true));
+        DebugHelper.addInfoLine("liberators: " + UnitUtils.numMyUnits(UnitUtils.LIBERATOR_TYPE, true));
+        DebugHelper.addInfoLine("ravens: " + UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true));
+        DebugHelper.addInfoLine("vikings: " + UnitUtils.numMyUnits(UnitUtils.VIKING_TYPE, true));
+        DebugHelper.addInfoLine("tanks: " + UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, true));
+        DebugHelper.addInfoLine("hellions: " + UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true));
+        DebugHelper.addInfoLine("medivacs: " + UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, true));
+
         if (PosConstants.opponentRace == Race.PROTOSS) {
             DebugHelper.addInfoLine("tempests: " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size());
         }

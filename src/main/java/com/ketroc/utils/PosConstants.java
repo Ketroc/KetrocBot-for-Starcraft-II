@@ -1685,8 +1685,8 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(160.0f, 136.0f));
             reaperBlockDepots.add(Point2d.of(158.0f, 137.0f));
 
-            myMineralPos = Point2d.of(173.5f, 150.5f);
-            enemyMineralPos = Point2d.of(42.5f, 53.5f);
+            myMineralPos = Point2d.of(175f, 150.5f);
+            enemyMineralPos = Point2d.of(41f, 53.5f);
 
             WALL_2x2 = Point2d.of(155.0f, 152.0f);
             WALL_3x3 = Point2d.of(152.5f, 148.5f);
@@ -1710,8 +1710,8 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(56.0f, 68.0f));
             reaperBlockDepots.add(Point2d.of(58.0f, 67.0f));
 
-            myMineralPos = Point2d.of(42.5f, 53.5f);
-            enemyMineralPos = Point2d.of(173.5f, 150.5f);
+            myMineralPos = Point2d.of(41f, 53.5f);
+            enemyMineralPos = Point2d.of(175f, 150.5f);
 
             WALL_2x2 = Point2d.of(61.0f, 52.0f);
             MID_WALL_3x3 = Point2d.of(60.5f, 54.5f);

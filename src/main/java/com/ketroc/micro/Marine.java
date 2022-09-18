@@ -30,7 +30,9 @@ public class Marine extends BasicUnitMicro {
                 .findFirst()
                 .map(UnitInPool::unit)
                 .orElse(null);
-        if (bunker != null && bunker.getBuildProgress() == 1f) {
+        if (bunker != null &&
+                bunker.getBuildProgress() == 1f &&
+                UnitUtils.getDistance(bunker, targetPos) < 5.5f) {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
         }

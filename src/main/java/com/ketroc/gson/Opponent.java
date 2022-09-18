@@ -89,10 +89,18 @@ public class Opponent {
     }
 
     public GamePlan getWinningestGamePlan() {
+        return getWinningestGamePlan(filter -> true);
+    }
+    public GamePlan getWinningestGamePlan(Predicate<WinLossRecord> searchFilter) {
+        if (strategyWinRates.size() == 1) {
+            return strategyWinRates.iterator().next().getGamePlan();
+        }
+
         GamePlan prevLossPlan = prevGameResult == null ? GamePlan.NONE : prevGameResult.getGamePlan();
         return strategyWinRates.stream()
                 //find max win rate strategy with the least games played
                 .filter(winLossRecord -> winLossRecord.getGamePlan() != prevLossPlan)
+                .filter(searchFilter)
                 .max(Comparator.comparing(record -> record.winRate() - ((float)record.numGames()) / 1000))
                 .map(WinLossRecord::getGamePlan)
                 .orElse(GamePlan.NONE);

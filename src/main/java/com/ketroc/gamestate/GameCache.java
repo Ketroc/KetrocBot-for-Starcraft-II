@@ -16,7 +16,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
-import com.ketroc.micro.MarineOffense;
+import com.ketroc.micro.MarineBasic;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.models.*;
 import com.ketroc.purchases.PurchaseUnit;
@@ -281,15 +281,17 @@ public class GameCache {
                             UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
                         Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
                         Switches.enemyCanProduceAir = true;
-                        Strategy.DO_DEFENSIVE_LIBS = false;
-                        Strategy.DO_DEFENSIVE_TANKS = false;
+                        if (!Strategy.gamePlan.toString().contains("RAVEN") && !Strategy.gamePlan.toString().contains("TURTLE")) {
+                            Strategy.DO_DEFENSIVE_TANKS = false;
+                            Strategy.DO_DEFENSIVE_LIBS = false;
+                        }
                         if (PosConstants.opponentRace != Race.TERRAN) {
                             Strategy.DO_OFFENSIVE_TANKS = false;
                         }
                     }
 
                     //set enemy cloaked variable
-                    if (!Switches.enemyHasCloakThreat) {
+                    if (!Switches.doNeedDetection) {
                         switch (unitType) {
                             case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
                             case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG:
@@ -300,12 +302,12 @@ public class GameCache {
                             case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED: case ZERG_RAVAGER_BURROWED:
                             case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
                                 Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
-                                Switches.enemyHasCloakThreat = true;
+                                Switches.doNeedDetection = true;
                                 //if burrowed unit, or cloaked unit without ghosts available
-                                if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
-                                        Strategy.gamePlan != GamePlan.BC_RUSH ||
+                                if (Strategy.gamePlan != GamePlan.BC_RUSH &&
+                                        (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
                                         PosConstants.opponentRace == Race.ZERG ||
-                                        UnitUtils.WIDOW_MINE_TYPE.contains(unitType)) {
+                                        UnitUtils.WIDOW_MINE_TYPE.contains(unitType))) {
                                     purchaseEmergencyRaven();
                                 }
                         }
@@ -421,8 +423,13 @@ public class GameCache {
                 }
             }
 
-            //update turret
-            for (DefenseUnitPositions turret : base.getTurrets()) {
+            //update turret/tank from inMineralPosition
+            for (DefenseUnitPositions unit : base.getInMineralLinePositions()) {
+                unit.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, unit.getUnit(), unit.getPos()), base);
+            }
+
+            //update turret from inFrontPosition
+            for (DefenseUnitPositions turret : base.getInFrontPositions()) {
                 turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()), base);
             }
 

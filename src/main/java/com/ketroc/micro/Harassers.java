@@ -107,7 +107,12 @@ public class Harassers {
                 }
             }
         }
-        if (ArmyManager.doOffense && Strategy.gamePlan != GamePlan.MECH_ALL_IN) {
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+            if (!UnitUtils.myUnitsOfType(UnitUtils.HELLION_TYPE).isEmpty()) {
+                addHellion();
+            }
+        }
+        else if (ArmyManager.doOffense && Strategy.gamePlan != GamePlan.MECH_ALL_IN) {
             int numHellions = UnitUtils.myUnitsOfType(UnitUtils.HELLION_TYPE).size();
             if (numHellions == 0) {
                 return;

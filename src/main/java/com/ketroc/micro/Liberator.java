@@ -73,9 +73,10 @@ public class Liberator extends BasicUnitMicro {
         List<Point2d> enemiesInRange = getEnemiesInRange();
         if (!enemiesInRange.isEmpty()) {
             Point2d enemiesMidPoint = Position.midPoint(enemiesInRange);
-            Point2d newLibZonePos = Position.towards(unit.unit().getPosition().toPoint2d(), enemiesMidPoint, castRange);
-            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, unit.unit().getPosition().toPoint2d(), false);
-            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, newLibZonePos, true);
+            Point2d newLibZonePos = UnitUtils.getDistance(unit.unit(), enemiesMidPoint) < castRange + 1
+                    ? enemiesMidPoint
+                    : Position.towards(unit.unit().getPosition().toPoint2d(), enemiesMidPoint, castRange + 1);
+            ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, newLibZonePos, false);
             curLibZonePos = newLibZonePos;
             return true;
         }
@@ -125,7 +126,7 @@ public class Liberator extends BasicUnitMicro {
 
         return Bot.OBS.getUnits(Alliance.ENEMY, enemiesInRangeFilter)
                 .stream()
-                .map(unitInPool -> unitInPool.unit().getPosition().toPoint2d())
+                .map(enemy -> enemy.unit().getPosition().toPoint2d())
                 .collect(Collectors.toList());
     }
 

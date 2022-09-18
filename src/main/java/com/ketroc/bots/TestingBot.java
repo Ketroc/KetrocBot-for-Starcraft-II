@@ -107,44 +107,42 @@ public class TestingBot extends Bot {
         try {
             GameCache.onStepStart();
 
-            debug().debugCreateUnit(Units.ZERG_ROACH, GameCache.baseList.get(1).getCcPos(), enemyId, 1);
-            debug().sendDebug();
-
-            List<UnitInPool> broodLords = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLORD);
-            boolean isAllOffCooldown = broodLords.stream().allMatch(u -> u.unit().getWeaponCooldown().get() == 0);
-            List<Unit> broodUnits = broodLords.stream().map(UnitInPool::unit).collect(Collectors.toList());
-            List<UnitInPool> broodLings = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLING);
-            Unit broodlingTarget = broodLings.stream()
-                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), broodlingPos))).get().unit();
-
-            //BROOD LORDS
-            //if broods are all off cooldown shoot at "broodling"
-            if (isAllOffCooldown) {
-                actions().unitCommand(broodUnits, Abilities.ATTACK, broodlingTarget, false);
-            }
-            //group the brood lords
-            else {
-                actions().unitCommand(broodUnits, Abilities.MOVE, mySpawnPos, false);
-            }
-
-            //BROODLINGS
-            //keep longest duration broodling at base midpoint
-            actions().unitCommand(broodlingTarget, Abilities.MOVE, broodlingPos, false);
-
-            //a-move the rest to the enemy base
-            List<Unit> otherBroodlings = broodLings.stream()
-                    .filter(u -> !u.getTag().equals(broodlingTarget.getTag()))
-                    .map(UnitInPool::unit)
-                    .collect(Collectors.toList());
-            actions().unitCommand(otherBroodlings, Abilities.ATTACK, enemySpawnPos, false);
-
-
-
+//            debug().debugCreateUnit(Units.ZERG_ROACH, GameCache.baseList.get(1).getCcPos(), enemyId, 1);
+//            debug().sendDebug();
+//
+//            List<UnitInPool> broodLords = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLORD);
+//            boolean isAllOffCooldown = broodLords.stream().allMatch(u -> u.unit().getWeaponCooldown().get() == 0);
+//            List<Unit> broodUnits = broodLords.stream().map(UnitInPool::unit).collect(Collectors.toList());
+//            List<UnitInPool> broodLings = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLING);
+//            Unit broodlingTarget = broodLings.stream()
+//                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), broodlingPos))).get().unit();
+//
+//            //BROOD LORDS
+//            //if broods are all off cooldown shoot at "broodling"
+//            if (isAllOffCooldown) {
+//                actions().unitCommand(broodUnits, Abilities.ATTACK, broodlingTarget, false);
+//            }
+//            //group the brood lords
+//            else {
+//                actions().unitCommand(broodUnits, Abilities.MOVE, mySpawnPos, false);
+//            }
+//
+//            //BROODLINGS
+//            //keep longest duration broodling at base midpoint
+//            actions().unitCommand(broodlingTarget, Abilities.MOVE, broodlingPos, false);
+//
+//            //a-move the rest to the enemy base
+//            List<Unit> otherBroodlings = broodLings.stream()
+//                    .filter(u -> !u.getTag().equals(broodlingTarget.getTag()))
+//                    .map(UnitInPool::unit)
+//                    .collect(Collectors.toList());
+//            actions().unitCommand(otherBroodlings, Abilities.ATTACK, enemySpawnPos, false);
+//
+//
+//
         } catch (Exception e) {
             Error.onException(e);
         }
-
-        MannerMule.onStep();
 
         ACTION.sendActions();
         DEBUG.sendDebug();

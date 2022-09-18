@@ -59,7 +59,7 @@ public class ExpansionClearing {
         //abandon clearing if a command structure is on location
         if (!Bot.OBS.getUnits(structure -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(structure.unit().getType()) &&
                 !structure.unit().getFlying().orElse(true) &&
-                UnitUtils.getDistance(structure.unit(), expansionPos) < 4.5).isEmpty()) {
+                UnitUtils.getDistance(structure.unit(), expansionPos) < 6).isEmpty()) {
             return true;
         }
 
@@ -69,7 +69,7 @@ public class ExpansionClearing {
         }
 
         //raven is travelling to expansion
-        else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 4.5f && !isTurretActive) {
+        else if (turret == null && UnitUtils.getDistance(raven.unit.unit(), expansionPos) > 6f && !isTurretActive) {
             //if raven can't reach position, turret now
             if (destinationUnreachable()) {
                 Point2d destinationPos = Position.towards(expansionPos, raven.unit.unit(), 2.9f);
@@ -89,6 +89,12 @@ public class ExpansionClearing {
             }
             raven.onStep();
         }
+
+        //detour when unsafe
+        else if (!raven.isSafe()) {
+            raven.detour();
+        }
+
         else if (turret == null) {
 
             //if autoturret cast is needed

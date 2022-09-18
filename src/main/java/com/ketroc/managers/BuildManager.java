@@ -15,7 +15,7 @@ import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
-import com.ketroc.launchers.KetrocLauncher;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.micro.*;
 import com.ketroc.models.*;
 import com.ketroc.purchases.*;
@@ -178,7 +178,6 @@ public class BuildManager {
         noGasProduction();
     }
 
-    //TODO: adjust marine production code to prioritize hellions
     private static void trainFactoryUnits_BcRush() {
         if (GameCache.factoryList.isEmpty()) {
             return;
@@ -188,8 +187,9 @@ public class BuildManager {
 
         //build reactor after 1st 2 BCs have started
         if (!UnitUtils.isReactored(factory)) {
-            if (UnitUtils.numMyUnits(Units.TERRAN_BATTLECRUISER, true) >= 2 &&
-                    !PurchaseStructureMorph.contains(factory)) {
+            if (!PurchaseStructureMorph.contains(factory) &&
+                    UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).stream()
+                            .anyMatch(fc -> UnitUtils.getOrder(fc) == Abilities.RESEARCH_BATTLECRUISER_WEAPON_REFIT)) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_FACTORY));
             }
             return;
@@ -202,7 +202,6 @@ public class BuildManager {
             ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
         }
     }
-
     private static void buildBarracksLogic_BcRush() {
         if (Purchase.isBuildOrderComplete() &&
                 GameCache.mineralBank/4.5f > GameCache.gasBank/3 &&
@@ -477,24 +476,17 @@ public class BuildManager {
 
     //build 1 turret at each base except main base
     private static void buildTurretLogic() {
-        if (Strategy.NO_TURRETS) { // && !Switches.enemyHasCloakThreat) {
+        if (Strategy.NO_TURRETS) {
             return;
         }
-        if (Switches.enemyCanProduceAir || Switches.enemyHasCloakThreat) { // || Time.nowFrames() > Time.toFrames("3:30")) {
+        if (Switches.enemyCanProduceAir || Switches.doNeedDetection) {
             GameCache.baseList.stream()
                     .filter(base -> base.isMyBase() && base.isComplete())
-                    .flatMap(base -> base.getTurrets().stream())
+                    .flatMap(base -> (Strategy.DO_DEFENSIVE_TANKS && !base.isMyMainBase()) ? base.getInFrontPositions().stream() : base.getInMineralLinePositions().stream())
                     .filter(turret -> turret.getUnit() == null &&
                             !Purchase.isStructureQueued(Units.TERRAN_MISSILE_TURRET, turret.getPos()) &&
                             !StructureScv.isAlreadyInProductionAt(Units.TERRAN_MISSILE_TURRET, turret.getPos()))
                     .forEach(turret -> KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turret.getPos())));
-        }
-    }
-
-    private static void buildAntiDropTurrets() {
-        if (Strategy.DO_ANTIDROP_TURRETS && !PosConstants.MAP.contains("Golden Wall")) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(3).getTurrets().get(0).getPos()));
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, GameCache.baseList.get(2).getTurrets().get(0).getPos()));
         }
     }
 
@@ -820,7 +812,7 @@ public class BuildManager {
             int numTanks = UnitMicroList.getUnitSubList(TankOffense.class).size();
             int numCyclones = UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true);
             if (numCyclones + numTanks < 12 && UnitUtils.canAfford(Units.TERRAN_CYCLONE)) {
-                if (numTanks >= numCyclones) {
+                if (Launcher.isRealTime || numTanks * 2 >= numCyclones) {
                     return Units.TERRAN_CYCLONE;
                 }
                 else if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
@@ -966,7 +958,7 @@ public class BuildManager {
             }
 
             if (UnitUtils.canAfford(Units.TERRAN_MARINE, true) &&
-                    (UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) < 2 ||
+                    (UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) < 4 ||
                             GameCache.mineralBank/4 > GameCache.gasBank/3)) {
                 ActionHelper.unitCommand(barracksUip.unit(), Abilities.TRAIN_MARINE, false);
                 Cost.updateBank(Units.TERRAN_MARINE);
@@ -987,8 +979,8 @@ public class BuildManager {
         int numScvs = UnitUtils.numMyUnits(Units.TERRAN_SCV, true);
         boolean doTrainBio = Bot.OBS.getFoodUsed() + 2 <= 200 -
                 (Math.max(0, 5-numMedivacs) +
-                    Math.max(0, 2-numRavens) +
-                    Math.max(0, 4-numVikings)) * 2 +
+                        Math.max(0, 2-numRavens) +
+                        Math.max(0, 4-numVikings)) * 2 +
                 Math.max(0, Strategy.maxScvs-numScvs);
 
         for (UnitInPool barracksUip : GameCache.barracksList) {
@@ -1106,7 +1098,7 @@ public class BuildManager {
         }
     }
 
-    private static void trainStarportUnits_BcRush() { //this is specific to ghost hellbat (refactor)
+    private static void trainStarportUnits_BcRush() {
         for (UnitInPool starportUip : GameCache.starportList) {
             if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
                 continue;
@@ -1245,7 +1237,7 @@ public class BuildManager {
         }
 
         //maintain 3 ravens vs burrow
-        if (Switches.enemyHasCloakThreat && numRavens < 3) {
+        if (Switches.doNeedDetection && numRavens < 3) {
             return Units.TERRAN_RAVEN;
         }
 
@@ -1354,7 +1346,7 @@ public class BuildManager {
         }
 
         //maintain 1+ ravens if enemy can produce cloaked/burrowed attackers
-        if (numRavens == 0 && Switches.enemyHasCloakThreat) {
+        if (numRavens == 0 && Switches.doNeedDetection) {
             return Abilities.TRAIN_RAVEN;
         }
 
@@ -1431,7 +1423,7 @@ public class BuildManager {
         }
 
         //maintain 1+ ravens if enemy can produce cloaked/burrowed attackers
-        if (numRavens == 0 && Switches.enemyHasCloakThreat) {
+        if (numRavens == 0 && Switches.doNeedDetection) {
             return Abilities.TRAIN_RAVEN;
         }
 //
@@ -1591,15 +1583,18 @@ public class BuildManager {
         if (!PosConstants._3x3AddonPosList.isEmpty() &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT)) {
-            if (Bot.OBS.getFoodUsed() > 197 ||
-                    (UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT) < 3 && isAllProductionStructuresBusy())) {
+            int numStarportsProducing = UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_STARPORT);
+            int numStarports = UnitUtils.numMyUnits(Units.TERRAN_STARPORT, true);
+            if (numStarports < 12 &&
+                    (Bot.OBS.getFoodUsed() > 197 ||
+                            (numStarportsProducing < 3 && isAllProductionStructuresBusy()))) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             }
         }
     }
 
     private static void buildBarracksLogic() {
-        if (UnitUtils.numMyUnits(UnitUtils.BARRACKS_TYPE, true) >= 8) { //TODO: hack to test starports
+        if (UnitUtils.numMyUnits(UnitUtils.BARRACKS_TYPE, true) >= 8) {
             return;
         }
         if (!PosConstants._3x3AddonPosList.isEmpty() &&

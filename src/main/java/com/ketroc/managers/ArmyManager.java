@@ -59,7 +59,7 @@ public class ArmyManager {
     public static int turretsCast;
     public static int queriesMade;
 
-    public static final int[] BASE_DEFENSE_INDEX_ORDER = {2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11, 12};
+    public static final int[] BASE_DEFENSE_INDEX_ORDER = {2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11};
 
     public static void onStep() {
         setArmyMidpoints();
@@ -312,7 +312,7 @@ public class ArmyManager {
 
     private static void libTargetting() {
         for (Base base : GameCache.baseList) {
-            for (DefenseUnitPositions libPos : base.getLiberators()) {
+            for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
                 if (libPos.getUnit() != null && libPos.getUnit().isAlive()) {
                     Unit lib = libPos.getUnit().unit();
                     if (lib.getType() == Units.TERRAN_LIBERATOR_AG && UnitUtils.isWeaponAvailable(lib)) {
@@ -526,13 +526,7 @@ public class ArmyManager {
 
     private static void setDoOffense() {
         if (Strategy.gamePlan == GamePlan.BC_RUSH) {
-            int numMarines = UnitUtils.numMyUnits(Units.TERRAN_MARINE, false);
-            if (doOffense && Bot.OBS.getFoodUsed() <= 190 && numMarines < 10) {
-                doOffense = false;
-            }
-            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numMarines >= 20)) {
-                doOffense = true;
-            }
+            doOffense = Bot.OBS.getFoodUsed() > 170;
             return;
         }
 
@@ -607,13 +601,14 @@ public class ArmyManager {
         }
 
         if (Strategy.MASS_RAVENS) {
+            boolean isAnyRavenNearFullEnergy = UnitUtils.myUnitsOfType(Units.TERRAN_RAVEN).stream().anyMatch(raven -> raven.getEnergy().orElse(0f) >= 180f);
             numAutoturretsAvailable = GameCache.ravenList.stream()
                     .mapToInt(raven -> raven.getEnergy().orElse(0f).intValue() / 50)
                     .sum();
-            if (!doOffense && numAutoturretsAvailable > 25) {
+            if (!doOffense && numAutoturretsAvailable > 20 && isAnyRavenNearFullEnergy) {
                 doOffense = true;
             }
-            else if (doOffense && numAutoturretsAvailable < 6) {
+            else if (doOffense && numAutoturretsAvailable < 8) {
                 doOffense = false;
             }
             return;
@@ -1080,9 +1075,12 @@ public class ArmyManager {
         //send available liberator to siege an expansion
         //for (Base base : GameCache.baseList) {
         for (int i=0; i<BASE_DEFENSE_INDEX_ORDER.length && i<GameCache.baseList.size(); i++) {
+            if (BASE_DEFENSE_INDEX_ORDER[i] >= GameCache.baseList.size()) {
+                continue;
+            }
             Base base = GameCache.baseList.get(BASE_DEFENSE_INDEX_ORDER[i]);
             if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
-                for (DefenseUnitPositions libPos : base.getLiberators()) {
+                for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
                     if (libPos.getUnit() == null) {
                         libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()), base);
                         Point2d libZonePos = Position.towards(libPos.getPos(), base.getCcPos(), Liberator.castRange);
@@ -1108,7 +1106,7 @@ public class ArmyManager {
         if (Strategy.DO_DEFENSIVE_TANKS) {
             for (Base base : GameCache.baseList) {
                 if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
-                    for (DefenseUnitPositions tankPos : base.getTanks()) {
+                    for (DefenseUnitPositions tankPos : base.getInMineralLinePositions()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()), base);
                             UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));
@@ -1121,14 +1119,6 @@ public class ArmyManager {
 
         //if no bases need a tank, put it on offense
         UnitMicroList.add(new TankOffense(Bot.OBS.getUnit(idleTank.getTag()), ArmyManager.attackGroundPos));
-
-//        //if nowhere to send tank and no expansions available, a-move tank to its death
-//        if (!isTankPlaced && allButEnemyStarterBases.stream().noneMatch(base -> base.isUntakenBase() && !base.isDryedUp())) {
-//            GameCache.baseList.stream()
-//                    .filter(base -> base.isEnemyBase)
-//                    .forEach(base -> ActionHelper.unitCommand(idleTank, Abilities.ATTACK, base.getCcPos(), true));
-//            ActionHelper.unitCommand(idleTank, Abilities.ATTACK, GameCache.baseList.get(GameCache.baseList.size()-1).getCcPos(), true);
-//        }
     }
 
     private static void salvageBunkerAtNatural() {
@@ -1301,9 +1291,6 @@ public class ArmyManager {
 
     public static void giveHellionCommand(Unit hellion) {
         ArmyCommands lastCommand = getCurrentCommand(hellion);
-        boolean isUnsafe = !isVsOnlyAdepts() ?
-                InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d()) :
-                false;
         boolean isInHellionRange = InfluenceMaps.getValue(InfluenceMaps.pointIn5RangeVsGround, hellion.getPosition().toPoint2d());
         boolean canAttack = UnitUtils.isWeaponAvailable(hellion) &&
                 InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, hellion.getPosition().toPoint2d()) < 200;
@@ -1321,7 +1308,7 @@ public class ArmyManager {
             return;
         }
 
-        if (isUnsafe) {
+        if (isHellionUnsafe(hellion)) {
             //retreat
             new BasicUnitMicro(hellion, retreatPos, MicroPriority.SURVIVAL).onStep();
             return;
@@ -1337,12 +1324,27 @@ public class ArmyManager {
         if (lastCommand != ArmyCommands.ATTACK) armyGroundAttacking.add(hellion);
     }
 
+    private static boolean isHellionUnsafe(Unit hellion) {
+        boolean isUnsafe;
+        if (!UnitUtils.isWeaponAvailable(hellion)) {
+            isUnsafe = InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, hellion.getPosition().toPoint2d());
+        }
+        else if (!isVsOnlyAdepts()) {
+            isUnsafe = InfluenceMaps.getValue(InfluenceMaps.pointThreatToGround, hellion.getPosition().toPoint2d());
+        }
+        else {
+            isUnsafe = false;
+        }
+        return isUnsafe;
+    }
+
     private static boolean isVsOnlyAdepts() {
         return attackUnit != null &&
-                UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 3)
+                UnitUtils.getEnemyGroundArmyUnitsNearby(attackGroundPos, 4)
                         .stream()
-                        .noneMatch(u -> UnitUtils.canAttack(u.unit()) &&
-                                !u.unit().getType().toString().contains("ADEPT"));
+                        .noneMatch(u -> UnitUtils.getGroundAttackRange(u.unit()) > 3 &&
+                                !UnitUtils.ADEPT_TYPE.contains(u.unit().getType()) &&
+                                u.unit().getType() != Units.PROTOSS_HIGH_TEMPLAR);
     }
 
     public static void giveBansheeCommand(Unit banshee) {
@@ -1625,8 +1627,9 @@ public class ArmyManager {
         }
 
         ArmyCommands lastCommand = getCurrentCommand(raven);
+        int autoturretAtEnergy = beLiberalWithRavenEnergy(raven) ? 50 : Strategy.AUTOTURRET_AT_ENERGY;
         boolean[][] threatMap =
-                raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : Strategy.AUTOTURRET_AT_ENERGY)
+                raven.getEnergy().orElse(0f) >= (Strategy.DO_MATRIX ? 75 : autoturretAtEnergy)
                 ? InfluenceMaps.pointThreatToAir
                 : InfluenceMaps.pointThreatToAirPlusBuffer;
         boolean isUnsafe = InfluenceMaps.getValue(threatMap, raven.getPosition().toPoint2d());
@@ -1682,7 +1685,7 @@ public class ArmyManager {
         if (Strategy.DO_MATRIX && castMatrix(raven)) {
             return;
         }
-        if (doCastTurrets && inRange && doAutoTurret(raven, turretTarget)) {
+        if (doCastTurrets && inRange && doAutoTurret(raven, turretTarget, autoturretAtEnergy)) {
             return;
         }
 
@@ -1707,6 +1710,17 @@ public class ArmyManager {
         }
     }
 
+    //if on offense with mass raven
+    //if defending main/nat
+    //if near dying pf
+    //if near a friendly siege tank
+    private static boolean beLiberalWithRavenEnergy(Unit raven) {
+        return (doOffense && UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) >= 8 ) ||
+                UnitUtils.isInMyMainOrNat(raven) ||
+                UnitUtils.isNearInjuredPF(raven, 18, 92) ||
+                UnitUtils.isUnitTypesNearby(Alliance.SELF, UnitUtils.SIEGE_TANK_TYPE, raven.getPosition().toPoint2d(), 8);
+    }
+
     private static Optional<UnitInPool> getRavenTurretTarget(Unit raven) {
         List<UnitInPool> targets = Bot.OBS.getUnits(Alliance.ENEMY,
                         enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
@@ -1723,12 +1737,12 @@ public class ArmyManager {
     }
 
     //drop auto-turrets near enemy
-    private static boolean doAutoTurret(Unit raven, Optional<UnitInPool> turretTarget) {
+    private static boolean doAutoTurret(Unit raven, Optional<UnitInPool> turretTarget, int autoturretAtEnergy) {
         if (turretTarget.isEmpty()) {
             return false;
         }
         if (!UnitUtils.isEnemyRetreating(turretTarget.get().unit(), raven.getPosition().toPoint2d()) &&
-                raven.getEnergy().orElse(0f) >= Strategy.AUTOTURRET_AT_ENERGY &&
+                raven.getEnergy().orElse(0f) >= autoturretAtEnergy &&
                 !raven.getBuffs().contains(Buffs.RAVEN_SCRAMBLER_MISSILE)) {
             return castAutoTurret(raven, turretTarget.get().unit());
         }

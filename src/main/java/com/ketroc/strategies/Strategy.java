@@ -83,12 +83,12 @@ public class Strategy {
     public static boolean MARINE_ALLIN;
     public static boolean DO_BANSHEE_HARASS = true;
     public static boolean PRIORITIZE_EXPANDING;
-    public static boolean BUILD_EXPANDS_IN_MAIN = true; //TODO: true for testing only
+    public static boolean BUILD_EXPANDS_IN_MAIN;
     public static boolean EXPAND_SLOWLY;
     public static boolean DO_SEEKER_MISSILE;
     public static boolean DO_MATRIX;
     public static boolean DO_ANTIDROP_TURRETS;
-    public static int AUTOTURRET_AT_ENERGY = 50;
+    public static int AUTOTURRET_AT_ENERGY = 170;
     public static Abilities DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BANSHEE;
     public static boolean DO_USE_CYCLONES;
     public static boolean DO_USE_HELLIONS;
@@ -129,6 +129,7 @@ public class Strategy {
     }
 
     private static void getGameStrategyChoice() {
+        System.out.println("in getGameStrategyChoice");
         setRaceStrategies();
         if (TOURNAMENT_MODE) {
             gamePlan = getTournamentGamePlan();
@@ -148,10 +149,13 @@ public class Strategy {
                 useCyclonesAdjustments();
                 MAX_MARINES = 4;
                 Switches.enemyCanProduceAir = true;
-                Switches.enemyHasCloakThreat = true;
+                Switches.doNeedDetection = true;
         }
-        DelayedChat.add("Strategy: " + gamePlan);
-        Chat.tag(gamePlan.toString());
+        System.out.println("gamePlan = " + gamePlan);
+        if (!Launcher.isRealTime) {
+            DelayedChat.add("Strategy: " + gamePlan);
+            Chat.tag(gamePlan.toString());
+        }
 
         applyOpponentSpecificTweaks();
         setRampWall();
@@ -307,7 +311,6 @@ public class Strategy {
                 massRavenStrategy();
                 useCyclonesAdjustments();
                 DO_MATRIX = true;
-                Strategy.AUTOTURRET_AT_ENERGY = 125;
                 break;
             case MARINE_RUSH:
                 marineAllinStrategy();
@@ -318,33 +321,39 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvTGamePlans() {
         if (Launcher.isRealTime) { // TvT vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.TANK_VIKING
+                    GamePlan.TANK_VIKING,
+                    GamePlan.BANSHEE_CYCLONE
             ));
-            if (Math.random() < 0.8) {
-                humansGamePlans.add(GamePlan.BANSHEE);
-            }
-            if (Math.random() < 0.8) {
-                humansGamePlans.add(GamePlan.BANSHEE_CYCLONE);
-            }
-            if (Math.random() < 0.4) {
-                humansGamePlans.add(GamePlan.RAVEN);
-            }
-            if (Math.random() < 0.3) {
-                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
-            }
-            if (Math.random() < 0.3) {
-                humansGamePlans.add(GamePlan.MARINE_RUSH);
-            }
-//            if (Math.random() < 0.3) {
-//                humansGamePlans.add(GamePlan.SCV_RUSH);
-//            }
-            if (Math.random() < 0.1) {
-                humansGamePlans.add(GamePlan.ONE_BASE_TANK_VIKING);
-            }
-            if (Math.random() < 0.1) {
-                humansGamePlans.add(GamePlan.BANSHEE_TANK);
-            }
             return humansGamePlans;
+
+//            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+//                    GamePlan.TANK_VIKING
+//            ));
+//            if (Math.random() < 0.8) {
+//                humansGamePlans.add(GamePlan.BANSHEE);
+//            }
+//            if (Math.random() < 0.8) {
+//                humansGamePlans.add(GamePlan.BANSHEE_CYCLONE);
+//            }
+//            if (Math.random() < 0.4) {
+//                humansGamePlans.add(GamePlan.RAVEN);
+//            }
+//            if (Math.random() < 0.3) {
+//                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
+//            }
+//            if (Math.random() < 0.3) {
+//                humansGamePlans.add(GamePlan.MARINE_RUSH);
+//            }
+////            if (Math.random() < 0.3) {
+////                humansGamePlans.add(GamePlan.SCV_RUSH);
+////            }
+//            if (Math.random() < 0.1) {
+//                humansGamePlans.add(GamePlan.ONE_BASE_TANK_VIKING);
+//            }
+//            if (Math.random() < 0.1) {
+//                humansGamePlans.add(GamePlan.BANSHEE_TANK);
+//            }
+//            return humansGamePlans;
         }
         switch (Bot.opponentId) {
 //            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
@@ -386,16 +395,16 @@ public class Strategy {
 //                ));
             default:
                 return new HashSet<>(Set.of(
-                        GamePlan.ONE_BASE_TANK_VIKING,
+                        //GamePlan.ONE_BASE_TANK_VIKING,
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BANSHEE,
                         //GamePlan.SCV_RUSH,
                         GamePlan.TANK_VIKING,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.RAVEN,
-                        GamePlan.MARINE_RUSH,
-                        GamePlan.RAVEN_CYCLONE,
-                        GamePlan.BANSHEE_TANK
+                        GamePlan.BUNKER_CONTAIN_STRONG
+                        //GamePlan.RAVEN,
+                        //GamePlan.MARINE_RUSH,
+                        //GamePlan.RAVEN_CYCLONE,
+                        //GamePlan.BANSHEE_TANK
                 ));
         }
     }
@@ -403,47 +412,60 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvPGamePlans() {
         if (Launcher.isRealTime) { // TvP vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.BANSHEE_CYCLONE
+                    GamePlan.ONE_BASE_BANSHEE_CYCLONE
             ));
-            if (Math.random() < 0.8) {
-                humansGamePlans.add(GamePlan.ONE_BASE_BANSHEE_CYCLONE);
-            }
-            if (Math.random() < 0.6) {
-                humansGamePlans.add(GamePlan.BUNKER_CONTAIN_WEAK);
-            }
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.BANSHEE);
-            }
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.MARINE_RUSH);
-            }
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
-            }
-            if (Math.random() < 0.3) {
-                humansGamePlans.add(GamePlan.RAVEN);
-            }
-//            if (Math.random() < 0.5) {
-//                humansGamePlans.add(GamePlan.SCV_RUSH);
-//            }
             return humansGamePlans;
+
+//            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+//                    GamePlan.BANSHEE_CYCLONE
+//            ));
+//            if (Math.random() < 0.8) {
+//                humansGamePlans.add(GamePlan.ONE_BASE_BANSHEE_CYCLONE);
+//            }
+//            if (Math.random() < 0.6) {
+//                humansGamePlans.add(GamePlan.BUNKER_CONTAIN_WEAK);
+//            }
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.BANSHEE);
+//            }
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.MARINE_RUSH);
+//            }
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
+//            }
+//            if (Math.random() < 0.3) {
+//                humansGamePlans.add(GamePlan.RAVEN);
+//            }
+////            if (Math.random() < 0.5) {
+////                humansGamePlans.add(GamePlan.SCV_RUSH);
+////            }
+//            return humansGamePlans;
         }
         switch (Bot.opponentId) {
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE_CYCLONE
+//                        GamePlan.BANSHEE,
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
+//                        GamePlan.SCV_RUSH,
+//                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.MECH_ALL_IN
+//                        GamePlan.RAVEN
                 ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
                         GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE
                         //GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
                         //GamePlan.BUNKER_CONTAIN_WEAK,
                         //GamePlan.BUNKER_CONTAIN_STRONG,
                         //GamePlan.MECH_ALL_IN,
-                        GamePlan.RAVEN
+                        //GamePlan.RAVEN
                 ));
         }
     }
@@ -451,44 +473,50 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvZGamePlans() {
         if (Launcher.isRealTime) { // TvZ vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.BANSHEE,
-                    GamePlan.GHOST_HELLBAT,
+                    GamePlan.BANSHEE_CYCLONE,
                     GamePlan.MASS_MINE_OPENER
             ));
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.MARINE_RUSH);
-            }
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.RAVEN);
-            }
-//            if (Math.random() < 0.5) {
-//                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
-//            }
-            if (Math.random() < 0.5) {
-                humansGamePlans.add(GamePlan.BUNKER_CONTAIN_WEAK);
-            }
-//            if (Math.random() < 0.5) {
-//                humansGamePlans.add(GamePlan.SCV_RUSH);
-//            }
             return humansGamePlans;
+
+//            HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
+//                    GamePlan.BANSHEE,
+//                    GamePlan.GHOST_HELLBAT,
+//                    GamePlan.MASS_MINE_OPENER
+//            ));
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.MARINE_RUSH);
+//            }
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.RAVEN);
+//            }
+////            if (Math.random() < 0.5) {
+////                humansGamePlans.add(GamePlan.RAVEN_CYCLONE);
+////            }
+//            if (Math.random() < 0.5) {
+//                humansGamePlans.add(GamePlan.BUNKER_CONTAIN_WEAK);
+//            }
+////            if (Math.random() < 0.5) {
+////                humansGamePlans.add(GamePlan.SCV_RUSH);
+////            }
+//            return humansGamePlans;
         }
         switch (Bot.opponentId) {
-            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris TODO:  comment out this..  just for testing new strategy vs Eris
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             //case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE_CYCLONE
+                        GamePlan.RAVEN
                 ));
             case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
-                        //GamePlan.MASS_MINE_OPENER,
-                        //GamePlan.BC_RUSH,
+                        GamePlan.MASS_MINE_OPENER,
+                        GamePlan.BC_RUSH,
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
-                        GamePlan.SCV_RUSH,
-                        //GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.RAVEN,
-                        GamePlan.RAVEN_CYCLONE,
+                        //GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        //GamePlan.RAVEN,
+                        //GamePlan.RAVEN_CYCLONE,
                         GamePlan.GHOST_HELLBAT
                 ));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
@@ -499,10 +527,10 @@ public class Strategy {
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
                         GamePlan.MASS_MINE_OPENER,
-                        GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BC_RUSH,
+                        GamePlan.BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
-                        //GamePlan.SCV_RUSH,
+                        GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN,
                         GamePlan.RAVEN_CYCLONE,
@@ -593,8 +621,10 @@ public class Strategy {
     }
 
     private static void chooseTvZStrategy() {
+        System.out.println("in chooseTvZStrategy");
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
+            System.out.println("availableTvZGamePlans = " + availableTvZGamePlans);
 
             if (!Launcher.isRealTime) {
                 gamePlan = getStrategyForLadder(availableTvZGamePlans);
@@ -605,6 +635,7 @@ public class Strategy {
                         .skip(new Random().nextInt(availableTvZGamePlans.size()))
                         .findFirst()
                         .get();
+                System.out.println("random chosen gamePlan = " + gamePlan);
             }
 
 //            while (!availableTvZGamePlans.contains(gamePlan)) {
@@ -632,6 +663,7 @@ public class Strategy {
                 NUM_BASES_TO_OC = PosConstants.baseLocations.size();
                 Strategy.techBuilt = true;
                 Strategy.NO_TURRETS = true;
+                Strategy.DO_BANSHEE_HARASS = false;
                 break;
             case BANSHEE:
                 break;
@@ -640,6 +672,8 @@ public class Strategy {
                 break;
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
+                Chat.chatNeverRepeat("How's this for Evil?");
+                Chat.chatNeverRepeat("Can Terran even do this?");
                 break;
             case RAVEN:
                 massRavenStrategy();
@@ -656,7 +690,6 @@ public class Strategy {
                 UpgradeManager.engBayUpgradeList = new ArrayList<>(UpgradeManager.bioAttackThenArmorUpgrades);
                 UpgradeManager.engBayUpgradeList.addAll(UpgradeManager.structureUpgrades);
                 BUILD_EXPANDS_IN_MAIN = true;
-                AUTOTURRET_AT_ENERGY = 150;
                 NUM_BASES_TO_OC = 2;
                 MAX_MARINES = 0;
                 break;
@@ -746,13 +779,12 @@ public class Strategy {
         }
 
         DO_BANSHEE_HARASS = false;
-        DO_DEFENSIVE_LIBS = false;
-        DO_DEFENSIVE_TANKS = false;
+        DO_DEFENSIVE_LIBS = true;
+        DO_DEFENSIVE_TANKS = true;
         EXPAND_SLOWLY = false;
         PRIORITIZE_EXPANDING = true;
         DO_SEEKER_MISSILE = false;
         RETREAT_HEALTH = 50;
-        AUTOTURRET_AT_ENERGY = 50;
         DEFAULT_STARPORT_UNIT = Abilities.TRAIN_RAVEN;
     }
 
@@ -765,42 +797,26 @@ public class Strategy {
         return true;
     }
 
-    private static GamePlan[] getTournamentStrategyOrder() {
+    private static Set<GamePlan> getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) {
+            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
+                return new HashSet<>(Set.of(GamePlan.BC_RUSH, GamePlan.SCV_RUSH));
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-                return new GamePlan[] { GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER };
+                return new HashSet<>(Set.of(GamePlan.BC_RUSH));
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                return new GamePlan[] { GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER };
+                return new HashSet<>(Set.of(GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER));
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-                return new GamePlan[] { GamePlan.MECH_ALL_IN, GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MARINE_RUSH };
+                return new HashSet<>(Set.of(GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MECH_ALL_IN, GamePlan.MARINE_RUSH));
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
-                return new GamePlan[]{ GamePlan.TANK_VIKING, GamePlan.BUNKER_CONTAIN_STRONG };
+                return new HashSet<>(Set.of(GamePlan.TANK_VIKING, GamePlan.BUNKER_CONTAIN_STRONG));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
-//                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE };
-//            case "496ce221-f561-42c3-af4b-d3da4490c46e": //RStrelok
-//            case "10ecc3c36541ead": //RStrelok (LM)
-//                return new GamePlan[]{ GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_STRONG };
-//            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+//                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE ));
 //            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
 //                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE};
-//            case "0da37654-1879-4b70-8088-e9d39c176f19": //Spiny
-//            //case "b7b611bdaa2e2d1": //Spiny (LM)
-//                return new GamePlan[]{ GamePlan.BANSHEE_CYCLONE, GamePlan.BUNKER_CONTAIN_WEAK, GamePlan.RAVEN };
-//            case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
-//            case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
-//                return new GamePlan[]{ GamePlan.RAVEN, GamePlan.BANSHEE, GamePlan.BUNKER_CONTAIN_STRONG };
-//            case "2557ad1d-ee42-4aaa-aa1b-1b46d31153d2": //BenBotBC
-//                return new int[]{0, 1, 2};
-//            case "7b8f5f78-6ca2-4079-b7c0-c7a3b06036c6": //BlinkerBot
-//                return new int[]{0, 2, 1};
-//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIbot
-//                return new int[]{0, 2};
-//            case "b4d7dc43-3237-446f-bed1-bceae0868e89": //ThreeWayLover
-//                return new int[]{3, 1};
         }
-        return new GamePlan[]{};
+        return new HashSet<>();
     }
 
 //    public static int getMaxScvs() {
@@ -876,17 +892,8 @@ public class Strategy {
         }
 
         //if maxed out on macro OCs
-        if (PosConstants.MACRO_OCS.isEmpty()) {
-            return 60;
-        }
-
-        //if maxed out on macro OCs
-        if (PosConstants.MACRO_OCS.isEmpty() && GameCache.mineralBank > 3000) {
+        if (UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, false) > 6 && GameCache.mineralBank > 3000) {
             return 50;
-        }
-
-        if (MASS_RAVENS) {
-            return 80;
         }
 
         return 90;
@@ -1005,24 +1012,29 @@ public class Strategy {
             gamePlan = opponentRecords.getWinningestGamePlan();
         }
 
-        //don't lose to worker rush twice TODO: turn on for tournaments
-//        GameResult prevGameResult = opponentRecords.getPrevGameResult();
-//        if (prevGameResult != null && prevGameResult.getTags().contains("VS_WORKER_RUSH")) {
-//            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-//            Strategy.WALL_OFF_IMMEDIATELY = true;
-//            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
-//        }
+        //don't lose to worker rush twice
+        GameResult prevGameResult = opponentRecords.getPrevGameResult();
+        if (prevGameResult != null && prevGameResult.getTags().stream().anyMatch(t -> t.endsWith("VS_WORKER_RUSH"))) {
+            System.out.println("setting fast wall code");
+            Strategy.BUILD_EXPANDS_IN_MAIN = true;
+            Strategy.WALL_OFF_IMMEDIATELY = true;
+            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+        }
         return gamePlan;
     }
 
     //plays each strategy once NOTE: make sure data is empty for this bot
     public static GamePlan getTournamentGamePlan() {
-        GamePlan[] gamePlans = getTournamentStrategyOrder();
+        Set<GamePlan> gamePlans = getTournamentStrategyOrder();
+        if (gamePlans.isEmpty()) {
+            return GamePlan.NONE;
+        }
+
         Opponent opponentRecords = JsonUtil.getOpponentRecords();
+        opponentRecords.filterToGamePlans(gamePlans);
 
         //return an unused gameplan
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1,
-                winLossRecord -> Arrays.asList(gamePlans).contains(winLossRecord.getGamePlan()));
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(1);
         if (gamePlan != GamePlan.NONE) {
             return gamePlan;
         }

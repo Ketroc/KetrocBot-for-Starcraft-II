@@ -19,7 +19,7 @@ public class Switches {
     public static boolean scvRushComplete = true;
     public static boolean enemyCanProduceAir;
     public static boolean enemyHasTempests;
-    public static boolean enemyHasCloakThreat; //enemy can produce cloaked/burrowed attack units
+    public static boolean doNeedDetection; //enemy can produce cloaked/burrowed attack units
     public static boolean phoenixAreReal;
 
     public static boolean includeTanks;

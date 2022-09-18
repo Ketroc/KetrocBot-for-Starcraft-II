@@ -22,7 +22,7 @@ public class MarineOffense extends Marine {
     @Override
     public void onStep() {
         closestEnemyThreat = getClosestEnemyThreatToGround();
-        doStutterForward = doStutterForward(closestEnemyThreat);
+        doStutterForward = doStutterForward(unit.unit(), closestEnemyThreat);
         setTargetPos();
         super.onStep();
     }

@@ -91,7 +91,7 @@ public class EnemyMappingUnit extends EnemyMapping {
     }
 
     private float getShieldMultiple(Unit enemy) {
-        return (UnitUtils.isStructure(enemy.getType()) && !UnitUtils.canAttack(enemy)) ? 0.25f : 1f;
+        return (UnitUtils.isStructure(enemy.getType()) && !UnitUtils.canAttack(enemy)) ? 0.15f : 1f;
     }
 
     private float getEnergyMultiple(Unit enemy) {

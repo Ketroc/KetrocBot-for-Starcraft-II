@@ -21,8 +21,8 @@ public class Tank extends BasicUnitMicro {
     public static final float TARGET_POS_RADIUS = 1.3f;
     public static boolean isLongDelayedUnsiege = true;
 
-    protected long lastActiveFrame; //last frame that this tank was sieged with an enemy target
-    protected int framesDelayToUnSiege = 0;
+    protected long prevStaySiegedFrame; //last frame that this tank was sieged wanted to stay sieged
+    protected int framesDelayToUnSiege;
 
     public Tank(UnitInPool unit, Point2d targetPos) {
         this(unit, targetPos, MicroPriority.SURVIVAL);
@@ -160,12 +160,12 @@ public class Tank extends BasicUnitMicro {
                 getEnemyTargetsInRange(12.8f).isEmpty()) {
             return isUnsiegeWaitTimeComplete();
         }
-        lastActiveFrame = Time.nowFrames();
+        prevStaySiegedFrame = Time.nowFrames();
         return false;
     }
 
     protected boolean isUnsiegeWaitTimeComplete() {
-        return lastActiveFrame + framesDelayToUnSiege < Time.nowFrames();
+        return prevStaySiegedFrame + framesDelayToUnSiege < Time.nowFrames();
     }
 
     protected boolean isEnemyTargetsInTankBlindSpot() {

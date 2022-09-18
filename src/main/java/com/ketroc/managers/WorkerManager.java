@@ -491,17 +491,17 @@ public class WorkerManager {
             return;
         }
 
-        //max gas with Tank_Viking and BunkerContain TvT
-        if ((Strategy.gamePlan == GamePlan.TANK_VIKING ||
-                Strategy.gamePlan == GamePlan.MECH_ALL_IN ||
-                BunkerContain.proxyBunkerLevel == 2) &&
-                Time.nowFrames() < Time.toFrames("4:00")) {
+        //max gas with BC RUSH
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
             numScvsPerGas = 3;
             return;
         }
 
         //max gas with Tank_Viking and BunkerContain TvT
-        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+        if ((Strategy.gamePlan == GamePlan.TANK_VIKING ||
+                Strategy.gamePlan == GamePlan.MECH_ALL_IN ||
+                BunkerContain.proxyBunkerLevel == 2) &&
+                Time.nowFrames() < Time.toFrames("4:00")) {
             numScvsPerGas = 3;
             return;
         }

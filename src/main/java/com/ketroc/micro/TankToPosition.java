@@ -80,7 +80,7 @@ public class TankToPosition extends Tank {
 
     @Override
     protected boolean doSiegeUp() {
-        if (UnitUtils.getDistance(unit.unit(), targetPos) < 1) {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) < 0.1f) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_SIEGE_MODE, false);
             return true;
         }

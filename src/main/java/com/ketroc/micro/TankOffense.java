@@ -91,8 +91,9 @@ public class TankOffense extends Tank {
 
     @Override
     protected boolean doUnsiege() {
-        //unsiege immediately if retreating
+        //do unsiege immediately if retreating back home
         if (!ArmyManager.doOffense &&
+                ArmyManager.attackGroundUnit == null && //no enemy target to defend
                 UnitUtils.getDistance(unit.unit(), ArmyManager.attackGroundPos) > 15 && //attackGroundPos is home pos or enemy units near my bases
                 getEnemyTargetsInRange(11).isEmpty()) {
             return true; //isUnsiegeWaitTimeComplete(); changed cuz when retreating, just go immediately (don't stagger)
@@ -121,6 +122,7 @@ public class TankOffense extends Tank {
                 UnitMicroList.getUnitSubList(TankOffense.class).size() > 1) {
             Unit leadSiegedTank = UnitUtils.getClosestUnitOfType(Alliance.SELF, Units.TERRAN_SIEGE_TANK_SIEGED, ArmyManager.attackGroundPos);
             if (leadSiegedTank.getTag().equals(unit.getTag())) {
+                prevStaySiegedFrame = Time.nowFrames();
                 return false;
             }
         }

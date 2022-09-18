@@ -523,23 +523,16 @@ public class BasicUnitMicro {
                 .orElse(null);
     }
 
-    protected boolean doStutterForward(Unit closestEnemyThreat) {
+    protected boolean doStutterForward(Unit attackUnit, Unit closestEnemyThreat) {
         if (closestEnemyThreat == null) {
             return true;
         }
-
-        boolean isEnemyRetreating = UnitUtils.isEnemyRetreating(closestEnemyThreat, unit.unit().getPosition().toPoint2d());
-        double myAttackRange = UnitUtils.getAttackRange(unit.unit(), closestEnemyThreat);
-        double enemyAttackRange = (closestEnemyThreat.getType() == Units.ZERG_BANELING || closestEnemyThreat.getType() == Units.ZERG_BANELING_BURROWED) ?
-                4 :
-                UnitUtils.getAttackRange(closestEnemyThreat, unit.unit());
-
-
         //doStutterForward if enemy outranges me (or is weaponless)
+        double myAttackRange = UnitUtils.getAttackRange(attackUnit, closestEnemyThreat);
+        double enemyAttackRange = UnitUtils.getAttackRange(closestEnemyThreat, attackUnit);
         return enemyAttackRange == 0 ||
-                isEnemyRetreating ||
                 myAttackRange < enemyAttackRange ||
-                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(unit.unit(), closestEnemyThreat);
+                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat);
     }
 
     protected boolean isFlying() {

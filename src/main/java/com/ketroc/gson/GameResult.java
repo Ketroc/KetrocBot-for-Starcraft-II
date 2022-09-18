@@ -9,7 +9,7 @@ public class GameResult {
     private GamePlan gamePlan;
     private boolean didWin;
     private String time;
-    private Set tags = new HashSet();
+    private Set<String> tags = new HashSet<>();
 
     public GameResult() {
         this.gamePlan = GamePlan.NONE;
@@ -17,7 +17,7 @@ public class GameResult {
         this.time = "15:00";
     }
 
-    public GameResult(GamePlan gamePlan, boolean didWin, String time, Set tags) {
+    public GameResult(GamePlan gamePlan, boolean didWin, String time, Set<String> tags) {
         this.gamePlan = gamePlan;
         this.didWin = didWin;
         this.time = time;
@@ -48,11 +48,11 @@ public class GameResult {
         this.time = time;
     }
 
-    public Set getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public void setTags(Set tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 }

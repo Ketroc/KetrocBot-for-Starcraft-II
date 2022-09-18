@@ -7,9 +7,11 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ActionErrorManager;
 import com.ketroc.utils.Error;
 import com.ketroc.utils.Print;
+import com.ketroc.utils.Time;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,14 +32,18 @@ public class Bot extends S2Agent {
     public static int myId;
     public static int enemyId;
     public static int maxSkippedFrames = 3; //number of frames to save prev actions
+    public static long startTime;
+
+    protected boolean doSkipFrame;
 
     public Bot(String opponentId) {
-        this.opponentId = opponentId;
+        this.opponentId = (!opponentId.equals("")) ? opponentId : "BlizzAI";
         //this.opponentId = TournyIdUtil.getMappedId(opponentId);
     }
 
     @Override
     public void onGameStart() {
+        startTime = System.currentTimeMillis();
         updateIds(); //fix ids for 5.0.6 maps / AIE maps
 
         OBS = observation();
@@ -102,14 +108,21 @@ public class Bot extends S2Agent {
         //repeating same frame
         if (OBS.getGameLoop() == prevGameFrames[0]) {
             Print.print("gameFrame repeated = " + OBS.getGameLoop());
+            doSkipFrame = true;
             return;
         }
 
+        OBS.getActionErrors().forEach(actionError -> ActionErrorManager.actionErrorList.add(actionError));
+
+        //mandatory frame delay for real-time
+        if (Launcher.isRealTime && prevGameFrames[0] != 1 && Time.before(prevGameFrames[0] + Launcher.STEP_SIZE)) {
+            doSkipFrame = true;
+            return;
+        }
         //save prev 2 frames
         prevGameFrames[1] = prevGameFrames[0];
         prevGameFrames[0] = OBS.getGameLoop();
 
-        OBS.getActionErrors().forEach(actionError -> ActionErrorManager.actionErrorList.add(actionError));
     }
 
     public void updateIds() {

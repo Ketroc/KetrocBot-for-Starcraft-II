@@ -37,9 +37,9 @@ public class Base {
     private List<MineralPatch> mineralPatches = new ArrayList<>();
     private Unit rallyNode; //mineral node this cc is rallied to
     private Point2d resourceMidPoint = null;
-    private List<DefenseUnitPositions> turrets = new ArrayList<>();
-    private List<DefenseUnitPositions> liberators = new ArrayList<>();
-    private List<DefenseUnitPositions> tanks = new ArrayList<>();
+    private List<DefenseUnitPositions> inMineralLinePositions = new ArrayList<>();
+    private List<DefenseUnitPositions> inFrontPositions = new ArrayList<>();
+    private List<DefenseUnitPositions> liberatorPositions = new ArrayList<>();
     private static float libDistanceFromCC = -1;
     private boolean continueUnsieging;
     private boolean onMyBaseDeath;
@@ -125,19 +125,12 @@ public class Base {
         this.rallyNode = rallyNode;
     }
 
-    public List<DefenseUnitPositions> getTurrets() {
-//        if (turrets.isEmpty() && !isMyMainBase()) {
-//            //middle turret
-//            turrets.add(new DefenseUnitPositions(
-//                    Position.moveClearExactly(resourceMidPoint, ccPos, 3.5f), null));
-//
-//            //extra side turrets
-//            turrets.add(new DefenseUnitPositions(
-//                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, 100), ccPos, 3.5f), null));
-//            turrets.add(new DefenseUnitPositions(
-//                    Position.moveClearExactly(Position.rotate(resourceMidPoint, ccPos, -100), ccPos, 3.5f), null));
-//        }
-        return turrets;
+    public List<DefenseUnitPositions> getInMineralLinePositions() {
+        return inMineralLinePositions;
+    }
+
+    public List<DefenseUnitPositions> getInFrontPositions() {
+        return inFrontPositions;
     }
 
     public boolean isDriedUp() {
@@ -151,38 +144,21 @@ public class Base {
         return isDriedUp;
     }
 
-    public List<DefenseUnitPositions> getLiberators() {
-        if (liberators.isEmpty()) {
+    public List<DefenseUnitPositions> getLiberatorPositions() {
+        if (liberatorPositions.isEmpty()) {
             if (resourceMidPoint != null) {
                 Point2d midPoint = isMyNatBase() ?
                         Position.towards(ccPos, PosConstants.BUNKER_NATURAL, -getLibDistanceFromCC()) :
                         Position.towards(ccPos, resourceMidPoint, getLibDistanceFromCC());
-                liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
-                liberators.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -32.5), null));
+                liberatorPositions.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, 32.5), null));
+                liberatorPositions.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, -32.5), null));
             }
         }
-        return liberators;
+        return liberatorPositions;
     }
 
-    public void setLiberators(List<DefenseUnitPositions> liberators) {
-        this.liberators = liberators;
-    }
-
-    public List<DefenseUnitPositions> getTanks() {
-        if (tanks.isEmpty()) {
-            if (resourceMidPoint != null) {
-                int angle = (PosConstants.opponentRace == Race.TERRAN) ? 65 : 45;
-                Point2d midPoint = Position.towards(ccPos, resourceMidPoint, 4.3f);
-                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle), null));
-                tanks.add(new DefenseUnitPositions(Position.rotate(midPoint, ccPos, angle*-1), null));
-                tanks.sort(Comparator.comparing(defPos -> defPos.getPos().distance(PosConstants.myRampPos)));
-            }
-        }
-        return tanks;
-    }
-
-    public void setTanks(List<DefenseUnitPositions> tanks) {
-        this.tanks = tanks;
+    public void setLiberatorPositions(List<DefenseUnitPositions> liberatorPositions) {
+        this.liberatorPositions = liberatorPositions;
     }
 
     public int numMineralScvs() {
@@ -383,7 +359,7 @@ public class Base {
 
             //don't flee if near missile turret when enemy air in range
             boolean enemyAirAttackersInRange = enemiesInAttackRange.stream().anyMatch(enemy -> enemy.unit().getFlying().orElse(false));
-            boolean baseHasTurret = getTurrets().stream().anyMatch(turret -> turret.getUnit() != null && turret.getUnit().unit().getBuildProgress() == 1);
+            boolean baseHasTurret = getInMineralLinePositions().stream().anyMatch(turret -> turret.getUnit() != null && turret.getUnit().unit().getBuildProgress() == 1);
             if (enemyAirAttackersInRange && baseHasTurret) {
                 return false;
             }
@@ -624,7 +600,7 @@ public class Base {
 
     //make this bases liberators aa mode and idle so they can be picked up for a new base TODO: time delay this
     private void freeUpLiberators() {
-        for (DefenseUnitPositions libPos : getLiberators()) {
+        for (DefenseUnitPositions libPos : getLiberatorPositions()) {
             if (libPos.getUnit() != null) {
                 Unit baseLib = libPos.getUnit().unit();
                 if (baseLib.getType() == Units.TERRAN_LIBERATOR_AG) {
@@ -638,7 +614,7 @@ public class Base {
     }
 
     private void freeUpTanks() {
-        for (DefenseUnitPositions tankPos : getTanks()) {
+        for (DefenseUnitPositions tankPos : getInMineralLinePositions()) {
             if (tankPos.getUnit() != null) {
                 UnitMicroList.remove(tankPos.getUnit().getTag());
                 tankPos.setUnit(null, this);
@@ -649,7 +625,7 @@ public class Base {
     public void visualizeMiningLayout() {
         getMineralPatches().forEach(m -> m.visualMiningLayout());
         getGases().forEach(g -> g.visualMiningLayout());
-        getTurrets().forEach(turrets -> new Rectangle(turrets.getPos(), 1.4f).draw(Color.YELLOW));
+        getInMineralLinePositions().forEach(turrets -> new Rectangle(turrets.getPos(), 1.4f).draw(Color.YELLOW));
         new Octagon(ccPos).draw(Color.YELLOW);
     }
 
@@ -784,7 +760,7 @@ public class Base {
                 .min(Comparator.comparing(scv -> UnitUtils.isCarryingResources(scv.unit()) ? 10 : 0));
     }
 
-    public void setTurretPositions() {
+    public void setTurretInMineralLinePositions() {
         //TODO: handle mineral-only base (just put 1 turret at resource midpoint??)
 
         //1 gas base
@@ -800,6 +776,38 @@ public class Base {
         else {
             addTurretPosForEach1GasSide();
         }
+    }
+
+    public void setTurretInFrontPositions() {
+        //no front turrets in main base
+        if (isMyMainBase()) {
+            return;
+        }
+
+        //add 2 positions on all 4 sides of the CC
+        List<Point2d> inFrontPosList = new ArrayList<>();
+        inFrontPosList.add(ccPos.add(3.5f, 0.5f));
+        inFrontPosList.add(ccPos.add(3.5f, -0.5f));
+
+        inFrontPosList.add(ccPos.add(-0.5f, 3.5f));
+        inFrontPosList.add(ccPos.add(0.5f, 3.5f));
+
+        inFrontPosList.add(ccPos.add(-3.5f, -0.5f));
+        inFrontPosList.add(ccPos.add(-3.5f, 0.5f));
+
+        inFrontPosList.add(ccPos.add(0.5f, -3.5f));
+        inFrontPosList.add(ccPos.add(-0.5f, -3.5f));
+
+        //sort by furthest from resourceMidPoint
+        inFrontPosList.sort(Comparator.comparing(p -> p.distance(resourceMidPoint)));
+
+        //last 2 are now the "in front" positions
+        inFrontPositions.add(new DefenseUnitPositions(inFrontPosList.get(7), null));
+        if (inFrontPosList.get(7).distance(inFrontPosList.get(6)) < 2f) { // shift over if overlapping
+            inFrontPosList.set(6, Position.towards(inFrontPosList.get(7), inFrontPosList.get(6), 2));
+        }
+        inFrontPositions.add(new DefenseUnitPositions(inFrontPosList.get(6), null));
+
     }
 
     private void addTurretPosFor0GasSide() {
@@ -819,7 +827,7 @@ public class Base {
             PlacementMap.canFit2x2(turretPos);
             turretPos = farPatchMiningMidpoint;
         }
-        turrets.add(new DefenseUnitPositions(turretPos, null));
+        inMineralLinePositions.add(new DefenseUnitPositions(turretPos, null));
 
     }
 
@@ -847,7 +855,7 @@ public class Base {
         }
 
         //DebugHelper.drawBox(turretPos, Color.GREEN, 1f);
-        turrets.add(new DefenseUnitPositions(turretPos, null));
+        inMineralLinePositions.add(new DefenseUnitPositions(turretPos, null));
     }
 
     public Point2d inFrontPos() {
@@ -864,7 +872,7 @@ public class Base {
             Point2d gasMiningPos = Position.towards(gas.getByNodePos(), gas.getByCCPos(), 0.3f);
             Point2d mineralMiningPos = Position.towards(closestMineral.getByNodePos(), closestMineral.getByCCPos(), 0.3f);
             Point2d turretPos = Position.toWholePoint(Position.midPoint(gasMiningPos, mineralMiningPos));
-            turrets.add(new DefenseUnitPositions(turretPos, null));
+            inMineralLinePositions.add(new DefenseUnitPositions(turretPos, null));
         }
     }
 
@@ -877,8 +885,10 @@ public class Base {
 
     public static void onGameStart() {
         GameCache.baseList.forEach(base -> {
-            base.setTurretPositions();
-            base.getTurrets().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.YELLOW, 1));
+            base.setTurretInMineralLinePositions();
+            base.getInMineralLinePositions().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.YELLOW, 1));
+            base.setTurretInFrontPositions();
+            base.getInFrontPositions().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.PURPLE, 1));
         });
     }
 

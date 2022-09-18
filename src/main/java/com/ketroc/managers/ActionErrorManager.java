@@ -75,7 +75,7 @@ public class ActionErrorManager {
                     //blocked by burrowed zerg unit
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, Units.TERRAN_COMMAND_CENTER) == 0) {
-                        Switches.enemyHasCloakThreat = true;
+                        Switches.doNeedDetection = true;
                         ExpansionClearing.add(pos);
                     }
                     //blocked by visible unit, or not an expansion

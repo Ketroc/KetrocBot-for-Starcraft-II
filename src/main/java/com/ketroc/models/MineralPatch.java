@@ -68,7 +68,7 @@ public class MineralPatch {
             return;
         }
 
-        base.getTurrets().stream()
+        base.getInMineralLinePositions().stream()
                 .filter(defenseUnitPositions -> defenseUnitPositions.getUnit() != null)
                 .map(DefenseUnitPositions::getPos)
                 .forEach(turretPos -> {

@@ -13,6 +13,10 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.DebugHelper;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class KetrocLauncher {
     public static void main(String[] args) {
@@ -26,9 +30,9 @@ public class KetrocLauncher {
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Race oppRace = Race.ZERG;
-        Difficulty oppDiff = Difficulty.CHEAT_INSANE;
+        Difficulty oppDiff = Difficulty.VERY_EASY;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.BC_RUSH;
+        Strategy.gamePlan = GamePlan.RAVEN;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -47,16 +51,16 @@ public class KetrocLauncher {
 //                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
                         S2Coordinator.createComputer(oppRace, oppDiff, oppBuild))
-//                        S2Coordinator.createParticipant(Race.ZERG, new WorkerAMoveBot()))
+//                        S2Coordinator.createParticipant(Race.PROTOSS, new WorkerAMoveBot()))
 //                        S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")))
                 .launchStarcraft()
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));

@@ -15,6 +15,9 @@ import com.ketroc.strategies.BunkerContain;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.PosConstants;
+import com.ketroc.utils.UnitUtils;
+
+import java.util.Comparator;
 
 public class BuildOrder {
     public static UnitInPool proxyScv;
@@ -127,10 +130,10 @@ public class BuildOrder {
                     marineAllInBuild();
                 }
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
-                    ghostHellbatOpener(); //FIXME: for testing of ghost hellbat
+                    ghostHellbatOpener();
                 }
                 else if (Strategy.gamePlan == GamePlan.BC_RUSH) {
-                    ccFirst2BaseBCs(); //FIXME: for testing of bc rush
+                    ccFirst2BaseBCs();
                 }
                 else if (BunkerContain.proxyBunkerLevel != 0) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
@@ -211,14 +214,43 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
+
+        Point2d hiddenFusionCorePos = getHiddenFusionCorePos();
+        Point2d factoryPos = PosConstants._3x3AddonPosList.stream()
+                .filter(p -> UnitUtils.isInMyMain(p))
+                .min(Comparator.comparing(p -> p.distance(GameCache.baseList.get(3).getCcPos())))
+                .orElse(PosConstants._3x3AddonPosList.get(4));
+        PosConstants._3x3AddonPosList.remove(factoryPos);
+
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
         KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(1).getCc()));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FUSION_CORE));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FUSION_CORE, hiddenFusionCorePos));
+    }
+
+    private static Point2d getHiddenFusionCorePos() {
+        Point2d hiddenPos = Position.towards(
+                Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 8),
+                GameCache.baseList.get(1).getResourceMidPoint(),
+                6);
+        Point2d closest3x3Pos = PosConstants._3x3Structures.stream()
+                .min(Comparator.comparing(p -> p.distance(hiddenPos)))
+                .get();
+        Point2d closestStarportPos = PosConstants._3x3AddonPosList.stream()
+                .min(Comparator.comparing(p -> p.distance(hiddenPos)))
+                .get();
+        if (closest3x3Pos.distance(hiddenPos) < closestStarportPos.distance(hiddenPos)) {
+            PosConstants._3x3Structures.remove(closest3x3Pos);
+            return closest3x3Pos;
+        }
+        else {
+            PosConstants._3x3AddonPosList.remove(closestStarportPos);
+            return closestStarportPos;
+        }
     }
 
     private static void tvpBunkerContainWeak() {
@@ -596,7 +628,7 @@ public class BuildOrder {
         }
         else {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(
-                    Units.TERRAN_COMMAND_CENTER, PosConstants.baseLocations.remove(2))
+                    Units.TERRAN_COMMAND_CENTER, PosConstants.baseLocations.get(2))
             );
         }
     }

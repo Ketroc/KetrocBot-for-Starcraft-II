@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class NukeTracker {
-    public static final int NUKE_DURATION = 348; //TODO: measure to get exact value
+    public static final int NUKE_DURATION = 368; //TODO: measure to get exact value
     public static final int NUKE_EFFECT_DURATION = 300;
     public static final int THREAT_AT = 224;
     public static Set<NukeTracker> activeNukes = new HashSet<>();

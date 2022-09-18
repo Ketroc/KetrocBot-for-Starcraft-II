@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
+import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.gamestate.EnemyCache;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 
 public class BattlecruiserHarass extends Battlecruiser {
     Point2d curEnemyBasePos;
+    boolean doJumpIn = true;
+
     public BattlecruiserHarass(Unit unit) {
         super(unit, ArmyManager.attackEitherPos, MicroPriority.SURVIVAL);
         doDetourAroundEnemy = true;
@@ -39,7 +42,6 @@ public class BattlecruiserHarass extends Battlecruiser {
             Point2d enemyBasePos = selectTargetBase();
             if (enemyBasePos != null) {
                 curEnemyBasePos = enemyBasePos;
-                jump(enemyBasePos.add(1, 1));
             }
             return;
         }
@@ -93,13 +95,16 @@ public class BattlecruiserHarass extends Battlecruiser {
         }
 
         // JUMP TO FAR AWAY PLACES
-        if (isJumpAvailable() && UnitUtils.getDistance(unit.unit(), targetPos) > 100) {
-            jump(targetPos.add(1, 1));
-            return;
+        if (isJumpAvailable() &&
+                UnitUtils.getDistance(unit.unit(), targetPos) > 100 &&
+                (doJumpIn || targetPos.equals(PosConstants.REPAIR_BAY))) {
+            if (safeJump(targetPos.add(1, 1))) {
+                return;
+            }
         }
 
         // MOVE BC SAFELY WHEN LOW HP
-        if (UnitUtils.getCurHp(unit.unit()) < 175 && !isSafe()) {
+        if (UnitUtils.getCurHp(unit.unit()) < 225 && !isSafe()) {
             if (isJumpAvailable()) {
                 jump(PosConstants.REPAIR_BAY);
             }
@@ -142,11 +147,9 @@ public class BattlecruiserHarass extends Battlecruiser {
     //repair when low hp and repair is possible at home
     private boolean doRepair() {
         float curHp = UnitUtils.getCurHp(unit.unit());
-        return (curHp < 120 ||(curHp < unit.unit().getHealthMax().orElse(550f) &&
+        return (curHp < 175 || (curHp < unit.unit().getHealthMax().orElse(550f) &&
                                 UnitUtils.getDistance(unit.unit(), PosConstants.REPAIR_BAY) < 3)) &&
-                !Cost.isGasBroke() &&
-                !Cost.isMineralBroke() &&
-                UnitUtils.isRepairBaySafe();
+                UnitUtils.canRepair(unit.unit());
     }
 
     @Override
@@ -183,7 +186,7 @@ public class BattlecruiserHarass extends Battlecruiser {
         UnitInPool bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_HYDRALISK ||
                         target.unit().getType() == Units.ZERG_HYDRALISK_BURROWED)
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(150f) + target.unit().getEnergy().orElse(0f)*1.5f))
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(90f)))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -195,17 +198,16 @@ public class BattlecruiserHarass extends Battlecruiser {
                         target.unit().getType() == Units.ZERG_QUEEN_BURROWED)
                 .max(Comparator.comparing(target ->
                         (target.unit().getHealthMax().orElse(175f) - target.unit().getHealth().orElse(175f)) +
-                        ((int)(target.unit().getEnergy().orElse(0f)/50))*75))
+                                ((int)(target.unit().getEnergy().orElse(0f)/50))*75))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
         }
 
-        // OTHER ANTI-AIR
+        // CORRUPTORS
         bestTarget = allTargets.stream()
-                .filter(target -> Bot.OBS.getUnitTypeData(false).get(target.unit().getType()).getWeapons().stream()
-                        .anyMatch(weapon -> weapon.getTargetType() != Weapon.TargetType.GROUND))
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .filter(target -> target.unit().getType() == Units.ZERG_CORRUPTOR)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(200f)))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -214,11 +216,10 @@ public class BattlecruiserHarass extends Battlecruiser {
         // SPIRE or HYDRA DEN
         if (range > 7) { //not attack targetting
             // SPIRE or HYDRA DEN
-            UnitInPool aaTechStructure = UnitUtils.getEnemyTargetsNear(unit.unit(), 9999).stream()
-                    .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
-                            target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
-                    .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
-                            (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
+            UnitInPool aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target ->
+                    target.unit().getType() == Units.ZERG_SPIRE ||
+                    target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
+                    .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
                     .orElse(null);
             if (aaTechStructure != null) {
                 return aaTechStructure;
@@ -234,6 +235,15 @@ public class BattlecruiserHarass extends Battlecruiser {
             if (bestTarget != null) {
                 return bestTarget;
             }
+        }
+
+        // MUTAS / SPORES
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.canAttackAir(target.unit()))
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
         }
 
         // DRONES

@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
+import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -153,6 +154,7 @@ public class UnitUtils {
             Units.TERRAN_HELLION_TANK, Units.TERRAN_THOR, Units.TERRAN_THOR_AP, Units.TERRAN_SIEGE_TANK_SIEGED,
             Units.TERRAN_SIEGE_TANK, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER, Units.TERRAN_LIBERATOR_AG,
             Units.TERRAN_VIKING_ASSAULT));
+    public static final Set<Units> ADEPT_TYPE = new HashSet<>(Set.of(Units.PROTOSS_ADEPT, Units.PROTOSS_ADEPT_PHASE_SHIFT));
 
 
 //    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
@@ -358,10 +360,10 @@ public class UnitUtils {
 
         if (GameCache.wallStructures.contains(unit)) {
             if (structureHealth > 75) {
-                return (Strategy.WALL_OFF_IMMEDIATELY) ? 2 : 1;
+                return 1;
             }
-            else if (structureHealth > 33) {
-                return (Strategy.WALL_OFF_IMMEDIATELY) ? 3 : 2;
+            else if (structureHealth > 35) {
+                return 2;
             }
             else {
                 return 4;
@@ -1457,8 +1459,18 @@ public class UnitUtils {
     public static List<UnitInPool> getEnemyGroundArmyUnitsNearby(Point2d origin, int range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 !u.unit().getFlying().orElse(true) &&
-                        canAttack(u.unit()) &&
-                        UnitUtils.getDistance(u.unit(), origin) < range);
+                isArmy(u.unit()) &&
+                UnitUtils.getDistance(u.unit(), origin) < range);
+    }
+
+    public static boolean isArmy(Unit unit) {
+        return !UnitUtils.WORKER_TYPE.contains(unit.getType()) &&
+                getSupplyCost(unit.getType()) > 0;
+    }
+
+    public static float getSupplyCost(UnitType unitType) {
+        UnitTypeData unitData = Bot.OBS.getUnitTypeData(false).get(unitType);
+        return unitData == null ? 0 : unitData.getFoodRequired().orElse(0f);
     }
 
     public static boolean isExpansionNeeded() {
@@ -1853,8 +1865,6 @@ public class UnitUtils {
     //no ghosts return false (could be wrong)
     public static boolean isNukeAvailable() {
         return Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_GHOST).stream()
-                        .findFirst()
-                        .stream()
                         .anyMatch(ghost -> MyUnitAbilities.isAbilityAvailable(ghost.unit(), Abilities.EFFECT_NUKE_CALL_DOWN)) &&
                 Bot.OBS.getUnits(u -> u.unit().getType() == Units.TERRAN_NUKE).isEmpty();
     }
@@ -1871,5 +1881,24 @@ public class UnitUtils {
 
     public static boolean isBurrowed(Unit unit) {
         return unit.getType().toString().endsWith("_BURROWED");
+    }
+
+    public static boolean canRepair() {
+        return !Cost.isGasBroke() &&
+                !Cost.isMineralBroke() &&
+                Bot.OBS.getFoodWorkers() >= 6 &&
+                UnitUtils.isRepairBaySafe();
+    }
+
+    public static boolean canRepair(Unit unit) {
+        return !Cost.isMineralBroke() &&
+                (!Cost.isGasBroke() || UnitUtils.getGasCost(unit) == 0) &&
+                Bot.OBS.getFoodWorkers() >= 6 &&
+                UnitUtils.isRepairBaySafe();
+    }
+
+    public static boolean isNearInjuredPF(Unit unit, float rangeToPf, int pfHealthPercentage) {
+        return myUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
+                .anyMatch(pf -> getDistance(unit, pf) <= rangeToPf && getHealthPercentage(pf) <= pfHealthPercentage);
     }
 }

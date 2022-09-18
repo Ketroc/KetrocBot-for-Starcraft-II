@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
@@ -33,6 +32,9 @@ import com.ketroc.utils.Error;
 import com.ketroc.utils.*;
 
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -95,14 +97,18 @@ public class KetrocBot extends Bot {
             if (Strategy.gamePlan == GamePlan.BC_RUSH) {
                 PosConstants._3x3AddonPosList.removeIf(pos -> !UnitUtils.isInMyMainOrNat(pos));
                 PosConstants._3x3Structures.removeIf(pos -> !UnitUtils.isInMyMainOrNat(pos));
-                PosConstants._3x3AddonPosList.addAll(PosConstants._3x3Structures);
-                PosConstants._3x3Structures.clear();
+                Point2d hiddenPos = Position.towards(
+                        Position.towards(GameCache.baseList.get(0).getCcPos(), GameCache.baseList.get(0).getResourceMidPoint(), 8),
+                        GameCache.baseList.get(1).getResourceMidPoint(),
+                        5);
+                Collections.sort(PosConstants._3x3AddonPosList, Comparator.comparing(p -> p.distance(hiddenPos)));
+                Collections.sort(PosConstants._3x3Structures, Comparator.comparing(p -> p.distance(hiddenPos)));
             }
 
             BuildOrder.onGameStart();
             BunkerContain.onGameStart();
             MarineAllIn.onGameStart();
-            //WorkerRushDefense2.onGameStart();
+            WorkerRushDefense2.onGameStart();
             Base.onGameStart();
             MannerMule.onGameStart();
 
@@ -111,7 +117,7 @@ public class KetrocBot extends Bot {
             //initialize starting scvs
             WorkerManager.sendScvsToMine(OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_SCV));
 
-            if (!Launcher.isRealTime) {
+            if (!Launcher.isRealTime && !Strategy.TOURNAMENT_MODE) {
                 JsonUtil.chatAllWinRates(true);
             }
             else {
@@ -134,14 +140,18 @@ public class KetrocBot extends Bot {
             //************************************
             super.onStep();
 
-
             OBS.getChatMessages().stream()
                     .filter(chat -> chat.getPlayerId() != OBS.getPlayerId())
                     .forEach(chat -> Chat.respondToBots(chat));
 
+            //mandatory frame delay for real-time
+            if (doSkipFrame) {
+                doSkipFrame = false;
+                return;
+            }
+
 //            //first step of the game
 //            if (Time.at(Launcher.STEP_SIZE)) {
-//                //ACTION.sendChat("Last updated: June 30, 2021", ActionChat.Channel.BROADCAST);
 //                JsonUtil.chatAllWinRates(true);
 //            }
 
@@ -187,16 +197,16 @@ public class KetrocBot extends Bot {
             StructureScv.checkScvsActivelyBuilding();
 
             //don't build up during probe rush
-            WorkerRushDefense3.onStep();
-//            if (!Strategy.WALL_OFF_IMMEDIATELY) { TODO: testing -turned off blind counter
-////                if (WorkerRushDefense.onStep()) {
-////                    return;
-////                }
-//                WorkerRushDefense3.onStep();
-//            }
-//            else {
-//                WorkerRushDefense2.onStep();
-//            }
+//            WorkerRushDefense3.onStep();
+            if (!Strategy.WALL_OFF_IMMEDIATELY) {
+//                if (WorkerRushDefense.onStep()) {
+//                    return;
+//                }
+                WorkerRushDefense3.onStep();
+            }
+            else {
+                WorkerRushDefense2.onStep();
+            }
 
             //scv rush opener
             if (!Switches.scvRushComplete) {
@@ -529,9 +539,9 @@ public class KetrocBot extends Bot {
                             case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                                 //remove from base defense tank
                                 for (Base base : GameCache.baseList) {
-                                    for (DefenseUnitPositions tankPos : base.getTurrets()) {
-                                        if (tankPos.getUnit() != null && unit.getTag().equals(tankPos.getUnit().getTag())) {
-                                            tankPos.setUnit(null, base);
+                                    for (DefenseUnitPositions unitPos : base.getInMineralLinePositions()) {
+                                        if (unitPos.getUnit() != null && unit.getTag().equals(unitPos.getUnit().getTag())) {
+                                            unitPos.setUnit(null, base);
                                         }
                                     }
                                 }
@@ -539,7 +549,7 @@ public class KetrocBot extends Bot {
                             case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG:
                                 //remove from base defense liberator
                                 for (Base base : GameCache.baseList) {
-                                    for (DefenseUnitPositions libPos : base.getLiberators()) {
+                                    for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
                                         if (libPos.getUnit() != null && unit.getTag().equals(libPos.getUnit().getTag())) {
                                             libPos.setUnit(null, base);
                                         }
@@ -628,6 +638,11 @@ public class KetrocBot extends Bot {
     @Override
     public void onGameEnd() {
         try {
+            Duration timeElapsed = Duration.ofMillis(System.currentTimeMillis() - startTime);
+            Print.print("real time elapsed: " + timeElapsed.toMinutes() + ":" + timeElapsed.toSecondsPart());
+            if (timeElapsed.toHours() >= 1) {
+                Chat.tag("REALTIME_OVER_1HR");
+            }
             Cyclone.cycloneKillReport();
             recordGameResult();
 
@@ -683,6 +698,11 @@ public class KetrocBot extends Bot {
     public static void printCurrentGameInfo() {
         Print.print("\n\nGame info");
         Print.print("===================\n");
+        Duration timeElapsed = Duration.ofMillis(System.currentTimeMillis() - startTime);
+        Print.print("real time elapsed: " + timeElapsed.toMinutes() + ":" + timeElapsed.toSecondsPart());
+        if (timeElapsed.toHours() >= 1) {
+            Chat.tag("REALTIME_OVER_1HR");
+        }
         Print.print("GameState.liberatorList.size() = " + GameCache.liberatorList.size());
         Print.print("GameState.siegeTankList.size() = " + GameCache.siegeTankList.size());
         Print.print("GameState.vikingList.size() = " + GameCache.vikingList.size());
