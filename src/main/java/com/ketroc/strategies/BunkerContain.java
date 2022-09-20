@@ -120,18 +120,11 @@ public class BunkerContain {
                             .orElse(repairScvList.get(0));
                     factorySwap = new AddonSwap(barracks, Abilities.BUILD_TECHLAB_BARRACKS, Units.TERRAN_FACTORY, availableRepairScv);
                     KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
-                    if (PosConstants.opponentRace == Race.TERRAN) {
-                        KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
-                    }
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_MARINE, barracks));
                 }
             }
             else if (factorySwap.removeMe) {
                 factorySwap = null;
-//                KetrocBot.purchaseQueue.addFirst(new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
-//                int _2ndTankIndex = Math.min(2, KetrocBot.purchaseQueue.size());
-//                KetrocBot.purchaseQueue.add(_2ndTankIndex, new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
-//                KetrocBot.purchaseQueue.add(_2ndTankI
-//                ndex, new PurchaseUnit(Units.TERRAN_SIEGE_TANK, factory));
             }
             else {
                 factorySwap.onStep();
@@ -887,40 +880,10 @@ public class BunkerContain {
         }
     }
 
-    public static void onFactoryComplete() {
-        //KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factory));
-    }
-
     public static void onFactoryLift() {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING));
         KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.TERRAN_BUILDING_ARMOR));
-    }
-
-    public static void onEngineeringBayComplete(UnitInPool engBay) {
-//        KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HISEC_AUTO_TRACKING, engBay));
-//        int depotPurchaseIndex = getDepotPurchaseIndex();
-//        Point2d turretPos = calcTurretPosition(true);
-//        if (!Strategy.NO_TURRETS) {
-//            if (turretPos != null) {
-//                KetrocBot.purchaseQueue.add(++depotPurchaseIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-//            }
-//            turretPos = calcTurretPosition(false);
-//            if (turretPos != null) {
-//                KetrocBot.purchaseQueue.add(++depotPurchaseIndex, new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
-//            }
-//        }
-    }
-
-    private static int getDepotPurchaseIndex() {
-        for (int i = 0; i< KetrocBot.purchaseQueue.size(); i++) {
-            Purchase p = KetrocBot.purchaseQueue.get(i);
-            if (p instanceof PurchaseStructure &&
-                    ((PurchaseStructure) p).getStructureType() == Units.TERRAN_SUPPLY_DEPOT) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     public static boolean requiresTanks() {

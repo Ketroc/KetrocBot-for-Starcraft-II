@@ -291,30 +291,8 @@ public class KetrocBot extends Bot {
                         if (BunkerContain.proxyBunkerLevel != 0) {
                             BunkerContain.onBarracksComplete();
                         }
-
-//                        //get OC TODO: testing having these off as it really shouldn't be done here.
-//                        if (GameCache.baseList.get(0).getCc() != null &&
-//                                GameCache.baseList.get(0).getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER &&
-//                                !Purchase.isMorphQueued(Abilities.MORPH_ORBITAL_COMMAND)) {
-//                            purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
-//                        }
-//
-//                        //put factory at top of queue
-//                        if (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 && BunkerContain.proxyBunkerLevel != 2) {
-//                            if (GameCache.gasBank > 0) {
-//                                purchaseQueue.addFirst(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
-//                            }
-//                            else {
-//                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, PosConstants.getFactoryPos()));
-//                            }
-//                        }
-
                         break;
                     case TERRAN_BARRACKS_TECHLAB: //queue up marauders after the 2nd depot
-//                        Unit barracks = UnitUtils.getFriendlyUnitsOfType(Units.TERRAN_BARRACKS).get(0);
-//                        int insertIndex = (Purchase.isStructureQueued(Units.TERRAN_SUPPLY_DEPOT)) ? 1 : 0;
-//                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
-//                        purchaseQueue.add(insertIndex, new PurchaseUnit(Units.TERRAN_MARAUDER, barracks));
                         break;
                     case TERRAN_BUNKER:
                         if (BunkerContain.proxyBunkerLevel != 0 && UnitUtils.getDistance(unit, PosConstants.proxyBunkerPos) < 1) {
@@ -329,25 +307,6 @@ public class KetrocBot extends Bot {
                             if (!nearbyMarines.isEmpty()) {
                                 ActionHelper.unitCommand(UnitUtils.toUnitList(nearbyMarines), Abilities.SMART, unit, false);
                             }
-                        }
-                        break;
-                    case TERRAN_ENGINEERING_BAY:
-                        if (BunkerContain.proxyBunkerLevel == 2) {
-                            BunkerContain.onEngineeringBayComplete(unitInPool);
-                        }
-                        break;
-                    case TERRAN_FACTORY:
-                        if (BunkerContain.proxyBunkerLevel == 2) {
-                            BunkerContain.onFactoryComplete();
-                        }
-                        else {
-//                            if (Strategy.DO_DEFENSIVE_TANKS || Strategy.DO_OFFENSIVE_TANKS || Strategy.DO_USE_CYCLONES) {
-//                                purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, unit));
-//                            }
-//                            //start with (1 factory + 1 starport), or start with (2 starports)
-//                            else if (UnitUtils.getNumFriendlyUnits(UnitUtils.STARPORT_TYPE, true) == 0) {
-//                                purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
-//                            }
                         }
                         break;
                     case TERRAN_FACTORY_TECHLAB:

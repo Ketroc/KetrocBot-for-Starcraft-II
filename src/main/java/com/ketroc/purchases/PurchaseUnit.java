@@ -7,7 +7,9 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.models.AddonSwap;
 import com.ketroc.models.Cost;
+import com.ketroc.strategies.BunkerContain;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.UnitUtils;
 
@@ -85,7 +87,7 @@ public class PurchaseUnit implements Purchase {
             }
         }
         //if production structure exists
-        if (!Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).isEmpty()) {
+        if (BunkerContain.factorySwap != null || !Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == UnitUtils.getRequiredStructureType(unitType)).isEmpty()) {
             Cost.updateBank(cost);
         }
         return PurchaseResult.WAITING;

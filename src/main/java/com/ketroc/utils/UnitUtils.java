@@ -18,10 +18,7 @@ import com.ketroc.managers.StructureSize;
 import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.TankOffense;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.models.Base;
-import com.ketroc.models.Cost;
-import com.ketroc.models.Ignored;
-import com.ketroc.models.StructureScv;
+import com.ketroc.models.*;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructureMorph;
 import com.ketroc.purchases.PurchaseUnit;
@@ -155,20 +152,6 @@ public class UnitUtils {
             Units.TERRAN_SIEGE_TANK, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER, Units.TERRAN_LIBERATOR_AG,
             Units.TERRAN_VIKING_ASSAULT));
     public static final Set<Units> ADEPT_TYPE = new HashSet<>(Set.of(Units.PROTOSS_ADEPT, Units.PROTOSS_ADEPT_PHASE_SHIFT));
-
-
-//    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>();
-//    public static final Set<Units> STRUCTURE_TYPE = new HashSet<>(Set.of(
-//            Units.TERRAN_FUSION_CORE, Units.TERRAN_SUPPLY_DEPOT, Units.TERRAN_SUPPLY_DEPOT_LOWERED,
-//            Units.TERRAN_ENGINEERING_BAY, Units.TERRAN_COMMAND_CENTER, Units.TERRAN_ORBITAL_COMMAND,
-//            Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_COMMAND_CENTER_FLYING, Units.TERRAN_ORBITAL_COMMAND_FLYING,
-//            Units.TERRAN_ARMORY, Units.TERRAN_MISSILE_TURRET, Units.TERRAN_BUNKER,
-//            Units.TERRAN_GHOST_ACADEMY, Units.TERRAN_SENSOR_TOWER, Units.TERRAN_BARRACKS,
-//            Units.TERRAN_BARRACKS_FLYING, Units.TERRAN_FACTORY, Units.TERRAN_FACTORY_FLYING,
-//            Units.TERRAN_STARPORT, Units.TERRAN_STARPORT_FLYING, Units.TERRAN_REFINERY,
-//            Units.TERRAN_REFINERY_RICH, Units.TERRAN_BARRACKS_TECHLAB, Units.TERRAN_FACTORY_TECHLAB,
-//            Units.TERRAN_STARPORT_TECHLAB, Units.TERRAN_TECHLAB, Units.TERRAN_BARRACKS_REACTOR,
-//            Units.TERRAN_FACTORY_REACTOR, Units.TERRAN_STARPORT_REACTOR, Units.TERRAN_REACTOR));
 
     public static Set<Units> EVIDENCE_OF_AIR = new HashSet<>(Set.of(
             Units.TERRAN_FUSION_CORE, Units.TERRAN_BANSHEE, Units.TERRAN_BATTLECRUISER,
