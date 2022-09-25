@@ -39,7 +39,6 @@ public class DebugHelper {
             return;
         }
         displayGameInfo();
-        Bot.DEBUG.sendDebug();
         lineNum = 0;
     }
 
@@ -69,8 +68,6 @@ public class DebugHelper {
 //                    .forEach(banshee -> {
 //                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
 //                    });
-
-            Bot.DEBUG.sendDebug();
         }
 
         if (Time.at(Time.toFrames(5))) {

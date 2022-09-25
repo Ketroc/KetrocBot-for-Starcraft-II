@@ -335,6 +335,22 @@ public class Position {
         }
         return null;
     }
+    public static List<Point2d> getSortedNearbyPlacements(Point2d pos, int searchRadius) {
+        List<Point2d> sortedPosList = new ArrayList<>();
+        int posX = (int)pos.getX();
+        int posY = (int)pos.getY();
+        int startX = posX - searchRadius;
+        int endX = posX + searchRadius;
+        int startY = posY - searchRadius;
+        int endY = posY + searchRadius;
+        for (int x=startX; x<=endX; x++) {
+            for (int y = startY; y <= endY; y++) {
+                sortedPosList.add(Point2d.of(x+0.5f, y+0.5f));
+            }
+        }
+        sortedPosList.sort(Comparator.comparing(p -> p.distance(pos)));
+        return sortedPosList;
+    }
 
     public static List<Point2d> getSpiralList(Point2d pos, int searchRadius) {
         List<Point2d> spiralList = new ArrayList<>();

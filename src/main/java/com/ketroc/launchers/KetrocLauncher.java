@@ -29,8 +29,8 @@ public class KetrocLauncher {
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.PROTOSS;
-        Difficulty oppDiff = Difficulty.VERY_EASY;
+        Race oppRace = Race.TERRAN;
+        Difficulty oppDiff = Difficulty.MEDIUM;
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.BUNKER_CONTAIN_STRONG;
 
@@ -39,7 +39,8 @@ public class KetrocLauncher {
                 .setRealtime(Launcher.isRealTime)
                 .setFeatureLayers(Defaults.defaultSpatialSetup())
                 .setMultithreaded(true)
-                .setWindowLocation(560, 20)
+                .setWindowLocation(2549, 460)
+                .setWindowSize(1211, 800)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)
                 .setStepSize(Launcher.STEP_SIZE)
@@ -59,8 +60,8 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));

@@ -67,7 +67,7 @@ public class BunkerContain {
         barracksPos = PosConstants.proxyBarracksPos;
         bunkerPos = PosConstants.proxyBunkerPos;
         enemyPos = getEnemyPos();
-        defaultSpotterPos = Position.towards(bunkerPos, enemyPos, 6);
+        defaultSpotterPos = Position.towards(bunkerPos, enemyPos, 9);
         behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
         tank1Pos = Position.rotate(
                 Position.towards(behindBunkerPos, bunkerPos, -0.5f),

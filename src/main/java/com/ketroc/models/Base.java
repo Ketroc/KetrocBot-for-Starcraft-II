@@ -786,28 +786,46 @@ public class Base {
 
         //add 2 positions on all 4 sides of the CC
         List<Point2d> inFrontPosList = new ArrayList<>();
-        inFrontPosList.add(ccPos.add(3.5f, 0.5f));
+        inFrontPosList.add(ccPos.add(3.5f, 1.5f));
         inFrontPosList.add(ccPos.add(3.5f, -0.5f));
 
-        inFrontPosList.add(ccPos.add(-0.5f, 3.5f));
+        inFrontPosList.add(ccPos.add(-1.5f, 3.5f));
         inFrontPosList.add(ccPos.add(0.5f, 3.5f));
 
-        inFrontPosList.add(ccPos.add(-3.5f, -0.5f));
+        inFrontPosList.add(ccPos.add(-3.5f, -1.5f));
         inFrontPosList.add(ccPos.add(-3.5f, 0.5f));
 
-        inFrontPosList.add(ccPos.add(0.5f, -3.5f));
+        inFrontPosList.add(ccPos.add(1.5f, -3.5f));
         inFrontPosList.add(ccPos.add(-0.5f, -3.5f));
 
         //sort by furthest from resourceMidPoint
-        inFrontPosList.sort(Comparator.comparing(p -> p.distance(resourceMidPoint)));
+        Point2d enemySpawnPos = PosConstants.baseLocations.get(PosConstants.baseLocations.size()-1);
+        inFrontPosList = inFrontPosList.stream()
+                .filter(p -> p.distance(resourceMidPoint) > 5f)
+                .filter(p -> inMineralLinePositions.stream().noneMatch(defPos -> defPos.getPos().distance(p) < 2))
+                .filter(p -> gases.stream().noneMatch(gas -> gas.getNodePos().distance(p) < 4.5f) ||
+                        inMineralLinePositions.stream().noneMatch(defPos -> defPos.getPos().distance(p) < 2.5f))
+                .sorted(Comparator.comparing(p -> p.distance(enemySpawnPos) - p.distance(resourceMidPoint)))
+                .collect(Collectors.toList());
 
-        //last 2 are now the "in front" positions
-        inFrontPositions.add(new DefenseUnitPositions(inFrontPosList.get(7), null));
-        if (inFrontPosList.get(7).distance(inFrontPosList.get(6)) < 2f) { // shift over if overlapping
-            inFrontPosList.set(6, Position.towards(inFrontPosList.get(7), inFrontPosList.get(6), 2));
+        //furthest pos
+        Point2d pos1 = inFrontPosList.remove(0);
+        Point2d finalPos = pos1;
+        inFrontPosList.sort(Comparator.comparing(p -> p.distance(enemySpawnPos) - p.distance(resourceMidPoint) + (p.distance(finalPos) < 2.5f ? 0.5f : 0)));
+        Point2d pos2 = inFrontPosList.remove(0);
+        for (Point2d p : inFrontPosList) {
+            if (inMineralLinePositions.stream().anyMatch(defPos -> defPos.getPos().distance(p) < 2.5f)) {
+                continue;
+            }
+            if (p.distance(pos1) < 2.5f && p.distance(pos2) > pos1.distance(pos2)) {
+                pos1 = p;
+            } else if (p.distance(pos2) < 2.5f && p.distance(pos1) > pos2.distance(pos1)) {
+                pos2 = p;
+            }
         }
-        inFrontPositions.add(new DefenseUnitPositions(inFrontPosList.get(6), null));
 
+        inFrontPositions.add(new DefenseUnitPositions(pos1, null));
+        inFrontPositions.add(new DefenseUnitPositions(pos2, null));
     }
 
     private void addTurretPosFor0GasSide() {

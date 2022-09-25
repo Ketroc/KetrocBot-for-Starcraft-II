@@ -8,9 +8,11 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.geometry.Position;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -20,6 +22,9 @@ import java.util.stream.Collectors;
 public class PlacementMap {
     public static boolean[][] placementMap = new boolean[400][400];
     public static boolean[][] ccPlacementMap = new boolean[400][400];
+    //public static boolean[][] originalPlacementMap = new boolean[400][400];
+    //public static boolean[][] pathingMap = new boolean[400][400];
+    //public static float[][] chokeValueMap = new float[400][400];
 
     /* shape:
         ..XXX....
@@ -211,12 +216,29 @@ public class PlacementMap {
     }
 
     public static void initializeMap(boolean isColumnSet) {
-        for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
-            for (float y = PosConstants.MIN_Y + 0.5f; y< PosConstants.MAX_Y; y++) {
-                placementMap[(int)x][(int)y] = Bot.OBS.isPlacable(Point2d.of(x, y));
-                ccPlacementMap[(int)x][(int)y] = Bot.OBS.isPlacable(Point2d.of(x, y));
+        for (int x = PosConstants.MIN_X; x<PosConstants.MAX_X; x++) {
+            for (int y = PosConstants.MIN_Y; y<PosConstants.MAX_Y; y++) {
+                placementMap[x][y] = Bot.OBS.isPlacable(Point2d.of(x+0.5f, y+0.5f));
+                ccPlacementMap[x][y] = Bot.OBS.isPlacable(Point2d.of(x+0.5f, y+0.5f));
+                //originalPlacementMap[x][y] = Bot.OBS.isPlacable(Point2d.of(x+0.5f, y+0.5f));
+                //pathingMap[x][y] = Bot.OBS.isPathable(Point2d.of(x+0.5f, y+0.5f));
             }
         }
+
+        //TODO: for testing
+//        DecimalFormat df = new DecimalFormat("0.0");
+//        for (int x = PosConstants.MIN_X; x<PosConstants.MAX_X; x++) {
+//            for (int y = PosConstants.MIN_Y; y<PosConstants.MAX_Y; y++) {
+//                if (pathingMap[x][y]) {
+//                    Point2d thisPos = Point2d.of(x+0.5f, y+0.5f);
+//                    chokeValueMap[x][y] = Position.getSortedNearbyPlacements(thisPos, 10).stream()
+//                            .filter(p -> !Bot.OBS.isPathable(p))
+//                            .findFirst()
+//                            .map(p -> Float.parseFloat(df.format(p.distance(thisPos))))
+//                            .orElse(20.0f);
+//                }
+//            }
+//        }
 
         //remove all mineral patches from the placement grid
         Bot.OBS.getUnits(Alliance.NEUTRAL, u -> UnitUtils.MINERAL_NODE_TYPE.contains(u.unit().getType()) ||
@@ -231,8 +253,6 @@ public class PlacementMap {
         Bot.OBS.getUnits(Alliance.NEUTRAL, u -> u.unit().getType() instanceof Units && UnitUtils.isDestructible(u.unit()))
                 .forEach(destructible -> makeUnavailable(destructible.unit()));
 
-//        //remove start CC from to placement grid
-//        makeUnavailable5x5(Bot.OBS.getStartLocation().toPoint2d());
         //remove all base CC positions from to placement grid
         PosConstants.baseLocations.forEach(ccPos -> makeUnavailable5x5(ccPos));
 
@@ -270,6 +290,28 @@ public class PlacementMap {
             }
         }
     }
+
+//    public static void visualizePathingMap() {
+//        for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
+//            for (float y = PosConstants.MIN_Y + 0.5f; y< PosConstants.MAX_Y; y++) {
+//                if (pathingMap[(int)x][(int)y]) {
+//                    DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
+//                    //DebugHelper.drawText((int)x + "," + (int)y, Point2d.of(x-0.4f, y), Color.TEAL, 8);
+//                }
+//            }
+//        }
+//    }
+
+//    public static void visualizeChokeValueMap() {
+//        for (int x = PosConstants.MIN_X; x<PosConstants.MAX_X; x++) {
+//            for (int y = PosConstants.MIN_Y; y<PosConstants.MAX_Y; y++) {
+//                if (pathingMap[x][y]) {
+//                    //DebugHelper.drawBox(Point2d.of(x, y), Color.TEAL, 0.4f);
+//                    DebugHelper.drawText(String.valueOf(chokeValueMap[x][y]), Point2d.of(x+0.2f, y+0.5f), Color.RED, 11);
+//                }
+//            }
+//        }
+//    }
 
     public static void visualizeCcPlacementMap() {
         for (float x = PosConstants.MIN_X + 0.5f; x< PosConstants.MAX_X; x++) {
