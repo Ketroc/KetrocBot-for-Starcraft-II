@@ -102,7 +102,7 @@ public class Position {
     public static Point2d midPoint(List<Point2d> pointList) {
         Point2d midPoint = Point2d.of(0,0);
         for (Point2d p : pointList) {
-            midPoint.add(p);
+            midPoint = midPoint.add(p);
         }
         return midPoint.div(pointList.size());
     }
@@ -335,21 +335,27 @@ public class Position {
         }
         return null;
     }
-    public static List<Point2d> getSortedNearbyPlacements(Point2d pos, int searchRadius) {
-        List<Point2d> sortedPosList = new ArrayList<>();
-        int posX = (int)pos.getX();
-        int posY = (int)pos.getY();
-        int startX = posX - searchRadius;
-        int endX = posX + searchRadius;
-        int startY = posY - searchRadius;
-        int endY = posY + searchRadius;
-        for (int x=startX; x<=endX; x++) {
-            for (int y = startY; y <= endY; y++) {
-                sortedPosList.add(Point2d.of(x+0.5f, y+0.5f));
+
+    public static List<Point2d> getPosListGrid(Point2d pos, int radius) {
+        List<Point2d> posList = new ArrayList<>();
+        float posX = (int)pos.getX() + 0.5f;
+        float posY = (int)pos.getY() + 0.5f;
+        float startX = posX - radius;
+        float endX = posX + radius;
+        float startY = posY - radius;
+        float endY = posY + radius;
+        for (float x=startX; x<=endX; x++) {
+            for (float y = startY; y <= endY; y++) {
+                posList.add(Point2d.of(x, y));
             }
         }
-        sortedPosList.sort(Comparator.comparing(p -> p.distance(pos)));
-        return sortedPosList;
+        return posList;
+    }
+
+    public static List<Point2d> getPosListGridByClosest(Point2d pos, int radius) {
+        List<Point2d> posList = getPosListGrid(pos, radius);
+        posList.sort(Comparator.comparing(p -> p.distance(pos)));
+        return posList;
     }
 
     public static List<Point2d> getSpiralList(Point2d pos, int searchRadius) {

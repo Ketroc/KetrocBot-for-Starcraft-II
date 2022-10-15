@@ -479,7 +479,9 @@ public class BuildManager {
         if (Strategy.NO_TURRETS) {
             return;
         }
-        if (Switches.enemyCanProduceAir || Switches.doNeedDetection) {
+        if (Switches.enemyCanProduceAir ||
+                Switches.doNeedDetection ||
+                (Strategy.gamePlan == GamePlan.RAVEN && Base.numMyBases() >= 4)) {
             GameCache.baseList.stream()
                     .filter(base -> base.isMyBase() && base.isComplete())
                     .flatMap(base -> (Strategy.DO_DEFENSIVE_TANKS && !base.isMyMainBase()) ? base.getInFrontPositions().stream() : base.getInMineralLinePositions().stream())
@@ -797,6 +799,15 @@ public class BuildManager {
             return openingFactoryUnits.get(0);
         }
 
+        //defensive tank strategy (build 2 per base)
+        if (Strategy.DO_DEFENSIVE_TANKS) {
+            int numTanks = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType())).size();
+            //if tank needed for PF
+            if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+                return Units.TERRAN_SIEGE_TANK;
+            }
+        }
+
         //1 hellion for every 4 zerglings / 1 adept
         if (isHellionsNeeded()) {
             return Units.TERRAN_HELLION;
@@ -824,15 +835,6 @@ public class BuildManager {
         //offensive tank strategy (build constantly)
         if (Strategy.DO_OFFENSIVE_TANKS) {
             if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
-                return Units.TERRAN_SIEGE_TANK;
-            }
-        }
-
-        //defensive tank strategy (build 2 per base)
-        if (Strategy.DO_DEFENSIVE_TANKS) {
-            int numTanks = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType())).size();
-            //if tank needed for PF
-            if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
                 return Units.TERRAN_SIEGE_TANK;
             }
         }
@@ -1448,7 +1450,7 @@ public class BuildManager {
             return Abilities.TRAIN_VIKING_FIGHTER;
         }
 
-        //maintain a banshee count of 1 (2 vs zerg with mass ravens)
+        //maintain a banshee count of 1 (3 vs zerg with mass ravens)
         if (numBanshees < Strategy.MIN_BANSHEES) {
             return Abilities.TRAIN_BANSHEE;
         }

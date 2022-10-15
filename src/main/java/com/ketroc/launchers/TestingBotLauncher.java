@@ -21,10 +21,22 @@ S2Coordinator s2Coordinator = S2Coordinator.setup()
         .setRawAffectsSelection(false)
         .setTimeoutMS(600 * 1000)
         .setParticipants(
-                S2Coordinator.createParticipant(Race.TERRAN, new TestingBot(null)),
+                S2Coordinator.createParticipant(Race.TERRAN, new TestingBot("")),
                 S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
         .launchStarcraft()
-        .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
+
+//                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("InsideAndOutAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
+
+//                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("BlackburnAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("CuriousMindsAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("GlitteringAshesAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
@@ -56,6 +68,8 @@ S2Coordinator s2Coordinator = S2Coordinator.setup()
 //                .startGame(LocalMap.of(Paths.get("WintersGateLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WorldofSleepersLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("ZenLE.SC2Map")));
+
+//                .startGame(LocalMap.of(Paths.get("Flat482Spawns.SC2Map")));
 
         while (s2Coordinator.update()) {
 

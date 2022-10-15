@@ -12,6 +12,7 @@ import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
 import com.ketroc.geometry.Position;
+import com.ketroc.utils.Print;
 import com.ketroc.utils.UnitUtils;
 
 import java.util.List;
@@ -78,6 +79,9 @@ public class Liberator extends BasicUnitMicro {
                     : Position.towards(unit.unit().getPosition().toPoint2d(), enemiesMidPoint, castRange + 1);
             ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_LIBERATOR_AG_MODE, newLibZonePos, false);
             curLibZonePos = newLibZonePos;
+            Print.print("liberator: " + unit.unit().getPosition().toPoint2d());
+            Print.print("enemiesMidPoint: " + enemiesMidPoint);
+            Print.print("newLibZonePos: " + newLibZonePos);
             return true;
         }
 

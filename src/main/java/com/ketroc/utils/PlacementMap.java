@@ -4,10 +4,12 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.gamestate.GameCache;
 import com.ketroc.geometry.Position;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
@@ -154,7 +156,9 @@ public class PlacementMap {
             makeAvailable(Units.TERRAN_COMMAND_CENTER, ccPos);
             Placement.possibleCcPosList.add(0, ccPos);
         });
-        //create2CellColumns();
+//        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
+//        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
+//        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
     }
 
     private static void populateDepotPos(int mainBaseColumn) {
@@ -255,6 +259,15 @@ public class PlacementMap {
 
         //remove all base CC positions from to placement grid
         PosConstants.baseLocations.forEach(ccPos -> makeUnavailable5x5(ccPos));
+
+        //remove expansion base turrets TODO: can't work cuz order must be: build placement map, then Base.onGameStart, then this code
+//        GameCache.baseList.stream()
+//                .flatMap(base -> base.getInFrontPositions().stream())
+//                .forEach(p -> makeUnavailable2x2(p.getPos()));
+
+        //visualize initial placementMap without structure positions removed
+        DebugHelper.drawBox(PosConstants.myRampPos, Color.RED, 0.3f);
+        calcRampWallPos();
 
         //remove ramp wall
         makeUnavailable2x2(PosConstants.WALL_2x2);
@@ -882,6 +895,145 @@ public class PlacementMap {
             Point2d p = resourcePos.add(shapeCoord);
             ccPlacementMap[(int)p.getX()][(int)p.getY()] = false;
         });
+    }
+
+    public static void calcRampWallPos() {
+        if (PosConstants.WALL_3x3 != null) {
+            return;
+        }
+        List<Point2d> rampPosList = getHighGroundRampBorderPosList();
+        //hack for terrain height tiles on NE-to-SW shaped main ramps
+        if (rampPosList.size() == 3) {
+            rampPosList.add(
+                    rampPosList.stream()
+                        .min(Comparator.comparing(p -> p.getX()))
+                        .get()
+                        .add(-1, 0)
+            );
+            rampPosList.add(
+                    rampPosList.stream()
+                        .min(Comparator.comparing(p -> p.getY()))
+                        .get()
+                        .add(0, -1)
+            );
+        }
+
+        //far point - furthest pos from my spawn pos
+        Point2d farPos = rampPosList.stream()
+                .max(Comparator.comparing(p -> p.distance(GameCache.baseList.get(0).getCcPos())))
+                .get();
+        //closest point - furthest pos from far point
+        Point2d closePos = rampPosList.stream()
+                .max(Comparator.comparing(p -> p.distance(farPos)))
+                .get();
+
+        //center point - closest pos to average of far and close point
+        Point2d midPos = rampPosList.stream()
+                .min(Comparator.comparing(p -> p.distance(farPos.add(closePos).div(2))))
+                .get();
+
+        PosConstants.WALL_3x3 = get3x3Pos(farPos, midPos);
+        PosConstants.WALL_2x2 = get2x2Pos(closePos, midPos);
+        PosConstants.MID_WALL_2x2 = getMid2x2Pos(closePos, midPos);
+        PosConstants.MID_WALL_3x3 = getMid3x3Pos(closePos, midPos);
+        PosConstants._3x3Structures.add(PosConstants.MID_WALL_3x3);
+        PosConstants._3x3Structures.add(PosConstants.WALL_3x3);
+        PosConstants.extraDepots.add(PosConstants.WALL_2x2);
+        PosConstants.extraDepots.add(PosConstants.MID_WALL_2x2);
+        PosConstants.insideMainWall = Position.towards(
+                Position.towards(PosConstants.MID_WALL_3x3, PosConstants.myRampPos, -1f),
+                PosConstants.mainBaseMidPos,
+                2f
+        );
+    }
+
+    private static Point2d get3x3Pos(Point2d farPos, Point2d midPos) {
+        int xDist = (int)Math.abs(farPos.getX() - midPos.getX());
+        int yDist = (int)Math.abs(farPos.getY() - midPos.getY());
+
+        int xMove;
+        int yMove;
+        if (xDist > yDist) {
+            xMove = (farPos.getX() > midPos.getX()) ? -1 : 1;
+            yMove = (farPos.getY() > midPos.getY()) ? 1 : -1;
+        }
+        else {
+            xMove = (farPos.getX() > midPos.getX()) ? 1 : -1;
+            yMove = (farPos.getY() > midPos.getY()) ? -1 : 1;
+        }
+        return farPos.add(xMove, yMove);
+    }
+
+    private static Point2d get2x2Pos(Point2d closePos, Point2d midPos) {
+        int xDist = (int)Math.abs(closePos.getX() - midPos.getX());
+        int yDist = (int)Math.abs(closePos.getY() - midPos.getY());
+
+        float xMove;
+        float yMove;
+        if (xDist > yDist) {
+            xMove = (closePos.getX() > midPos.getX()) ? -0.5f : 0.5f;
+            yMove = (closePos.getY() > midPos.getY()) ? 0.5f : -0.5f;
+        }
+        else {
+            xMove = (closePos.getX() > midPos.getX()) ? 0.5f : -0.5f;
+            yMove = (closePos.getY() > midPos.getY()) ? -0.5f : 0.5f;
+        }
+        return closePos.add(xMove, yMove);
+    }
+
+    private static Point2d getMid2x2Pos(Point2d closePos, Point2d midPos) {
+        int xDist = (int)Math.abs(closePos.getX() - midPos.getX());
+        int yDist = (int)Math.abs(closePos.getY() - midPos.getY());
+
+        float xMove;
+        float yMove;
+        if (xDist > yDist) {
+            xMove = (closePos.getX() > midPos.getX()) ? -2.5f : 2.5f;
+            yMove = (closePos.getY() > midPos.getY()) ? 0.5f : -0.5f;
+        }
+        else {
+            xMove = (closePos.getX() > midPos.getX()) ? 0.5f : -0.5f;
+            yMove = (closePos.getY() > midPos.getY()) ? -2.5f : 2.5f;
+        }
+        return closePos.add(xMove, yMove);
+    }
+
+    private static Point2d getMid3x3Pos(Point2d closePos, Point2d midPos) {
+        int xDist = (int)Math.abs(closePos.getX() - midPos.getX());
+        int yDist = (int)Math.abs(closePos.getY() - midPos.getY());
+
+        float xMove;
+        float yMove;
+        if (xDist > yDist) {
+            xMove = (closePos.getX() > midPos.getX()) ? -3f : 3f;
+            yMove = (closePos.getY() > midPos.getY()) ? 1f : -1f;
+        }
+        else {
+            xMove = (closePos.getX() > midPos.getX()) ? 1f : -1f;
+            yMove = (closePos.getY() > midPos.getY()) ? -3f : 3f;
+        }
+        return closePos.add(xMove, yMove);
+    }
+
+    private static List<Point2d> getHighGroundRampBorderPosList() {
+        float rampHeight = Bot.OBS.terrainHeight(PosConstants.myRampPos);
+        List<Point2d> rampAreaPosList = Position.getPosListGrid(PosConstants.myRampPos, 4);
+        return rampAreaPosList.stream()
+                .filter(p -> Bot.OBS.terrainHeight(p) > rampHeight)
+                .filter(p -> Bot.OBS.isPlacable(p))
+                .filter(p -> isNextToARampPos(p))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean isNextToARampPos(Point2d pos) {
+        List<Point2d> surroundingPosList = new ArrayList<>();
+        surroundingPosList.add(pos.add(0, 1));
+        surroundingPosList.add(pos.add(1, 0));
+        surroundingPosList.add(pos.add(0, -1));
+        surroundingPosList.add(pos.add(-1, 0));
+
+        return surroundingPosList.stream()
+                .anyMatch(p -> Bot.OBS.isPathable(p) && !Bot.OBS.isPlacable(p));
     }
 
 }

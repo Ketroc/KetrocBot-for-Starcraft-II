@@ -43,50 +43,51 @@ public class TestingBot extends Bot {
     @Override
     public void onGameStart() {
         super.onGameStart();
-        mySpawnPos = OBS.getStartLocation().toPoint2d();
-        enemySpawnPos = OBS.getGameInfo().getStartRaw().get().getStartLocations().stream()
-                .filter(pos -> mySpawnPos.distance(pos) > 10)
-                .findFirst().get();
-
-
-        //set map
+//        mySpawnPos = OBS.getStartLocation().toPoint2d();
+//        enemySpawnPos = OBS.getGameInfo().getStartRaw().get().getStartLocations().stream()
+//                .filter(pos -> mySpawnPos.distance(pos) > 10)
+//                .findFirst().get();
+//
+//
+//        //set map
         PosConstants.MAP = OBS.getGameInfo().getMapName();
-
-        //set enemy race
-        PosConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
-                .filter(playerInfo -> playerInfo.getPlayerId() == enemyId)
-                .findFirst()
-                .get()
-                .getRequestedRace();
-
-        //start first scv
-        mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
-        ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
-        ACTION.sendActions();
-
-        //get map, get hardcoded map locations
-        PosConstants.onGameStart(mainCC);
-
-        //build unit lists
-        try {
-            GameCache.onStepStart();
-        } catch (Exception e) {
-            Error.onException(e);
-        }
-
-        PosConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
-
-//        DebugHelper.onGameStart();
+        System.out.println("PosConstants.MAP = " + PosConstants.MAP);
+//
+//        //set enemy race
+//        PosConstants.opponentRace = OBS.getGameInfo().getPlayersInfo().stream()
+//                .filter(playerInfo -> playerInfo.getPlayerId() == enemyId)
+//                .findFirst()
+//                .get()
+//                .getRequestedRace();
+//
+//        //start first scv
+//        mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
+//        ActionHelper.unitCommand(mainCC.unit(), Abilities.TRAIN_SCV, false);
+//        ACTION.sendActions();
+//
+//        //get map, get hardcoded map locations
+//        PosConstants.onGameStart(mainCC);
+//
+//        //build unit lists
+//        try {
+//            GameCache.onStepStart();
+//        } catch (Exception e) {
+//            Error.onException(e);
+//        }
+//
+//        PosConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
+//
+////        DebugHelper.onGameStart();
         debug().debugGiveAllResources().debugFastBuild().debugGiveAllTech();
-//        MannerMule.doTrollMule = true;
-
-        broodlingPos = Position.towards(mySpawnPos, PosConstants.myRampPos, 9);
-        debug().debugCreateUnit(Units.ZERG_BROODLORD, mySpawnPos, myId, 25);
-        debug().debugCreateUnit(Units.ZERG_BROODLING, broodlingPos, myId, 1);
-//        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
-//        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
+////        MannerMule.doTrollMule = true;
+//
+//        broodlingPos = Position.towards(mySpawnPos, PosConstants.myRampPos, 9);
+//        debug().debugCreateUnit(Units.ZERG_BROODLORD, mySpawnPos, myId, 25);
+//        debug().debugCreateUnit(Units.ZERG_BROODLING, broodlingPos, myId, 1);
+////        debug().debugCreateUnit(Units.PROTOSS_TEMPEST, mySpawnPos, enemyId, 1);
+////        debug().debugCreateUnit(Units.PROTOSS_PROBE, mySpawnPos, myId, 1);
         debug().sendDebug();
-//        MannerMule.onGameStart();
+////        MannerMule.onGameStart();
 
     }
 
@@ -103,49 +104,49 @@ public class TestingBot extends Bot {
 
     @Override
     public void onStep() {
-        //build unit lists
-        try {
-            GameCache.onStepStart();
-
-//            debug().debugCreateUnit(Units.ZERG_ROACH, GameCache.baseList.get(1).getCcPos(), enemyId, 1);
-//            debug().sendDebug();
+//        //build unit lists
+//        try {
+//            GameCache.onStepStart();
 //
-//            List<UnitInPool> broodLords = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLORD);
-//            boolean isAllOffCooldown = broodLords.stream().allMatch(u -> u.unit().getWeaponCooldown().get() == 0);
-//            List<Unit> broodUnits = broodLords.stream().map(UnitInPool::unit).collect(Collectors.toList());
-//            List<UnitInPool> broodLings = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLING);
-//            Unit broodlingTarget = broodLings.stream()
-//                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), broodlingPos))).get().unit();
+////            debug().debugCreateUnit(Units.ZERG_ROACH, GameCache.baseList.get(1).getCcPos(), enemyId, 1);
+////            debug().sendDebug();
+////
+////            List<UnitInPool> broodLords = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLORD);
+////            boolean isAllOffCooldown = broodLords.stream().allMatch(u -> u.unit().getWeaponCooldown().get() == 0);
+////            List<Unit> broodUnits = broodLords.stream().map(UnitInPool::unit).collect(Collectors.toList());
+////            List<UnitInPool> broodLings = observation().getUnits(u -> u.unit().getType() == Units.ZERG_BROODLING);
+////            Unit broodlingTarget = broodLings.stream()
+////                    .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), broodlingPos))).get().unit();
+////
+////            //BROOD LORDS
+////            //if broods are all off cooldown shoot at "broodling"
+////            if (isAllOffCooldown) {
+////                actions().unitCommand(broodUnits, Abilities.ATTACK, broodlingTarget, false);
+////            }
+////            //group the brood lords
+////            else {
+////                actions().unitCommand(broodUnits, Abilities.MOVE, mySpawnPos, false);
+////            }
+////
+////            //BROODLINGS
+////            //keep longest duration broodling at base midpoint
+////            actions().unitCommand(broodlingTarget, Abilities.MOVE, broodlingPos, false);
+////
+////            //a-move the rest to the enemy base
+////            List<Unit> otherBroodlings = broodLings.stream()
+////                    .filter(u -> !u.getTag().equals(broodlingTarget.getTag()))
+////                    .map(UnitInPool::unit)
+////                    .collect(Collectors.toList());
+////            actions().unitCommand(otherBroodlings, Abilities.ATTACK, enemySpawnPos, false);
+////
+////
+////
+//        } catch (Exception e) {
+//            Error.onException(e);
+//        }
 //
-//            //BROOD LORDS
-//            //if broods are all off cooldown shoot at "broodling"
-//            if (isAllOffCooldown) {
-//                actions().unitCommand(broodUnits, Abilities.ATTACK, broodlingTarget, false);
-//            }
-//            //group the brood lords
-//            else {
-//                actions().unitCommand(broodUnits, Abilities.MOVE, mySpawnPos, false);
-//            }
-//
-//            //BROODLINGS
-//            //keep longest duration broodling at base midpoint
-//            actions().unitCommand(broodlingTarget, Abilities.MOVE, broodlingPos, false);
-//
-//            //a-move the rest to the enemy base
-//            List<Unit> otherBroodlings = broodLings.stream()
-//                    .filter(u -> !u.getTag().equals(broodlingTarget.getTag()))
-//                    .map(UnitInPool::unit)
-//                    .collect(Collectors.toList());
-//            actions().unitCommand(otherBroodlings, Abilities.ATTACK, enemySpawnPos, false);
-//
-//
-//
-        } catch (Exception e) {
-            Error.onException(e);
-        }
-
-        ACTION.sendActions();
-        DEBUG.sendDebug();
+//        ACTION.sendActions();
+//        DEBUG.sendDebug();
     }
 
     public List<Point2d> possibleCcPos() {

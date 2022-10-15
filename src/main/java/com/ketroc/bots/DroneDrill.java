@@ -67,11 +67,9 @@ public class DroneDrill extends Bot {
                     .get()
                     .getRequestedRace();
 
-            //start first scv
-            mainHatch = OBS.getUnits(Alliance.SELF, hatch -> hatch.unit().getType() == Units.ZERG_HATCHERY).get(0);
 
             //get map, get hardcoded map locations
-            PosConstants.onGameStart(mainHatch);
+            PosConstants.onGameStart();
             DebugHelper.onGameStart();
 
             //build unit lists

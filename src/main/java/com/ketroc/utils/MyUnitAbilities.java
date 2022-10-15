@@ -20,30 +20,18 @@ public class MyUnitAbilities {
     public static void onStepStart() {
         List<Unit> myUnits = Bot.OBS.getUnits(Alliance.SELF).stream().map(UnitInPool::unit).collect(Collectors.toList());
         map.clear();
-        Bot.QUERY.getAbilitiesForUnits(myUnits, false)
-                .forEach(unitAbils -> {
-                    //to spot missing abilities in Abilities enums
-                    AvailableAbility missingAbility = unitAbils.getAbilities().stream()
-                            .filter(availAbility -> availAbility.getAbility() instanceof Abilities.Other)
-                            .findFirst()
-                            .orElse(null);
-                    if (missingAbility != null) {
-                        System.out.println(missingAbility.getAbility().toString());
-                    }
-                    else {
-                        map.put(
-                                unitAbils.getUnitTag(),
-                                unitAbils.getAbilities().stream()
-                                        .map(availAbility -> (Abilities) availAbility.getAbility())
-                                        .collect(Collectors.toSet())
-                        );
-                    }
-                });
+        Bot.QUERY.getAbilitiesForUnits(myUnits, false).forEach(unitAbils ->
+                map.put(
+                        unitAbils.getUnitTag(),
+                        unitAbils.getAbilities().stream()
+                                .map(availAbility -> (Abilities) availAbility.getAbility())
+                                .collect(Collectors.toSet())
+                )
+        );
     }
 
     public static boolean isAbilityAvailable(Unit myUnit, Abilities ability) {
-        Set<Abilities> unitAbilities = map.get(myUnit.getTag());
-        return unitAbilities != null &&
-                unitAbilities.contains(ability);
+        Set<Abilities> unitAbilities = map.getOrDefault(myUnit.getTag(), null);
+        return unitAbilities != null && unitAbilities.contains(ability);
     }
 }

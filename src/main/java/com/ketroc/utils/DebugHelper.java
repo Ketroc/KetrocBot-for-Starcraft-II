@@ -253,7 +253,7 @@ public class DebugHelper {
         if (!isDebugOn) {
             return;
         }
-        float z = Bot.OBS.terrainHeight(pos) + 0.2f;
+        float z = Bot.OBS.terrainHeight(pos) + 0.15f;
         float x = pos.getX();
         float y = pos.getY();
         Bot.DEBUG.debugBoxOut(Point.of(x-radius,y-radius, z),

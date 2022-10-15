@@ -72,10 +72,8 @@ public class KetrocBot extends Bot {
                     .get()
                     .getRequestedRace();
 
-            UnitInPool mainCC = OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0);
-
             //get map, get hardcoded map locations
-            PosConstants.onGameStart(mainCC);
+            PosConstants.onGameStart();
 
             //initialize list of extra cc positions
             Placement.onGameStart();
@@ -85,13 +83,13 @@ public class KetrocBot extends Bot {
 
             DebugHelper.onGameStart();
 
+            //set main midpoint (must be done after GameState.onStep())
+            PlacementMap.onGameStart();
+
             //build unit lists
             GameCache.onGameStart();
             GameCache.setInitialEnemyBases();
-
-            //set main midpoint (must be done after GameState.onStep())
             PosConstants.setRepairBayLocation();
-            PlacementMap.onGameStart();
 
             //remove 3x3 positions outside of main/nat
             if (Strategy.gamePlan == GamePlan.BC_RUSH) {
@@ -569,6 +567,9 @@ public class KetrocBot extends Bot {
             }
             if (uip.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT) {
                 AdeptShadeTracker.add(uip);
+            }
+            if (Strategy.gamePlan == GamePlan.RAVEN && UnitUtils.HYDRALISK_TYPE.contains(uip.unit().getType())) {
+                Strategy.MIN_BANSHEES = 0;
             }
         } catch (Throwable e) {
             Error.onException(e);

@@ -172,7 +172,6 @@ public class Strategy {
                 DO_BANSHEE_HARASS = false;
                 break;
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-                NO_TURRETS = true;
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
                 break;
@@ -504,7 +503,7 @@ public class Strategy {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             //case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
-                        GamePlan.RAVEN
+                        GamePlan.BC_RUSH
                 ));
             case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
                 return new HashSet<>(Set.of(
@@ -515,8 +514,8 @@ public class Strategy {
                         GamePlan.MARINE_RUSH,
                         //GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
-                        //GamePlan.RAVEN,
-                        //GamePlan.RAVEN_CYCLONE,
+                        GamePlan.RAVEN,
+                        GamePlan.RAVEN_CYCLONE,
                         GamePlan.GHOST_HELLBAT
                 ));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
@@ -799,14 +798,12 @@ public class Strategy {
 
     private static Set<GamePlan> getTournamentStrategyOrder() {
         switch (KetrocBot.opponentId) {
-            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
-                return new HashSet<>(Set.of(GamePlan.BC_RUSH, GamePlan.SCV_RUSH));
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-                return new HashSet<>(Set.of(GamePlan.BC_RUSH));
+                return new HashSet<>(Set.of(GamePlan.RAVEN));
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER));
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-                return new HashSet<>(Set.of(GamePlan.BUNKER_CONTAIN_STRONG, GamePlan.MECH_ALL_IN, GamePlan.MARINE_RUSH));
+                return new HashSet<>(Set.of(GamePlan.BUNKER_CONTAIN_STRONG));
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
@@ -939,7 +936,7 @@ public class Strategy {
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
 
-        MAX_MARINES = 5;
+        MAX_MARINES = 6;
         DO_OFFENSIVE_TANKS = true;
         DO_SEEKER_MISSILE = true;
         MIN_BANSHEES = 0;
@@ -1013,12 +1010,14 @@ public class Strategy {
         }
 
         //don't lose to worker rush twice
-        GameResult prevGameResult = opponentRecords.getPrevGameResult();
-        if (prevGameResult != null && prevGameResult.getTags().stream().anyMatch(t -> t.endsWith("VS_WORKER_RUSH"))) {
-            System.out.println("setting fast wall code");
-            Strategy.BUILD_EXPANDS_IN_MAIN = true;
-            Strategy.WALL_OFF_IMMEDIATELY = true;
-            DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+        if (TOURNAMENT_MODE) {
+            GameResult prevGameResult = opponentRecords.getPrevGameResult();
+            if (prevGameResult != null && prevGameResult.getTags().stream().anyMatch(t -> t.endsWith("VS_WORKER_RUSH"))) {
+                System.out.println("setting fast wall code");
+                Strategy.BUILD_EXPANDS_IN_MAIN = true;
+                Strategy.WALL_OFF_IMMEDIATELY = true;
+                DelayedChat.add(120, "*Sniff* *Sniff*... Does this smell like last game?  Let me play it safe.");
+            }
         }
         return gamePlan;
     }

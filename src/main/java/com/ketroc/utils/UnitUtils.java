@@ -138,6 +138,9 @@ public class UnitUtils {
     public static final Set<Units> OVERSEER_TYPE = new HashSet<>(Set.of(
             Units.ZERG_OVERSEER, Units.ZERG_OVERSEER_SIEGED));
 
+    public static final Set<Units> HYDRALISK_TYPE = new HashSet<>(Set.of(
+            Units.ZERG_HYDRALISK, Units.ZERG_HYDRALISK_BURROWED));
+
     public static final Set<Units> DETECTION_REQUIRED_TYPE = new HashSet<>(Set.of(
             Units.PROTOSS_OBSERVER, Units.PROTOSS_OBSERVER_SIEGED, Units.TERRAN_BANSHEE, Units.TERRAN_GHOST,
             Units.PROTOSS_DARK_TEMPLAR, Units.ZERG_LURKER_MP, Units.PROTOSS_MOTHERSHIP));
@@ -159,7 +162,7 @@ public class UnitUtils {
             Units.PROTOSS_STARGATE, Units.PROTOSS_FLEET_BEACON, Units.PROTOSS_TEMPEST,
             Units.PROTOSS_ORACLE, Units.PROTOSS_ORACLE_STASIS_TRAP, Units.PROTOSS_VOIDRAY,
             Units.ZERG_SPIRE, Units.ZERG_GREATER_SPIRE, Units.ZERG_MUTALISK,
-            Units.ZERG_CORRUPTOR, Units.ZERG_BROODLORD, Units.ZERG_BROODLORD_COCOON));
+            Units.ZERG_CORRUPTOR, Units.ZERG_VIPER, Units.ZERG_BROODLORD, Units.ZERG_BROODLORD_COCOON));
 
     public static final Set<Units> INFESTOR_TYPE = new HashSet<>(Set.of(
             Units.ZERG_INFESTOR, Units.ZERG_INFESTOR_BURROWED));

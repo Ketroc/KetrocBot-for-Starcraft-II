@@ -29,10 +29,12 @@ public final class MapNames {
     public static final String ICE_AND_CHROME = "Ice and Chrome LE";
     public static final String ICE_AND_CHROME505 = "Ice and Chrome LE 5.0.5";
     public static final String ICE_AND_CHROME506 = "Ice and Chrome 5.0.6";
+    public static final String INSIDE_AND_OUT_AIE = "Inside and OutAIE";
     public static final String JAGANNATHA = "Jagannatha LE";
     public static final String JAGANNATHA_AIE = "Jagannatha AIE";
     public static final String LIGHTSHADE = "Lightshade LE";
     public static final String LIGHTSHADE_AIE = "Lightshade AIE";
+    public static final String MOONDANCE_AIE = "MoondanceAIE";
     public static final String NIGHTSHADE = "Nightshade LE";
     public static final String OXIDE = "Oxide LE";
     public static final String OXIDE_AIE = "Oxide AIE";
@@ -42,11 +44,13 @@ public final class MapNames {
     public static final String ROMANTICIDE = "Romanticide LE";
     public static final String ROMANTICIDE_AIE = "Romanticide AIE";
     public static final String SIMULACRUM = "Simulacrum LE";
+    public static final String STARGAZERS_AIE = "StargazersAIE";
     public static final String SUBMARINE = "Submarine LE";
     public static final String SUBMARINE505 = "Submarine LE 5.0.5";
     public static final String SUBMARINE506 = "Submarine 5.0.6";
     public static final String THUNDERBIRD = "Thunderbird LE";
     public static final String TRITON = "Triton LE";
+    public static final String WATERFALL_AIE = "WaterfallAIE";
     public static final String WINTERS_GATE = "Winter's Gate LE";
     public static final String WORLD_OF_SLEEPERS = "World of Sleepers LE";
     public static final String ZEN = "Zen LE";

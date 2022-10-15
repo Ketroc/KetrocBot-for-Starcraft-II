@@ -477,7 +477,7 @@ public class ArmyManager {
         //give viking divers commands
         vikingDiverMicro();
 
-        //give normal banshees their commands
+        //give normal vikings their commands
         for (Unit viking : GameCache.vikingList) {
             giveVikingCommand(viking);
         }
@@ -1605,7 +1605,7 @@ public class ArmyManager {
         int enemyVikings = (int)UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER).stream()
                 .filter(enemyViking -> enemyViking.getLastSeenGameLoop() + Time.toFrames(5) > Time.nowFrames())
                 .count();
-        return numVikingsOnFrontLine * 1.2f < enemyVikings;
+        return numVikingsOnFrontLine * 1.33f < enemyVikings;
     }
 
     private static boolean doStayBackFromTempests() {

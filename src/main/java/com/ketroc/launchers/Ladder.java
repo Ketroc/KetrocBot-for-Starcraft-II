@@ -63,7 +63,7 @@ public class Ladder {
         String playerName = Strategy.ARCHON_MASS_RAVEN ? "Archon" : "Ketroc";
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .setTimeoutMS(300000) //5min
-                .setRawAffectsSelection(false)
+                .setRawAffectsSelection(!Strategy.ARCHON_MASS_RAVEN)
                 .loadLadderSettings(args)
                 .setStepSize(Launcher.STEP_SIZE)
                 .setShowCloaked(true)

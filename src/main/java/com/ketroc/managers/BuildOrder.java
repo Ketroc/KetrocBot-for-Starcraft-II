@@ -220,7 +220,7 @@ public class BuildOrder {
         Point2d factoryPos = PosConstants._3x3AddonPosList.stream()
                 .filter(p -> UnitUtils.isInMyMain(p))
                 .min(Comparator.comparing(p -> p.distance(GameCache.baseList.get(3).getCcPos())))
-                .orElse(PosConstants._3x3AddonPosList.get(4));
+                .orElse(PosConstants._3x3AddonPosList.get(Math.min(4, PosConstants._3x3AddonPosList.size()-1)));
         PosConstants._3x3AddonPosList.remove(factoryPos);
 
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));

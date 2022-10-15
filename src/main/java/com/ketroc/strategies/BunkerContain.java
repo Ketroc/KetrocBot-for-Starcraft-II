@@ -52,7 +52,6 @@ public class BunkerContain {
     public static UnitInPool bunker;
     public static AddonSwap factorySwap;
     public static Point2d behindBunkerPos;
-    public static final Set<Units> defenders = Set.of(Units.PROTOSS_PROBE, Units.PROTOSS_ZEALOT);
     public static final Set<Units> repairTargets = Set.of(
             Units.TERRAN_SCV, Units.TERRAN_BUNKER, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_SIEGE_TANK, Units.TERRAN_MISSILE_TURRET);
     private static boolean isBarracksSentHome;
@@ -70,10 +69,10 @@ public class BunkerContain {
         defaultSpotterPos = Position.towards(bunkerPos, enemyPos, 9);
         behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
         tank1Pos = Position.rotate(
-                Position.towards(behindBunkerPos, bunkerPos, -0.5f),
+                Position.towards(behindBunkerPos, bunkerPos, -0.6f),
                 bunkerPos, 85);
         tank2Pos = Position.rotate(
-                Position.towards(behindBunkerPos, bunkerPos, -0.5f),
+                Position.towards(behindBunkerPos, bunkerPos, -0.6f),
                 bunkerPos, -85);
         marinesNeeded = PosConstants.opponentRace == Race.TERRAN ? 3 : 4;
         scoutProxy = (PosConstants.opponentRace == Race.TERRAN);
@@ -250,14 +249,6 @@ public class BunkerContain {
         repairScvList.add(scv);
         Base.releaseScv(scv.unit());
         Ignored.add(new IgnoredUnit(scv.getTag()));
-    }
-
-    public static void removeRepairScv(UnitInPool scv) {
-        repairScvList.remove(scv);
-        if (UnitUtils.getOrder(scv.unit()) != null) {
-            UnitUtils.returnAndStopScv(scv);
-        }
-        Ignored.remove(scv.getTag());
     }
 
     private static Point2d getEnemyPos() {
@@ -517,10 +508,9 @@ public class BunkerContain {
                         repairTargets.contains(repairTarget.unit().getType()) &&
                         repairTarget.unit().getBuildProgress() == 1 &&
                         repairTarget.unit().getHealth().orElse(0f) < repairTarget.unit().getHealthMax().orElse(0f) &&
-                        (repairTarget.unit().getType() != Units.TERRAN_SCV || repairScvList.contains(repairTarget)) &&
+                        (repairTarget.unit().getType() != Units.TERRAN_SCV || repairScvList.stream().anyMatch(scv -> scv.getTag().equals(repairTarget.getTag()))) &&
                         UnitUtils.getDistance(repairTarget.unit(), bunkerPos) < 8)
                 .stream()
-                .filter(u -> u.unit().getType() != Units.TERRAN_SCV || u.unit().getHealth().orElse(50f) >= 10)
                 .sorted(Comparator.comparing(unit -> UnitUtils.getHealthPercentage(unit.unit())))
                 .collect(Collectors.toList());
 

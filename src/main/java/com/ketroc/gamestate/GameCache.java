@@ -29,9 +29,6 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class GameCache {
-    public static long milliTimestamp;
-
-
     public static int mineralBank;
     public static int gasBank;
     public static int freeSupply;
