@@ -25,10 +25,10 @@ S2Coordinator s2Coordinator = S2Coordinator.setup()
                 S2Coordinator.createComputer(Race.ZERG, Difficulty.VERY_EASY, AiBuild.MACRO))
         .launchStarcraft()
 
-//                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("InsideAndOutAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
 

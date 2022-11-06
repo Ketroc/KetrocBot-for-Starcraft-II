@@ -148,7 +148,7 @@ public class GameCache {
 
                     //see what repair is required for wall or burning structures
                     if (UnitUtils.isStructure(unitType)) {
-                        if (UnitUtils.isRampWallStructure(unit)) {
+                        if (UnitUtils.isRampWallStructure(unit) || UnitUtils.isNatWallStructure(unit)) {
                             wallStructures.add(unit);
                         }
                         else if (unit.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(unit) <= 35) {

@@ -156,9 +156,6 @@ public class PlacementMap {
             makeAvailable(Units.TERRAN_COMMAND_CENTER, ccPos);
             Placement.possibleCcPosList.add(0, ccPos);
         });
-//        PosConstants._3x3AddonPosList.forEach(p -> visualize3x3WithAddOn(p));
-//        PosConstants.extraDepots.forEach(p -> visualize2x2(p));
-//        PosConstants._3x3Structures.forEach(p -> visualize3x3(p));
     }
 
     private static void populateDepotPos(int mainBaseColumn) {
@@ -279,11 +276,16 @@ public class PlacementMap {
         makeUnavailable3x3(PosConstants.MID_WALL_3x3.add(0, -2));
         //DebugHelper.drawBox(LocationConstants.MID_WALL_3x3, Color.GRAY, 3.5f);
 
-
         //remove reaper jump wall
         if (PosConstants.opponentRace == Race.TERRAN && Strategy.gamePlan != GamePlan.MARINE_RUSH) {
             PosConstants.reaperBlockDepots.forEach(p -> makeUnavailable2x2(p));
             PosConstants.reaperBlock3x3s.forEach(p -> makeUnavailable3x3(p));
+        }
+
+        //remove nat wall
+        if (Strategy.DO_WALL_NAT) {
+            PosConstants.natWallDepots.forEach(p -> makeUnavailable2x2(p));
+            PosConstants.natWall3x3s.forEach(p -> makeUnavailable3x3(p));
         }
     }
 
@@ -662,7 +664,7 @@ public class PlacementMap {
 
     public static boolean canFit3x3(int x, int y) {
         return placementMap[x-1][y+1] && placementMap[x][y+1] && placementMap[x+1][y+1] &&
-                placementMap[x-1][y] && canFit1x1(x, y) && placementMap[x][y] &&
+                placementMap[x-1][y] && placementMap[x][y] && placementMap[x][y] &&
                 placementMap[x-1][y-1] && placementMap[x][y-1] && placementMap[x+1][y-1];
     }
 

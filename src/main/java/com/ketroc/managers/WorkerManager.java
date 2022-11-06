@@ -213,11 +213,10 @@ public class WorkerManager {
 
     private static void buildRefineryLogic() {
         //don't build new refineries yet
-//        if ((LocationConstants.opponentRace == Race.ZERG && GameCache.ccList.size() < 3) ||
-//                (LocationConstants.opponentRace == Race.PROTOSS && GameCache.ccList.size() < 2) ||
-//                (LocationConstants.opponentRace == Race.TERRAN && GameCache.ccList.size() < 2)) {
-//            return;
-//        }
+        if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
+            return;
+        }
+
         //don't make 3rd+ refinery until factory and PF are started
         if (Time.nowFrames() < Time.toFrames("5:00") &&
                 (UnitUtils.numMyUnits(Units.TERRAN_FACTORY, true) == 0 || !pfAtNatural())) {
@@ -258,7 +257,15 @@ public class WorkerManager {
     @Nullable
     public static UnitInPool getScvEmptyHands(Point2d targetPos, Predicate<UnitInPool> scvFilter) {
         UnitInPool resultScv = getScv(targetPos, scvFilter.and(scv -> !UnitUtils.isCarryingResources(scv.unit())));
-        return resultScv != null ? resultScv : getScv(targetPos, scvFilter);
+        //return resultScv != null ? resultScv : getScv(targetPos, scvFilter); //TODO: turn back on when done with the Print.print testing line
+        if (resultScv == null) {
+            resultScv = getScv(targetPos, scvFilter);
+            if (resultScv != null) {
+                Print.print("No empty hands scv available.  Using scv at: " + resultScv.unit().getPosition().toPoint2d());
+                Chat.tag("ALTERNATE_SCV");
+            }
+        }
+        return resultScv;
     }
 
     @Nullable
@@ -274,6 +281,7 @@ public class WorkerManager {
                 .min(Comparator.comparing(idleScv -> UnitUtils.getDistance(idleScv.unit(), targetPos)))
                 .orElse(null);
         if (scv != null) {
+            idleScvs.remove(scv);
             Base.releaseScv(scv.unit());
             return scv;
         }
@@ -300,10 +308,6 @@ public class WorkerManager {
             return scv;
         }
 
-
-        // - turned off to prevent issues with scvs entering gas or gas-in-hand scvs from producing
-        // - oversaturated gas scvs will still get freed up if needed for mining elsewhere
-        // - FIXME: should we also turn off distance-mining scvs and min-oversaturated scvs for the same reason?
         //find closest gas-oversaturated scv
         scv = GameCache.baseList.stream()
                 .filter(base -> base.hasOverSaturatedGas(scvFilter))
@@ -365,17 +369,17 @@ public class WorkerManager {
 
 
     private static void fixOverSaturation() {
-        // saturate gases
-        saturateGases();
-
         // get all idle scvs
         idleScvs = UnitUtils.getIdleScvs();
 
+        // saturate gases
+        saturateGases();
+
+        //put all idle scvs to work
         sendScvsToMine(idleScvs);
 
-        //free up needed scvs from distance miners, oversatured mineral miners, and oversaturated gas miners
+        //free up required scvs from distance miners, oversaturated mineral miners, and oversaturated gas miners
         freeUpExtraScvs();
-
     }
 
     public static void sendScvsToMine(UnitInPool idleScv) {
@@ -417,13 +421,12 @@ public class WorkerManager {
         }
 
         //TODO: distance mine to unsafe locations if numScvs > maxScvs (make them fearless??)
+        //TODO: distance mine to mineral walls
     }
 
     //make oversaturation scvs available to handle normal saturation everywhere
     private static void freeUpExtraScvs() {
-        int numGasScvsNeeded = Base.numGasScvsFromDesiredSaturation();
-        int numMineralScvsNeeded = Base.numMineralScvsFromSoftSaturation();
-        int totalScvsNeeded = numMineralScvsNeeded + numGasScvsNeeded;
+        int totalScvsNeeded = Base.numGasScvsFromDesiredSaturation() + Base.numMineralScvsFromSoftSaturation();
         if (totalScvsNeeded == 0) {
             return;
         }
@@ -435,7 +438,6 @@ public class WorkerManager {
             while (!minPatch.getScvs().isEmpty()) {
                 UnitUtils.returnAndStopScv(minPatch.getAndReleaseScv());
                 totalScvsNeeded--;
-                numMineralScvsNeeded--;
                 if (totalScvsNeeded == 0) {
                     return;
                 }
@@ -448,22 +450,22 @@ public class WorkerManager {
             while (minPatch.getScvs().size() > 2) {
                 UnitUtils.returnAndStopScv(minPatch.getAndReleaseScv());
                 totalScvsNeeded--;
-                numMineralScvsNeeded--;
                 if (totalScvsNeeded == 0) {
                     return;
                 }
             }
         }
 
-        //take from gas miners to cover required mineral scvs
+        //take from oversaturated gas miners to cover required mineral scvs
         for (Gas gas : Base.getMyGases()) {
             if (gas.getRefinery().getType() != Units.TERRAN_REFINERY_RICH && gas.getScvs().size() > numScvsPerGas) {
                 UnitInPool gasScv = gas.getAndReleaseScv();
                 if (gasScv != null) {
+                    Print.print("Gas Scv Released. Refinery: " + gas.getRefinery().getPosition().toPoint2d() + " Scv: " + gasScv.unit().getPosition().toPoint2d());
                     UnitUtils.returnAndStopScv(gasScv);
-                    numMineralScvsNeeded--;
-                    if (numMineralScvsNeeded == 0) {
-                        break;
+                    totalScvsNeeded--;
+                    if (totalScvsNeeded == 0) {
+                        return;
                     }
                 }
             }
@@ -479,12 +481,25 @@ public class WorkerManager {
                 if (newScv == null) {
                     return;
                 }
+                Print.print("Gas Scv Added. Refinery: " + gas.getRefinery().getPosition().toPoint2d() + " Scv: " + newScv.unit().getPosition().toPoint2d());
                 gas.getScvs().add(newScv);
             }
         }
     }
 
     public static void setNumScvsPerGas() {
+        //cut all gas income for hellbat all-in
+        if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
+            boolean is3Base = GameCache.baseList.stream().anyMatch(Base::isPocketBase);
+            if (is3Base) {
+                numScvsPerGas = (Bot.OBS.getScore().getDetails().getCollectedVespene() >= 826) ? 0 : 3;
+            }
+            else {
+                numScvsPerGas = (Bot.OBS.getScore().getDetails().getCollectedVespene() >= 688) ? 0 : 3;
+            }
+            return;
+        }
+
         //no gas income while defending worker rush
         if (WorkerRushDefense3.isWorkerRushed) {
             numScvsPerGas = 0;
@@ -493,7 +508,7 @@ public class WorkerManager {
 
         //max gas with BC RUSH
         if (Strategy.gamePlan == GamePlan.BC_RUSH) {
-            numScvsPerGas = 3;
+            numScvsPerGas = UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).stream().anyMatch(u -> u.getBuildProgress() >= 1) ? 3 : 2;
             return;
         }
 

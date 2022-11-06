@@ -30,7 +30,7 @@ public class KetrocLauncher {
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Race oppRace = Race.ZERG;
-        Difficulty oppDiff = Difficulty.MEDIUM;
+        Difficulty oppDiff = Difficulty.HARD;
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.BC_RUSH;
 
@@ -39,7 +39,7 @@ public class KetrocLauncher {
                 .setRealtime(Launcher.isRealTime)
                 .setFeatureLayers(Defaults.defaultSpatialSetup())
                 .setMultithreaded(true)
-                .setWindowLocation(2549, 460)
+                .setWindowLocation(2549, 480)
                 .setWindowSize(1211, 800)
                 .setNeedsSupportDir(true)
                 .setShowCloaked(true)

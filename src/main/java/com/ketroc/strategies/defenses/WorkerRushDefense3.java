@@ -162,7 +162,7 @@ public class WorkerRushDefense3 {
     }
 
     private static int numEnemyWorkersAttacking() {
-        Predicate<UnitInPool> defenseBoundary = (GameCache.baseList.get(1).isMyBase() || UnitUtils.getNatBunker().isPresent()) ?
+        Predicate<UnitInPool> defenseBoundary = (GameCache.baseList.get(1).isMyBase() || !UnitUtils.getNatBunkers().isEmpty()) ?
                 UnitUtils::isInMyMainOrNat :
                 UnitUtils::isInMyMain;
         return (int)UnitUtils.getVisibleEnemyUnitsOfType(UnitUtils.WORKER_TYPE).stream()

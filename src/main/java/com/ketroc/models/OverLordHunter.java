@@ -1,5 +1,6 @@
 package com.ketroc.models;
 
+import SC2APIProtocol.Sc2Api;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
@@ -84,7 +85,7 @@ public class OverLordHunter {
         if (!isAborting) {
             barracksSpotting();
             if (!isBarracksLanded()) {
-                unloadBunker();
+                unloadBunkers();
             }
         }
         else {
@@ -92,8 +93,8 @@ public class OverLordHunter {
         }
     }
 
-    private void unloadBunker() {
-        UnitUtils.getNatBunker().ifPresent(bunker -> {
+    private void unloadBunkers() {
+        UnitUtils.getNatBunkers().forEach(bunker -> {
             if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
                 ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
             }
@@ -182,7 +183,7 @@ public class OverLordHunter {
     public static boolean isReadyToHunt() {
         return ((GameCache.baseList.get(1).isMyBase() &&
                         GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) ||
-                        (UnitUtils.getNatBunker().stream()
+                        (UnitUtils.getNatBunkers().stream()
                                 .anyMatch(bunker -> bunker.unit().getBuildProgress() == 1))) &&
                 !UnitUtils.isAnyBaseUnderAttack();
     }

@@ -17,5 +17,6 @@ public enum GamePlan {
     GHOST_HELLBAT,
     MECH_ALL_IN,
     BC_RUSH,
+    HELLBAT_ALL_IN,
     NONE;
 }

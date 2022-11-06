@@ -117,6 +117,12 @@ public class Harassers {
             if (numHellions == 0) {
                 return;
             }
+            if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
+                if (UnitMicroList.getUnitSubList(HellionHarasser.class).size() < 4) {
+                    addHellion();
+                }
+                return;
+            }
             switch (PosConstants.opponentRace) {
                 case ZERG:
                     if (numHellions > UnitUtils.getEnemyUnitsOfType(Units.ZERG_ZERGLING).size() / 4 + 2) {

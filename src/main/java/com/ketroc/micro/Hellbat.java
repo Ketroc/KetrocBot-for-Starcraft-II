@@ -11,8 +11,8 @@ public class Hellbat extends BasicUnitMicro {
     private Unit closestEnemyThreat;
     private boolean doStutterForward;
 
-    public Hellbat(Unit unit, Point2d targetPos) {
-        super(unit, targetPos, MicroPriority.DPS);
+    public Hellbat(Unit unit) {
+        super(unit, MicroPriority.DPS);
     }
 
     @Override
@@ -22,7 +22,7 @@ public class Hellbat extends BasicUnitMicro {
             onDeath();
             return;
         }
-        closestEnemyThreat = getClosestEnemyThreatToGround();
+        closestEnemyThreat = getClosestEnemyThreatToGround(); // FIXME: this method seems marine-specific (assumes hellbats attack air -- used to keep hellbats and ghosts together???)
         doStutterForward = doStutterForward(unit.unit(), closestEnemyThreat);
         setTargetPos();
         super.onStep();
@@ -48,9 +48,15 @@ public class Hellbat extends BasicUnitMicro {
     }
 
     public void morph() {
-        ActionHelper.unitCommand(unit.unit(), Abilities.MORPH_HELLION, false);
-        removeMe = true;
+        morph(false);
     }
+
+    public void morph(boolean doRelease) {
+        Abilities morphAbility = unit.unit().getType() == Units.TERRAN_HELLION_TANK ? Abilities.MORPH_HELLION : Abilities.MORPH_HELLBAT;
+        ActionHelper.unitCommand(unit.unit(), morphAbility, false);
+        removeMe = doRelease;
+    }
+
 
     public static boolean isAnyMorphing() {
         return UnitMicroList.unitMicroList.stream()

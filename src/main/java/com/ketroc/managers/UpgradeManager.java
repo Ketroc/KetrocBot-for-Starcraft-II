@@ -103,6 +103,9 @@ public class UpgradeManager {
     public static List<Upgrades> engBayUpgradeList = new ArrayList<>(structureUpgrades);
 
     public static void onStep() {
+        if (Strategy.NO_UPGRADES) {
+            return;
+        }
         if (Strategy.techBuilt) {
             checkEngBays();
             checkArmories();

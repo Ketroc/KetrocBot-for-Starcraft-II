@@ -31,6 +31,7 @@ public class Base {
     public long lastScoutedFrame;
     public boolean isEnemyBase;
     private boolean isDriedUp;
+    private boolean isPocketBase;
     private Point2d ccPos;
     private UnitInPool cc;
     private List<Gas> gases = new ArrayList<>();
@@ -53,7 +54,6 @@ public class Base {
         this.ccPos = ccPos;
         setResourceMidPoint();
     }
-
 
     // =========== GETTERS AND SETTERS =============
 
@@ -166,13 +166,13 @@ public class Base {
     }
 
     public int numScvRepairers() {
-        return (int)UnitMicroList.getUnitSubList(ScvRepairBay.class).stream()
+        return (int) UnitMicroList.getUnitSubList(ScvRepairBay.class).stream()
                 .filter(scvRepairBay -> UnitUtils.getDistance(scvRepairBay.unit.unit(), ccPos) < 9)
                 .count();
     }
 
     public int numMineralScvs(Predicate<UnitInPool> scvFilter) {
-        return (int)mineralPatches.stream()
+        return (int) mineralPatches.stream()
                 .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
                 .filter(scvFilter)
                 .count();
@@ -183,7 +183,7 @@ public class Base {
     }
 
     public int numGasScvs(Predicate<UnitInPool> scvFilter) {
-        return (int)gases.stream()
+        return (int) gases.stream()
                 .flatMap(gas -> gas.getScvs().stream())
                 .filter(scvFilter)
                 .count();
@@ -194,7 +194,7 @@ public class Base {
     }
 
     public int numAvailableGasScvs(Predicate<UnitInPool> scvFilter) {
-        return (int)gases.stream()
+        return (int) gases.stream()
                 .flatMap(gas -> gas.getAvailableScvs().stream())
                 .filter(scvFilter)
                 .count();
@@ -219,6 +219,13 @@ public class Base {
                 .collect(Collectors.toList());
     }
 
+    public boolean isPocketBase() {
+        return isPocketBase;
+    }
+
+    public void setPocketBase(boolean pocketBase) {
+        isPocketBase = pocketBase;
+    }
 
     // ============ METHODS ==============
 
@@ -287,16 +294,13 @@ public class Base {
                 if (UnitUtils.isCarryingResources(scv.unit())) { //return micro
                     if (isReadyForMining()) {
                         mineralPatch.returnMicro(scv.unit());
-                    }
-                    else {
+                    } else {
                         mineralPatch.distanceReturnMicro(scv.unit());
                     }
-                }
-                else { //harvest micro
+                } else { //harvest micro
                     if (isReadyForMining()) {
                         mineralPatch.harvestMicro(scv.unit());
-                    }
-                    else {
+                    } else {
                         mineralPatch.distanceHarvestMicro(scv.unit());
                     }
                 }
@@ -342,8 +346,7 @@ public class Base {
         //flee to any danger if distance mining
         if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, scv.unit().getPosition().toPoint2d())) {
             return true;
-        }
-        else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
+        } else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
             List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                     UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));
@@ -419,11 +422,11 @@ public class Base {
     }
 
     public int numActiveRefineries() {
-        return (int)gases.stream().filter(gas -> gas.getRefinery() != null && gas.getRefinery().getVespeneContents().orElse(0) > 80).count();
+        return (int) gases.stream().filter(gas -> gas.getRefinery() != null && gas.getRefinery().getVespeneContents().orElse(0) > 80).count();
     }
 
     public int numActiveMineralPatches() {
-        return (int)mineralPatches.stream()
+        return (int) mineralPatches.stream()
                 .map(MineralPatch::getNode)
                 .filter(patch -> patch.getMineralContents().orElse(0) > 100).count();
     }
@@ -503,7 +506,7 @@ public class Base {
                 .collect(Collectors.toList());
 
         //find midpoint
-        Point2d p = Point2d.of(0,0);
+        Point2d p = Point2d.of(0, 0);
         for (Unit patch : bigPatches) {
             p = p.add(patch.getPosition().toPoint2d());
         }
@@ -524,8 +527,7 @@ public class Base {
                 newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN, pos, 1).stream()
                         .filter(cc -> !cc.unit().getFlying().orElse(true)) //ignore flying CCs
                         .findFirst().orElse(null);
-            }
-            else {
+            } else {
                 newUnit = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, unitType, pos, 1).stream()
                         .findFirst().orElse(null);
             }
@@ -556,7 +558,7 @@ public class Base {
     public void onBaseAcquired() {
         //free up all the extra distance miners who were on this base
         mineralPatches.forEach(mineral -> {
-            for (int i=2; i<mineral.getScvs().size(); i++) {
+            for (int i = 2; i < mineral.getScvs().size(); i++) {
                 UnitUtils.returnAndStopScv(mineral.getScvs().get(i));
                 mineral.getScvs().remove(i--);
             }
@@ -577,7 +579,7 @@ public class Base {
         //TODO: delayed action for scv inside the refinery
 
         //cancel turrets and refineries at this base
-        for (int i=0; i<StructureScv.scvBuildingList.size(); i++) {
+        for (int i = 0; i < StructureScv.scvBuildingList.size(); i++) {
             StructureScv scv = StructureScv.scvBuildingList.get(i);
             if ((scv.structureType == Units.TERRAN_MISSILE_TURRET || scv.structureType == Units.TERRAN_REFINERY) &&
                     scv.structurePos.distance(ccPos) < 10) {
@@ -635,7 +637,7 @@ public class Base {
 
     public List<UnitInPool> getAndReleaseAvailableScvs(int numScvs) {
         List<UnitInPool> baseScvs = new ArrayList<>();
-        for (int i=0; i<numScvs; i++) {
+        for (int i = 0; i < numScvs; i++) {
             UnitInPool scv = getAndReleaseScv();
             if (scv == null) {
                 return baseScvs;
@@ -772,8 +774,7 @@ public class Base {
         else if (getGases().get(0).getNodePos().distance(getGases().get(1).getNodePos()) < 9) {
             addTurretPosFor2GasSide();
             addTurretPosFor0GasSide();
-        }
-        else {
+        } else {
             addTurretPosForEach1GasSide();
         }
     }
@@ -799,7 +800,7 @@ public class Base {
         inFrontPosList.add(ccPos.add(-0.5f, -3.5f));
 
         //sort by furthest from resourceMidPoint
-        Point2d enemySpawnPos = PosConstants.baseLocations.get(PosConstants.baseLocations.size()-1);
+        Point2d enemySpawnPos = PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 1);
         inFrontPosList = inFrontPosList.stream()
                 .filter(p -> p.distance(resourceMidPoint) > 5f)
                 .filter(p -> inMineralLinePositions.stream().noneMatch(defPos -> defPos.getPos().distance(p) < 2))
@@ -866,8 +867,7 @@ public class Base {
         if (PosConstants.MAP.contains("Oxide")) {
             if (turretPos.distance(Point2d.of(65, 76)) < 1) {
                 turretPos = turretPos.add(0, 1);
-            }
-            else if (turretPos.distance(Point2d.of(127, 128)) < 1) {
+            } else if (turretPos.distance(Point2d.of(127, 128)) < 1) {
                 turretPos = turretPos.sub(0, 1);
             }
         }
@@ -895,7 +895,7 @@ public class Base {
     }
 
     public boolean isNatBaseAndHasBunker() {
-        return ccPos.equals(GameCache.baseList.get(1).ccPos) && UnitUtils.getNatBunker().isPresent();
+        return ccPos.equals(GameCache.baseList.get(1).ccPos) && !UnitUtils.getNatBunkers().isEmpty();
     }
 
 
@@ -1031,9 +1031,9 @@ public class Base {
 
     public static boolean isMiningGas(UnitInPool scv) {
         return GameCache.baseList.stream()
-                        .flatMap(base -> base.getGases().stream())
-                        .flatMap(gas -> gas.getScvs().stream())
-                        .anyMatch(u -> scv.getTag().equals(u.getTag()));
+                .flatMap(base -> base.getGases().stream())
+                .flatMap(gas -> gas.getScvs().stream())
+                .anyMatch(u -> scv.getTag().equals(u.getTag()));
     }
 
     public void scvReport() {
@@ -1098,6 +1098,7 @@ public class Base {
                 .min(Comparator.comparing(gas -> gas.getByNodePos().distance(pos) + (gas.getScvs().size() >= 2 ? 1000 : 0)))
                 .orElse(null);
     }
+
     public static Gas getClosestUnderSaturatedGas(Point2d pos) {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
@@ -1148,17 +1149,17 @@ public class Base {
 
     public static int numMineralScvsFromSoftSaturation() {
         return GameCache.baseList.stream()
-                        .filter(Base::isReadyForMining)
-                        .flatMap(base -> base.mineralPatches.stream())
-                        .mapToInt(mineralPatch -> Math.max(0, 2-mineralPatch.getScvs().size()))
-                        .sum();
+                .filter(Base::isReadyForMining)
+                .flatMap(base -> base.mineralPatches.stream())
+                .mapToInt(mineralPatch -> Math.max(0, 2 - mineralPatch.getScvs().size()))
+                .sum();
     }
 
     public static int numGasScvsFromMaxSaturation() {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.gases.stream())
-                .mapToInt(gas -> 3-gas.getScvs().size())
+                .mapToInt(gas -> 3 - gas.getScvs().size())
                 .sum();
     }
 
@@ -1176,6 +1177,11 @@ public class Base {
                 .anyMatch(base -> base.getCcPos().distance(pos) < 1);
     }
 
+    public static boolean isPocketBase(Point2d pos) {
+        return GameCache.baseList.stream()
+                .anyMatch(base -> base.isPocketBase() && base.getCcPos().distance(pos) < 1);
+    }
+
     public static List<Base> getMyBases() {
         return GameCache.baseList.stream().filter(base -> base.isMyBase()).collect(Collectors.toList());
     }
@@ -1185,4 +1191,11 @@ public class Base {
                 .anyMatch(base -> base.isMyBase() && UnitUtils.getDistance(unit, base.ccPos) < distance);
     }
 
+
+    public static Optional<Base> getAvailablePocketBase() {
+        return GameCache.baseList.stream()
+                .filter(Base::isPocketBase)
+                .filter(base -> !base.isMyBase())
+                .findFirst();
+    }
 }

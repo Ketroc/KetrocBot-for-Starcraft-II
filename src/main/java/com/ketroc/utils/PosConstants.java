@@ -7,7 +7,6 @@ import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
-import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.*;
 
@@ -31,6 +30,7 @@ public class PosConstants {
 
     public static boolean isTopSpawn;
     public static String MAP;
+    public static Point2d spawnCorner;
     public static TriangleOfNodes myMineralTriangle;
     public static TriangleOfNodes enemyMineralTriangle;
     public static Point2d myMineralPos;
@@ -45,6 +45,8 @@ public class PosConstants {
 
     public static List<Point2d> reaperBlockDepots = new ArrayList<>();
     public static List<Point2d> reaperBlock3x3s = new ArrayList<>();
+    public static List<Point2d> natWallDepots = new ArrayList<>();
+    public static List<Point2d> natWall3x3s = new ArrayList<>();
 
     public static List<Point2d> _3x3Structures = new ArrayList<>(); //barracks, engbay, and armory x2
     public static List<Point2d> extraDepots = new ArrayList<>();
@@ -58,7 +60,7 @@ public class PosConstants {
 
     public static Base nextEnemyBase;
     public static List<Point2d> baseLocations = new ArrayList<>();
-    public static List<Point2d> clockBasePositions = new ArrayList<>();
+    public static List<Point2d> clockBasePositions;
     public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
     public static Race opponentRace;
@@ -70,6 +72,7 @@ public class PosConstants {
         else {
             isTopSpawn = isMySpawnTop();
         }
+        setSpawnCorner();
         setStructureLocations();
         setBaseLocations();
         setClockBaseLists();
@@ -173,9 +176,21 @@ public class PosConstants {
             Base newBase = new Base(baseLocation);
             newBase.setMineralPatches(getMineralPatches(newBase));
             newBase.setGases(getGases(newBase));
+            newBase.setPocketBase(isPocketBase(baseLocation));
             GameCache.baseList.add(newBase);
         }
         GameCache.baseList.get(0).setCc(mainCC);
+    }
+
+    private static boolean isPocketBase(Point2d baseLocation) {
+        switch (MAP) {
+            case MapNames.MOONDANCE_AIE:
+                return baseLocation.equals(baseLocations.get(2)) || baseLocation.equals(baseLocations.get(15));
+            case MapNames.STARGAZERS_AIE:
+                //return baseLocation.equals(baseLocations.get(2)) || baseLocation.equals(baseLocations.get(10));
+                return false; //TODO: change when opening pocket base is implemented
+        }
+        return false;
     }
 
     private static List<MineralPatch> getMineralPatches(Base base) {
@@ -458,8 +473,8 @@ public class PosConstants {
         muleLetterPosList.add(Point2d.of(71.5f, 69.5f));
         muleLetterPosList.add(Point2d.of(79.5f, 69.5f));
         if (isTopPos) {
-            myMineralPos = Point2d.of(25.5f, 132.5f);
-            enemyMineralPos = Point2d.of(126.5f, 23.5f);
+            myMineralPos = Point2d.of(24f, 132.5f);
+            enemyMineralPos = Point2d.of(128f, 23.5f);
 
             proxyBarracksPos = Point2d.of(103.5f, 84.5f);
             proxyBunkerPos = Point2d.of(115.5f, 54.5f);
@@ -471,10 +486,16 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(26.0f, 93.0f));
             reaperBlock3x3s.add(Point2d.of(49.5f, 122.5f));
 
+            natWallDepots.add(Point2d.of(39.0f, 104.0f));
+            natWall3x3s.add(Point2d.of(35.5f, 98.5f));
+            natWall3x3s.add(Point2d.of(37.5f, 101.5f));
+            natWallDepots.add(Point2d.of(38.0f, 102.0f));
+            natWallDepots.add(Point2d.of(36.0f, 101.0f));
+
             BUNKER_NATURAL = Point2d.of(36.5f, 101.5f);
         } else {
-            myMineralPos = Point2d.of(126.5f, 23.5f);
-            enemyMineralPos = Point2d.of(25.5f, 132.5f);
+            myMineralPos = Point2d.of(128f, 23.5f);
+            enemyMineralPos = Point2d.of(24f, 132.5f);
 
             proxyBarracksPos = Point2d.of(49.5f, 73.5f);
             proxyBunkerPos = Point2d.of(36.5f, 101.5f);
@@ -485,6 +506,12 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(99.0f, 30.0f));
             reaperBlockDepots.add(Point2d.of(126.0f, 63.0f));
             reaperBlock3x3s.add(Point2d.of(102.5f, 33.5f));
+
+            natWallDepots.add(Point2d.of(113.0f, 52.0f));
+            natWall3x3s.add(Point2d.of(116.5f, 57.5f));
+            natWall3x3s.add(Point2d.of(114.5f, 54.5f));
+            natWallDepots.add(Point2d.of(114.0f, 54.0f));
+            natWallDepots.add(Point2d.of(116.0f, 55.0f));
 
             BUNKER_NATURAL = Point2d.of(115.5f, 54.5f);
         }
@@ -785,6 +812,12 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(158.0f, 137.0f));
             reaperBlockDepots.add(Point2d.of(154.0f, 141.0f));
 
+            natWallDepots.add(Point2d.of(131.0f, 158.0f));
+            natWallDepots.add(Point2d.of(129.0f, 159.0f));
+            natWallDepots.add(Point2d.of(128.0f, 161.0f));
+            natWall3x3s.add(Point2d.of(125.5f, 162.5f));
+            natWall3x3s.add(Point2d.of(128.5f, 161.5f));
+
             BUNKER_NATURAL = Point2d.of(127.5f, 160.5f);
         } else {
             myMineralPos = Point2d.of(51f, 57.5f);
@@ -798,6 +831,12 @@ public class PosConstants {
             reaperBlock3x3s.add(Point2d.of(59.5f, 75.5f));
             reaperBlockDepots.add(Point2d.of(62.0f, 75.0f));
 
+            natWallDepots.add(Point2d.of(85.0f, 58.0f));
+            natWallDepots.add(Point2d.of(87.0f, 57.0f));
+            natWallDepots.add(Point2d.of(88.0f, 55.0f));
+            natWall3x3s.add(Point2d.of(90.5f, 53.5f));
+            natWall3x3s.add(Point2d.of(87.5f, 54.5f));
+
             BUNKER_NATURAL = Point2d.of(86.5f, 54.5f);
         }
     }
@@ -809,9 +848,15 @@ public class PosConstants {
             myMineralPos = Point2d.of(134f, 130.5f);
             enemyMineralPos = Point2d.of(26f, 29.5f);
 
-            proxyBarracksPos = Point2d.of(64.5f, 34.5f);
-            proxyBunkerPos = Point2d.of(91.5f, 62.5f);
+            proxyBarracksPos  = Point2d.of(91.5f, 62.5f);
+            proxyBunkerPos = Point2d.of(64.5f, 34.5f);
             proxyBunkerPos2 = Point2d.of(52.5f, 58.5f);
+
+            natWallDepots.add(Point2d.of(94.0f, 125.0f));
+            natWallDepots.add(Point2d.of(96.0f, 124.0f));
+            natWallDepots.add(Point2d.of(98.0f, 123.0f));
+            natWall3x3s.add(Point2d.of(100.5f, 121.5f));
+            natWall3x3s.add(Point2d.of(98.5f, 124.5f));
 
             BUNKER_NATURAL = Point2d.of(98.5f, 122.5f);
         } else {
@@ -821,6 +866,12 @@ public class PosConstants {
             proxyBarracksPos = Point2d.of(67.5f, 97.5f);
             proxyBunkerPos = Point2d.of(95.5f, 125.5f);
             proxyBunkerPos2 = Point2d.of(107.5f, 101.5f);
+
+            natWallDepots.add(Point2d.of(66.0f, 35.0f));
+            natWallDepots.add(Point2d.of(64.0f, 36.0f));
+            natWallDepots.add(Point2d.of(62.0f, 37.0f));
+            natWall3x3s.add(Point2d.of(59.5f, 38.5f));
+            natWall3x3s.add(Point2d.of(61.5f, 35.5f));
 
             BUNKER_NATURAL = Point2d.of(61.5f, 37.5f);
         }
@@ -933,8 +984,8 @@ public class PosConstants {
         muleLetterPosList.add(Point2d.of(99.5f, 101.5f));
         muleLetterPosList.add(Point2d.of(107.5f, 102.5f));
         if (isTopPos) {
-            myMineralPos = Point2d.of(73f, 166.5f);
-            enemyMineralPos = Point2d.of(119f, 37.5f);
+            myMineralPos = Point2d.of(72f, 167.5f);
+            enemyMineralPos = Point2d.of(120f, 36.5f);
 
             proxyBarracksPos = Point2d.of(93.5f, 87.5f);
             proxyBunkerPos = Point2d.of(129.5f, 73.5f);
@@ -944,10 +995,15 @@ public class PosConstants {
             reaperBlock3x3s.add(Point2d.of(89.5f, 155.5f));
             reaperBlockDepots.add(Point2d.of(87.0f, 154.0f));
 
+            natWallDepots.add(Point2d.of(66.0f, 131.0f));
+            natWallDepots.add(Point2d.of(64.0f, 130.0f));
+            natWall3x3s.add(Point2d.of(61.5f, 128.5f));
+            natWall3x3s.add(Point2d.of(63.5f, 131.5f));
+
             BUNKER_NATURAL = Point2d.of(63.5f, 129.5f);
         } else {
-            myMineralPos = Point2d.of(119f, 37.5f);
-            enemyMineralPos = Point2d.of(73f, 166.5f);
+            myMineralPos = Point2d.of(120f, 36.5f);
+            enemyMineralPos = Point2d.of(72f, 167.5f);
 
             proxyBarracksPos = Point2d.of(98.5f, 116.5f);
             proxyBunkerPos = Point2d.of(62.5f, 130.5f);
@@ -956,6 +1012,11 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(105.0f, 50.0f));
             reaperBlock3x3s.add(Point2d.of(107.5f, 51.5f));
             reaperBlock3x3s.add(Point2d.of(102.5f, 48.5f));
+
+            natWallDepots.add(Point2d.of(126.0f, 73.0f));
+            natWallDepots.add(Point2d.of(128.0f, 74.0f));
+            natWall3x3s.add(Point2d.of(130.5f, 75.5f));
+            natWall3x3s.add(Point2d.of(128.5f, 72.5f));
 
             BUNKER_NATURAL = Point2d.of(128.5f, 74.5f);
         }
@@ -1123,11 +1184,11 @@ public class PosConstants {
     }
 
     private static void setLocationsForStargazers(boolean isTopPos) {
-        muleLetterPosList.add(Point2d.of(93.5f, 57.5f));
-        muleLetterPosList.add(Point2d.of(101.5f, 57.5f));
+        muleLetterPosList.add(Point2d.of(94f, 58f));
+        muleLetterPosList.add(Point2d.of(102f, 58f));
         if (isTopPos) {
-            myMineralPos = Point2d.of(38.5f, 131f);
-            enemyMineralPos = Point2d.of(161.5f, 131f);
+            myMineralPos = Point2d.of(39f, 130.5f);
+            enemyMineralPos = Point2d.of(161f, 130.5f);
 
             proxyBarracksPos = Point2d.of(100.5f, 88.5f);
             proxyBunkerPos = Point2d.of(151.5f, 92.5f);
@@ -1137,11 +1198,17 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(55.0f, 113.0f));
             reaperBlockDepots.add(Point2d.of(57.0f, 114.0f));
 
+            natWallDepots.add(Point2d.of(51.0f, 96.0f));
+            natWallDepots.add(Point2d.of(48.0f, 93.0f));
+            natWallDepots.add(Point2d.of(50.0f, 94.0f));
+            natWall3x3s.add(Point2d.of(47.5f, 90.5f));
+            natWall3x3s.add(Point2d.of(49.5f, 93.5f));
+
             BUNKER_NATURAL = Point2d.of(48.5f, 93.5f);
         }
         else {
-            myMineralPos = Point2d.of(161.5f, 131f);
-            enemyMineralPos = Point2d.of(38.5f, 131f);
+            myMineralPos = Point2d.of(161f, 130.5f);
+            enemyMineralPos = Point2d.of(39f, 130.5f);
 
             proxyBarracksPos = Point2d.of(97.5f, 88.5f);
             proxyBunkerPos = Point2d.of(48.5f, 92.5f);
@@ -1150,6 +1217,12 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(145.0f, 113.0f));
             reaperBlockDepots.add(Point2d.of(143.0f, 114.0f));
             reaperBlock3x3s.add(Point2d.of(146.5f, 110.5f));
+
+            natWallDepots.add(Point2d.of(149.0f, 96.0f));
+            natWallDepots.add(Point2d.of(152.0f, 93.0f));
+            natWallDepots.add(Point2d.of(150.0f, 94.0f));
+            natWall3x3s.add(Point2d.of(152.5f, 90.5f));
+            natWall3x3s.add(Point2d.of(150.5f, 93.5f));
 
             BUNKER_NATURAL = Point2d.of(152.5f, 93.5f);
         }
@@ -1277,6 +1350,12 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(98.0f, 113.0f));
             reaperBlockDepots.add(Point2d.of(103.0f, 110.0f));
 
+            natWallDepots.add(Point2d.of(82.0f, 125.0f));
+            natWallDepots.add(Point2d.of(84.0f, 124.0f));
+            natWallDepots.add(Point2d.of(86.0f, 123.0f));
+            natWall3x3s.add(Point2d.of(87.5f, 120.5f));
+            natWall3x3s.add(Point2d.of(86.5f, 123.5f));
+
             BUNKER_NATURAL = Point2d.of(85.5f, 123.5f);
         }
         else {
@@ -1291,6 +1370,12 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(41.0f, 46.0f));
             reaperBlock3x3s.add(Point2d.of(43.5f, 44.5f));
             reaperBlock3x3s.add(Point2d.of(38.5f, 47.5f));
+
+            natWallDepots.add(Point2d.of(62.0f, 31.0f));
+            natWallDepots.add(Point2d.of(60.0f, 32.0f));
+            natWallDepots.add(Point2d.of(58.0f, 33.0f));
+            natWall3x3s.add(Point2d.of(56.5f, 35.5f));
+            natWall3x3s.add(Point2d.of(57.5f, 32.5f));
 
             BUNKER_NATURAL = Point2d.of(58.5f, 32.5f);
         }
@@ -1706,20 +1791,20 @@ public class PosConstants {
             case MapNames.MOONDANCE_AIE:
                 baseLocations.add(Point2d.of(72.5f, 160.5f));
                 baseLocations.add(Point2d.of(57.5f, 138.5f));
+                baseLocations.add(Point2d.of(45.5f, 160.5f)); //pocket - index 2
                 baseLocations.add(Point2d.of(87.5f, 141.5f));
                 baseLocations.add(Point2d.of(110.5f, 161.5f));
                 baseLocations.add(Point2d.of(48.5f, 109.5f));
-                baseLocations.add(Point2d.of(45.5f, 160.5f));
                 baseLocations.add(Point2d.of(143.5f, 160.5f));
                 baseLocations.add(Point2d.of(43.5f, 76.5f));
                 baseLocations.add(Point2d.of(67.5f, 86.5f));
                 baseLocations.add(Point2d.of(124.5f, 117.5f));
                 baseLocations.add(Point2d.of(148.5f, 127.5f));
                 baseLocations.add(Point2d.of(48.5f, 43.5f));
-                baseLocations.add(Point2d.of(146.5f, 43.5f));
                 baseLocations.add(Point2d.of(143.5f, 94.5f));
                 baseLocations.add(Point2d.of(81.5f, 42.5f));
                 baseLocations.add(Point2d.of(104.5f, 62.5f));
+                baseLocations.add(Point2d.of(146.5f, 43.5f)); //pocket - index 15
                 baseLocations.add(Point2d.of(134.5f, 65.5f));
                 baseLocations.add(Point2d.of(119.5f, 43.5f));
                 break;
@@ -1818,7 +1903,7 @@ public class PosConstants {
             case MapNames.STARGAZERS_AIE:
                 baseLocations.add(Point2d.of(39.5f, 123.5f));
                 baseLocations.add(Point2d.of(40.5f, 96.5f));
-                //baseLocations.add(Point2d.of(74.5f, 129.5f));
+                //baseLocations.add(Point2d.of(74.5f, 129.5f)); //pocket - index 2
                 baseLocations.add(Point2d.of(65.5f, 102.5f));
                 baseLocations.add(Point2d.of(41.5f, 70.5f));
                 baseLocations.add(Point2d.of(49.5f, 41.5f));
@@ -1826,7 +1911,7 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(150.5f, 41.5f));
                 baseLocations.add(Point2d.of(158.5f, 70.5f));
                 baseLocations.add(Point2d.of(134.5f, 102.5f));
-                //baseLocations.add(Point2d.of(125.5f, 129.5f));
+                //baseLocations.add(Point2d.of(125.5f, 129.5f)); //pocket - index 10
                 baseLocations.add(Point2d.of(159.5f, 96.5f));
                 baseLocations.add(Point2d.of(160.5f, 123.5f));
                 break;
@@ -1974,30 +2059,18 @@ public class PosConstants {
         float midY = (MAX_Y - MIN_Y)/2f + MIN_Y;
         Point2d homeBasePos = baseLocations.get(0);
         double homeBaseAngle = Math.toDegrees(Math.atan2(homeBasePos.getX()-midX, homeBasePos.getY()-midY));
-        Point2d enemyBasePos = baseLocations.get(baseLocations.size() - 1);
-        double enemyBaseAngle = Math.toDegrees(Math.atan2(enemyBasePos.getX()-midX, enemyBasePos.getY()-midY)) - homeBaseAngle;
 
         for (Point2d basePos : baseLocations) {
             double angle = Math.toDegrees(Math.atan2(basePos.getX()-midX, basePos.getY()-midY)) - homeBaseAngle;
-            if (enemyBaseAngle < 0 && angle < enemyBaseAngle) angle += 360;
-            if (enemyBaseAngle > 0 && angle > enemyBaseAngle) angle -= 360;
+            if (angle < 0) {
+                angle += 360;
+            }
             basesByAngle.put(angle, basePos);
         }
 
-        basesByAngle.forEach((angle, basePos) -> { //TODO: do the full loop, not just to enemy main
-            if (angle <= 0) {
-                counterClockBasePositions.add(0, basePos);
-            }
-            if (angle >= 0) {
-                clockBasePositions.add(basePos);
-            }
-        });
-        if (enemyBaseAngle < 0) {
-            clockBasePositions.add(enemyBasePos);
-        }
-        else {
-            counterClockBasePositions.add(enemyBasePos);
-        }
+        clockBasePositions = new ArrayList<>(basesByAngle.values());
+        counterClockBasePositions = new ArrayList<>(clockBasePositions);
+        Collections.reverse(counterClockBasePositions);
     }
 
     public static Point2d getMainBaseMidPoint(boolean isEnemyMain) {
@@ -2036,8 +2109,12 @@ public class PosConstants {
 
     public static Point2d getBackCorner() {
         return Point2d.of(
-                isMySpawnLeft() ? PosConstants.SCREEN_BOTTOM_LEFT.getX() : PosConstants.SCREEN_TOP_RIGHT.getX(),
-                isMySpawnTop() ? PosConstants.SCREEN_TOP_RIGHT.getY() : PosConstants.SCREEN_BOTTOM_LEFT.getY()
+                isMySpawnLeft() ? MIN_X : MAX_X,
+                isMySpawnTop() ? MAX_Y : MIN_Y
         );
+    }
+
+    private static void setSpawnCorner() {
+        spawnCorner = getBackCorner();
     }
 }

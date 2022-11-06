@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Position {
@@ -36,6 +37,31 @@ public class Position {
         }
         Point2d vector = unitVector(origin, target);
         return inBounds(origin.add(vector.mul(distance)));
+    }
+
+
+    public static Point2d towards(Unit originUnit, Point2d target, float xDistance, float yDistance) {
+        return towards(originUnit.getPosition().toPoint2d(), target, xDistance, yDistance);
+    }
+
+    public static Point2d towards(Point2d origin, Unit targetUnit, float xDistance, float yDistance) {
+        return towards(origin, targetUnit.getPosition().toPoint2d(), xDistance, yDistance);
+    }
+
+    public static Point2d towards(Unit originUnit, Unit targetUnit, float xDistance, float yDistance) {
+        return towards(originUnit.getPosition().toPoint2d(), targetUnit.getPosition().toPoint2d(), xDistance, yDistance);
+    }
+
+    public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {
+        if (target.getX() < origin.getX()) {
+            xDistance = -xDistance;
+        }
+        if (target.getY() < origin.getY()) {
+            yDistance = -yDistance;
+        }
+        float x = origin.getX() + xDistance;
+        float y = origin.getY() + yDistance;
+        return inBounds(x, y);
     }
 
     private static Point2d inBounds(Point2d p) {
@@ -80,19 +106,6 @@ public class Position {
 
     private static boolean isOnBoundaryY(float y) {
         return y == PosConstants.MAX_Y || y == PosConstants.MIN_Y;
-    }
-
-    public static Point2d towards(Point2d origin, Point2d target, float xDistance, float yDistance) {
-        if (target.getX() < origin.getX()) {
-            xDistance = -xDistance;
-        }
-        if (target.getY() < origin.getY()) {
-            yDistance = -yDistance;
-        }
-        float x = origin.getX() + xDistance;
-
-        float y = origin.getY() + yDistance;
-        return inBounds(x, y);
     }
 
     public static Point2d midPoint(Point2d p1, Point2d p2) {
@@ -317,10 +330,11 @@ public class Position {
     }
 
     public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius) {
-        List<Point2d> possiblePosList = getSpiralList(pos, searchRadius).stream()
-                .sorted(Comparator.comparing(p -> p.distance(pos)))
-                .collect(Collectors.toList());
+        return findNearestPlacement(placementAbility, pos, searchRadius, p -> true);
+    }
 
+    public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius, Predicate<Point2d> searchFilter) {
+        List<Point2d> possiblePosList = getPosListGridByClosest(pos, searchRadius, searchFilter);
         return getFirstPosFromQuery(possiblePosList, placementAbility);
     }
 
@@ -352,10 +366,12 @@ public class Position {
         return posList;
     }
 
-    public static List<Point2d> getPosListGridByClosest(Point2d pos, int radius) {
+    public static List<Point2d> getPosListGridByClosest(Point2d pos, int radius, Predicate<Point2d> searchFilter) {
         List<Point2d> posList = getPosListGrid(pos, radius);
-        posList.sort(Comparator.comparing(p -> p.distance(pos)));
-        return posList;
+        return posList.stream()
+                .filter(searchFilter)
+                .sorted(Comparator.comparing(p -> p.distance(pos)))
+                .collect(Collectors.toList());
     }
 
     public static List<Point2d> getSpiralList(Point2d pos, int searchRadius) {

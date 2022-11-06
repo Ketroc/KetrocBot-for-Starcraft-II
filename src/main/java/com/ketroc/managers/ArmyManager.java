@@ -136,9 +136,19 @@ public class ArmyManager {
         });
 
         //FIXME: just for testing below
-        UnitUtils.myUnitsOfType(Units.TERRAN_HELLION_TANK).forEach(hellbat -> {
-            UnitMicroList.add(new Hellbat(hellbat, PosConstants.insideMainWall));
-        });
+        if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
+            UnitUtils.myUnitsOfType(Units.TERRAN_HELLION_TANK).forEach(hellbat -> {
+                UnitMicroList.add(new Hellbat_FastTravel(hellbat));
+            });
+            UnitUtils.myUnitsOfType(Units.TERRAN_HELLION).forEach(hellion -> {
+                UnitMicroList.add(new Hellbat_FastTravel(hellion));
+            });
+        }
+        else {
+            UnitUtils.myUnitsOfType(Units.TERRAN_HELLION_TANK).forEach(hellbat -> {
+                UnitMicroList.add(new Hellbat(hellbat));
+            });
+        }
 
         //FIXME: just for testing below
         UnitUtils.myUnitsOfType(Units.TERRAN_WIDOWMINE).forEach(mine -> {
@@ -530,6 +540,19 @@ public class ArmyManager {
             return;
         }
 
+        if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
+            int numHellions = UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, false);
+            if (!doOffense &&
+                    UnitUtils.myUnitsOfType(Units.TERRAN_ARMORY).stream().anyMatch(armory -> armory.getBuildProgress() > 0.95) &&
+                    numHellions >= 8) {
+                doOffense = true;
+            }
+            if (doOffense && numHellions <= 4) {
+                doOffense = false;
+            }
+            return;
+        }
+
         if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, false);
             if (doOffense && Bot.OBS.getFoodUsed() < 190 && numHellbats < 6) {
@@ -669,18 +692,26 @@ public class ArmyManager {
             );
         }
 
-        //protect 3rd
-        if (GameCache.baseList.get(2).isMyBase()) {
-            return GameCache.baseList.get(2).inFrontPos();
+        //protect forward base
+        Base forwardBase = getForwardBase();
+        if (forwardBase.isMyBase()) {
+            return forwardBase.inFrontPos();
         }
         //protect nat if OC or if no base but bunker is up there
         if (!UnitUtils.isWallUnderAttack() &&
-                ((Strategy.NUM_BASES_TO_OC >= 2 && GameCache.baseList.get(1).isMyBase()) ||
-                UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL, 1))) {
+                ((Strategy.DO_WALL_NAT && GameCache.baseList.get(1).isMyBase()) ||
+                UnitUtils.isUnitTypesNearby(Alliance.SELF, Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL, 5))) {
             return UnitUtils.getBehindBunkerPos();
         }
         //protect main ramp
         return PosConstants.insideMainWall;
+    }
+
+    private static Base getForwardBase() {
+        return GameCache.baseList.stream()
+                .filter(base -> !base.isPocketBase())
+                .collect(Collectors.toList())
+                .get(2);
     }
 
 
@@ -995,18 +1026,18 @@ public class ArmyManager {
             return;
         }
 
-        Optional<UnitInPool> bunkerAtNatural = UnitUtils.getNatBunker();
-        boolean enemyInBunkerRange = bunkerAtNatural.isPresent() && //bunker exists
-                !UnitUtils.getEnemyTargetsInRange(bunkerAtNatural.get().unit()).isEmpty(); //enemies in range of bunker
-        Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && bunkerAtNatural.isEmpty()) ?
+        List<UnitInPool> natBunkers = UnitUtils.getNatBunkers();
+        boolean enemyInBunkerRange = natBunkers.stream()
+                .anyMatch(bunker -> !UnitUtils.getEnemyTargetsInRange(bunker.unit()).isEmpty()); //enemies in range of bunker
+        Unit enemyInMyBase = (!GameCache.baseList.get(1).isMyBase() && natBunkers.isEmpty()) ?
                 getEnemyInMain() :
-                getEnemyInMainOrNatural(bunkerAtNatural.isPresent());
+                getEnemyInMainOrNatural(!natBunkers.isEmpty());
 
         //if main/nat under attack and all enemies passed the bunker, then empty bunker and engage with marines
         if (enemyInMyBase != null && !enemyInBunkerRange) {
-            bunkerAtNatural
+            natBunkers.stream()
                     .filter(bunker -> UnitUtils.getDistance(bunker.unit(), enemyInMyBase) > 8)
-                    .ifPresent(bunker -> {
+                    .forEach(bunker -> {
                         if (bunker.unit().getCargoSpaceTaken().orElse(0) > 0) {
                             ActionHelper.unitCommand(bunker.unit(), Abilities.UNLOAD_ALL_BUNKER, false);
                         }
@@ -1020,15 +1051,12 @@ public class ArmyManager {
             return;
         }
 
-        //if bunker in production, wait behind bunker
-        if (bunkerAtNatural.isPresent() && bunkerAtNatural.get().unit().getBuildProgress() < 1) {
-            MarineBasic.setTargetPos(UnitUtils.getBehindBunkerPos());
-            return;
-        }
-
-        //if bunker exists, head to bunker and enter
-        if (bunkerAtNatural.isPresent()) {
-            MarineBasic.setTargetPos(PosConstants.BUNKER_NATURAL);
+        // go to bunker needing marines
+        if (natBunkers.stream().anyMatch(bunker -> bunker.unit().getBuildProgress() == 1f && bunker.unit().getCargoSpaceTaken().orElse(4) != 4)) {
+            Point2d bunkerPos = natBunkers.stream()
+                    .min(Comparator.comparing(bunker -> bunker.unit().getCargoSpaceTaken().orElse(4) + (bunker.unit().getBuildProgress() < 1f ? 3.5f : 0)))
+                    .get().unit().getPosition().toPoint2d();
+            MarineBasic.setTargetPos(Position.towards(bunkerPos, GameCache.baseList.get(1).getCcPos(), 1.9f));
             return;
         }
 
@@ -1042,20 +1070,8 @@ public class ArmyManager {
             return;
         }
 
-        //attack when doOffense is true
-        if (ArmyManager.doOffense) {
-            MarineBasic.setTargetPos(ArmyManager.attackEitherPos);
-            return;
-        }
-
-//        //cover natural ramp if nat is an OC base
-//        if (GameCache.baseList.get(1).getCc() != null && Strategy.NUM_BASES_TO_OC > 1) {
-//            MarineBasic.setTargetPos(LocationConstants.BUNKER_NATURAL);
-//            return;
-//        }
-
-        //otherwise, go to top of ramp
-        MarineBasic.setTargetPos(PosConstants.insideMainWall);
+        //otherwise, go to rally point
+        MarineBasic.setTargetPos(attackEitherPos);
     }
 
     private static boolean isBehindMainOrNat(Point2d pos) {
@@ -1105,7 +1121,7 @@ public class ArmyManager {
         Unit idleTank = GameCache.siegeTankList.get(0);
         if (Strategy.DO_DEFENSIVE_TANKS) {
             for (Base base : GameCache.baseList) {
-                if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
+                if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp() && !base.isPocketBase()) { //my expansion bases only
                     for (DefenseUnitPositions tankPos : base.getInMineralLinePositions()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()), base);
@@ -1157,7 +1173,7 @@ public class ArmyManager {
             boolean isDepotLowered = depot.getType() == Units.TERRAN_SUPPLY_DEPOT_LOWERED;
 
             //WALL DEPOTS
-            if (UnitUtils.isRampWallStructure(depot)) {
+            if (UnitUtils.isRampWallStructure(depot) || UnitUtils.isNatWallStructure(depot)) {
                 //Raise
                 if (isDepotLowered) {
                     if (InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, depot.getPosition().toPoint2d())) {

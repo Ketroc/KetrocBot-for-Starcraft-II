@@ -80,7 +80,6 @@ public class WorkerRushDefense2 {
         //turn off worker rush code
         if (Strategy.WALL_OFF_IMMEDIATELY && Time.nowSeconds() > 300) {
             Strategy.WALL_OFF_IMMEDIATELY = false;
-
         }
     }
 }

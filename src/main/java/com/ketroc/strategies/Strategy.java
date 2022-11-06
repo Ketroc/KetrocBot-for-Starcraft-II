@@ -17,6 +17,7 @@ import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.UpgradeManager;
 import com.ketroc.micro.Harassers;
+import com.ketroc.models.Base;
 import com.ketroc.models.DelayedChat;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.utils.*;
@@ -26,6 +27,9 @@ import java.util.*;
 public class Strategy {
     public static boolean ARCHON_MASS_RAVEN; //turn on for playing mass raven in archon mode
     public static boolean TOURNAMENT_MODE; //turn on to use getTournamentGamePlan()
+    public static boolean RANDOM_STRATEGY_SELECTION = true; //TODO: turn off
+    public static boolean DO_WALL_NAT;
+    public static boolean NO_UPGRADES;
 
     public static final int NUM_OFFENSE_SCVS = 4;
     public static int NUM_BASES_TO_OC = 1;
@@ -160,6 +164,7 @@ public class Strategy {
         applyOpponentSpecificTweaks();
         setRampWall();
         setReaperBlockWall();
+        setNatWall();
     }
 
     private static void applyOpponentSpecificTweaks() {
@@ -261,19 +266,7 @@ public class Strategy {
     private static void chooseTvTStrategy() {
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvTGamePlans = getAvailableTvTGamePlans();
-            if (!Launcher.isRealTime) {
-                gamePlan = getStrategyForLadder(availableTvTGamePlans);
-            }
-            else {
-                //select random game plan
-                gamePlan = availableTvTGamePlans.stream()
-                        .skip(new Random().nextInt(availableTvTGamePlans.size()))
-                        .findFirst()
-                        .get();
-            }
-//            while (!availableTvTGamePlans.contains(gamePlan)) {
-//                gamePlan = getNextGamePlan(gamePlan);
-//            }
+            gamePlan = selectStrategy(availableTvTGamePlans);
         }
 
         if (gamePlan == GamePlan.NONE) {
@@ -291,6 +284,13 @@ public class Strategy {
                 break;
             case TANK_VIKING:
                 useTankVikingAdjustments();
+                break;
+            case HELLBAT_ALL_IN:
+                NUM_BASES_TO_OC = 2;
+                DO_WALL_NAT = true;
+                Strategy.NO_TURRETS = true;
+                Strategy.DO_BANSHEE_HARASS = false;
+                Strategy.MAX_MARINES = 1;
                 break;
             case ONE_BASE_TANK_VIKING:
                 useTankVikingAdjustments();
@@ -444,27 +444,27 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
                 return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE,
-//                        GamePlan.BANSHEE_CYCLONE,
-//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.BANSHEE,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
-//                        GamePlan.SCV_RUSH,
-//                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.MECH_ALL_IN
-//                        GamePlan.RAVEN
+                        GamePlan.MECH_ALL_IN,
+                        GamePlan.RAVEN
                 ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
                         GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE
-                        //GamePlan.MARINE_RUSH,
-                        //GamePlan.SCV_RUSH,
-                        //GamePlan.BUNKER_CONTAIN_WEAK,
-                        //GamePlan.BUNKER_CONTAIN_STRONG,
-                        //GamePlan.MECH_ALL_IN,
-                        //GamePlan.RAVEN
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.MECH_ALL_IN,
+                        GamePlan.RAVEN
                 ));
         }
     }
@@ -502,9 +502,16 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             //case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                return new HashSet<>(Set.of(
-                        GamePlan.BC_RUSH
-                ));
+                if (PosConstants.MAP.equals(MapNames.MOONDANCE_AIE)) {
+                    return new HashSet<>(Set.of(
+                            GamePlan.HELLBAT_ALL_IN
+                    ));
+                }
+                else {
+                    return new HashSet<>(Set.of(
+                            GamePlan.BC_RUSH
+                    ));
+                }
             case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
@@ -551,22 +558,8 @@ public class Strategy {
     private static void chooseTvPStrategy() {
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvPGamePlans = getAvailableTvPGamePlans();
-            if (!Launcher.isRealTime) {
-                gamePlan = getStrategyForLadder(availableTvPGamePlans);
-            }
-            else {
-                //select random game plan
-                gamePlan = availableTvPGamePlans.stream()
-                        .skip(new Random().nextInt(availableTvPGamePlans.size()))
-                        .findFirst()
-                        .get();
-            }
-
-//            while (!availableTvPGamePlans.contains(gamePlan)) {
-//                gamePlan = getNextGamePlan(gamePlan);
-//            }
+            gamePlan = selectStrategy(availableTvPGamePlans);
         }
-
 
         if (gamePlan == GamePlan.NONE) {
             gamePlan = GamePlan.BANSHEE;
@@ -601,6 +594,13 @@ public class Strategy {
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
                 break;
+            case HELLBAT_ALL_IN:
+                NUM_BASES_TO_OC = 2;
+                DO_WALL_NAT = true;
+                Strategy.NO_TURRETS = true;
+                Strategy.DO_BANSHEE_HARASS = false;
+                Strategy.MAX_MARINES = 1;
+                break;
             case RAVEN:
                 massRavenStrategy();
                 break;
@@ -623,23 +623,7 @@ public class Strategy {
         System.out.println("in chooseTvZStrategy");
         if (gamePlan == GamePlan.NONE) {
             Set<GamePlan> availableTvZGamePlans = getAvailableTvZGamePlans();
-            System.out.println("availableTvZGamePlans = " + availableTvZGamePlans);
-
-            if (!Launcher.isRealTime) {
-                gamePlan = getStrategyForLadder(availableTvZGamePlans);
-            }
-            else {
-                //select random game plan
-                gamePlan = availableTvZGamePlans.stream()
-                        .skip(new Random().nextInt(availableTvZGamePlans.size()))
-                        .findFirst()
-                        .get();
-                System.out.println("random chosen gamePlan = " + gamePlan);
-            }
-
-//            while (!availableTvZGamePlans.contains(gamePlan)) {
-//                gamePlan = getNextGamePlan(gamePlan);
-//            }
+            gamePlan = selectStrategy(availableTvZGamePlans);
         }
 
         if (gamePlan == GamePlan.NONE) {
@@ -653,16 +637,25 @@ public class Strategy {
             case BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
-                MAX_MARINES = 4;
+                MAX_MARINES = 2;
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;
                 PRIORITIZE_EXPANDING = true;
                 break;
             case BC_RUSH:
                 NUM_BASES_TO_OC = PosConstants.baseLocations.size();
+                DO_WALL_NAT = true;
+                NO_UPGRADES = true;
                 Strategy.techBuilt = true;
                 Strategy.NO_TURRETS = true;
                 Strategy.DO_BANSHEE_HARASS = false;
+                break;
+            case HELLBAT_ALL_IN:
+                NUM_BASES_TO_OC = 2;
+                DO_WALL_NAT = true;
+                Strategy.NO_TURRETS = true;
+                Strategy.DO_BANSHEE_HARASS = false;
+                Strategy.MAX_MARINES = 1;
                 break;
             case BANSHEE:
                 break;
@@ -884,6 +877,15 @@ public class Strategy {
         }
 
         //marine all-in without an expansion
+        if (gamePlan == GamePlan.HELLBAT_ALL_IN) {
+            int numBases = 2 + (GameCache.baseList.stream().anyMatch(Base::isPocketBase) ? 1 : 0);
+            return (int)GameCache.baseList.stream()
+                    .limit(numBases)
+                    .flatMap(base -> base.getMineralPatches().stream())
+                    .count() * 2 + 3; //3 extra for building depots
+        }
+
+        //marine all-in without an expansion
         if (gamePlan == GamePlan.MECH_ALL_IN && !GameCache.baseList.get(1).isMyBase()) {
             return GameCache.baseList.get(0).getMineralPatches().size()*2 + 6 + NUM_OFFENSE_SCVS + 1;
         }
@@ -936,7 +938,7 @@ public class Strategy {
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
 
-        MAX_MARINES = 6;
+        MAX_MARINES = 4;
         DO_OFFENSIVE_TANKS = true;
         DO_SEEKER_MISSILE = true;
         MIN_BANSHEES = 0;
@@ -974,6 +976,13 @@ public class Strategy {
         }
     }
 
+    private static void setNatWall() {
+        if (DO_WALL_NAT) {
+            PosConstants.extraDepots.addAll(0, PosConstants.natWallDepots);
+            PosConstants._3x3Structures.addAll(0, PosConstants.natWall3x3s);
+        }
+    }
+
     public static void printStrategySettings() {
         Print.print("selectedStrategy = " + gamePlan);
         Print.print("DO_DIVE_MOBILE_DETECTORS = " + DO_DIVE_MOBILE_DETECTORS);
@@ -997,7 +1006,13 @@ public class Strategy {
         Print.print("NO_RAMP_WALL = " + NO_RAMP_WALL);
     }
 
-    public static GamePlan getStrategyForLadder(Set<GamePlan> gamePlans) {
+    public static GamePlan selectStrategy(Set<GamePlan> gamePlans) {
+        if (RANDOM_STRATEGY_SELECTION || Launcher.isRealTime) {
+            return gamePlans.stream()
+                    .skip(new Random().nextInt(gamePlans.size()))
+                    .findFirst()
+                    .get();
+        }
         Opponent opponentRecords = JsonUtil.getOpponentRecords();
         opponentRecords.filterToGamePlans(gamePlans);
 
@@ -1010,7 +1025,7 @@ public class Strategy {
         }
 
         //don't lose to worker rush twice
-        if (TOURNAMENT_MODE) {
+        if (true) { // TOURNAMENT_MODE) {
             GameResult prevGameResult = opponentRecords.getPrevGameResult();
             if (prevGameResult != null && prevGameResult.getTags().stream().anyMatch(t -> t.endsWith("VS_WORKER_RUSH"))) {
                 System.out.println("setting fast wall code");

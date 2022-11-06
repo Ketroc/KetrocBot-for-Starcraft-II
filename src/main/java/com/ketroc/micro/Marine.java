@@ -36,12 +36,9 @@ public class Marine extends BasicUnitMicro {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, bunker, false);
             removeMe = true;
         }
-        else if (UnitUtils.getDistance(unit.unit(), targetPos) > 0.5f && !isMovingToTargetPos()) {
+        else if (UnitUtils.getDistance(unit.unit(), targetPos) > 0.5f && !isMovingToTargetPos() && !isBlockingScv()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
-//        if (UnitUtils.getOrder(unit.unit()) == null) {
-//            ActionHelper.unitCommand(unit.unit(), Abilities.STOP_DANCE, false);
-//        }
     }
 
     @Override

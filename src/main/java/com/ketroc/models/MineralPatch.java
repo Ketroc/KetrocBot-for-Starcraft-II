@@ -42,7 +42,7 @@ public class MineralPatch {
         Rectangle mineralRect = new MineralShape(nodePos);
         byNodePos = mineralRect.intersection(new Line(nodePos, ccPos)).iterator().next();
         adjustForNearbyMinerals();
-        adjustForMissileTurrets();
+        adjustForTanksAndTurrets();
         byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
     }
 
@@ -62,7 +62,7 @@ public class MineralPatch {
                 .ifPresent(p -> byNodePos = p);
     }
 
-    public void adjustForMissileTurrets() {
+    public void adjustForTanksAndTurrets() {
         Base base = getBase();
         if (base == null) {
             return;
@@ -179,7 +179,7 @@ public class MineralPatch {
             if (distToByCCPos < 2f && distToByCCPos > 1f) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                 UnitInPool cc = getCC();
-                if (cc != null && cc.unit().getBuildProgress() > 0.99f) {
+                if (cc != null && cc.unit().getBuildProgress() >= 1f) {
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }
                 else {

@@ -16,13 +16,20 @@ import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
 import com.ketroc.utils.UnitUtils;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EnemyCache {
     public static Set<Enemy> enemyList = new HashSet<>();
     public static Set<Upgrades> enemyUpgrades = new HashSet<>();
+    private static final Map<Units, Upgrades> singleUpgradeStructures = Map.of(
+            Units.PROTOSS_TEMPLAR_ARCHIVE, Upgrades.PSI_STORM_TECH,
+            Units.PROTOSS_DARK_SHRINE, Upgrades.DARK_TEMPLAR_BLINK_UPGRADE,
+            Units.ZERG_BANELING_NEST, Upgrades.CENTRIFICAL_HOOKS); //TODO: use this to determine upgrades
+
 
     public static void onStepStart() {
         //TODO: remember creep tumor positions

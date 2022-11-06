@@ -14,6 +14,7 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
+import com.ketroc.models.StructureScv;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
@@ -36,6 +37,13 @@ public class BasicUnitMicro {
     private long prevDirectionChangeFrame;
     public boolean removeMe;
     public boolean doDetourAroundEnemy;
+
+    public BasicUnitMicro(Unit unit, MicroPriority priority) {
+        this(Bot.OBS.getUnit(unit.getTag()),
+                ArmyManager.attackEitherPos != null ? ArmyManager.attackEitherPos : unit.getPosition().toPoint2d(),
+                priority
+        );
+    }
 
     public BasicUnitMicro(Unit unit, Point2d targetPos, MicroPriority priority) {
         this(Bot.OBS.getUnit(unit.getTag()), targetPos, priority);
@@ -121,9 +129,18 @@ public class BasicUnitMicro {
 
         //continue moving to target
         if (!isMovingToTargetPos()) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            if (!isBlockingScv()) {
+                ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
+            }
             return;
         }
+    }
+
+    protected boolean isBlockingScv() {
+        return StructureScv.scvBuildingList.stream()
+                .filter(scv -> scv.getStructureUnit() == null)
+                .filter(scv -> UnitUtils.getDistance(scv.getScv().unit(), scv.structurePos) < 4)
+                .anyMatch(scv -> targetPos.distance(scv.structurePos) < 5);
     }
 
     //only dodge splash damage for short-range DPS and all GET_TO_DESTINATION units
@@ -502,7 +519,7 @@ public class BasicUnitMicro {
         return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
     }
 
-    //excludes reapers, hellions, adepts, oracles, when on offense, excludes structures
+    //excludes reapers, hellions, adepts, oracles, when on offense, excludes structures FIXME: why?? this shouldn't be used for marine and hellbat, should it?
     //priority on overcharged batteries, then units that shoot ground, then everything else
     protected Unit getClosestEnemyThreatToGround() {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->

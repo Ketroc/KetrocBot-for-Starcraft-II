@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -175,7 +176,7 @@ public class PurchaseUpgrade implements Purchase {
             case BANSHEE_CLOAK: case BANSHEE_SPEED: case RAVEN_CORVID_REACTOR:
             case MEDIVAC_INCREASE_SPEED_BOOST: case LIBERATOR_AG_RANGE_UPGRADE:
                 return Units.TERRAN_STARPORT_TECHLAB;
-            case YAMATO_CANNON:
+            case YAMATO_CANNON: case BATTLECRUISER_ENABLE_SPECIALIZATIONS:
                 return Units.TERRAN_FUSION_CORE;
             case PERSONAL_CLOAKING: case ENHANCED_SHOCKWAVES:
                 return Units.TERRAN_GHOST_ACADEMY;
@@ -249,5 +250,17 @@ public class PurchaseUpgrade implements Purchase {
                 .anyMatch(purchase -> purchase instanceof PurchaseUpgrade &&
                         ((PurchaseUpgrade) purchase).getProductionStructure() != null &&
                         ((PurchaseUpgrade) purchase).getProductionStructure().getTag().equals(structure.getTag()));
+    }
+
+    public static boolean contains(Unit structure) {
+        return KetrocBot.purchaseQueue.stream()
+                .anyMatch(purchase -> purchase instanceof PurchaseUpgrade &&
+                        ((PurchaseUpgrade) purchase).getProductionStructure() != null &&
+                        ((PurchaseUpgrade) purchase).getProductionStructure().getTag().equals(structure.getTag()));
+    }
+
+    public static boolean contains(Upgrades upgrade) {
+        return KetrocBot.purchaseQueue.stream()
+                .anyMatch(purchase -> purchase instanceof PurchaseUpgrade && ((PurchaseUpgrade) purchase).getUpgrade() == upgrade);
     }
 }

@@ -22,6 +22,7 @@ import com.ketroc.models.*;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructureMorph;
 import com.ketroc.purchases.PurchaseUnit;
+import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 
 import java.util.*;
@@ -294,6 +295,10 @@ public class UnitUtils {
         return minerals >= mineralCost && gas >= gasCost && supply >= supplyCost;
     }
 
+    public static boolean canAfford(Upgrades upgrade) {
+        Cost upgradeCost = Cost.getUpgradeCost(upgrade);
+        return GameCache.mineralBank >= upgradeCost.minerals && GameCache.gasBank >= upgradeCost.gas;
+    }
 
     public static boolean isUnitTypesNearby(Alliance alliance, Units unitType, Point2d position, float distance) {
         return !getUnitsNearbyOfType(alliance, unitType, position, distance).isEmpty();
@@ -399,7 +404,7 @@ public class UnitUtils {
         if (unit.getType().toString().contains("CHANGELING")) {
             return 0;
         }
-        switch ((Units) unit.getType()) { //these types do not have a Weapon in the api
+        switch ((Units) unit.getType()) {
             case TERRAN_BUNKER:
                 attackRange = Strategy.DO_IGNORE_BUNKERS ? 0 : 6;
                 break;
@@ -1221,6 +1226,17 @@ public class UnitUtils {
                 PosConstants.reaperBlock3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
     }
 
+    public static boolean isNatWallStructure(Unit structure) {
+        return isNatWallStructure(structure.getPosition().toPoint2d());
+    }
+    public static boolean isNatWallStructure(Point2d structurePos) {
+        if (!Strategy.DO_WALL_NAT) {
+            return false;
+        }
+        return PosConstants.natWallDepots.stream().anyMatch(p -> p.distance(structurePos) < 1) ||
+                PosConstants.natWall3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
+    }
+
     public static boolean isRampWallStructure(Unit structure) {
         return isRampWallStructure(structure.getPosition().toPoint2d());
     }
@@ -1238,7 +1254,8 @@ public class UnitUtils {
 
     public static boolean isWallingStructure(Point2d structurePos) {
         return isRampWallStructure(structurePos) ||
-                (PosConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos));
+                (PosConstants.opponentRace == Race.TERRAN && isReaperWallStructure(structurePos)) ||
+                isNatWallStructure(structurePos);
     }
 
     public static boolean myUnitWithin1ShotThreat(Unit myUnit) {
@@ -1477,13 +1494,11 @@ public class UnitUtils {
         return angleDiff > 120;
     }
 
-    public static Optional<UnitInPool> getNatBunker() {
+    public static List<UnitInPool> getNatBunkers() {
         return Bot.OBS.getUnits(Alliance.SELF, bunker -> bunker.unit().getType() == Units.TERRAN_BUNKER &&
-                        getDistance(bunker.unit(), PosConstants.BUNKER_NATURAL) < 1 &&
+                        getDistance(bunker.unit(), PosConstants.BUNKER_NATURAL) < 9 &&
                         ActionIssued.getCurOrder(bunker).stream()
-                                .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE))
-                .stream()
-                .findFirst();
+                                .noneMatch(actionIssued -> actionIssued.ability == Abilities.EFFECT_SALVAGE));
     }
 
     public static Set<Unit> getRepairBayTargets(Point2d repairBayPos) {
@@ -1600,7 +1615,8 @@ public class UnitUtils {
     }
 
     public static Point2d getBehindBunkerPos() {
-        return Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 1.9f);
+        float distance = (Strategy.gamePlan == GamePlan.BC_RUSH) ? 4 : 1.9f;
+        return Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), distance);
     }
 
     public static boolean isDestructible(UnitInPool uip) {

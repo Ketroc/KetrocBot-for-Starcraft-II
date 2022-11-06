@@ -25,15 +25,15 @@ public class DefenseUnitPositions {
         return unit;
     }
 
-    public void setUnit(UnitInPool unit, Base base) {
-        if ((this.unit == null && unit != null && unit.unit().getType() == Units.TERRAN_MISSILE_TURRET) || //turret added
-                (this.unit != null && unit == null && this.unit.unit().getType() == Units.TERRAN_MISSILE_TURRET)) { //turret cancelled/destroyed
-            this.unit = unit;
+    public void setUnit(UnitInPool newUnit, Base base) {
+        if ((this.unit == null && newUnit != null && (newUnit.unit().getType() == Units.TERRAN_MISSILE_TURRET || newUnit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED)) || //turret/tank added
+                (this.unit != null && newUnit == null && (this.unit.unit().getType() == Units.TERRAN_MISSILE_TURRET || this.unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED))) { //turret/tank cancelled/destroyed
+            this.unit = newUnit;
             base.getMineralPatches().forEach(mineralPatch -> mineralPatch.initMiningPositions());
             base.getGases().forEach(gas -> gas.initMiningPositions());
         }
         else {
-            this.unit = unit;
+            this.unit = newUnit;
         }
     }
 }

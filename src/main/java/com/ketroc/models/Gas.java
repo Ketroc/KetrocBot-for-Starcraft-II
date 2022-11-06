@@ -186,7 +186,7 @@ public class Gas {
             //start speed MOVE
             if (distToCC < 1.75f && distToCC > 1f) {
                 UnitInPool cc = getCC();
-                if (cc != null && cc.unit().getBuildProgress() > 0.99f) {
+                if (cc != null && cc.unit().getBuildProgress() >= 1f) {
                     ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }
@@ -260,6 +260,6 @@ public class Gas {
     }
 
     public boolean isReadyForMining() {
-        return !isDriedUp() && getRefinery() != null && getRefinery().getBuildProgress() > 0.99f;
+        return !isDriedUp() && getRefinery() != null && getRefinery().getBuildProgress() >= 1f;
     }
 }

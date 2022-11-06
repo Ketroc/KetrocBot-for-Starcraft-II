@@ -170,7 +170,7 @@ public class GroundUnitKillSquad {
                 )
                 .min(Comparator.comparing(hellbat -> UnitUtils.getDistance(hellbat.unit.unit(), targetUip.unit())))
                 .ifPresent(hellbat -> {
-                    hellbat.morph();
+                    hellbat.morph(true);
                     prevHellionMorphFrame = Time.nowFrames();
                 });
     }

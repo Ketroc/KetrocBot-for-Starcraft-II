@@ -39,6 +39,7 @@ public class DebugHelper {
             return;
         }
         displayGameInfo();
+        Bot.DEBUG.sendDebug();
         lineNum = 0;
     }
 
@@ -156,10 +157,6 @@ public class DebugHelper {
         for (int i = 0; i < KetrocBot.purchaseQueue.size() && i < 5; i++) {
             DebugHelper.addInfoLine(KetrocBot.purchaseQueue.get(i).getType());
         }
-
-//        DebugHelper.draw3dBox(LocationConstants.enemyMineralPos, Color.BLUE, 0.67f);
-//        DebugHelper.draw3dBox(LocationConstants.pointOnEnemyRamp, Color.GREEN, 0.5f);
-//        DebugHelper.draw3dBox(LocationConstants.pointOnMyRamp, Color.GREEN, 0.5f);
     }
 
     public static void drawRect(float top, float bottom, float left, float right, Color color) {

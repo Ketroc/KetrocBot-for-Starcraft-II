@@ -35,7 +35,9 @@ public class StructureFloater extends BasicUnitMicro {
 
         if (unit.unit().getFlying().orElse(true)) {
             if (UnitUtils.getOrder(unit.unit()) != Abilities.LAND) {
-                ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
+                if (InfluenceMaps.getThreatToStructure((Units)unit.unit().getType(), targetPos) == 0) {
+                    ActionHelper.unitCommand(unit.unit(), Abilities.LAND, targetPos, false);
+                }
             }
         }
         else {
@@ -46,16 +48,17 @@ public class StructureFloater extends BasicUnitMicro {
     @Override
     public void onDeath() {
         removeMe = true;
+        if (!doLand) {
+            return;
+        }
         switch ((Units)unit.unit().getType()) {
             case TERRAN_ORBITAL_COMMAND_FLYING: case TERRAN_COMMAND_CENTER_FLYING:
                 Placement.possibleCcPosList.add(targetPos);
                 break;
             case TERRAN_BARRACKS_FLYING:
-                PosConstants._3x3Structures.add(targetPos); //FIXME: only if landing here
+                PosConstants._3x3Structures.add(targetPos);
                 break;
             case TERRAN_FACTORY_FLYING:
-//                LocationConstants.FACTORIES.add(targetPos);
-//                break;
             case TERRAN_STARPORT_FLYING:
                 PosConstants._3x3AddonPosList.add(targetPos);
                 break;

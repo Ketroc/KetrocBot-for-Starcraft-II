@@ -24,6 +24,7 @@ import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class PurchaseStructure implements Purchase { //TODO: add rally point
     private Unit scv;  //okay to not be unitInPool as it's only set the same frame the build command is given
@@ -34,6 +35,12 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     private Point2d position;
     private boolean isPositionImportant;
     private Point2d rallyPosition;
+    public static final Predicate<Point2d> natBunkerPosFilter = pos -> {
+        Point2d natPos = GameCache.baseList.get(1).getCcPos();
+        double distance = pos.distance(natPos);
+        return PosConstants.natWallDepots.stream().noneMatch(p -> p.distance(natPos) + 2 < distance) &&
+                PosConstants.natWall3x3s.stream().noneMatch(p -> p.distance(natPos) + 2 < distance);
+    };
 
 
     public static final Map<Units, Abilities> structureToActionMap;
@@ -250,18 +257,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     private Point2d findNearbyBunkerPos() {
-        Point2d behindBunkerPos = Position.toHalfPoint(
-                Position.towards(
-                        Position.towards(
-                                PosConstants.BUNKER_NATURAL,
-                                GameCache.baseList.get(1).getCcPos(),
-                                2
-                        ),
-                        PosConstants.myRampPos,
-                        2
-                )
-        );
-        return Position.findNearestPlacement(Abilities.BUILD_BUNKER, behindBunkerPos, 4);
+        return Position.findNearestPlacement(Abilities.BUILD_BUNKER, PosConstants.BUNKER_NATURAL, 5, natBunkerPosFilter);
     }
 
     public PurchaseResult buildRefinery() {
@@ -429,7 +425,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                             }
                             return false;
                         }
-                    case MARINE_RUSH: case MECH_ALL_IN: case BC_RUSH:
+                    case MARINE_RUSH: case MECH_ALL_IN:
                         return set3x3AddOnPos();
                     default:
                         return set3x3Pos();
@@ -439,9 +435,34 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 return set3x3AddOnPos();
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_GHOST_ACADEMY: case TERRAN_FUSION_CORE:
                 return set3x3Pos();
+            case TERRAN_BUNKER:
+                position = calcBunkerPos();
+                return position != null;
             default:
                 return false;
         }
+    }
+
+    private Point2d calcBunkerPos() {
+        //fill nat wall
+        if (Strategy.DO_WALL_NAT) {
+            Point2d wallPos = PosConstants.natWall3x3s.stream()
+                    .filter(p -> !PurchaseStructure.containsPos(p))
+                    .filter(p -> Bot.QUERY.placement(Abilities.BUILD_BUNKER, p))
+                    .findFirst()
+                    .orElse(null);
+            if (wallPos != null) {
+                return wallPos;
+            }
+        }
+
+        //use default nat pos
+        if (Bot.QUERY.placement(Abilities.BUILD_BUNKER, PosConstants.BUNKER_NATURAL)) {
+            return PosConstants.BUNKER_NATURAL;
+        }
+
+        //find a nearby placeable pos near default nat pos
+        return findNearbyBunkerPos();
     }
 
     private boolean set3x3AddOnPos() {
@@ -532,6 +553,12 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 .map(purchase -> (PurchaseStructure)purchase);
     }
 
+    private static boolean containsPos(Point2d pos) {
+        return KetrocBot.purchaseQueue.stream()
+                .anyMatch(purchase -> purchase instanceof PurchaseStructure &&
+                        ((PurchaseStructure) purchase).position != null &&
+                        ((PurchaseStructure) purchase).position.distance(pos) < 1);
+    }
 
     @Override
     public void setCost() {
