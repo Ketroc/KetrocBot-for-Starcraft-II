@@ -6,7 +6,6 @@ import com.github.ocraft.s2client.protocol.game.Race;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.*;
-import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -349,7 +348,7 @@ public class UnitUtils {
             return 0;
         }
 
-        if (GameCache.wallStructures.contains(unit)) {
+        if (GameCache.mainWallStructures.contains(unit)) {
             if (structureHealth > 75) {
                 return 1;
             }
@@ -712,7 +711,7 @@ public class UnitUtils {
 
     public static boolean isWallUnderAttack() { //TODO: make more accurate
         //if depot is raised then unsafe
-        return !GameCache.wallStructures.isEmpty() && GameCache.wallStructures.stream().allMatch(structure ->
+        return !GameCache.mainWallStructures.isEmpty() && GameCache.mainWallStructures.stream().allMatch(structure ->
                 InfluenceMaps.getValue(InfluenceMaps.pointRaiseDepots, structure.getPosition().toPoint2d()));
     }
 
@@ -1028,12 +1027,11 @@ public class UnitUtils {
         return Bot.OBS.getUnitTypeData(false).get(unitType).getMovementSpeed().orElse(0f);
     }
 
-    public static Unit getCompletedNatBunker() {
-        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL, 3f).stream()
+    public static List<Unit> getCompletedNatBunkers() {
+        return getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, PosConstants.BUNKER_NATURAL, 8f).stream()
                 .map(UnitInPool::unit)
                 .filter(unit -> unit.getBuildProgress() == 1)
-                .findFirst()
-                .orElse(null);
+                .collect(Collectors.toList());
     }
 
     public static boolean isInMyMainOrNat(UnitInPool uip) {
@@ -1235,6 +1233,15 @@ public class UnitUtils {
         }
         return PosConstants.natWallDepots.stream().anyMatch(p -> p.distance(structurePos) < 1) ||
                 PosConstants.natWall3x3s.stream().anyMatch(p -> p.distance(structurePos) < 1);
+    }
+
+    public static List<Unit> getNatWallStructures() {
+        if (!Strategy.DO_WALL_NAT) {
+            return Collections.emptyList();
+        }
+        return UnitUtils.toUnitList(
+                Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.isNatWallStructure(u.unit()))
+        );
     }
 
     public static boolean isRampWallStructure(Unit structure) {

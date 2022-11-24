@@ -12,9 +12,7 @@ import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
-import com.ketroc.micro.ScvAttackTarget;
-import com.ketroc.micro.TankToPosition;
-import com.ketroc.micro.UnitMicroList;
+import com.ketroc.micro.*;
 import com.ketroc.models.*;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
@@ -103,7 +101,7 @@ public class WorkerManager {
             return;
         }
 
-        Set<Unit> unitsToRepair = getSetOfUnitsToRepair();
+        List<Unit> unitsToRepair = getSetOfUnitsToRepair();
 
         //send appropriate amount of scvs to each unit
         for (Unit unitToRepair : unitsToRepair) {
@@ -137,7 +135,7 @@ public class WorkerManager {
             } else {
                 for (int i=0; i<numScvsToAdd; i++) {
                     UnitInPool repairScv;
-                    if (GameCache.wallStructures.contains(unitToRepair)) {
+                    if (GameCache.mainWallStructures.contains(unitToRepair)) {
                         repairScv = WorkerManager.getScv(
                                 unitToRepair.getPosition().toPoint2d(),
                                 scv -> UnitUtils.isInMyMain(scv.unit())
@@ -154,8 +152,8 @@ public class WorkerManager {
         }
     }
 
-    private static Set<Unit> getSetOfUnitsToRepair() {
-        Set<Unit> unitsToRepair = new HashSet<>();
+    private static List<Unit> getSetOfUnitsToRepair() {
+        List<Unit> unitsToRepair = new ArrayList<>();
 
         //add base PFs
         unitsToRepair.addAll(
@@ -167,12 +165,12 @@ public class WorkerManager {
                     .map(base -> base.getCc().unit())
                     .collect(Collectors.toSet()));
 
-        //add missile turrets
-        unitsToRepair.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MISSILE_TURRET));
-
         //add liberators if TvZ/TvT
         if (PosConstants.opponentRace != Race.PROTOSS) { //libs on top of PF vs toss so unreachable by scvs to repair
-            unitsToRepair.addAll(GameCache.liberatorList);
+            unitsToRepair.addAll(
+                    UnitMicroList.getUnitSubList(LibToPosition.class).stream()
+                            .map(lib -> lib.unit.unit())
+                            .collect(Collectors.toSet()));
         }
 
         //add defensive tanks
@@ -181,9 +179,28 @@ public class WorkerManager {
                 .map(tank -> tank.unit.unit())
                 .collect(Collectors.toSet()));
 
-        //add wall structures
+        //add bunker at natural
+        List<Unit> natBunkers = UnitUtils.getCompletedNatBunkers();
+        unitsToRepair.addAll(natBunkers);
+
+        //add missile turrets
+        unitsToRepair.addAll(UnitUtils.myUnitsOfType(Units.TERRAN_MISSILE_TURRET));
+
+        //add main wall structures
         if (InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, PosConstants.insideMainWall) < 2) {
-            unitsToRepair.addAll(GameCache.wallStructures);
+            unitsToRepair.addAll(GameCache.mainWallStructures);
+        }
+
+        //add nat wall structures
+        if (natBunkers.stream().noneMatch(bunker -> UnitUtils.getHealthPercentage(bunker) < 99)) {
+            unitsToRepair.addAll(
+                    UnitUtils.getNatWallStructures().stream()
+                            .filter(u -> InfluenceMaps.getValue(
+                                    InfluenceMaps.pointThreatToGroundValue,
+                                    Position.towards(u.getPosition().toPoint2d(), GameCache.baseList.get(1).getCcPos(), u.getRadius() + 1)
+                            ) < 2)
+                            .collect(Collectors.toList())
+            );
         }
 
         //add burning structures
@@ -192,11 +209,6 @@ public class WorkerManager {
                     .filter(structure -> InfluenceMaps.getGroundThreatToStructure(structure) == 0)
                     .collect(Collectors.toSet()));
 
-        //add bunker at natural
-        Unit natBunker = UnitUtils.getCompletedNatBunker();
-        if (natBunker != null) {
-            unitsToRepair.add(natBunker);
-        }
         return unitsToRepair;
     }
 

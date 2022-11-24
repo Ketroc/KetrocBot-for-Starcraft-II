@@ -65,7 +65,7 @@ public class GameCache {
 
     public static final Map<Units, List<Unit>> allMyUnitsMap = new HashMap<>(); //ignore my structures with buildProgress < 1
     public static Unit defaultRallyNode;
-    public static List<Unit> wallStructures = new ArrayList<>();
+    public static List<Unit> mainWallStructures = new ArrayList<>();
     public static List<Unit> burningStructures = new ArrayList<>();
 
     public static void onGameStart() {
@@ -105,7 +105,7 @@ public class GameCache {
         enemyIsGround.clear();
         enemyIsAir.clear();
         enemyMappingList.clear();
-        wallStructures.clear();
+        mainWallStructures.clear();
         burningStructures.clear();
 
         allEnemiesList.removeIf(enemy -> !UnitUtils.isInFogOfWar(enemy) ||
@@ -148,8 +148,8 @@ public class GameCache {
 
                     //see what repair is required for wall or burning structures
                     if (UnitUtils.isStructure(unitType)) {
-                        if (UnitUtils.isRampWallStructure(unit) || UnitUtils.isNatWallStructure(unit)) {
-                            wallStructures.add(unit);
+                        if (UnitUtils.isRampWallStructure(unit)) {
+                            mainWallStructures.add(unit);
                         }
                         else if (unit.getBuildProgress() == 1.0f && UnitUtils.getHealthPercentage(unit) <= 35) {
                             burningStructures.add(unit);
@@ -176,19 +176,14 @@ public class GameCache {
                         case TERRAN_REFINERY: case TERRAN_REFINERY_RICH:
                             refineryList.add(unit);
                             break;
-                        case TERRAN_SUPPLY_DEPOT:
+                        case TERRAN_SUPPLY_DEPOT: case TERRAN_ENGINEERING_BAY:
                             if (UnitUtils.isRampWallStructure(unit)) {
-                                GameCache.wallStructures.add(unit);
-                            }
-                            break;
-                        case TERRAN_ENGINEERING_BAY:
-                            if (UnitUtils.isRampWallStructure(unit)) {
-                                GameCache.wallStructures.add(unit);
+                                GameCache.mainWallStructures.add(unit);
                             }
                             break;
                         case TERRAN_BARRACKS:
                             if (UnitUtils.isRampWallStructure(unit)) {
-                                GameCache.wallStructures.add(unit);
+                                GameCache.mainWallStructures.add(unit);
                             }
                             if (curOrder != null) {
                                 Units unitProducing = Bot.abilityToUnitType.get(curOrder);
