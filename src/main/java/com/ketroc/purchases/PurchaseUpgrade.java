@@ -134,9 +134,6 @@ public class PurchaseUpgrade implements Purchase {
         if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
             return Abilities.RESEARCH_INFERNAL_PREIGNITER;
         }
-        if (upgrade == Upgrades.YAMATO_CANNON) {
-            return Abilities.RESEARCH_BATTLECRUISER_WEAPON_REFIT;
-        }
 
         Ability upgradeAbility = Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
         if (upgradeAbility instanceof Abilities) {

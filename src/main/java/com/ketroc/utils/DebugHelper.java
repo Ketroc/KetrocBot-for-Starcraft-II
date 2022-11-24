@@ -12,6 +12,7 @@ import com.ketroc.gamestate.GameCache;
 import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
+import com.ketroc.geometry.Position;
 import com.ketroc.geometry.Rectangle;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;

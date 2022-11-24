@@ -24,6 +24,7 @@ import com.ketroc.strategies.defenses.WorkerRushDefense3;
 import com.ketroc.utils.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class PurchaseStructure implements Purchase { //TODO: add rally point
@@ -41,6 +42,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
         return PosConstants.natWallDepots.stream().noneMatch(p -> p.distance(natPos) + 2 < distance) &&
                 PosConstants.natWall3x3s.stream().noneMatch(p -> p.distance(natPos) + 2 < distance);
     };
+    public static final Function<Point2d, Double> natBunkerSortFunction = pos -> 100-pos.distance(GameCache.baseList.get(1).getCcPos());
 
 
     public static final Map<Units, Abilities> structureToActionMap;
@@ -257,7 +259,9 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
     }
 
     private Point2d findNearbyBunkerPos() {
-        return Position.findNearestPlacement(Abilities.BUILD_BUNKER, PosConstants.BUNKER_NATURAL, 5, natBunkerPosFilter);
+        List<Point2d> allWallPos = new ArrayList<>(PosConstants.natWallDepots);
+        allWallPos.addAll(PosConstants.natWall3x3s);
+        return Position.findNearestPlacement(Abilities.BUILD_BUNKER, Position.midPoint(allWallPos), 5, natBunkerPosFilter, natBunkerSortFunction);
     }
 
     public PurchaseResult buildRefinery() {

@@ -48,6 +48,7 @@ public class KetrocLauncher {
                 .setRawAffectsSelection(true)
                 .setTimeoutMS(10 * 60000) //10min
 //                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
+//                .setEglPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
 //                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
@@ -58,10 +59,10 @@ public class KetrocLauncher {
 
 
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("InsideAndOutAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
 
 

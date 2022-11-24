@@ -122,6 +122,4 @@ public class ActionIssued { //TODO: handle queued commands
         return actionIssued.ability.toString().contains(abilityStartsWith) &&
                 orders.stream().noneMatch(unitOrder -> unitOrder.getAbility().toString().startsWith(abilityStartsWith));
     }
-
-
 }

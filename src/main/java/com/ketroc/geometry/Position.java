@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -334,7 +335,11 @@ public class Position {
     }
 
     public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius, Predicate<Point2d> searchFilter) {
-        List<Point2d> possiblePosList = getPosListGridByClosest(pos, searchRadius, searchFilter);
+        return findNearestPlacement(placementAbility, pos, searchRadius, searchFilter, p -> p.distance(pos));
+    }
+
+    public static Point2d findNearestPlacement(Ability placementAbility, Point2d pos, int searchRadius, Predicate<Point2d> searchFilter, Function<Point2d, Double> sortFunction) {
+        List<Point2d> possiblePosList = getPosListGridByClosest(pos, searchRadius, searchFilter, sortFunction);
         return getFirstPosFromQuery(possiblePosList, placementAbility);
     }
 
@@ -366,11 +371,11 @@ public class Position {
         return posList;
     }
 
-    public static List<Point2d> getPosListGridByClosest(Point2d pos, int radius, Predicate<Point2d> searchFilter) {
+    public static List<Point2d> getPosListGridByClosest(Point2d pos, int radius, Predicate<Point2d> searchFilter, Function<Point2d, Double> sortFunction) {
         List<Point2d> posList = getPosListGrid(pos, radius);
         return posList.stream()
                 .filter(searchFilter)
-                .sorted(Comparator.comparing(p -> p.distance(pos)))
+                .sorted(Comparator.comparing(sortFunction))
                 .collect(Collectors.toList());
     }
 

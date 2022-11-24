@@ -15,10 +15,7 @@ import com.ketroc.geometry.Position;
 import com.ketroc.micro.ScvAttackTarget;
 import com.ketroc.micro.TankToPosition;
 import com.ketroc.micro.UnitMicroList;
-import com.ketroc.models.Base;
-import com.ketroc.models.Gas;
-import com.ketroc.models.MineralPatch;
-import com.ketroc.models.StructureScv;
+import com.ketroc.models.*;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.BunkerContain;
@@ -375,11 +372,39 @@ public class WorkerManager {
         // saturate gases
         saturateGases();
 
+        //fix gas saturation error TODO: remove this if I ever find the bug causing this
+        fixGasSaturationError();
+
         //put all idle scvs to work
         sendScvsToMine(idleScvs);
 
         //free up required scvs from distance miners, oversaturated mineral miners, and oversaturated gas miners
         freeUpExtraScvs();
+    }
+
+    private static void fixGasSaturationError() {
+        UnitUtils.myUnitsOfType(UnitUtils.REFINERY_TYPE).stream()
+                .filter(refinery -> refinery.getAssignedHarvesters().orElse(0) > 3)
+                .forEach(refinery -> {
+                    List<Tag> gasScvs = Base.getMyBases().stream()
+                            .filter(base -> base.getGases().stream().anyMatch(
+                                    gas -> gas.getRefinery() != null && gas.getRefinery().getTag().equals(refinery.getTag()))
+                            )
+                            .flatMap(base -> base.getGasScvs().stream())
+                            .map(UnitInPool::getTag)
+                            .collect(Collectors.toList());
+                    List<UnitInPool> nearbyScvs = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_SCV, refinery.getPosition().toPoint2d(), 4);
+                    nearbyScvs.stream()
+                            .filter(UnitInPool.isCarryingVespene())
+                            .filter(scv -> !gasScvs.contains(scv.getTag()))
+                            .filter(scv -> !Ignored.contains(scv.getTag()))
+                            .forEach(scv -> {
+                                UnitUtils.returnAndStopScv(scv);
+                                Chat.tag("GasErrorCorrected");
+                                Print.print("Gas Error corrected at: " + refinery.getPosition().toPoint2d());
+                            });
+                });
+
     }
 
     public static void sendScvsToMine(UnitInPool idleScv) {

@@ -238,7 +238,7 @@ public class UnitUtils {
         int numUnits = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == unitType).size();
         if (includeProducing) {
             if (isStructure(unitType)) {
-                numUnits += numStructuresProducingOrQueued(unitType);
+                numUnits = myUnitsOfType(unitType).size() + numStructuresProducingOrQueued(unitType);
             } else {
                 numUnits += numInProductionOfType(unitType);
             }

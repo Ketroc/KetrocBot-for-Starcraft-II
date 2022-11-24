@@ -85,14 +85,19 @@ public class BuildManager {
             upgradeYamato();
             build3rdStarport();
 
-            //mineral sink stuff
+            //mineral sink (only spends minerals beyond what BC production can spend)
+            if (Switches.doNeedDetection) {
+                getDetection_BcRush();
+            }
             trainBarracksUnits_BcRush();
             if (UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty()) {
                 return;
             }
-            buildBarracksLogic_BcRush();
             buildExtraBunkers_BcRush();
-            getDetection_BcRush();
+            if (!Switches.doNeedDetection) {
+                getDetection_BcRush();
+            }
+            buildBarracksLogic_BcRush();
             trainFactoryUnits_BcRush();
 
             return;
@@ -238,18 +243,16 @@ public class BuildManager {
     }
 
     private static void buildBarracksLogic_BcRush() {
-        if (Purchase.isBuildOrderComplete() &&
-                GameCache.mineralBank/4 > GameCache.gasBank/3 &&
-                isAllProductionStructuresActive(Units.TERRAN_BARRACKS) &&
-                UnitUtils.canAfford(Units.TERRAN_BARRACKS) &&
-                UnitUtils.numMyUnits(Units.TERRAN_BARRACKS, false) < 3) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        if (GameCache.mineralBank/4 > GameCache.gasBank/3 && UnitUtils.numMyUnits(Units.TERRAN_BARRACKS, true) < 4) {
+            if (UnitUtils.canAfford(Units.TERRAN_BARRACKS)) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+            }
             Cost.updateBank(Units.TERRAN_BARRACKS);
         }
     }
 
     private static void buildExtraBunkers_BcRush() {
-        if (GameCache.mineralBank/4 < GameCache.gasBank/3) {
+        if (GameCache.mineralBank/4 <= GameCache.gasBank/3 || !UnitUtils.canAfford(Units.TERRAN_BUNKER)) {
             return;
         }
 
@@ -1002,7 +1005,9 @@ public class BuildManager {
 
         //build eng bay
         if (UnitUtils.numMyUnits(Units.TERRAN_ENGINEERING_BAY, true) == 0) {
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+            if (UnitUtils.canAfford(Units.TERRAN_ENGINEERING_BAY)) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+            }
             Cost.updateBank(Units.TERRAN_ENGINEERING_BAY);
             return;
         }
@@ -1010,9 +1015,11 @@ public class BuildManager {
         //build turret
         if (UnitUtils.myUnitsOfType(Units.TERRAN_ENGINEERING_BAY).size() >= 1 &&
                 UnitUtils.numMyUnits(Units.TERRAN_MISSILE_TURRET, true) == 0) {
-            Point2d turretPos = Position.toWholePoint(Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 6.5f));
-            turretPos = Position.findNearestPlacement(Abilities.BUILD_MISSILE_TURRET, turretPos, 4);
-            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+            if (UnitUtils.canAfford(Units.TERRAN_MISSILE_TURRET)) {
+                Point2d turretPos = Position.toWholePoint(Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), 6.5f));
+                turretPos = Position.findNearestPlacement(Abilities.BUILD_MISSILE_TURRET, turretPos, 4);
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_MISSILE_TURRET, turretPos));
+            }
             Cost.updateBank(Units.TERRAN_MISSILE_TURRET);
         }
     }

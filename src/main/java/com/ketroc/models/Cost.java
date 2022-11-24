@@ -93,9 +93,6 @@ public class Cost {
         if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
             return new Cost(100, 100);
         }
-        if (upgrade == Upgrades.YAMATO_CANNON) {
-            return new Cost(150, 150);
-        }
         UpgradeData upgradeData = Bot.OBS.getUpgradeData(false).get(upgrade);
         return new Cost(upgradeData.getMineralCost().orElse(0), upgradeData.getVespeneCost().orElse(0));
     }

@@ -3,14 +3,18 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
+import com.ketroc.gamestate.GameCache;
+import com.ketroc.geometry.Position;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class Marine extends BasicUnitMicro {
@@ -24,11 +28,11 @@ public class Marine extends BasicUnitMicro {
 
     @Override
     public void onArrival() {
-        Unit bunker = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 10f)
-                .stream()
-                .filter(b -> b.unit().getCargoSpaceTaken().orElse(4) < 4)
-                .findFirst()
+        List<UnitInPool> nearbyBunkers = UnitUtils.getUnitsNearbyOfType(Alliance.SELF, Units.TERRAN_BUNKER, targetPos, 10f);
+        Unit bunker = nearbyBunkers.stream()
                 .map(UnitInPool::unit)
+                .filter(bunk -> bunk.getBuildProgress() < 1f || bunk.getCargoSpaceTaken().orElse(4) != 4)
+                .min(Comparator.comparing(bunk -> bunk.getCargoSpaceTaken().orElse(4) + (bunk.getBuildProgress() < 1f ? 3.5f : 0)))
                 .orElse(null);
         if (bunker != null &&
                 bunker.getBuildProgress() == 1f &&

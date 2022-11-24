@@ -21,6 +21,7 @@ import com.ketroc.utils.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class StructureScv {
     public static final List<StructureScv> scvBuildingList = new ArrayList<>();
@@ -215,56 +216,63 @@ public class StructureScv {
     public static void checkScvsActivelyBuilding() {
         for (int i = 0; i<scvBuildingList.size(); i++) {
             StructureScv structureScv = scvBuildingList.get(i);
+            UnitInPool structure = structureScv.getStructureUnit();
 
-            //if assigned scv is dead add another
+            //just requeue if both structure and scv don't exist
+            if (!structureScv.scv.isAlive() && (structure == null || !structure.isAlive())) {
+                requeueCancelledStructure(structureScv);
+                remove(structureScv);
+                i--;
+                continue;
+            }
+
+            //replace dead scv with repairScv (if available) for proxy bunker structures
+            if (!structureScv.scv.isAlive() &&
+                    BunkerContain.proxyBunkerLevel > 0 &&
+                    Time.nowFrames() < Time.toFrames("5:00") &&
+                    structureScv.structurePos.distance(PosConstants.myRampPos) > 50) {
+                BunkerContain.repairScvList.stream()
+                        .filter(u -> !StructureScv.contains(u.unit()))
+                        .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))
+                        .ifPresent(u -> structureScv.setScv(u));
+            }
+
+            //replace dead scv with new scv
             if (!structureScv.scv.isAlive()) {
-                if (BunkerContain.proxyBunkerLevel > 0 &&
-                        Time.nowFrames() < Time.toFrames("5:00") &&
-                        structureScv.structurePos.distance(PosConstants.myRampPos) > 50) {
-                    BunkerContain.repairScvList.stream()
-                            .filter(u -> !StructureScv.contains(u.unit()))
-                            .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), structureScv.structurePos)))
-                            .ifPresent(u -> structureScv.setScv(u));
+                //don't add another scv if the structure is under enemy threat (exception for wall/bunkers/turrets)
+                if (structureScv.structureType != Units.TERRAN_BUNKER &&
+                        structureScv.structureType != Units.TERRAN_MISSILE_TURRET &&
+                        !UnitUtils.isWallingStructure(structureScv.structurePos) &&
+                        InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
+                    continue;
                 }
-                if (!structureScv.scv.isAlive()) {
-                    //don't add another scv if the structure is under enemy threat (exception for wall/bunkers/turrets)
-                    if (structureScv.structureType != Units.TERRAN_BUNKER &&
-                            structureScv.structureType != Units.TERRAN_MISSILE_TURRET &&
-                            !UnitUtils.isWallingStructure(structureScv.structurePos) &&
-                            InfluenceMaps.getThreatToStructure(structureScv.structureType, structureScv.structurePos) > 1) {
-                        continue;
-                    }
-                    UnitInPool availableScv = WorkerManager.getScvEmptyHands(structureScv.structurePos);
-                    if (availableScv != null) {
-                        structureScv.setScv(availableScv);
-                    }
+                UnitInPool availableScv = WorkerManager.getScvEmptyHands(structureScv.structurePos);
+                if (availableScv != null) {
+                    structureScv.setScv(availableScv);
                 }
             }
 
             //if scv doesn't have the build command
-            if (ActionIssued.getCurOrder(structureScv.scv).isEmpty() ||
-                    (ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility) &&
-                            structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility))) { //scv can have the order queued if it just finished building another structure
-                UnitInPool structure = structureScv.getStructureUnit();
-
-                //if structure never started/destroyed, repurchase
+            if (!doesScvHaveBuildOrder(structureScv)) {
+                //if structure never started or was destroyed, then repurchase
                 if (structure == null || !structure.isAlive()) {
 
                     //any unit within 5 that is a snapshot, or a non-cloaked/non-burrowed unit
                     if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER) {
-                        if (UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 10 &&
+                        if (UnitUtils.getDistance(structureScv.scv.unit(), structureScv.structurePos) < 9 &&
                                 !ExpansionClearing.isVisiblyBlockedByUnit(structureScv.structurePos)) { //creep or burrowed/cloaked
                             ExpansionClearing.add(structureScv.structurePos);
                         }
                     }
+
+                    //just debug testing logs TODO: remove
                     System.out.println("Frame#" + Time.nowFrames());
+                    System.out.println("structureScv.buildAbility = " + structureScv.buildAbility);
+                    System.out.println("scv's current ability = " + ActionIssued.getCurOrder(structureScv.scv).stream().map(actionIssued -> actionIssued.ability).findFirst().orElse(null));
                     System.out.println("ActionIssued.lastActionIssued.get(structureScv.scv) != null = " + (ActionIssued.lastActionIssued.get(structureScv.scv) != null));
                     System.out.println("ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility) = " + ActionIssued.getCurOrder(structureScv.scv).stream().noneMatch(order -> order.ability == structureScv.buildAbility));
-                    System.out.println("structureScv.buildAbility = " + structureScv.buildAbility);
-                    if (!ActionIssued.getCurOrder(structureScv.scv).isEmpty()) {
-                        System.out.println("order.ability = " + ActionIssued.getCurOrder(structureScv.scv).stream().findFirst().get().ability);
-                    }
                     System.out.println("structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility) = " + structureScv.scv.unit().getOrders().stream().noneMatch(order -> order.getAbility() == structureScv.buildAbility));
+
                     requeueCancelledStructure(structureScv);
                     remove(structureScv);
                     i--;
@@ -274,10 +282,11 @@ public class StructureScv {
 
                     //remove if there is a duplicate entry in scvBuildList
                     if (isDuplicateStructureScv(structureScv)) {
-                        scvBuildingList.remove(i--);
+                        remove(structureScv);
+                        i--;
                     }
 
-                    //send another scv
+                    //send scv to structure
                     else {
                         ActionHelper.unitCommand(structureScv.scv.unit(), Abilities.SMART, structure.unit(), false);
                     }
@@ -285,7 +294,7 @@ public class StructureScv {
 
                 //if structure completed
                 else if (structure.unit().getBuildProgress() == 1.0f) {
-                    if (structureScv.structureType == Units.TERRAN_REFINERY) {
+                    if (UnitUtils.REFINERY_TYPE.contains(structureScv.structureType)) {
                         GameCache.baseList.stream()
                                 .flatMap(base -> base.getGases().stream())
                                 .filter(gas -> gas.getNodePos().distance(structureScv.structurePos) < 1)
@@ -299,9 +308,15 @@ public class StructureScv {
         }
     }
 
+    private static boolean doesScvHaveBuildOrder(StructureScv structureScv) {
+        return ActionIssued.getCurOrder(structureScv.scv).stream().anyMatch(order -> order.ability == structureScv.buildAbility) ||
+                structureScv.scv.unit().getOrders().stream().anyMatch(order -> order.getAbility() == structureScv.buildAbility); // scv may have their order queued if it just finished building another structure
+    }
+
     //makes structure position available again, then requeues structure purchase (sometimes)
     public static void requeueCancelledStructure(StructureScv structureScv) {
         Print.print("structure requeued:" + structureScv.structureType);
+        int index;
         switch (structureScv.structureType) {
             //don't queue rebuild on these structure types
             case TERRAN_COMMAND_CENTER:
@@ -311,22 +326,26 @@ public class StructureScv {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType, structureScv.structurePos));
                 break;
             case TERRAN_SUPPLY_DEPOT:
-                PosConstants.extraDepots.add(structureScv.structurePos);
+                if (UnitUtils.isWallingStructure(structureScv.structurePos)) {
+                    PosConstants.extraDepots.add(0, structureScv.structurePos);
+                }
+                else {
+                    PosConstants.extraDepots.add(structureScv.structurePos);
+                }
                 break;
-            case TERRAN_FACTORY:
-//                LocationConstants.FACTORIES.add(structureScv.structurePos);
-//                break;
-            case TERRAN_STARPORT:
-                PosConstants._3x3AddonPosList.add(structureScv.structurePos);
+            case TERRAN_FACTORY: case TERRAN_STARPORT:
+                index = Math.max(1, PosConstants._3x3AddonPosList.size());
+                PosConstants._3x3AddonPosList.add(index, structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:
                 if (PosConstants.proxyBarracksPos == null || structureScv.structurePos.distance(PosConstants.proxyBarracksPos) > 10) {
-                    PosConstants._3x3Structures.add(structureScv.structurePos);
+                    PosConstants._3x3Structures.add(structureScv.structurePos); //FIXME: decide if rax are using 3x3 or 3x3+addon list
                 }
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
-            case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY:
-                PosConstants._3x3Structures.add(structureScv.structurePos);
+            case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY: case TERRAN_FUSION_CORE:
+                index = Math.max(1, PosConstants._3x3Structures.size());
+                PosConstants._3x3Structures.add(index, structureScv.structurePos);
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             default:
@@ -390,6 +409,11 @@ public class StructureScv {
         if (structureScv.scv != null) {
             Ignored.remove(structureScv.scv.getTag());
             UnitUtils.returnAndStopScv(structureScv.scv);
+        }
+        if (structureScv.structureType == Units.TERRAN_COMMAND_CENTER && structureScv.getStructureUnit() == null) {
+            GameCache.baseList.stream()
+                    .filter(base -> base.getCcPos().distance(structureScv.structurePos) < 1)
+                    .forEach(base -> base.setCc(null));
         }
         scvBuildingList.remove(structureScv);
     }
