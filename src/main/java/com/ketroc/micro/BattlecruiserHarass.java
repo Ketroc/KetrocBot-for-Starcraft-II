@@ -43,7 +43,6 @@ public class BattlecruiserHarass extends Battlecruiser {
             if (enemyBasePos != null) {
                 curEnemyBasePos = enemyBasePos;
             }
-            return;
         }
 
         // YAMATO
@@ -84,8 +83,11 @@ public class BattlecruiserHarass extends Battlecruiser {
             //lowest threat pos within 3 range of BC and 6 range of target
             targetPos = findSafestPos(curTargetMoveTo.unit().getPosition().toPoint2d());
         }
-        else {
+        else if (curEnemyBasePos != null) {
             targetPos = curEnemyBasePos;
+        }
+        else {
+            targetPos = ArmyManager.attackEitherPos;
         }
 
         // DODGE SPLASH

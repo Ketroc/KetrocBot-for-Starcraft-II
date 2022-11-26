@@ -348,7 +348,7 @@ public class UnitUtils {
             return 0;
         }
 
-        if (GameCache.mainWallStructures.contains(unit)) {
+        if (GameCache.mainWallStructures.contains(unit) || UnitUtils.isNatWallStructure(unit)) {
             if (structureHealth > 75) {
                 return 1;
             }
