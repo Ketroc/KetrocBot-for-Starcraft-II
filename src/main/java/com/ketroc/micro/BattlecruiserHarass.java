@@ -1,11 +1,14 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
+import com.github.ocraft.s2client.protocol.unit.CloakState;
+import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.gamestate.EnemyCache;
@@ -63,9 +66,11 @@ public class BattlecruiserHarass extends Battlecruiser {
 
                 //scan when only burrowed targets remain
                 if (UnitUtils.isBurrowed(newTargetAttack.unit()) && UnitUtils.canScan()) {
+                    if (UnitUtils.isInMyDetection(newTargetAttack.unit().getPosition().toPoint2d()))
                     if (UnitUtils.getEnemyTargetsNear(unit.unit(), 15).stream()
                             .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
-                            .allMatch(target -> UnitUtils.isBurrowed(target.unit()))) {
+                            .allMatch(target -> UnitUtils.isBurrowed(target.unit()) &&
+                                    !UnitUtils.isInMyDetection(target.unit().getPosition().toPoint2d()))) {
                         UnitUtils.scan(newTargetAttack.unit().getPosition().toPoint2d());
                     }
                 }
@@ -149,7 +154,7 @@ public class BattlecruiserHarass extends Battlecruiser {
     //repair when low hp and repair is possible at home
     private boolean doRepair() {
         float curHp = UnitUtils.getCurHp(unit.unit());
-        return (curHp < 175 || (curHp < unit.unit().getHealthMax().orElse(550f) &&
+        return (curHp < 200 || (curHp < unit.unit().getHealthMax().orElse(550f) &&
                                 UnitUtils.getDistance(unit.unit(), PosConstants.REPAIR_BAY) < 3)) &&
                 UnitUtils.canRepair(unit.unit());
     }
@@ -183,7 +188,15 @@ public class BattlecruiserHarass extends Battlecruiser {
             }
             return null;
         }
+        switch (PosConstants.opponentRace) {
+            case ZERG:
+                return getZergTarget(range, allTargets);
+            default: //case PROTOSS:
+                return getProtossTarget(range, allTargets);
+        }
+    }
 
+    private UnitInPool getZergTarget(float range, List<UnitInPool> allTargets) {
         // HYDRAS
         UnitInPool bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_HYDRALISK ||
@@ -219,8 +232,8 @@ public class BattlecruiserHarass extends Battlecruiser {
         if (range > 7) { //not attack targetting
             // SPIRE or HYDRA DEN
             UnitInPool aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target ->
-                    target.unit().getType() == Units.ZERG_SPIRE ||
-                    target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
+                            target.unit().getType() == Units.ZERG_SPIRE ||
+                                    target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
                     .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
                     .orElse(null);
             if (aaTechStructure != null) {
@@ -263,6 +276,111 @@ public class BattlecruiserHarass extends Battlecruiser {
                 .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
                         target.unit().getType() == Units.ZERG_OVERLORD_TRANSPORT)
                 .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // ARMY UNITS
+        bestTarget = allTargets.stream()
+                .filter(target -> Bot.OBS.getUnitTypeData(false).get(target.unit().getType()).getFoodRequired().orElse(0f) > 0)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        return allTargets.get(0);
+    }
+
+    private UnitInPool getProtossTarget(float range, List<UnitInPool> allTargets) {
+        // OVERCHARGED BATTERY
+        UnitInPool bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY && target.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE))
+                .findFirst()
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // NOT DRY BATTERY
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY && target.unit().getEnergy().orElse(0f) > 80f)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // PROBE
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_PROBE)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // CANNON
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_PHOTON_CANNON)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // VOID RAY
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_VOIDRAY)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // TEMPEST
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_TEMPEST)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // STALKER
+        if (range <= 7) {
+            bestTarget = allTargets.stream()
+                    .filter(target -> target.unit().getType() == Units.PROTOSS_STALKER)
+                    .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                    .orElse(null);
+            if (bestTarget != null) {
+                return bestTarget;
+            }
+        }
+
+        // SHOOTS AIR
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.canAttackAir(target.unit()))
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // PYLON
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_PYLON)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // OTHER SHIELD BATTERIES
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -323,12 +441,11 @@ public class BattlecruiserHarass extends Battlecruiser {
         }
 
         switch (unitType) {
-            case ZERG_QUEEN:
-            case ZERG_SPORE_CRAWLER:
-            case ZERG_CORRUPTOR:
-            case ZERG_MUTALISK:
-            case ZERG_SPIRE:
-            case ZERG_HYDRALISK_DEN:
+            case ZERG_QUEEN: case ZERG_SPORE_CRAWLER: case ZERG_CORRUPTOR:
+            case ZERG_MUTALISK: case ZERG_SPIRE: case ZERG_HYDRALISK_DEN:
+            case PROTOSS_VOIDRAY: case PROTOSS_TEMPEST: case PROTOSS_CARRIER:
+            case PROTOSS_PHOTON_CANNON: case PROTOSS_STALKER: case PROTOSS_MOTHERSHIP:
+            case PROTOSS_ARCHON:
                 return true;
         }
         return false;

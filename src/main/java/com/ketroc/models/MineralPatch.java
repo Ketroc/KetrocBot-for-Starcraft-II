@@ -210,7 +210,10 @@ public class MineralPatch {
     }
 
     private void onNodeDepleted() {
-        scvs.forEach(scv -> UnitUtils.returnAndStopScv(scv));
+        scvs.forEach(scv -> {
+            UnitUtils.returnAndStopScv(scv);
+            Ignored.remove(scv.getTag());
+        });
         scvs.clear();
     }
 

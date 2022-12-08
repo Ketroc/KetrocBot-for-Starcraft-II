@@ -80,13 +80,14 @@ public class BuildManager {
 
         if (Strategy.gamePlan == GamePlan.BC_RUSH) {
             //TODO: if 1 base && main/nat not under attack then cut all spending to purchase cc
+            //TODO: get engbay turret vs detection threats, not observers
 
             trainStarportUnits_BcRush();
             upgradeYamato();
             build3rdStarport();
 
             //mineral sink (only spends minerals beyond what BC production can spend)
-            if (Switches.doNeedDetection) {
+            if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
                 getDetection_BcRush();
             }
             trainBarracksUnits_BcRush();
@@ -94,7 +95,7 @@ public class BuildManager {
                 return;
             }
             buildExtraBunkers_BcRush();
-            if (!Switches.doNeedDetection) {
+            if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
                 getDetection_BcRush();
             }
             buildBarracksLogic_BcRush();
@@ -358,8 +359,8 @@ public class BuildManager {
     }
 
     private static boolean scanNextBase() {
-        //scan was cast on previous frame
-        if (Time.nowFrames() <= ArmyManager.prevScanFrame + 24) {
+        //scan was cast recently
+        if (UnitUtils.canScan()) {
             return true;
         }
         Base nextBase = GameCache.baseList.stream()
@@ -719,15 +720,6 @@ public class BuildManager {
                 }
             }
         }
-//        //send flying CCs to macro OC location
-//        List<Unit> flyingCCs = GameState.allFriendliesMap.getOrDefault(Units.TERRAN_COMMAND_CENTER_FLYING, new ArrayList<>());
-//        for (Unit cc : flyingCCs) {
-//            //if not on the way to land already
-//            if (ActionIssued.getCurOrder(cc).isEmpty()) {
-//                ActionHelper.unitCommand(cc, Abilities.LAND, LocationConstants.MACRO_OCS.remove(LocationConstants.MACRO_OCS.size()-1), false);
-//            }
-//            //Bot.onUnitDestroyed() re-adds this position to MACRO_OCS if the flying cc dies
-//        }
     }
 
     private static void buildBarracksUnitsLogic() {
@@ -820,13 +812,13 @@ public class BuildManager {
     }
 
     public static Units decideFactoryUnit() {
-        if (Strategy.MASS_MINE_OPENER) {
-            return Units.TERRAN_WIDOWMINE;
-        }
-
         //first build hardcoded factory units
         if (!openingFactoryUnits.isEmpty()) {
             return openingFactoryUnits.get(0);
+        }
+
+        if (Strategy.MASS_MINE_OPENER) {
+            return Units.TERRAN_WIDOWMINE;
         }
 
         //defensive tank strategy (build 2 per base)
@@ -864,6 +856,11 @@ public class BuildManager {
 
         //offensive tank strategy (build constantly)
         if (Strategy.DO_OFFENSIVE_TANKS) {
+            int numTanks = UnitUtils.numMyUnits(UnitUtils.SIEGE_TANK_TYPE, true);
+            int numCyclones = UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true);
+            if (numTanks > numCyclones) {
+                return Units.TERRAN_CYCLONE;
+            }
             if (UnitUtils.canAfford(Units.TERRAN_SIEGE_TANK)) {
                 return Units.TERRAN_SIEGE_TANK;
             }

@@ -49,9 +49,7 @@ public class TankOffense extends Tank {
             else if (unit.unit().getType() == Units.TERRAN_SIEGE_TANK) {
                 siege();
             }
-            else if (ArmyManager.prevScanFrame + 24 < Time.nowFrames() &&
-                    UnitUtils.isSnapshot(enemyTankToSiege) &&
-                    UnitUtils.numScansAvailable() > 0) {
+            else if (UnitUtils.canScan() && UnitUtils.isSnapshot(enemyTankToSiege)) {
                 scanEnemyTank(enemyTankToSiege);
             }
             return;

@@ -52,8 +52,8 @@ public class BunkerContain {
     public static UnitInPool bunker;
     public static AddonSwap factorySwap;
     public static Point2d behindBunkerPos;
-    public static final Set<Units> repairTargets = Set.of(
-            Units.TERRAN_SCV, Units.TERRAN_BUNKER, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_SIEGE_TANK, Units.TERRAN_MISSILE_TURRET);
+    public static final List<Units> repairTargets = List.of(
+            Units.TERRAN_BUNKER, Units.TERRAN_SIEGE_TANK_SIEGED, Units.TERRAN_SIEGE_TANK, Units.TERRAN_MISSILE_TURRET, Units.TERRAN_SCV);
     private static boolean isBarracksSentHome;
     private static Point2d enemyPos;
     private static boolean didFirstScoutScvIdle; //first scv to arrive behindBunkerPos
@@ -70,10 +70,10 @@ public class BunkerContain {
         behindBunkerPos = Position.towards(bunkerPos, enemyPos,-2);
         tank1Pos = Position.rotate(
                 Position.towards(behindBunkerPos, bunkerPos, -0.6f),
-                bunkerPos, 85);
+                bunkerPos, PosConstants.opponentRace == Race.TERRAN? 85 : 35);
         tank2Pos = Position.rotate(
                 Position.towards(behindBunkerPos, bunkerPos, -0.6f),
-                bunkerPos, -85);
+                bunkerPos, PosConstants.opponentRace == Race.TERRAN? -85 : -35);
         marinesNeeded = PosConstants.opponentRace == Race.TERRAN ? 3 : 4;
         scoutProxy = (PosConstants.opponentRace == Race.TERRAN);
     }
@@ -523,30 +523,42 @@ public class BunkerContain {
             if (!scvsToMove.isEmpty()) {
                 ActionHelper.unitCommand(scvsToMove, Abilities.MOVE, behindBunkerPos, false);
             }
+            return;
         }
+
         //repair logic
-        else {
-            UnitInPool injuredScv = null;
-            for (UnitInPool injuredUnit : injuredUnits) {
-                //2nd target solely for the injured scv
-                if (injuredScv != null) {
-                    ActionHelper.unitCommand(injuredScv.unit(), Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
-                    break;
-                }
-                //if target is an scv
-                else if (availableScvs.remove(injuredUnit)) {
-                    injuredScv = injuredUnit;
-                    if (!availableScvs.isEmpty()) {
-                        ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
-                    }
-                }
-                //if target is not an scv
-                else {
-                    ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
-                    break;
-                }
+        for (Units repairType : repairTargets) {
+            Unit target = injuredUnits.stream()
+                    .filter(u -> u.unit().getType() == repairType)
+                    .findFirst()
+                    .map(UnitInPool::unit)
+                    .orElse(null);
+            if (target != null && availableScvs.stream().allMatch(scv -> scv.getTag().equals(target.getTag()))) {
+                ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, target, false);
+                return;
             }
-        }
+        } //TODO: have injured scv target repair something else
+
+//        UnitInPool injuredScv = null;
+//        for (UnitInPool injuredUnit : injuredUnits) {
+//            //2nd target solely for the injured scv
+//            if (injuredScv != null) {
+//                ActionHelper.unitCommand(injuredScv.unit(), Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+//                break;
+//            }
+//            //if target is an scv
+//            else if (availableScvs.remove(injuredUnit)) {
+//                injuredScv = injuredUnit;
+//                if (!availableScvs.isEmpty()) {
+//                    ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+//                }
+//            }
+//            //if target is not an scv
+//            else {
+//                ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, injuredUnit.unit(), false);
+//                break;
+//            }
+//        }
     }
 
     public static List<Unit> getAvailableRepairScvs() {

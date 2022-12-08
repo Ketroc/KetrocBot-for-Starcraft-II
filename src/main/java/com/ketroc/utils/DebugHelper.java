@@ -47,10 +47,16 @@ public class DebugHelper {
 
     private static void testingStuff() {
         //spawn at start
-        if (Time.at(2500)) {
-//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_CYCLONE, PosConstants.baseLocations.get(1), Bot.myId, 3);
-//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_RAVEN, PosConstants.baseLocations.get(1), Bot.myId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.TERRAN_BATTLECRUISER, PosConstants.baseLocations.get(0), Bot.enemyId, 15);
+        if (Time.at(1)) {
+           int i = 0;
+            while (i < 30) {
+                Point2d randomLocation = Bot.OBS.getGameInfo().findRandomLocation();
+                if (Bot.OBS.isPathable(randomLocation) &&
+                        randomLocation.distance(PosConstants.enemyMainBaseMidPos) < 70) {
+                    i++;
+                    Bot.DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_QUEEN, randomLocation, Bot.enemyId, 1);
+                }
+            }
         }
 
         //spawn every minute
@@ -58,8 +64,8 @@ public class DebugHelper {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+//            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
 //            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
 //            UnitMicroList.getUnitSubList(Cyclone.class)
@@ -184,8 +190,8 @@ public class DebugHelper {
         if (!isDebugOn) {
             return;
         }
-        float z1 = Bot.OBS.terrainHeight(pos1) + 0.2f;
-        float z2 = Bot.OBS.terrainHeight(pos2) + 0.2f;
+        float z1 = Bot.OBS.terrainHeight(pos1) + 1f;
+        float z2 = Bot.OBS.terrainHeight(pos2) + 1f;
         Bot.DEBUG.debugLineOut(
                 Point.of(pos1.getX(), pos1.getY(), z1),
                 Point.of(pos2.getX(), pos2.getY(), z2),

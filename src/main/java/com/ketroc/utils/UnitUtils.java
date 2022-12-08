@@ -580,7 +580,7 @@ public class UnitUtils {
     }
 
     public static boolean canScan() {
-        if (Time.before(ArmyManager.prevScanFrame + 24)) {
+        if (Time.before(ArmyManager.prevScanFrame + 48)) {
             return false;
         }
         List<Unit> orbitals = myUnitsOfType(Units.TERRAN_ORBITAL_COMMAND);
@@ -1114,7 +1114,14 @@ public class UnitUtils {
         return !Bot.OBS.getUnits(Alliance.SELF, u ->
                 (u.unit().getType() == Units.TERRAN_MISSILE_TURRET || u.unit().getType() == Units.TERRAN_RAVEN) &&
                         u.unit().getBuildProgress() == 1 &&
-                        UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty();
+                        UnitUtils.getDistance(u.unit(), pos) <= 10).isEmpty() || isWithinMyScan(pos);
+    }
+
+    public static boolean isWithinMyScan(Point2d pos) {
+        return Bot.OBS.getEffects().stream()
+                .anyMatch(effect -> effect.getEffect() == Effects.SCANNER_SWEEP &&
+                        effect.getAlliance().orElse(Alliance.ENEMY) == Alliance.SELF &&
+                        effect.getPositions().stream().anyMatch(effectPos -> pos.distance(effectPos) <= effect.getRadius().orElse(0f)));
     }
 
     public static int numScvs(boolean includeProducing) {
@@ -1909,5 +1916,11 @@ public class UnitUtils {
     public static boolean isNearInjuredPF(Unit unit, float rangeToPf, int pfHealthPercentage) {
         return myUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
                 .anyMatch(pf -> getDistance(unit, pf) <= rangeToPf && getHealthPercentage(pf) <= pfHealthPercentage);
+    }
+
+    public static boolean isEnemyKillingMe() {
+        //if enemy supply is bigger and any of my bases under attack
+        return Base.getMyBases().stream()
+                .anyMatch(base -> base.enemySupplyNearBase(15) > Bot.OBS.getFoodArmy() * 0.9f);
     }
 }

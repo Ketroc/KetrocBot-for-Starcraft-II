@@ -209,6 +209,9 @@ public class WorkerManager {
                     .filter(structure -> InfluenceMaps.getGroundThreatToStructure(structure) == 0)
                     .collect(Collectors.toSet()));
 
+        //remove incomplete structures
+        unitsToRepair.removeIf(u -> u.getBuildProgress() < 1f);
+
         return unitsToRepair;
     }
 
@@ -269,10 +272,6 @@ public class WorkerManager {
         //return resultScv != null ? resultScv : getScv(targetPos, scvFilter); //TODO: turn back on when done with the Print.print testing line
         if (resultScv == null) {
             resultScv = getScv(targetPos, scvFilter);
-            if (resultScv != null) {
-                Print.print("No empty hands scv available.  Using scv at: " + resultScv.unit().getPosition().toPoint2d());
-                Chat.tag("ALTERNATE_SCV");
-            }
         }
         return resultScv;
     }

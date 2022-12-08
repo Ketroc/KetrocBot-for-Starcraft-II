@@ -23,10 +23,7 @@ import com.ketroc.strategies.Strategy;
 import com.ketroc.strategies.defenses.ProxyBunkerDefense;
 import com.ketroc.utils.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -204,7 +201,7 @@ public class ArmyManager {
                 ActionHelper.unitCommand(armyDetectorAttacking, Abilities.ATTACK, targetPos, false);
             }
 
-            pfTargetting();
+            pfBunkerTargetting();
             libTargetting();
             autoturretTargetting();
         }
@@ -536,7 +533,7 @@ public class ArmyManager {
 
     private static void setDoOffense() {
         if (Strategy.gamePlan == GamePlan.BC_RUSH) {
-            doOffense = Bot.OBS.getFoodUsed() > 170;
+            doOffense = Bot.OBS.getFoodUsed() > 170 || Base.numEnemyBases() == 0;
             return;
         }
 
@@ -961,15 +958,16 @@ public class ArmyManager {
     }
 
 
-    public static void pfTargetting() {
-        List<Unit> pfList = UnitUtils.myUnitsOfType(Units.TERRAN_PLANETARY_FORTRESS).stream()
-                .filter(unit -> unit.getBuildProgress() == 1 &&
-                        (unit.getWeaponCooldown().orElse(0f) > 8 || //keep target to let turret rotation complete
-                                unit.getWeaponCooldown().orElse(0f) == 0))
+    public static void pfBunkerTargetting() {
+        List<Unit> pfBunkerList = UnitUtils.myUnitsOfType(Set.of(Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_BUNKER))
+                .stream()
+                .filter(u -> u.getBuildProgress() == 1 &&
+                        ((u.getType() != Units.TERRAN_PLANETARY_FORTRESS || u.getWeaponCooldown().orElse(0f) > 8) || //keep target to let turret rotation complete
+                                u.getWeaponCooldown().orElse(0f) == 0))
                 .collect(Collectors.toList());
 
-        pfList.forEach(pf -> getBestPfTarget(pf)
-                .ifPresent(u -> ActionHelper.unitCommand(pf, Abilities.ATTACK, u.unit(), false)));
+        pfBunkerList.forEach(pfBunker -> getBestPfTarget(pfBunker)
+                .ifPresent(u -> ActionHelper.unitCommand(pfBunker, Abilities.ATTACK, u.unit(), false)));
     }
 
     private static Optional<UnitInPool> getBestPfTarget(Unit pf) {
@@ -2023,9 +2021,11 @@ public class ArmyManager {
     }
 
     public static Unit getEnemyInMainOrNatural(boolean doExcludeBunkerRange) {
+        boolean doHaveRaven = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) > 0;
         boolean[][] pointInNat = doExcludeBunkerRange ? InfluenceMaps.pointInNatExcludingBunkerRange : InfluenceMaps.pointInNat;
         return Bot.OBS.getUnits(Alliance.ENEMY).stream()
                 .filter(enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        (doHaveRaven || enemy.unit().getDisplayType() != DisplayType.HIDDEN) && //ignore undetected cloaked/burrowed units
                         (InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()) ||
                         InfluenceMaps.getValue(pointInNat, enemy.unit().getPosition().toPoint2d())))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos())))
@@ -2034,8 +2034,10 @@ public class ArmyManager {
     }
 
     public static Unit getEnemyInMain() {
+        boolean doHaveRaven = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, false) > 0;
         return Bot.OBS.getUnits(Alliance.ENEMY).stream()
                 .filter(enemy -> !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        (doHaveRaven || enemy.unit().getDisplayType() != DisplayType.HIDDEN) && //ignore undetected cloaked/burrowed units
                         InfluenceMaps.getValue(InfluenceMaps.pointInMainBase, enemy.unit().getPosition().toPoint2d()))
                 .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), GameCache.baseList.get(0).getCcPos()) +
                         (!UnitUtils.canAttack(enemy.unit()) ? 1000 : 0)))

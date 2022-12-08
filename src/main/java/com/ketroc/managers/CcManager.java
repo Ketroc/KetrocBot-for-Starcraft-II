@@ -121,8 +121,8 @@ public class CcManager {
     }
 
     private static boolean scanNextBase() {
-        //scan was cast on previous frame
-        if (Time.nowFrames() <= ArmyManager.prevScanFrame + 24) {
+        //scan was cast recently
+        if (UnitUtils.canScan()) {
             return true;
         }
         Base nextBase = GameCache.baseList.stream()

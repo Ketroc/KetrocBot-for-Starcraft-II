@@ -255,6 +255,7 @@ public class KetrocBot extends Bot {
             //Strategy.onStep(); //effect game strategy
             UpgradeManager.onStep();
             BuildManager.onStep(); //build structures
+            CreepClearManager.onStep(); //add banshee/raven to creep-killing role
             ArmyManager.onStep(); //decide army movements (GroundUnitKillSquad required to run before UnitMicroList)
             UnitMicroList.onStep(); //do individual unit micro
             AirUnitKillSquad.onStep(); //micro anti-air kill squads
@@ -539,6 +540,14 @@ public class KetrocBot extends Bot {
                                 (ArmyManager.doOffense && UnitUtils.COMMAND_STRUCTURE_TYPE.contains(unit.getType()))) {
                             MannerMule.checkIfGameIsWon();
                         }
+
+                        if (UnitUtils.CREEP_TUMOR_TYPES.contains(unit.getType())) {
+                            UnitMicroList.getUnitSubList(BansheeCreepClear.class)
+                                    .stream()
+                                    .filter(banshee -> UnitUtils.getDistance(banshee.unit.unit(), unit) < 10f)
+                                    .findFirst()
+                                    .ifPresent(banshee -> banshee.incrementTumorCount());
+                        }
                 }
             }
         }
@@ -579,7 +588,7 @@ public class KetrocBot extends Bot {
                 AdeptShadeTracker.add(uip);
             }
             if (Strategy.gamePlan == GamePlan.RAVEN && UnitUtils.HYDRALISK_TYPE.contains(uip.unit().getType())) {
-                Strategy.MIN_BANSHEES = 0;
+                Strategy.MIN_BANSHEES = 1;
             }
         } catch (Throwable e) {
             Error.onException(e);
@@ -717,15 +726,6 @@ public class KetrocBot extends Bot {
                     Print.print("Patch " + patch.getNode().getTag() + ": ");
                     patch.getScvs().forEach(scv -> Print.print(scv.getTag()));
                 });
-                //tag if there's a bunch of unassigned scvs mining here
-                if (base.getCc() != null &&
-                        base.getCc().unit().getAssignedHarvesters().orElse(0) >
-                                base.getMineralPatches().stream()
-                                        .flatMap(m -> m.getScvs().stream())
-                                        .count()) {
-                    Chat.tag("SATURATION_ERROR");
-                }
-
             }
         }
         Print.print("\n\n");

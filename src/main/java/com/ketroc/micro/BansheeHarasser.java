@@ -20,18 +20,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BansheeHarasser {
+public class BansheeHarasser extends Banshee {
     public static final float RETREAT_HEALTH = 50;
     public static final float BANSHEE_MOVEMENT_SIZE = (Launcher.STEP_SIZE > 2) ? 4f : 2.5f;
     public UnitInPool banshee;
     private List<Point2d> baseList;
     private boolean isDodgeClockwise;
     private int baseIndex = 1;
-    public boolean retreatForRepairs;
     private long prevDirectionChangeFrame;
     private Map<UnitType, Integer> kills = new HashMap<>();
 
     public BansheeHarasser(UnitInPool banshee, boolean isBaseTravelClockwise) {
+        super(banshee.unit(), MicroPriority.SURVIVAL);
         this.banshee = banshee;
         baseList = (isBaseTravelClockwise) ? PosConstants.clockBasePositions : PosConstants.counterClockBasePositions;
         baseList = baseList.subList(1, baseList.size());
@@ -186,7 +186,7 @@ public class BansheeHarasser {
                 if (i > 200 && changedDirectionRecently()) {
                     int q=0;
                 }
-                if (isLeavingWorkers(detourPos) || (i > 200 && !changedDirectionRecently())) { //Position.atEdgeOfMap(detourPos) ||
+                if (isLeavingWorkers(detourPos) || (i > 200 && !changedDirectionRecently())) {
                     toggleDodgeClockwise();
                 }
                 //add 20degrees more angle as buffer, to account for chasing units
@@ -213,62 +213,14 @@ public class BansheeHarasser {
                 UnitUtils.getDistance(enemy.unit(), pos) < 6).isEmpty();
     }
 
-
-    public boolean canCloak() {
-        float energyToCloak = (banshee.unit().getHealth().get() > 24) ? 50 : 27;
-        return Bot.OBS.getUpgrades().contains(Upgrades.BANSHEE_CLOAK) &&
-                banshee.unit().getEnergy().orElse(0f) > energyToCloak;
-
-    }
-
-    private boolean isCloaked() {
-        return banshee.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.NOT_CLOAKED;
-    }
-
     //is safe if position is free from threat, or undetected with cloak available
-    private boolean isSafe() {
+    @Override
+    public boolean isSafe() {
         return isSafe(banshee.unit().getPosition().toPoint2d());
     }
 
     private boolean isLowHealth() {
         return banshee.unit().getHealth().orElse(1f) < RETREAT_HEALTH;
-    }
-
-    private boolean isSafe(Point2d p) {
-        if (banshee.unit().getBuffs().contains(Buffs.LOCK_ON)) {
-            return false;
-        }
-
-        //avoid high damage areas even if cloaked
-        float threatValue = InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, p);
-        if (threatValue >= 50) {
-            return false;
-        }
-
-        //don't risk being in threat range while cloaked, if health is low
-        boolean safe = threatValue <= 2;
-        if (retreatForRepairs) {
-            return safe;
-        }
-
-        //safe if no threat or undetected with cloak
-        boolean cloakAvailable = canCloak() || (isCloaked() && banshee.unit().getEnergy().orElse(0f) > 5);
-        return safe || (cloakAvailable && !isDetected(p));
-    }
-
-    //is safe if position is free from threat, or undetected with cloak available
-    private boolean shouldCloak() {
-        Point2d bansheePos = banshee.unit().getPosition().toPoint2d();
-        if (!isCloaked() && canCloak() && !isDetected(bansheePos)) {
-            //health:threat threshold or cyclone locked on
-            return  InfluenceMaps.getValue(InfluenceMaps.pointThreatToAirValue, bansheePos) > banshee.unit().getHealth().get()/30 ||
-                    banshee.unit().getBuffs().contains(Buffs.LOCK_ON);
-        }
-        return false;
-    }
-
-    private boolean isDetected(Point2d p) {
-        return InfluenceMaps.getValue(InfluenceMaps.pointDetected, p) || UnitUtils.hasDecloakBuff(banshee.unit());
     }
 
     //selects target based on cost:health ratio

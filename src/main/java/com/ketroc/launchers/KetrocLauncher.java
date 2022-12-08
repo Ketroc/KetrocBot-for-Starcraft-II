@@ -2,12 +2,14 @@ package com.ketroc.launchers;
 
 import com.github.ocraft.s2client.bot.S2Coordinator;
 import com.github.ocraft.s2client.protocol.Defaults;
+import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.AiBuild;
 import com.github.ocraft.s2client.protocol.game.Difficulty;
 import com.github.ocraft.s2client.protocol.game.LocalMap;
 import com.github.ocraft.s2client.protocol.game.Race;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.bots.WorkerAMoveBot;
+import com.ketroc.managers.BuildManager;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.DebugHelper;
@@ -29,8 +31,8 @@ public class KetrocLauncher {
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.ZERG;
-        Difficulty oppDiff = Difficulty.HARD;
+        Race oppRace = Race.PROTOSS;
+        Difficulty oppDiff = Difficulty.MEDIUM;
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.BC_RUSH;
 

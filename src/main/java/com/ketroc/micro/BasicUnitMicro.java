@@ -371,7 +371,7 @@ public class BasicUnitMicro {
     //retreats as straight back as possible from the threat
     protected Point2d findDetourPos(float rangeCheck) {
         //first try going straight back home
-        Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 2);
+        Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, rangeCheck + 1.5f);
         if (isSafe(towardsRetreatPos)) {
             return ArmyManager.retreatPos;
         }

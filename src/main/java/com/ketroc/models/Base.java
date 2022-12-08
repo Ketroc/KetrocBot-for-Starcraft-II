@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
+import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -388,6 +389,13 @@ public class Base {
         return isMyBase() &&
                 ArmyManager.attackUnit != null &&
                 UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < 15;
+    }
+
+    public float enemySupplyNearBase(float rangeCheck) {
+        return (float)Bot.OBS.getUnits(Alliance.ENEMY, enemy -> UnitUtils.getDistance(enemy.unit(), ccPos) < rangeCheck)
+                        .stream()
+                        .mapToDouble(enemy -> UnitUtils.getSupplyCost(enemy.unit().getType()))
+                        .sum();
     }
 
     public Set<Unit> getRepairBayTargets() {
@@ -1195,6 +1203,7 @@ public class Base {
     public static Optional<Base> getAvailablePocketBase() {
         return GameCache.baseList.stream()
                 .filter(Base::isPocketBase)
+                .filter(base -> base.getCcPos().distance(PosConstants.mainBaseMidPos) < 50)
                 .filter(base -> !base.isMyBase())
                 .findFirst();
     }

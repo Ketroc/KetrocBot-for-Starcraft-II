@@ -74,7 +74,6 @@ public class EnemyCache {
                                 enemy.getDistanceFromPrevStep() > 3 && enemy.getDistanceFromPrevStep() <= 8.1f)) {
                     enemyUpgrades.add(Upgrades.BLINK_TECH);
                     Chat.chat("Blink Upgrade Detected");
-                    Strategy.DO_USE_CYCLONES = false;
                 }
 
             case TERRAN:

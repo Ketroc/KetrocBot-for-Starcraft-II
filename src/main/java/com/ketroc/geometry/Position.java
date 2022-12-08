@@ -431,6 +431,25 @@ public class Position {
         return getAngleDifference(angle1, angle2, true);
     }
 
+    public static float getDirectionalAngleDifference(float angle1, float angle2, boolean isClockwise) {
+        if (isClockwise) {
+            if (angle1 > angle2) {
+                return angle1 - angle2;
+            }
+            else {
+                return angle1 + 360 - angle2;
+            }
+        }
+        //counter-clockwise
+        if (angle1 > angle2) {
+            return 360-angle1 + angle2;
+        }
+        else {
+            return angle2 - angle1;
+        }
+    }
+
+
     private static float getAngleDifference(float angle1, float angle2, boolean isSigned) {
         float difference = Math.abs(angle1 - angle2) % 360;
         difference = (difference > 180) ? 360 - difference : difference;
@@ -446,10 +465,11 @@ public class Position {
     }
 
     public static Point2d getDestinationByAngle(Point2d origin, float angle, float distance) {
+        double rads = Math.toRadians(angle);
         return inBounds(
                 Point2d.of(
-                        distance * (float)Math.cos(angle) + origin.getX(),
-                        distance * (float)Math.sin(angle) + origin.getY()
+                        distance * (float)Math.cos(rads) + origin.getX(),
+                        distance * (float)Math.sin(rads) + origin.getY()
                 )
         );
     }
@@ -468,5 +488,12 @@ public class Position {
     public static Point2d towardsYAxis(Point2d origin, Point2d target, float distance) {
         float yCoord = origin.getY() + (origin.getY() > target.getY() ? -distance : distance);
         return inBounds(Point2d.of(origin.getX(), yCoord));
+    }
+
+    public static boolean isNearMapBorder(Point2d pos, int distance) {
+        return pos.getX() - PosConstants.MIN_X < distance ||
+                pos.getY() - PosConstants.MIN_Y < distance ||
+                PosConstants.MAX_X - pos.getX() < distance ||
+                PosConstants.MAX_Y - pos.getY() < distance;
     }
 }

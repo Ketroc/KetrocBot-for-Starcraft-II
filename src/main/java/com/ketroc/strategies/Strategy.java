@@ -26,8 +26,8 @@ import java.util.*;
 
 public class Strategy {
     public static boolean ARCHON_MASS_RAVEN; //turn on for playing mass raven in archon mode
-    public static boolean TOURNAMENT_MODE; //turn on to use getTournamentGamePlan()
-    public static boolean RANDOM_STRATEGY_SELECTION = true; //TODO: turn off
+    public static boolean TOURNAMENT_MODE;
+    public static boolean RANDOM_STRATEGY_SELECTION;
     public static boolean DO_WALL_NAT;
     public static boolean NO_UPGRADES;
 
@@ -211,15 +211,16 @@ public class Strategy {
                 break;
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-//                DO_DEFENSIVE_TANKS = false;
-//                DO_BANSHEE_HARASS = false;
-//                //EXPAND_SLOWLY = true;
-//                BUILD_EXPANDS_IN_MAIN = true;
-//                NO_RAMP_WALL = true;
-//                NO_TURRETS = true;
-//                NUM_MARINES = 1;
+                DO_BANSHEE_HARASS = false;
+                BUILD_EXPANDS_IN_MAIN = true;
                 ENEMY_DOES_BANSHEE_HARASS = true;
                 Switches.enemyCanProduceAir = true;
+                BuildManager.openingStarportUnits.clear();
+                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
+                BuildManager.openingStarportUnits.add(Units.TERRAN_RAVEN);
+                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
+                BuildManager.openingFactoryUnits.clear();
+                BuildManager.openingFactoryUnits.add(Units.TERRAN_CYCLONE);
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
@@ -380,19 +381,12 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.MARINE_RUSH
 //                ));
-//            case "ee6dc754-ee07-4243-8b92-4e648f58912b": //ChaosBot TODO: for testing anti-nuke code
-//                return new HashSet<>(Set.of(
-//                        GamePlan.TANK_VIKING
-//                ));
-//            case "d7bd5012-d526-4b0a-b63a-f8314115f101": //ANIBot TODO: for testing anti-nuke code
-//                return new HashSet<>(Set.of(
-//                        GamePlan.TANK_VIKING
-//                ));
-//            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-//            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-//                return new HashSet<>(Set.of(
-//                        GamePlan.ONE_BASE_TANK_VIKING
-//                ));
+            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+                return new HashSet<>(Set.of(
+                        GamePlan.TANK_VIKING,
+                        GamePlan.BANSHEE_CYCLONE
+                ));
             default:
                 return new HashSet<>(Set.of(
                         //GamePlan.ONE_BASE_TANK_VIKING,
@@ -445,15 +439,16 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH,
-//                        GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.BC_RUSH,
                         GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.MECH_ALL_IN,
-                        GamePlan.RAVEN
+                        GamePlan.MECH_ALL_IN
+//                        GamePlan.BANSHEE,
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+//                        GamePlan.MARINE_RUSH,
+////                        GamePlan.SCV_RUSH,
+//                        GamePlan.BUNKER_CONTAIN_WEAK,
+//                        GamePlan.RAVEN
                 ));
             default:
                 return new HashSet<>(Set.of(
@@ -504,16 +499,17 @@ public class Strategy {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
             return new HashSet<>(Set.of(
-                    GamePlan.BANSHEE,
-                    GamePlan.MASS_MINE_OPENER,
+//                    GamePlan.BANSHEE,
+//                    GamePlan.MASS_MINE_OPENER,
 //                    GamePlan.BC_RUSH,
-                    GamePlan.BANSHEE_CYCLONE,
-                    GamePlan.MARINE_RUSH,
+//                    GamePlan.MARINE_RUSH,
 //                    GamePlan.SCV_RUSH,
-                    GamePlan.BUNKER_CONTAIN_WEAK,
-//                    GamePlan.RAVEN,
+//                    GamePlan.BUNKER_CONTAIN_WEAK,
 //                    GamePlan.RAVEN_CYCLONE,
-                    GamePlan.GHOST_HELLBAT
+//                    GamePlan.GHOST_HELLBAT
+                    GamePlan.BANSHEE_CYCLONE,
+                    GamePlan.RAVEN,
+                    GamePlan.BC_RUSH
             ));
             case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
@@ -581,6 +577,14 @@ public class Strategy {
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
                 break;
+            case BC_RUSH:
+                NUM_BASES_TO_OC = PosConstants.baseLocations.size();
+                DO_WALL_NAT = true;
+                NO_UPGRADES = true;
+                Strategy.techBuilt = true;
+                Strategy.NO_TURRETS = true;
+                Strategy.DO_BANSHEE_HARASS = false;
+                break;
             case ONE_BASE_BANSHEE_CYCLONE:
                 useCyclonesAdjustments();
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechThenAirUpgrades);
@@ -646,6 +650,7 @@ public class Strategy {
                 NUM_BASES_TO_OC = 2;
                 BUILD_EXPANDS_IN_MAIN = true;
                 PRIORITIZE_EXPANDING = true;
+                DO_BANSHEE_HARASS = false; //TODO: remove me
                 break;
             case BC_RUSH:
                 NUM_BASES_TO_OC = PosConstants.baseLocations.size();
@@ -801,16 +806,16 @@ public class Strategy {
                 return new HashSet<>(Set.of(GamePlan.RAVEN));
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(GamePlan.BANSHEE_CYCLONE, GamePlan.GHOST_HELLBAT, GamePlan.MASS_MINE_OPENER));
-            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
-                return new HashSet<>(Set.of(GamePlan.BUNKER_CONTAIN_STRONG));
+//            case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
+//                return new HashSet<>(Set.of(GamePlan.BUNKER_CONTAIN_STRONG));
             case "81fa0acc-93ea-479c-9ba5-08ae63b9e3f5": //Micromachine
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
                 return new HashSet<>(Set.of(GamePlan.TANK_VIKING, GamePlan.BUNKER_CONTAIN_STRONG));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
 //                return new GamePlan[] { GamePlan.GHOST_HELLBAT, GamePlan.BANSHEE ));
-//            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-//                return new GamePlan[]{GamePlan.BANSHEE_CYCLONE};
+            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+                return new HashSet<>(Set.of(GamePlan.BANSHEE_CYCLONE));
         }
         return new HashSet<>();
     }

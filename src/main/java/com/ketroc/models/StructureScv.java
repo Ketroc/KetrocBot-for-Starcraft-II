@@ -344,7 +344,7 @@ public class StructureScv {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
             case TERRAN_ARMORY: case TERRAN_ENGINEERING_BAY: case TERRAN_GHOST_ACADEMY: case TERRAN_FUSION_CORE:
-                index = Math.max(1, PosConstants._3x3Structures.size());
+                index = Math.min(1, PosConstants._3x3Structures.size());
                 PosConstants._3x3Structures.add(index, structureScv.structurePos);
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructure(structureScv.structureType));
                 break;
