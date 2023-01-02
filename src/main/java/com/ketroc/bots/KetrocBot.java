@@ -153,11 +153,6 @@ public class KetrocBot extends Bot {
                 return;
             }
 
-//            //first step of the game
-//            if (Time.at(Launcher.STEP_SIZE)) {
-//                JsonUtil.chatAllWinRates(true);
-//            }
-
             EnemyCache.onStepStart();
             TurretingRaven.onStepStart();
             MyUnitAbilities.onStepStart();

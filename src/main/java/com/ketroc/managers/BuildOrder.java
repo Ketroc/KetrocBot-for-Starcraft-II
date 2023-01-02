@@ -10,6 +10,7 @@ import com.ketroc.Switches;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
+import com.ketroc.launchers.Launcher;
 import com.ketroc.purchases.*;
 import com.ketroc.strategies.BunkerContain;
 import com.ketroc.strategies.GamePlan;
@@ -152,7 +153,12 @@ public class BuildOrder {
                     ghostHellbatOpener();
                 }
                 else if (Strategy.gamePlan == GamePlan.BC_RUSH) {
-                    ccFirst2BaseBCs();
+                    if (Launcher.isRealTime) {
+                        ccFirst2BaseBCs_Safe();
+                    }
+                    else {
+                        ccFirst2BaseBCs();
+                    }
                 }
                 else if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
                     if (PosConstants.MAP.equals(MapNames.MOONDANCE_AIE)) {

@@ -133,7 +133,6 @@ public class Strategy {
     }
 
     private static void getGameStrategyChoice() {
-        System.out.println("in getGameStrategyChoice");
         setRaceStrategies();
         if (TOURNAMENT_MODE) {
             gamePlan = getTournamentGamePlan();
@@ -384,7 +383,7 @@ public class Strategy {
             case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING,
+                        //GamePlan.TANK_VIKING,
                         GamePlan.BANSHEE_CYCLONE
                 ));
             default:
@@ -406,7 +405,7 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvPGamePlans() {
         if (Launcher.isRealTime) { // TvP vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.ONE_BASE_BANSHEE_CYCLONE
+                    GamePlan.BANSHEE_CYCLONE
             ));
             return humansGamePlans;
 
@@ -469,7 +468,7 @@ public class Strategy {
         if (Launcher.isRealTime) { // TvZ vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
                     GamePlan.BANSHEE_CYCLONE,
-                    GamePlan.MASS_MINE_OPENER
+                    GamePlan.BC_RUSH
             ));
             return humansGamePlans;
 
@@ -511,20 +510,20 @@ public class Strategy {
                     GamePlan.RAVEN,
                     GamePlan.BC_RUSH
             ));
-            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
-            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-                return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE,
-//                        GamePlan.MASS_MINE_OPENER,
-                        GamePlan.BC_RUSH
-//                        GamePlan.BANSHEE_CYCLONE,
-//                        GamePlan.MARINE_RUSH,
-//                        //GamePlan.SCV_RUSH,
-//                        GamePlan.BUNKER_CONTAIN_WEAK,
-//                        GamePlan.RAVEN,
-//                        GamePlan.RAVEN_CYCLONE,
-//                        GamePlan.GHOST_HELLBAT
-                ));
+//            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
+//            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+//                return new HashSet<>(Set.of(
+////                        GamePlan.BANSHEE,
+////                        GamePlan.MASS_MINE_OPENER,
+//                        GamePlan.BC_RUSH
+////                        GamePlan.BANSHEE_CYCLONE,
+////                        GamePlan.MARINE_RUSH,
+////                        //GamePlan.SCV_RUSH,
+////                        GamePlan.BUNKER_CONTAIN_WEAK,
+////                        GamePlan.RAVEN,
+////                        GamePlan.RAVEN_CYCLONE,
+////                        GamePlan.GHOST_HELLBAT
+//                ));
 //            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
 //                return new HashSet<>(Set.of(
 //                        GamePlan.BANSHEE
@@ -1028,7 +1027,7 @@ public class Strategy {
         opponentRecords.filterToGamePlans(gamePlans);
 
         //play 4 games of each strategy first
-        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(4);
+        GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(2); //switch back to 4 or 5
 
         //pick the winningest strategy (exclude most recent loss strategy)
         if (gamePlan == GamePlan.NONE) {

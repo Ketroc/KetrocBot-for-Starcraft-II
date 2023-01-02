@@ -584,7 +584,7 @@ public class WorkerManager {
                 if (gasBankRatio() < 0.6) {
                     numScvsPerGas = 2;
                 }
-                else if (minerals < 500 && mineralRate == 0) {
+                else if (minerals < 500 && mineralRate == 0 && !StructureScv.isAlreadyInProduction(Units.TERRAN_COMMAND_CENTER)) {
                     numScvsPerGas = 0;
                 }
                 break;
@@ -594,7 +594,7 @@ public class WorkerManager {
                     numScvsPerGas = 3;
                 }
                 //go to 1 in gas
-                else if (gas > 700 && gasBankRatio() > 0.75) {
+                else if (gas > 700 && gasBankRatio() > 0.75 && !StructureScv.isAlreadyInProduction(Units.TERRAN_COMMAND_CENTER)) {
                     numScvsPerGas = 1;
                 }
                 break;
@@ -606,7 +606,7 @@ public class WorkerManager {
                         minerals < 2750 &&
                         gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
                         gasBankRatio() > 0.5 &&
-                        StructureScv.numInProductionOfType(Units.TERRAN_COMMAND_CENTER) < 2
+                        !StructureScv.isAlreadyInProduction(Units.TERRAN_COMMAND_CENTER)
                 )) {
                     numScvsPerGas = 2;
                 }
