@@ -24,6 +24,7 @@ public class MarineBasic extends Marine {
     }
 
     private void updateMicroPriority() {
+        //don't suicide into cannons/bunkers
         if (ArmyManager.attackUnit != null &&
                 UnitUtils.isStructure(ArmyManager.attackUnit.getType()) &&
                 UnitUtils.canAttackGround(ArmyManager.attackUnit)) {

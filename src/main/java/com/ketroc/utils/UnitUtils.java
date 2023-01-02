@@ -1147,6 +1147,14 @@ public class UnitUtils {
         return leadPos;
     }
 
+    public static Point2d getLeadPos(Unit unit, float distance) {
+        Point2d curPos = unit.getPosition().toPoint2d();
+        if (UnitUtils.getUnitSpeed(unit.getType()) == 0) {
+            return curPos;
+        }
+        return Position.getDestinationByAngle(curPos, unit.getFacing(), distance);
+    }
+
     public static boolean hasOrderPosition(Unit unit, Point2d pos) {
         return unit.getOrders().stream()
                 .anyMatch(unitOrder -> unitOrder.getTargetedWorldSpacePosition().isPresent() &&

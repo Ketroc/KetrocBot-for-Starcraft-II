@@ -1014,11 +1014,17 @@ public class ArmyManager {
         if (OverlordHunter.overlordHunter != null && !OverlordHunter.overlordHunter.isAborting()) {
             UnitMicroList.getUnitSubList(MarineBasic.class)
                     .forEach(marine -> {
-                        Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
-                                OverlordHunter.overlordHunter.getOverlord().unit(),
-                                marine.unit.unit());
-                        if (reachableAttackPos != null) {
-                            marine.targetPos = reachableAttackPos;
+                        Unit overlord = OverlordHunter.overlordHunter.getOverlord().unit();
+                        if (!Bot.OBS.isPathable(overlord.getPosition().toPoint2d())) {
+                            Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
+                                    overlord,
+                                    marine.unit.unit());
+                            if (reachableAttackPos != null) {
+                                marine.targetPos = reachableAttackPos;
+                            }
+                        }
+                        else {
+                            marine.targetPos = OverlordHunter.overlordHunter.getOverlordPos();
                         }
                     });
             return;

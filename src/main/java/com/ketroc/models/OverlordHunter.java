@@ -109,7 +109,7 @@ public class OverlordHunter {
         //can't find overlord
         if (overlord != null &&
                 barracks != null &&
-                UnitUtils.getDistance(barracks.unit(), overlord.unit()) < 0.1f &&
+                UnitUtils.getDistance(barracks.unit(), getOverlordPos()) < 0.1f &&
                 overlord.getLastSeenGameLoop() != Time.nowFrames()) {
             prevCheckedOverlords.put(overlord.getTag(), Time.nowFrames());
             overlord = null;
@@ -144,14 +144,20 @@ public class OverlordHunter {
         //lift barracks when marine production is idle
         if (barracksSpotter == null) {
             if (UnitUtils.getOrder(barracks.unit()) == null) {
-                UnitMicroList.add(new StructureFloater(barracks, overlord.unit().getPosition().toPoint2d(), false));
+                UnitMicroList.add(new StructureFloater(barracks, getOverlordPos(), false));
                 PosConstants._3x3Structures.add(0, Position.toHalfPoint(barracks.unit().getPosition().toPoint2d()));
             }
             return;
         }
 
         //move towards overlord
-        barracksSpotter.targetPos = overlord.unit().getPosition().toPoint2d();
+        barracksSpotter.targetPos = getOverlordPos();
+    }
+
+    public Point2d getOverlordPos() {
+        return !UnitUtils.isInFogOfWar(overlord)
+                ? overlord.unit().getPosition().toPoint2d()
+                : UnitUtils.getLeadPos(overlord.unit(), 8f);
     }
 
     private StructureFloater getBarracksFloater() {
@@ -208,12 +214,13 @@ public class OverlordHunter {
                 UnitUtils.getOrder(barracks.unit()) == Abilities.LAND;
     }
 
-    //ready when natural has PF or bunker
+    //ready when natural has PF or bunker or when 2nd marine is building
     public static boolean isReadyToHunt() {
         return ((GameCache.baseList.get(1).isMyBase() &&
                         GameCache.baseList.get(1).getCc().unit().getType() == Units.TERRAN_PLANETARY_FORTRESS) ||
                         (UnitUtils.getNatBunkers().stream()
-                                .anyMatch(bunker -> bunker.unit().getBuildProgress() == 1))) &&
+                                .anyMatch(bunker -> bunker.unit().getBuildProgress() == 1)) ||
+                        UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) >= 2) &&
                 !UnitUtils.isAnyBaseUnderAttack();
     }
 
