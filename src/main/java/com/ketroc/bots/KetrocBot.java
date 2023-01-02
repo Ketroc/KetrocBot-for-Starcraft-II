@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrade;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.observation.Alert;
 import com.github.ocraft.s2client.protocol.observation.PlayerResult;
 import com.github.ocraft.s2client.protocol.observation.Result;
@@ -174,7 +173,7 @@ public class KetrocBot extends Bot {
 
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
             if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
-                OverLordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
+                OverlordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
             }
 
 //            StructureScv.updateBank(); //update bank for build commands which haven't been given yet

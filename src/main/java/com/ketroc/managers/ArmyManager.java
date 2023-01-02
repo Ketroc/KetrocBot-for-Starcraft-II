@@ -1011,11 +1011,11 @@ public class ArmyManager {
             return;
         }
 
-        if (OverLordHunter.overlordHunter != null && !OverLordHunter.overlordHunter.isAborting()) {
+        if (OverlordHunter.overlordHunter != null && !OverlordHunter.overlordHunter.isAborting()) {
             UnitMicroList.getUnitSubList(MarineBasic.class)
                     .forEach(marine -> {
                         Point2d reachableAttackPos = UnitUtils.getReachableAttackPos(
-                                OverLordHunter.overlordHunter.getOverlord().unit(),
+                                OverlordHunter.overlordHunter.getOverlord().unit(),
                                 marine.unit.unit());
                         if (reachableAttackPos != null) {
                             marine.targetPos = reachableAttackPos;

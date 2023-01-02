@@ -1,12 +1,14 @@
 package com.ketroc.models;
 
-import SC2APIProtocol.Sc2Api;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
+import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
+import com.ketroc.bots.KetrocBot;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.geometry.Position;
@@ -14,18 +16,15 @@ import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.UnitMicroList;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.PosConstants;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class OverLordHunter {
-    public static OverLordHunter overlordHunter;
+public class OverlordHunter {
+    public static OverlordHunter overlordHunter;
     public static Map<Tag, Long> prevCheckedOverlords = new HashMap<>();
 
     private UnitInPool barracks;
@@ -57,7 +56,7 @@ public class OverLordHunter {
         isAborting = aborting;
     }
 
-    public OverLordHunter(UnitInPool overlord, UnitInPool barracks) {
+    public OverlordHunter(UnitInPool overlord, UnitInPool barracks) {
         this.overlord = overlord;
         this.barracks = barracks;
     }
@@ -167,11 +166,41 @@ public class OverLordHunter {
 
         //send barracks to land
         if (barracksLander == null) {
-            Point2d landingPos = Strategy.gamePlan == GamePlan.GHOST_HELLBAT || PosConstants._3x3Structures.isEmpty() ?
-                    PosConstants._3x3AddonPosList.remove(0) :
-            PosConstants._3x3Structures.remove(0);
+            Point2d landingPos;
+            if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT || PosConstants._3x3Structures.isEmpty()) {
+                landingPos = PosConstants._3x3AddonPosList.remove(0);
+            }
+            else {
+                landingPos = get3x3Pos();
+                PosConstants._3x3Structures.remove(landingPos);
+            }
             UnitMicroList.add(new StructureFloater(barracks, landingPos, true));
         }
+    }
+
+    private Point2d get3x3Pos() {
+        Point2d position = PosConstants._3x3Structures.stream()
+                .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_BARRACKS).getAbility().get()))
+                .filter(structurePos -> KetrocBot.purchaseQueue.size() > 1 || !UnitUtils.isWallComplete() || Bot.OBS.getVisibility(structurePos) != Visibility.VISIBLE) //after initial build order, priority is to grant vision of my main base
+                .findFirst()
+                .orElse(
+                        PosConstants._3x3Structures.stream()
+                                .filter(p -> isLocationSafeAndAvailable(p, Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_BARRACKS).getAbility().get()))
+                                .findFirst()
+                                .orElse(null)
+                );
+        if (position != null) {
+            PosConstants._3x3Structures.remove(position);
+        }
+        else if (!PosConstants._3x3AddonPosList.isEmpty()) { //use starport position if none remain
+            position = PosConstants._3x3AddonPosList.remove(PosConstants._3x3AddonPosList.size()-1);
+        }
+        return position;
+    }
+
+    private boolean isLocationSafeAndAvailable(Point2d p, Ability buildAbility) {
+        return InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, p) == 0 &&
+                Bot.QUERY.placement(buildAbility, p);
     }
 
     private boolean isBarracksLanded() {
@@ -204,7 +233,7 @@ public class OverLordHunter {
                                 !Ignored.contains(u.getTag()))
                         .stream()
                         .min(Comparator.comparing(u -> UnitUtils.getDistance(u.unit(), ol.unit())))
-                        .ifPresent(barracks -> overlordHunter = new OverLordHunter(ol, barracks));
+                        .ifPresent(barracks -> overlordHunter = new OverlordHunter(ol, barracks));
             });
         }
 
@@ -217,7 +246,7 @@ public class OverLordHunter {
     //get closest overlord last seen near my main/nat/3rd
     private static Optional<UnitInPool> getClosestOverlord() {
         return UnitUtils.getEnemyUnitsOfType(Units.ZERG_OVERLORD).stream()
-                .filter(ol -> !OverLordHunter.isOverlordLost(ol))
+                .filter(ol -> !OverlordHunter.isOverlordLost(ol))
                 .filter(ol -> UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(0).getCcPos()) < 20 ||
                         UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(1).getCcPos()) < 20 ||
                         UnitUtils.getDistance(ol.unit(), GameCache.baseList.get(2).getCcPos()) < 20)
