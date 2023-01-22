@@ -172,7 +172,10 @@ public class KetrocBot extends Bot {
             //PlacementMap.visualizePlacementMap();
 
             ActionIssued.onStep(); //remove saved actions that are >12 frames old
-            if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
+            if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT &&
+                    Strategy.gamePlan != GamePlan.MARINE_RUSH &&
+                    Strategy.gamePlan != GamePlan.BUNKER_CONTAIN_STRONG &&
+                    Strategy.gamePlan != GamePlan.BUNKER_CONTAIN_WEAK) {
                 OverlordHunter.manageOverlordHunter(); //send marines and barracks to clear scout overlords
             }
 

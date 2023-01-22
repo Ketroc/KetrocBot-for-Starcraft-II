@@ -129,14 +129,14 @@ public class BasicUnitMicro {
 
         //continue moving to target
         if (!isMovingToTargetPos()) {
-            if (!isBlockingScv()) {
+            if (!isBlockingPlacement()) {
                 ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
             }
             return;
         }
     }
 
-    protected boolean isBlockingScv() {
+    protected boolean isBlockingPlacement() {
         return StructureScv.scvBuildingList.stream()
                 .filter(scv -> scv.getStructureUnit() == null)
                 .filter(scv -> UnitUtils.getDistance(scv.getScv().unit(), scv.structurePos) < 4)

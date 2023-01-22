@@ -113,14 +113,12 @@ public class OverlordHunter {
                 overlord.getLastSeenGameLoop() != Time.nowFrames()) {
             prevCheckedOverlords.put(overlord.getTag(), Time.nowFrames());
             overlord = null;
-            return;
         }
 
         //overlord is unreachable by marines
-        if (overlord != null && !UnitUtils.isReachableToAttack(overlord.unit(), 5.1f)) {
+        else if (overlord != null && !UnitUtils.isReachableToAttack(overlord.unit(), 5.1f)) {
             prevCheckedOverlords.put(overlord.getTag(), Time.nowFrames());
             overlord = null;
-            return;
         }
 
         //set another overlord
@@ -157,7 +155,7 @@ public class OverlordHunter {
     public Point2d getOverlordPos() {
         return !UnitUtils.isInFogOfWar(overlord)
                 ? overlord.unit().getPosition().toPoint2d()
-                : UnitUtils.getLeadPos(overlord.unit(), 8f);
+                : UnitUtils.getLeadPos(overlord.unit(), 12f);
     }
 
     private StructureFloater getBarracksFloater() {

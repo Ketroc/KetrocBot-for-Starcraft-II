@@ -1140,7 +1140,7 @@ public class UnitUtils {
         Point2d targetPos = targetUnit.getPosition().toPoint2d();
         //float targetFacingAngle = Position.getFacingAngle(targetUnit);
         float distance = Bot.OBS.getUnitTypeData(false).get(targetUnit.getType()).getMovementSpeed().orElse(0f); //use speed as distance to lead
-        Point2d leadPos = Position.getDestinationByAngle(targetPos, targetUnit.getFacing(), distance);
+        Point2d leadPos = Position.getDestinationByAngle(targetPos, Position.getFacingAngle(targetUnit), distance);
         if (!myUnit.getFlying().orElse(true) && !Bot.OBS.isPathable(leadPos)) {
             return targetPos;
         }
@@ -1152,7 +1152,7 @@ public class UnitUtils {
         if (UnitUtils.getUnitSpeed(unit.getType()) == 0) {
             return curPos;
         }
-        return Position.getDestinationByAngle(curPos, unit.getFacing(), distance);
+        return Position.getDestinationByAngle(curPos, Position.getFacingAngle(unit), distance);
     }
 
     public static boolean hasOrderPosition(Unit unit, Point2d pos) {
@@ -1618,16 +1618,16 @@ public class UnitUtils {
         return InfluenceMaps.getValue(InfluenceMaps.pointEnemyAttackersWith10Range, enemyUnit.getPosition().toPoint2d()) < 2;
     }
 
-    public static Point2d getReachableAttackPos(Unit enemyUnit, Unit myUnit) {
-        int attackRange = (int) (enemyUnit.getRadius() +
-                UnitUtils.getAttackRange(
-                        myUnit,
-                        enemyUnit.getFlying().get() ? Weapon.TargetType.AIR : Weapon.TargetType.GROUND
-                ));
-        return Position.getSpiralList(enemyUnit.getPosition().toPoint2d(), attackRange).stream()
-                .filter(p -> Bot.OBS.isPathable(p) && UnitUtils.getDistance(enemyUnit, p) <= attackRange)
+    public static Point2d getReachableAttackPos(Unit myUnit, Point2d enemyPos, float enemyRadius) {
+        int attackRange = (int)(enemyRadius + UnitUtils.getAttackRange(myUnit, Weapon.TargetType.AIR));
+        return Position.getSpiralList(enemyPos, attackRange).stream()
+                .filter(p -> Bot.OBS.isPathable(p) && p.distance(enemyPos) <= attackRange)
                 .min(Comparator.comparing(p -> UnitUtils.getDistance(myUnit, p)))
                 .orElse(null);
+    }
+
+    public static Point2d getReachableAttackPos(Unit myUnit, Unit enemyUnit) {
+        return getReachableAttackPos(myUnit, enemyUnit.getPosition().toPoint2d(), enemyUnit.getRadius());
     }
 
     public static boolean isReachableToAttack(Unit enemyUnit, float attackRange) {

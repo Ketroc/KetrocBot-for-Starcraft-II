@@ -3,13 +3,10 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.gamestate.GameCache;
-import com.ketroc.geometry.Position;
 import com.ketroc.models.OverlordHunter;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.PosConstants;
@@ -44,7 +41,7 @@ public class Marine extends BasicUnitMicro {
                 return;
             }
         }
-        if (UnitUtils.getDistance(unit.unit(), targetPos) > 0.5f && !isMovingToTargetPos() && !isBlockingScv()) {
+        if (UnitUtils.getDistance(unit.unit(), targetPos) > 0.5f && !isMovingToTargetPos() && !isBlockingPlacement()) {
             ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
         }
     }
