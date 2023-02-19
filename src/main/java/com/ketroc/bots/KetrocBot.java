@@ -476,8 +476,9 @@ public class KetrocBot extends Bot {
                                 else {
                                     PosConstants.extraDepots.add(Position.toWholePoint(unit.getPosition().toPoint2d()));
                                 }
-                                if (UnitUtils.getDistance(unit, PosConstants.WALL_2x2) < 1) {
+                                if (UnitUtils.getDistance(unit, PosConstants.WALL_2x2) < 2.5f) {
                                     Chat.tag("main_base_breached");
+                                    Strategy.WALL_OFF_IMMEDIATELY = false;
                                     Chat.chatNeverRepeat("What are you doing in my SWAMP?");
                                 }
                                 break;

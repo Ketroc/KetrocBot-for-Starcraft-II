@@ -5,7 +5,6 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.managers.ArmyManager;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.MyUnitAbilities;
@@ -14,7 +13,7 @@ public class Battlecruiser extends BasicUnitMicro {
 
     protected long prevAttackFrame;
     public static long prevYamatoFrame;
-    protected UnitInPool curTargetMoveTo;
+    protected Point2d posMoveTo;
 
     public Battlecruiser(Unit unit, Point2d targetPos, MicroPriority priority) {
         super(unit, targetPos, priority);
@@ -56,8 +55,8 @@ public class Battlecruiser extends BasicUnitMicro {
         return false;
     }
 
-    protected void jump(Point2d targetPos){
-        ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP, targetPos, false);
+    protected void jump(Point2d jumpPos){
+        ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP, jumpPos, false);
     }
 
 

@@ -1481,6 +1481,10 @@ public class UnitUtils {
         return GameCache.baseList.stream().anyMatch(base -> base.isUnderAttack());
     }
 
+    public static boolean isAnyBaseUnderAttack(float range) {
+        return GameCache.baseList.stream().anyMatch(base -> base.isUnderAttack(range));
+    }
+
     public static List<UnitInPool> getEnemyGroundArmyUnitsNearby(Point2d origin, int range) {
         return Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 !u.unit().getFlying().orElse(true) &&

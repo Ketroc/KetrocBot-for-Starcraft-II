@@ -157,7 +157,7 @@ public class BuildOrder {
                         ccFirst2BaseBCs_Safe();
                     }
                     else {
-                        ccFirst2BaseBCs();
+                        fastestBCs(); //ccFirst2BaseBCs();
                     }
                 }
                 else if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
@@ -263,6 +263,33 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FUSION_CORE, hiddenFusionCorePos));
+    }
+
+
+    private static void fastestBCs() {
+        Switches.fastDepotBarracksOpener = true;
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        Point2d factoryPos = PosConstants._3x3AddonPosList.stream()
+                .filter(p -> UnitUtils.isInMyMain(p))
+                .min(Comparator.comparing(p -> p.distance(GameCache.baseList.get(3).getCcPos())))
+                .orElse(PosConstants._3x3AddonPosList.get(Math.min(4, PosConstants._3x3AddonPosList.size()-1)));
+        PosConstants._3x3AddonPosList.remove(factoryPos);
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(0).getCc()));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        Point2d hiddenFusionCorePos = getHiddenFusionCorePos();
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FUSION_CORE, hiddenFusionCorePos));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+
+
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
+        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(1).getCc()));
     }
 
     private static void ccFirst2BaseBCs_Safe() {

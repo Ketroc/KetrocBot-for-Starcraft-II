@@ -32,9 +32,9 @@ public class KetrocLauncher {
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
         Race oppRace = Race.ZERG;
-        Difficulty oppDiff = Difficulty.MEDIUM;
+        Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
+        Strategy.gamePlan = GamePlan.BC_RUSH;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)

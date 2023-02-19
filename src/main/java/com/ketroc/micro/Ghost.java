@@ -38,12 +38,6 @@ public class Ghost extends BasicUnitMicro {
         super(unit, targetPos, MicroPriority.SURVIVAL);
     }
 
-    public static int totalGhostEnergy() {
-        return (int)UnitMicroList.getUnitSubList(Ghost.class).stream()
-                .mapToDouble(ghost -> ghost.unit.unit().getEnergy().orElse(0f))
-                .sum();
-    }
-
     @Override
     public void onStep() {
         super.onStep();
@@ -120,11 +114,26 @@ public class Ghost extends BasicUnitMicro {
         return UnitUtils.isDetected(unit.unit());
     }
 
+    // **************
+    // STATIC METHODS
+    // **************
+    public static int totalGhostEnergy() {
+        return (int)UnitMicroList.getUnitSubList(Ghost.class).stream()
+                .mapToDouble(ghost -> ghost.unit.unit().getEnergy().orElse(0f))
+                .sum();
+    }
+
     public static int numSnipesInProgress(Unit target) {
         return (int)UnitMicroList.getUnitSubList(Ghost.class).stream()
                 .filter(ghost -> ActionIssued.getCurOrder(ghost.unit).stream()
                         .anyMatch(order -> order.ability == Abilities.EFFECT_GHOST_SNIPE &&
                                 target.getTag().equals(order.targetTag)))
                 .count();
+    }
+
+    public static int numSnipesAvailable() {
+        return UnitMicroList.getUnitSubList(Ghost.class).stream()
+                .mapToInt(ghost -> (int)(ghost.unit.unit().getEnergy().orElse(1f) / 50))
+                .sum();
     }
 }

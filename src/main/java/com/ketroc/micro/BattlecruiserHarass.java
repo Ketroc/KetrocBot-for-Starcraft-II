@@ -3,12 +3,9 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
-import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
-import com.github.ocraft.s2client.protocol.unit.CloakState;
-import com.github.ocraft.s2client.protocol.unit.DisplayType;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.gamestate.EnemyCache;
@@ -16,7 +13,6 @@ import com.ketroc.gamestate.GameCache;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
-import com.ketroc.models.Cost;
 import com.ketroc.utils.InfluenceMaps;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.Time;
@@ -26,8 +22,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class BattlecruiserHarass extends Battlecruiser {
+    public static boolean doJumpIn = false;
+    public static float attackRange = 7.5f;
+
     Point2d curEnemyBasePos;
-    boolean doJumpIn = true;
 
     public BattlecruiserHarass(Unit unit) {
         super(unit, ArmyManager.attackEitherPos, MicroPriority.SURVIVAL);
@@ -48,6 +46,31 @@ public class BattlecruiserHarass extends Battlecruiser {
             }
         }
 
+        // SELECT ATTACK TARGET
+        if (isAttackStep()) {
+            //select a target
+            UnitInPool newTargetAttack = selectTargetAttack();
+            if (newTargetAttack != null) {
+                attackTarget(newTargetAttack.unit());
+
+                //scan when only burrowed targets remain
+                if (UnitUtils.isBurrowed(newTargetAttack.unit()) &&
+                        UnitUtils.canScan() &&
+                        !UnitUtils.isInMyDetection(newTargetAttack.unit().getPosition().toPoint2d()) &&
+                        UnitUtils.getEnemyTargetsNear(unit.unit(), 15).stream()
+                            .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
+                            .allMatch(target -> UnitUtils.isBurrowed(target.unit()) &&
+                                    !UnitUtils.isInMyDetection(target.unit().getPosition().toPoint2d()))) {
+                    UnitUtils.scan(newTargetAttack.unit().getPosition().toPoint2d());
+                }
+            }
+            prevAttackFrame = Time.nowFrames();
+            return;
+        }
+
+        //SET POSITIONS
+        posMoveTo = selectTargetMoveTo();
+
         // YAMATO
         if (isYamatoAvailable()) {
             UnitInPool newYamatoAttack = selectYamatoAttack();
@@ -57,42 +80,22 @@ public class BattlecruiserHarass extends Battlecruiser {
             }
         }
 
-        // SELECT ATTACK TARGET
-        if (isAttackStep()) {
-            //select a target
-            UnitInPool newTargetAttack = selectTargetAttack();
-            if (newTargetAttack != null) {
-                attackTarget(newTargetAttack.unit());
-
-                //scan when only burrowed targets remain
-                if (UnitUtils.isBurrowed(newTargetAttack.unit()) && UnitUtils.canScan()) {
-                    if (UnitUtils.isInMyDetection(newTargetAttack.unit().getPosition().toPoint2d()))
-                    if (UnitUtils.getEnemyTargetsNear(unit.unit(), 15).stream()
-                            .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
-                            .allMatch(target -> UnitUtils.isBurrowed(target.unit()) &&
-                                    !UnitUtils.isInMyDetection(target.unit().getPosition().toPoint2d()))) {
-                        UnitUtils.scan(newTargetAttack.unit().getPosition().toPoint2d());
-                    }
-                }
-            }
-            prevAttackFrame = Time.nowFrames();
-            return;
-        }
-
-        //SET POSITIONS
-        curTargetMoveTo = selectTargetMoveTo();
+        // SET TARGET POS
         if (doRepair()) {
             targetPos = PosConstants.REPAIR_BAY;
         }
-        else if (curTargetMoveTo != null) {
-            //lowest threat pos within 3 range of BC and 6 range of target
-            targetPos = findSafestPos(curTargetMoveTo.unit().getPosition().toPoint2d());
+        else if (posMoveTo != null) {
+            //lowest threat pos within 3 range of BC and 7 range of target
+            targetPos = findSafestPos(posMoveTo);
         }
         else if (curEnemyBasePos != null) {
             targetPos = curEnemyBasePos;
         }
-        else {
+        else if (ArmyManager.attackEitherPos != null) {
             targetPos = ArmyManager.attackEitherPos;
+        }
+        else {
+            setFinishHimTarget();
         }
 
         // DODGE SPLASH
@@ -126,6 +129,11 @@ public class BattlecruiserHarass extends Battlecruiser {
     }
 
     private Point2d findSafestPos(Point2d targetPos) {
+        //dodge enemy dps while still going towards the target
+
+        //when in attack range of target, move the safest position while still in range to attack target
+
+
         //check 12x12 around bc pos
         int bcX = InfluenceMaps.toMapCoord(unit.unit().getPosition().getX());
         int bcY = InfluenceMaps.toMapCoord(unit.unit().getPosition().getY());
@@ -139,7 +147,7 @@ public class BattlecruiserHarass extends Battlecruiser {
                     continue;
                 }
                 //if lowest threat pos
-                int curThreatVal = InfluenceMaps.pointThreatToAirValue[x][y];
+                int curThreatVal = InfluenceMaps.pointDamageToAirValue[x][y];
                 if (curThreatVal < lowestThreatVal) {
                     lowestThreatPos = curPos;
                     lowestThreatVal = curThreatVal;
@@ -170,14 +178,22 @@ public class BattlecruiserHarass extends Battlecruiser {
     }
 
     public UnitInPool selectTargetAttack() {
-        return selectTarget(6);
+        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), attackRange).stream()
+                .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
+                .collect(Collectors.toList());
+        if (allTargets.isEmpty()) {
+            return null;
+        }
+        switch (PosConstants.opponentRace) {
+            case ZERG:
+                return getZergAttackTarget(allTargets);
+            default: //case PROTOSS:
+                return getProtossTarget(attackRange, allTargets);
+        }
     }
 
-    public UnitInPool selectTargetMoveTo() {
-        return selectTarget(15);
-    }
-    public UnitInPool selectTarget(float range) {
-        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), range).stream()
+    public Point2d selectTargetMoveTo() {
+        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 15).stream()
                 .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
                 .collect(Collectors.toList());
         if (allTargets.isEmpty()) {
@@ -185,20 +201,127 @@ public class BattlecruiserHarass extends Battlecruiser {
             Point2d newTargetBase = selectTargetBase();
             if (newTargetBase != null) {
                 curEnemyBasePos = newTargetBase;
+                return null;
             }
-            return null;
+            allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 999).stream()
+                    .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
+                    .collect(Collectors.toList());
+            if (allTargets.isEmpty()) {
+                return null; //TODO: search for final structures
+            }
         }
         switch (PosConstants.opponentRace) {
             case ZERG:
-                return getZergTarget(range, allTargets);
+                return getZergMoveToTarget(allTargets);
             default: //case PROTOSS:
-                return getProtossTarget(range, allTargets);
+                //return getProtossTarget(15, allTargets);
+                return null; //TODO: fix protoss
         }
     }
 
-    private UnitInPool getZergTarget(float range, List<UnitInPool> allTargets) {
-        // HYDRAS
+    private Point2d getZergMoveToTarget(List<UnitInPool> allTargets) {
+        UnitInPool bestTarget;
+
+        // QUEENS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_QUEEN ||
+                        target.unit().getType() == Units.ZERG_QUEEN_BURROWED)
+                .max(Comparator.comparing(target ->
+                        (target.unit().getHealthMax().orElse(175f) - target.unit().getHealth().orElse(175f)) +
+                                ((int)(target.unit().getEnergy().orElse(0f)/50))*75))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // SPIRE
+        UnitInPool aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.ZERG_SPIRE).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
+                .orElse(null);
+        if (aaTechStructure != null) {
+            return aaTechStructure.unit().getPosition().toPoint2d();
+        }
+
+        // HYDRA DEN
+        aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
+                .orElse(null);
+        if (aaTechStructure != null) {
+            return aaTechStructure.unit().getPosition().toPoint2d();
+        }
+
+        // OVERLORDS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
+                        target.unit().getType() == Units.ZERG_OVERLORD_TRANSPORT)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // HATCHERIES
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(target.unit().getType()))
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // STRUCTURES (NOT-SPORES)
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.isStructure(target.unit().getType()) && target.unit().getType() != Units.ZERG_SPORE_CRAWLER)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // CONTINUE TO ENEMY BASE
+        if (curEnemyBasePos != null && UnitUtils.getDistance(unit.unit(), curEnemyBasePos) > 1) {
+            return curEnemyBasePos;
+        }
+
+        // NEXT BASE
+        Point2d newTargetBase = selectTargetBase();
+        if (newTargetBase != null) {
+            curEnemyBasePos = newTargetBase;
+            return curEnemyBasePos;
+        }
+
+        // NEXT STRUCTURE
+        Optional<UnitInPool> closestEnemyStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> UnitUtils.isStructure(target.unit().getType())).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())));
+        if (closestEnemyStructure.isPresent()) {
+            return closestEnemyStructure.get().unit().getPosition().toPoint2d();
+        }
+
+        // ANY ENEMY UNIT IN RANGE
+        return allTargets.stream()
+                .filter(target -> target.unit().getHealth().orElse(0f) > 0)
+                .min(Comparator.comparing(target -> target.unit().getHealth().get()))
+                .map(target -> target.unit().getPosition().toPoint2d())
+                .orElse(null);
+    }
+
+    private UnitInPool getZergAttackTarget(List<UnitInPool> allTargets) {
+        if (allTargets.isEmpty()) {
+            return null;
+        }
+
+        // DRONES
         UnitInPool bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_DRONE ||
+                        target.unit().getType() == Units.ZERG_DRONE_BURROWED)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // HYDRAS
+        bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_HYDRALISK ||
                         target.unit().getType() == Units.ZERG_HYDRALISK_BURROWED)
                 .min(Comparator.comparing(target -> target.unit().getHealth().orElse(90f)))
@@ -229,42 +352,19 @@ public class BattlecruiserHarass extends Battlecruiser {
         }
 
         // SPIRE or HYDRA DEN
-        if (range > 7) { //not attack targetting
-            // SPIRE or HYDRA DEN
-            UnitInPool aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target ->
-                            target.unit().getType() == Units.ZERG_SPIRE ||
-                                    target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
-                    .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
-                    .orElse(null);
-            if (aaTechStructure != null) {
-                return aaTechStructure;
-            }
-        }
-        else {
-            bestTarget = allTargets.stream()
-                    .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
-                            target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
-                    .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
-                            (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
-                    .orElse(null);
-            if (bestTarget != null) {
-                return bestTarget;
-            }
-        }
-
-        // MUTAS / SPORES
         bestTarget = allTargets.stream()
-                .filter(target -> UnitUtils.canAttackAir(target.unit()))
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
+                        target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
+                        (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
         }
 
-        // DRONES
+        // MUTAS / SPORES
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.ZERG_DRONE ||
-                        target.unit().getType() == Units.ZERG_DRONE_BURROWED)
+                .filter(target -> UnitUtils.canAttackAir(target.unit()))
                 .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
                 .orElse(null);
         if (bestTarget != null) {
@@ -349,7 +449,7 @@ public class BattlecruiserHarass extends Battlecruiser {
         }
 
         // STALKER
-        if (range <= 7) {
+        if (range <= attackRange) {
             bestTarget = allTargets.stream()
                     .filter(target -> target.unit().getType() == Units.PROTOSS_STALKER)
                     .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
@@ -402,7 +502,7 @@ public class BattlecruiserHarass extends Battlecruiser {
         List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 10);
         return allTargets.stream()
                 .filter(target -> UnitUtils.getCurHp(target.unit()) > 100)
-                .filter(target -> isYamatoWorthy((Units)target.unit().getType()))
+                .filter(target -> isYamatoWorthy(target.unit()))
                 .max(Comparator.comparing(target -> target.unit().getHealth().orElse(0f)))
                 .orElse(null);
     }
@@ -435,18 +535,21 @@ public class BattlecruiserHarass extends Battlecruiser {
     }
 
     //TODO: all races
-    protected boolean isYamatoWorthy(Units unitType) {
+    protected boolean isYamatoWorthy(Unit enemyUnit) {
+        Units enemyType = (Units)enemyUnit.getType();
         if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.ZERG_CORRUPTOR)) {
-            return unitType == Units.ZERG_CORRUPTOR;
+            return enemyType == Units.ZERG_CORRUPTOR;
         }
 
-        switch (unitType) {
-            case ZERG_QUEEN: case ZERG_SPORE_CRAWLER: case ZERG_CORRUPTOR:
-            case ZERG_MUTALISK: case ZERG_SPIRE: case ZERG_HYDRALISK_DEN:
+        switch (enemyType) {
+            case ZERG_QUEEN: case ZERG_CORRUPTOR:
+            case ZERG_MUTALISK: //case ZERG_SPIRE: case ZERG_HYDRALISK_DEN:
             case PROTOSS_VOIDRAY: case PROTOSS_TEMPEST: case PROTOSS_CARRIER:
             case PROTOSS_PHOTON_CANNON: case PROTOSS_STALKER: case PROTOSS_MOTHERSHIP:
             case PROTOSS_ARCHON:
                 return true;
+            case ZERG_SPORE_CRAWLER: case ZERG_SPORE_CRAWLER_UPROOTED:
+                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato spores that are protecting BC's target
         }
         return false;
     }

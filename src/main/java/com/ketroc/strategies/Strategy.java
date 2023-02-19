@@ -16,6 +16,7 @@ import com.ketroc.gson.Opponent;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.BuildManager;
 import com.ketroc.managers.UpgradeManager;
+import com.ketroc.micro.BattlecruiserHarass;
 import com.ketroc.micro.Harassers;
 import com.ketroc.models.Base;
 import com.ketroc.models.DelayedChat;
@@ -177,6 +178,7 @@ public class Strategy {
                 break;
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
+                BattlecruiserHarass.doJumpIn = false;
                 DO_BANSHEE_HARASS = false;
                 DO_DIVE_MOBILE_DETECTORS = false;
                 break;
@@ -384,7 +386,8 @@ public class Strategy {
             case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
                 return new HashSet<>(Set.of(
                         //GamePlan.TANK_VIKING,
-                        GamePlan.BANSHEE_CYCLONE
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH
                 ));
             default:
                 return new HashSet<>(Set.of(
@@ -497,19 +500,26 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
-            return new HashSet<>(Set.of(
-//                    GamePlan.BANSHEE,
-//                    GamePlan.MASS_MINE_OPENER,
-//                    GamePlan.BC_RUSH,
-//                    GamePlan.MARINE_RUSH,
-//                    GamePlan.SCV_RUSH,
-//                    GamePlan.BUNKER_CONTAIN_WEAK,
-//                    GamePlan.RAVEN_CYCLONE,
-//                    GamePlan.GHOST_HELLBAT
-                    GamePlan.BANSHEE_CYCLONE,
-                    GamePlan.RAVEN,
-                    GamePlan.BC_RUSH
-            ));
+                 if (PosConstants.MAP.contains("Inside") ||
+                         PosConstants.MAP.contains("Stargazer")) {
+                     return new HashSet<>(Set.of(GamePlan.RAVEN));
+                 }
+                 else {
+                     return new HashSet<>(Set.of(GamePlan.BC_RUSH));
+                 }
+//            return new HashSet<>(Set.of(
+////                    GamePlan.BANSHEE,
+////                    GamePlan.MASS_MINE_OPENER,
+////                    GamePlan.BC_RUSH,
+////                    GamePlan.MARINE_RUSH,
+////                    GamePlan.SCV_RUSH,
+////                    GamePlan.BUNKER_CONTAIN_WEAK,
+////                    GamePlan.RAVEN_CYCLONE,
+////                    GamePlan.GHOST_HELLBAT
+////                    GamePlan.BANSHEE_CYCLONE,
+//                    GamePlan.RAVEN,
+//                    GamePlan.BC_RUSH
+//            ));
 //            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
 //            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
 //                return new HashSet<>(Set.of(

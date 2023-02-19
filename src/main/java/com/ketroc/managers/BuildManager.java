@@ -84,7 +84,7 @@ public class BuildManager {
 
             trainStarportUnits_BcRush();
             upgradeYamato();
-            build3rdStarport();
+            buildExtraStarports();
 
             //mineral sink (only spends minerals beyond what BC production can spend)
             if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
@@ -212,11 +212,11 @@ public class BuildManager {
         }
     }
 
-    private static void build3rdStarport() {
+    private static void buildExtraStarports() {
         //if starports are all building BCs, add 3rd starport and get yamato
         int numStarports = UnitUtils.numMyUnits(UnitUtils.STARPORT_TYPE, true);
-        if (numStarports == 2 &&
-                GameCache.gasBank > 700 &&
+        if (numStarports < 3 &&
+                GameCache.gasBank > numStarports * 350 &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT) &&
                 Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_STARPORT).stream()
@@ -838,7 +838,7 @@ public class BuildManager {
         if (Strategy.DO_DEFENSIVE_TANKS) {
             int numTanks = Bot.OBS.getUnits(Alliance.SELF, u -> UnitUtils.SIEGE_TANK_TYPE.contains(u.unit().getType())).size();
             //if tank needed for PF
-            if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * (Base.numMyBases() - 1))) {
+            if (numTanks < Math.min(Strategy.MAX_TANKS, Strategy.NUM_TANKS_PER_EXPANSION * Base.numBasesToDefend())) {
                 return Units.TERRAN_SIEGE_TANK;
             }
         }
@@ -1320,14 +1320,16 @@ public class BuildManager {
             return Units.TERRAN_VIKING_FIGHTER;
         }
 
+        //start with a medivac in GHOST_HELLBAT strategy
+        if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
+            if (UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, true) == 0) {
+                return Units.TERRAN_MEDIVAC;
+            }
+        }
+
         //maintain 2 raven
         int numRavens = UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true);
         if (numRavens < 2) {
-            return Units.TERRAN_RAVEN;
-        }
-
-        //maintain 3 ravens vs burrow
-        if (Switches.doNeedDetection && numRavens < 3) {
             return Units.TERRAN_RAVEN;
         }
 
@@ -1342,10 +1344,12 @@ public class BuildManager {
 //        }
 
         //maintain at least 1 medivac per 3 bio units unless floating medivac energy
-        float totalMedivacEnergy = (float) Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC).stream()
+        List<UnitInPool> medivacUipList = Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_MEDIVAC);
+        float totalMedivacEnergy = (float) medivacUipList.stream()
                 .mapToDouble(u -> u.unit().getEnergy().orElse(0f))
                 .sum();
-        if (totalMedivacEnergy < 800) { //forget unit ratio is medivacs are banking energy
+        boolean allMedivacsLowEnergy = medivacUipList.stream().allMatch(m -> m.unit().getEnergy().orElse(0f) < 100);
+        if (allMedivacsLowEnergy && totalMedivacEnergy < 700) { //forget unit ratio is medivacs are banking energy
             int numMarauders = UnitUtils.numMyUnits(Units.TERRAN_MARAUDER, true);
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, true);
             int numGhosts = UnitUtils.numMyUnits(Units.TERRAN_GHOST, true);
@@ -1355,10 +1359,15 @@ public class BuildManager {
             }
         }
 
-        //build medivac if existing medivacs are dry
-        if (totalMedivacEnergy / UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, false) < 20) {
-            return Units.TERRAN_MEDIVAC;
+        //maintain 3 ravens vs burrow
+        if (Switches.doNeedDetection && numRavens < 3) {
+            return Units.TERRAN_RAVEN;
         }
+
+        //build medivac if existing medivacs are dry
+//        if (totalMedivacEnergy / UnitUtils.numMyUnits(Units.TERRAN_MEDIVAC, false) < 20) {
+//            return Units.TERRAN_MEDIVAC;
+//        }
 
         //maintain 4 ravens when viking/medivac quota is met
         if (ArmyManager.doOffense && numRavens <= 2) {
@@ -1557,7 +1566,7 @@ public class BuildManager {
 
         //get defensive liberators for each expansion up to 6
         if (Strategy.DO_DEFENSIVE_LIBS &&
-                numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * (Base.numMyBases() - 1)) &&
+                numLiberators < Math.min(Strategy.MAX_LIBS, Strategy.NUM_LIBS_PER_EXPANSION * Base.numBasesToDefend()) &&
                 !freeUpOffensiveLib()) {
             return Abilities.TRAIN_LIBERATOR;
         }

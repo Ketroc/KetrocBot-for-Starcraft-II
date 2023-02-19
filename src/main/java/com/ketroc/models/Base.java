@@ -10,7 +10,6 @@ import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.gamestate.EnemyCache;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.bots.Bot;
 import com.ketroc.bots.KetrocBot;
@@ -132,6 +131,10 @@ public class Base {
 
     public List<DefenseUnitPositions> getInFrontPositions() {
         return inFrontPositions;
+    }
+
+    public boolean requiresDefense() {
+        return isMyBase() && !isMyMainBase() && !isDriedUp() && !isPocketBase();
     }
 
     public boolean isDriedUp() {
@@ -386,9 +389,13 @@ public class Base {
     }
 
     public boolean isUnderAttack() {
+        return isUnderAttack(15);
+    }
+
+    public boolean isUnderAttack(float range) {
         return isMyBase() &&
                 ArmyManager.attackUnit != null &&
-                UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < 15;
+                UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < range;
     }
 
     public float enemySupplyNearBase(float rangeCheck) {
@@ -950,6 +957,10 @@ public class Base {
         return (int) GameCache.baseList.stream().filter(base -> base.isMyBase()).count();
     }
 
+    public static int numBasesToDefend() {
+        return (int) GameCache.baseList.stream().filter(Base::requiresDefense).count();
+    }
+
     public static int numEnemyBases() {
         return (int) GameCache.baseList.stream().filter(base -> base.isEnemyBase).count();
     }
@@ -960,12 +971,23 @@ public class Base {
                 .count();
     }
 
-    public static Point2d getNextAvailableBase() {
+    public static Point2d getNextAvailableBasePos() {
         return GameCache.baseList.stream()
                 .filter(base -> base.isUntakenBase() && !base.isDriedUp)
                 .findFirst()
                 .map(Base::getCcPos)
                 .orElse(null);
+    }
+
+    public static Base getNextBase() {
+        return GameCache.baseList.stream()
+                .filter(base -> !base.isDriedUp() && !base.isMyBase())
+                .findFirst()
+                .orElse(null);
+    }
+    public static Point2d getNextBasePos() {
+        Base nextBase = getNextBase();
+        return nextBase == null ? null : nextBase.getCcPos();
     }
 
     public static Base getBase(Unit cc) {

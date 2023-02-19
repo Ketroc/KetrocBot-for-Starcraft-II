@@ -552,10 +552,14 @@ public class ArmyManager {
 
         if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, false);
-            if (doOffense && Bot.OBS.getFoodUsed() < 190 && numHellbats < 6) {
+            if (doOffense &&
+                    Bot.OBS.getFoodUsed() < 190 &&
+                    (numHellbats < 6 || Ghost.numSnipesAvailable() == 0)) {
                 doOffense = false;
             }
-            else if (!doOffense && (Bot.OBS.getFoodUsed() > 190 || numHellbats >= 6)) {
+            else if (!doOffense &&
+                    (Bot.OBS.getFoodUsed() > 190 ||
+                            (numHellbats >= 6 && Ghost.numSnipesAvailable() >= 10))) {
                 doOffense = true;
             }
             return;
@@ -789,12 +793,42 @@ public class ArmyManager {
     }
 
     private static void setGroundTarget() {
+        Point2d nextEnemyBasePos = PosConstants.nextEnemyBase == null ? null : PosConstants.nextEnemyBase.getCcPos();
+        boolean isAttackingEnemyBase = nextEnemyBasePos != null && attackGroundPos != null && nextEnemyBasePos.distance(attackGroundPos) < 1;
+        float enemyBaseAttackRange = isAttackingEnemyBase ? 17 : 13;
         UnitInPool closestEnemyGround = getClosestEnemyGroundUnit();
+        boolean isEnemyAttackingMyBase = UnitUtils.isAnyBaseUnderAttack();
+
+        //defend my bases
+        if (closestEnemyGround != null && isEnemyAttackingMyBase) {
+            attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
+            attackUnit = closestEnemyGround.unit();
+            return;
+        }
+
+        //attack enemy units near next enemy base
+        if (closestEnemyGround != null && nextEnemyBasePos != null &&
+                UnitUtils.getDistance(closestEnemyGround.unit(), nextEnemyBasePos) < enemyBaseAttackRange) {
+            attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
+            attackUnit = closestEnemyGround.unit();
+            return;
+        }
+
+        //attack next enemy base in order
+        if (nextEnemyBasePos != null) {
+            attackGroundPos = nextEnemyBasePos;
+            attackUnit = closestEnemyGround != null ? closestEnemyGround.unit() : null;
+            return;
+        }
+
+        // attack next enemy ground unit
         if (closestEnemyGround != null) {
             attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
             attackUnit = closestEnemyGround.unit();
         }
-        else if (PosConstants.nextEnemyBase == null) {
+
+        //no enemy bases or ground units left
+        if (PosConstants.nextEnemyBase == null) {
             attackGroundPos = null; //flag to spread army
         }
         else {
@@ -805,18 +839,26 @@ public class ArmyManager {
     private static void setAirTarget() {
         UnitInPool closestEnemyAir = getClosestEnemyAirUnit();
         List<TankOffense> tankList = UnitMicroList.getUnitSubList(TankOffense.class);
+        Point2d nextEnemyBasePos = PosConstants.nextEnemyBase == null ? null : PosConstants.nextEnemyBase.getCcPos();
+        boolean isAttackingEnemyBase = nextEnemyBasePos != null && nextEnemyBasePos.distance(attackGroundPos) < 1;
+        float enemyBaseAttackRange = isAttackingEnemyBase ? 17 : 13;
+        boolean isEnemyAttackingMyBase = closestEnemyAir != null && Base.nearOneOfMyBases(closestEnemyAir.unit(), 20);
 
-        //attack closest enemy air unit, but stay close to tanks if TankOffense units are in use
-        if (closestEnemyAir != null &&
-                (Base.nearOneOfMyBases(closestEnemyAir.unit(), 25) ||
-                        tankList.isEmpty() ||
-                        tankList.stream().anyMatch(tankOffense ->
-                                UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) < 20))) {
+        // kill air near my bases
+        if (closestEnemyAir != null && isEnemyAttackingMyBase) {
             attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }
 
-        //cover lead siege tank
+        // kill air near tanks
+        if (closestEnemyAir != null &&
+                Strategy.DO_OFFENSIVE_TANKS &&
+                tankList.stream().anyMatch(tankOffense -> UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) < 20)) {
+            attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
+            return;
+        }
+
+        // cover lead tank
         if (Strategy.DO_OFFENSIVE_TANKS && leadTank != null) {
             attackAirPos = Position.towards(
                     leadTank.unit(),
@@ -826,9 +868,29 @@ public class ArmyManager {
             return;
         }
 
-        //attack ground target pos
-        attackAirPos = attackGroundPos;
+        // kill air near nextEnemyBase
+        if (doOffense && closestEnemyAir != null && nextEnemyBasePos != null &&
+                attackGroundPos.distance(nextEnemyBasePos) < enemyBaseAttackRange &&
+                UnitUtils.getDistance(closestEnemyAir.unit(), nextEnemyBasePos) < enemyBaseAttackRange) {
+            attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
+            return;
+        }
 
+
+        // head to nextEnemyBase
+        if (doOffense && nextEnemyBasePos != null) {
+            attackAirPos = nextEnemyBasePos;
+            return;
+        }
+
+        // kill any air
+        if (doOffense && closestEnemyAir != null) {
+            attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
+            return;
+        }
+
+        // go to attackGroundPos
+        attackAirPos = attackGroundPos;
     }
 
     //set to whichever position is closer to my main base
@@ -1099,7 +1161,7 @@ public class ArmyManager {
                 continue;
             }
             Base base = GameCache.baseList.get(BASE_DEFENSE_INDEX_ORDER[i]);
-            if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp()) { //my expansion bases only
+            if (base.requiresDefense()) { //my expansion bases only
                 for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
                     if (libPos.getUnit() == null) {
                         libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()), base);
@@ -1125,7 +1187,7 @@ public class ArmyManager {
         Unit idleTank = GameCache.siegeTankList.get(0);
         if (Strategy.DO_DEFENSIVE_TANKS) {
             for (Base base : GameCache.baseList) {
-                if (base.isMyBase() && !base.isMyMainBase() && !base.isDriedUp() && !base.isPocketBase()) { //my expansion bases only
+                if (base.requiresDefense()) {
                     for (DefenseUnitPositions tankPos : base.getInMineralLinePositions()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()), base);

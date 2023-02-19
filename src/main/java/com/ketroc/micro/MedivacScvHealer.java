@@ -180,7 +180,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
     }
 
     public static boolean needAnother() {
-        return numInjuredScvs() >= 6 && isAllMedivacsDry();
+        return numInjuredScvs() >= 8 && isAllMedivacsDry();
     }
 
     private static long numInjuredScvs() {
