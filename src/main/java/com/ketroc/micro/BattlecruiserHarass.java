@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 public class BattlecruiserHarass extends Battlecruiser {
     public static boolean doJumpIn = false;
-    public static float attackRange = 7.5f;
 
     Point2d curEnemyBasePos;
 
@@ -188,7 +187,7 @@ public class BattlecruiserHarass extends Battlecruiser {
             case ZERG:
                 return getZergAttackTarget(allTargets);
             default: //case PROTOSS:
-                return getProtossTarget(attackRange, allTargets);
+                return getProtossAttackTarget(allTargets);
         }
     }
 
@@ -207,15 +206,14 @@ public class BattlecruiserHarass extends Battlecruiser {
                     .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
                     .collect(Collectors.toList());
             if (allTargets.isEmpty()) {
-                return null; //TODO: search for final structures
+                return null;
             }
         }
         switch (PosConstants.opponentRace) {
             case ZERG:
                 return getZergMoveToTarget(allTargets);
             default: //case PROTOSS:
-                //return getProtossTarget(15, allTargets);
-                return null; //TODO: fix protoss
+                return getProtossMoveToTarget(allTargets);
         }
     }
 
@@ -351,21 +349,21 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
+        // MUTAS / SPORES
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.canAttackAir(target.unit()))
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
         // SPIRE or HYDRA DEN
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
                         target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
                 .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
                         (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
-                .orElse(null);
-        if (bestTarget != null) {
-            return bestTarget;
-        }
-
-        // MUTAS / SPORES
-        bestTarget = allTargets.stream()
-                .filter(target -> UnitUtils.canAttackAir(target.unit()))
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -393,27 +391,113 @@ public class BattlecruiserHarass extends Battlecruiser {
         return allTargets.get(0);
     }
 
-    private UnitInPool getProtossTarget(float range, List<UnitInPool> allTargets) {
+    private Point2d getProtossMoveToTarget(List<UnitInPool> allTargets) {
+        UnitInPool bestTarget;
+
         // OVERCHARGED BATTERY
-        UnitInPool bestTarget = allTargets.stream()
+        bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY && target.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE))
                 .findFirst()
                 .orElse(null);
         if (bestTarget != null) {
-            return bestTarget;
+            return bestTarget.unit().getPosition().toPoint2d();
         }
 
         // NOT DRY BATTERY
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY && target.unit().getEnergy().orElse(0f) > 80f)
+                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY && target.unit().getEnergy().orElse(0f) > 50f)
+                .max(Comparator.comparing(target -> target.unit().getEnergy().orElse(200f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // STARGATE
+        UnitInPool aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.PROTOSS_STARGATE).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
+                .orElse(null);
+        if (aaTechStructure != null) {
+            return aaTechStructure.unit().getPosition().toPoint2d();
+        }
+
+        // CYBER CORE
+        aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.PROTOSS_CYBERNETICS_CORE).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
+                .orElse(null);
+        if (aaTechStructure != null) {
+            return aaTechStructure.unit().getPosition().toPoint2d();
+        }
+
+        // PHASING WARP PRISM
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_WARP_PRISM_PHASING)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
         if (bestTarget != null) {
-            return bestTarget;
+            return bestTarget.unit().getPosition().toPoint2d();
         }
 
-        // PROBE
+        // PYLONS
         bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_PYLON)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // NEXUS
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(target.unit().getType()))
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // STRUCTURES (NOT-CANNONS)
+        bestTarget = allTargets.stream()
+                .filter(target -> UnitUtils.isStructure(target.unit().getType()) && target.unit().getType() != Units.PROTOSS_PHOTON_CANNON)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget.unit().getPosition().toPoint2d();
+        }
+
+        // CONTINUE TO ENEMY BASE
+        if (curEnemyBasePos != null && UnitUtils.getDistance(unit.unit(), curEnemyBasePos) > 1) {
+            return curEnemyBasePos;
+        }
+
+        // NEXT BASE
+        Point2d newTargetBase = selectTargetBase();
+        if (newTargetBase != null) {
+            curEnemyBasePos = newTargetBase;
+            return curEnemyBasePos;
+        }
+
+        // NEXT STRUCTURE
+        Optional<UnitInPool> closestEnemyStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> UnitUtils.isStructure(target.unit().getType())).stream()
+                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())));
+        if (closestEnemyStructure.isPresent()) {
+            return closestEnemyStructure.get().unit().getPosition().toPoint2d();
+        }
+
+        // ANY ENEMY UNIT IN RANGE
+        return allTargets.stream()
+                .filter(target -> target.unit().getHealth().orElse(0f) > 0)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .map(target -> target.unit().getPosition().toPoint2d())
+                .orElse(null);
+    }
+
+    private UnitInPool getProtossAttackTarget(List<UnitInPool> allTargets) {
+        if (allTargets.isEmpty()) {
+            return null;
+        }
+
+        // PROBES
+        UnitInPool bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.PROTOSS_PROBE)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
@@ -421,16 +505,7 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
-        // CANNON
-        bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.PROTOSS_PHOTON_CANNON)
-                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
-                .orElse(null);
-        if (bestTarget != null) {
-            return bestTarget;
-        }
-
-        // VOID RAY
+        // VOID RAYS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.PROTOSS_VOIDRAY)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
@@ -439,7 +514,7 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
-        // TEMPEST
+        // TEMPESTS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.PROTOSS_TEMPEST)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
@@ -448,18 +523,16 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
-        // STALKER
-        if (range <= attackRange) {
-            bestTarget = allTargets.stream()
-                    .filter(target -> target.unit().getType() == Units.PROTOSS_STALKER)
-                    .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
-                    .orElse(null);
-            if (bestTarget != null) {
-                return bestTarget;
-            }
+        // STALKERS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_STALKER)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
         }
 
-        // SHOOTS AIR
+        // ALL OTHER AIR THREATS
         bestTarget = allTargets.stream()
                 .filter(target -> UnitUtils.canAttackAir(target.unit()))
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
@@ -468,18 +541,19 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
-        // PYLON
+        // STARGATE OR CYBER
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.PROTOSS_PYLON)
+                .filter(target -> target.unit().getType() == Units.PROTOSS_STARGATE ||
+                        target.unit().getType() == Units.PROTOSS_CYBERNETICS_CORE)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
         }
 
-        // OTHER SHIELD BATTERIES
+        // PYLONS
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.PROTOSS_SHIELD_BATTERY)
+                .filter(target -> target.unit().getType() == Units.PROTOSS_PYLON)
                 .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
         if (bestTarget != null) {
@@ -489,7 +563,7 @@ public class BattlecruiserHarass extends Battlecruiser {
         // ARMY UNITS
         bestTarget = allTargets.stream()
                 .filter(target -> Bot.OBS.getUnitTypeData(false).get(target.unit().getType()).getFoodRequired().orElse(0f) > 0)
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -499,9 +573,11 @@ public class BattlecruiserHarass extends Battlecruiser {
     }
 
     protected UnitInPool selectYamatoAttack() {
-        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 10);
+        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 11.5f).stream()
+                .filter(enemy -> UnitUtils.isEnemyWithinMyVisionRange(enemy.unit()))
+                .collect(Collectors.toList());
         return allTargets.stream()
-                .filter(target -> UnitUtils.getCurHp(target.unit()) > 100)
+                .filter(target -> UnitUtils.getCurHp(target.unit()) > 100 || target.unit().getType() == Units.PROTOSS_TEMPEST)
                 .filter(target -> isYamatoWorthy(target.unit()))
                 .max(Comparator.comparing(target -> target.unit().getHealth().orElse(0f)))
                 .orElse(null);
@@ -540,16 +616,27 @@ public class BattlecruiserHarass extends Battlecruiser {
         if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.ZERG_CORRUPTOR)) {
             return enemyType == Units.ZERG_CORRUPTOR;
         }
+        if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.PROTOSS_TEMPEST)) {
+            return enemyType == Units.PROTOSS_TEMPEST;
+        }
+        if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.PROTOSS_VOIDRAY)) {
+            return enemyType == Units.PROTOSS_VOIDRAY;
+        }
 
         switch (enemyType) {
             case ZERG_QUEEN: case ZERG_CORRUPTOR:
             case ZERG_MUTALISK: //case ZERG_SPIRE: case ZERG_HYDRALISK_DEN:
             case PROTOSS_VOIDRAY: case PROTOSS_TEMPEST: case PROTOSS_CARRIER:
-            case PROTOSS_PHOTON_CANNON: case PROTOSS_STALKER: case PROTOSS_MOTHERSHIP:
+            case PROTOSS_STALKER: case PROTOSS_MOTHERSHIP:
             case PROTOSS_ARCHON:
                 return true;
             case ZERG_SPORE_CRAWLER: case ZERG_SPORE_CRAWLER_UPROOTED:
                 return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato spores that are protecting BC's target
+            case PROTOSS_PHOTON_CANNON:
+                if (!enemyUnit.getPowered().orElse(true)) {
+                    return false;
+                }
+                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato cannons that are protecting BC's target
         }
         return false;
     }

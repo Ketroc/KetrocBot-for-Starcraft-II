@@ -10,9 +10,11 @@ import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.MyUnitAbilities;
 
 public class Battlecruiser extends BasicUnitMicro {
+    public static long prevYamatoFrame;
+    public static float radius = 1.25f;
+    public static float attackRange = 7.5f;
 
     protected long prevAttackFrame;
-    public static long prevYamatoFrame;
     protected Point2d posMoveTo;
 
     public Battlecruiser(Unit unit, Point2d targetPos, MicroPriority priority) {

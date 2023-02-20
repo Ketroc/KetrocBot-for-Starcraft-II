@@ -498,13 +498,17 @@ public class UnitUtils {
             return false;
         }
 
+        return isEnemyWithinMyVisionRange(unit);
+    }
+
+    public static boolean isEnemyWithinMyVisionRange(Unit enemy) {
         //check visibility of the ground the unit is standing on
-        float unitRadius = unit.getRadius();
-        Point2d unitPos = unit.getPosition().toPoint2d();
-        return Bot.OBS.getVisibility(unitPos.add(unitRadius, 0)) != Visibility.VISIBLE &&
-                Bot.OBS.getVisibility(unitPos.add(-unitRadius, 0)) != Visibility.VISIBLE &&
-                Bot.OBS.getVisibility(unitPos.add(0, unitRadius)) != Visibility.VISIBLE &&
-                Bot.OBS.getVisibility(unitPos.add(0, -unitRadius)) != Visibility.VISIBLE;
+        float enemyRadius = enemy.getRadius();
+        Point2d enemyPos = enemy.getPosition().toPoint2d();
+        return Bot.OBS.getVisibility(enemyPos.add(enemyRadius, 0)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(enemyPos.add(-enemyRadius, 0)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(enemyPos.add(0, enemyRadius)) != Visibility.VISIBLE &&
+                Bot.OBS.getVisibility(enemyPos.add(0, -enemyRadius)) != Visibility.VISIBLE;
     }
 
     public static boolean canMove(Unit unit) {
