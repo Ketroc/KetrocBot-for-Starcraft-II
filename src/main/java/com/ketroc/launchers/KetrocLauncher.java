@@ -31,7 +31,7 @@ public class KetrocLauncher {
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
-        Race oppRace = Race.ZERG;
+        Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
         Strategy.gamePlan = GamePlan.BC_RUSH;

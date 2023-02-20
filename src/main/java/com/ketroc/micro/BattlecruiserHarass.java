@@ -142,12 +142,13 @@ public class BattlecruiserHarass extends Battlecruiser {
         for (int x=bcX-6; x<=bcX+6; x++) {
             for (int y=bcY-6; y<=bcY+6; y++) {
                 Point2d curPos = Point2d.of(x/2, y/2);
-                if (Position.isOutOfBounds(curPos) || curPos.distance(targetPos) > 5.5f) {
+                if (Position.isOutOfBounds(curPos) || curPos.distance(targetPos) > 6.5f) {
                     continue;
                 }
                 //if lowest threat pos
-                int curThreatVal = InfluenceMaps.pointDamageToAirValue[x][y];
-                if (curThreatVal < lowestThreatVal) {
+                int curThreatVal = InfluenceMaps.pointThreatToAirPlusBufferValue[x][y];
+                if (curThreatVal < Math.max(lowestThreatVal, 4) ||
+                        (curThreatVal == lowestThreatVal && curPos.distance(targetPos) < lowestThreatPos.distance(targetPos))) {
                     lowestThreatPos = curPos;
                     lowestThreatVal = curThreatVal;
                 }
@@ -558,6 +559,15 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
+        // NEXUS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.PROTOSS_NEXUS)
+                .min(Comparator.comparing(target -> UnitUtils.getCurHp(target.unit())))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
         // ARMY UNITS
         bestTarget = allTargets.stream()
                 .filter(target -> Bot.OBS.getUnitTypeData(false).get(target.unit().getType()).getFoodRequired().orElse(0f) > 0)
@@ -629,12 +639,12 @@ public class BattlecruiserHarass extends Battlecruiser {
             case PROTOSS_ARCHON:
                 return true;
             case ZERG_SPORE_CRAWLER: case ZERG_SPORE_CRAWLER_UPROOTED:
-                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato spores that are protecting BC's target
+                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; // yamato spores that are protecting BC's target
             case PROTOSS_PHOTON_CANNON:
                 if (!enemyUnit.getPowered().orElse(true)) {
                     return false;
                 }
-                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato cannons that are protecting BC's target
+                return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; // yamato cannons that are protecting BC's target
         }
         return false;
     }

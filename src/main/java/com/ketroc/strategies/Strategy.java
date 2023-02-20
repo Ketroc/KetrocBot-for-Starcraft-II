@@ -454,16 +454,16 @@ public class Strategy {
                 ));
             default:
                 return new HashSet<>(Set.of(
-                        GamePlan.BANSHEE,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.BC_RUSH,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH,
-//                        GamePlan.SCV_RUSH,
-                        GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.MECH_ALL_IN,
-                        GamePlan.RAVEN
+//                        GamePlan.BANSHEE,
+//                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BC_RUSH
+//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+//                        GamePlan.MARINE_RUSH,
+////                        GamePlan.SCV_RUSH,
+//                        GamePlan.BUNKER_CONTAIN_WEAK,
+//                        GamePlan.BUNKER_CONTAIN_STRONG,
+//                        GamePlan.MECH_ALL_IN,
+//                        GamePlan.RAVEN
                 ));
         }
     }

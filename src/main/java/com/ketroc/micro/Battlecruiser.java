@@ -34,7 +34,7 @@ public class Battlecruiser extends BasicUnitMicro {
     }
 
     protected boolean isYamatoAvailable() {
-        return prevYamatoFrame + 36 < Bot.OBS.getGameLoop() && //1 yamato from any BC every 3 seconds
+        return prevYamatoFrame + 72 < Bot.OBS.getGameLoop() && // 1 yamato from any BC every 3 seconds
                 MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_YAMATO_GUN);
     }
 

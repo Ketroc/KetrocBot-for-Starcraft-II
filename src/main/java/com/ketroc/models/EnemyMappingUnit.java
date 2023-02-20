@@ -58,7 +58,10 @@ public class EnemyMappingUnit extends EnemyMapping {
 //                                Time.nowFrames() < Time.toFrames("3:00"))); //include workers if defending worker rush
         isSeekered = enemy.getBuffs().contains(Buffs.RAVEN_SHREDDER_MISSILE_TINT);
         switch (unitType) {
-            case ZERG_LURKER_MP_BURROWED: case PROTOSS_PHOENIX: case PROTOSS_COLOSSUS:
+            case ZERG_LURKER_MP_BURROWED: case PROTOSS_COLOSSUS:
+                groundAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
+                break;
+            case PROTOSS_PHOENIX:
                 airAttackRange += 2; //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
                 break;
             case TERRAN_MISSILE_TURRET: case TERRAN_AUTO_TURRET: case ZERG_HYDRALISK: case TERRAN_PLANETARY_FORTRESS: //hack to assume enemy has its range upgrade since enemy upgrades cannot be checked
