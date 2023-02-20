@@ -456,6 +456,7 @@ public class Strategy {
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
                         GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BC_RUSH,
                         GamePlan.ONE_BASE_BANSHEE_CYCLONE,
                         GamePlan.MARINE_RUSH,
 //                        GamePlan.SCV_RUSH,

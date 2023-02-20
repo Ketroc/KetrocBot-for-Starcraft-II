@@ -160,10 +160,8 @@ public class BattlecruiserHarass extends Battlecruiser {
 
     //repair when low hp and repair is possible at home
     private boolean doRepair() {
-        float curHp = UnitUtils.getCurHp(unit.unit());
-        return (curHp < 200 || (curHp < unit.unit().getHealthMax().orElse(550f) &&
-                                UnitUtils.getDistance(unit.unit(), PosConstants.REPAIR_BAY) < 3)) &&
-                UnitUtils.canRepair(unit.unit());
+        return UnitUtils.canRepair(unit.unit()) &&
+                (needRepairs() || (doStayInRepairBay() && inRepairBay()));
     }
 
     @Override
@@ -177,7 +175,7 @@ public class BattlecruiserHarass extends Battlecruiser {
     }
 
     public UnitInPool selectTargetAttack() {
-        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), attackRange).stream()
+        List<UnitInPool> allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), ATTACK_RANGE).stream()
                 .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
                 .collect(Collectors.toList());
         if (allTargets.isEmpty()) {
@@ -639,6 +637,11 @@ public class BattlecruiserHarass extends Battlecruiser {
                 return posMoveTo != null && UnitUtils.getDistance(enemyUnit, posMoveTo) < 3.5f; //yamato cannons that are protecting BC's target
         }
         return false;
+    }
+
+    protected boolean doStayInRepairBay() {
+        return unit.unit().getHealth().orElse(550f) < unit.unit().getHealthMax().orElse(550f) ||
+                jumpCooldownRemaining() > 672; //30sec until jump available
     }
 
 }

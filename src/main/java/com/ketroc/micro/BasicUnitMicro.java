@@ -574,4 +574,8 @@ public class BasicUnitMicro {
     protected void move(Point2d targetPos) {
         ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, targetPos, false);
     }
+
+    protected boolean inRepairBay() {
+        return UnitUtils.getDistance(unit.unit(), PosConstants.REPAIR_BAY) < 3;
+    }
 }

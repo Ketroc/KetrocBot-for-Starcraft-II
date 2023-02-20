@@ -8,14 +8,18 @@ import com.ketroc.bots.Bot;
 import com.ketroc.utils.ActionHelper;
 import com.ketroc.utils.ActionIssued;
 import com.ketroc.utils.MyUnitAbilities;
+import com.ketroc.utils.Time;
 
 public class Battlecruiser extends BasicUnitMicro {
     public static long prevYamatoFrame;
-    public static float radius = 1.25f;
-    public static float attackRange = 7.5f;
+    public static final float RADIUS = 1.25f;
+    public static final float ATTACK_RANGE = 7.5f;
+    public static final long COOLDOWN_JUMP = 1590;
+    public static final long COOLDOWN_YAMATO = 1590;
 
     protected long prevAttackFrame;
     protected Point2d posMoveTo;
+    protected long prevJumpFrame;
 
     public Battlecruiser(Unit unit, Point2d targetPos, MicroPriority priority) {
         super(unit, targetPos, priority);
@@ -42,14 +46,14 @@ public class Battlecruiser extends BasicUnitMicro {
     protected boolean safeJump(Point2d targetPos) {
         //jump directly to targetPos
         if (isSafe(targetPos)) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP, targetPos, false);
+            jump(targetPos);
             return true;
         }
 
         //targetPos unsafe so jump nearby
         Point2d safePos = findDetourPos();
         if (targetPos.distance(safePos) < 25) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP, safePos, false);
+            jump(safePos);
             return true;
         }
 
@@ -57,10 +61,14 @@ public class Battlecruiser extends BasicUnitMicro {
         return false;
     }
 
-    protected void jump(Point2d jumpPos){
+    protected void jump(Point2d jumpPos) {
         ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP, jumpPos, false);
+        prevJumpFrame = Time.nowFrames();
     }
 
+    protected long jumpCooldownRemaining() {
+        return prevJumpFrame + COOLDOWN_JUMP - Time.nowFrames();
+    }
 
     protected boolean isAttackStep() {
         return prevAttackFrame + 12 < Bot.OBS.getGameLoop();
@@ -72,5 +80,7 @@ public class Battlecruiser extends BasicUnitMicro {
                         order.ability == Abilities.EFFECT_TACTICAL_JUMP);
     }
 
-
+    protected boolean needRepairs() {
+        return unit.unit().getHealth().orElse(400f) < 200;
+    }
 }
