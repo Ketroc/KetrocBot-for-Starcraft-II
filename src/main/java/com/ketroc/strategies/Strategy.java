@@ -391,16 +391,16 @@ public class Strategy {
                 ));
             default:
                 return new HashSet<>(Set.of(
-                        //GamePlan.ONE_BASE_TANK_VIKING,
+                        GamePlan.ONE_BASE_TANK_VIKING,
                         GamePlan.BANSHEE_CYCLONE,
                         GamePlan.BANSHEE,
                         //GamePlan.SCV_RUSH,
                         GamePlan.TANK_VIKING,
-                        GamePlan.BUNKER_CONTAIN_STRONG
-                        //GamePlan.RAVEN,
-                        //GamePlan.MARINE_RUSH,
-                        //GamePlan.RAVEN_CYCLONE,
-                        //GamePlan.BANSHEE_TANK
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.RAVEN,
+                        GamePlan.MARINE_RUSH,
+                        GamePlan.RAVEN_CYCLONE,
+                        GamePlan.BANSHEE_TANK
                 ));
         }
     }
@@ -441,9 +441,9 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "71089047-c9cc-42f9-8657-8bafa0df89a0": //NegativeZero
                 return new HashSet<>(Set.of(
-                        GamePlan.BC_RUSH,
-                        GamePlan.BUNKER_CONTAIN_STRONG,
-                        GamePlan.MECH_ALL_IN
+                        GamePlan.BC_RUSH
+//                        GamePlan.BUNKER_CONTAIN_STRONG,
+//                        GamePlan.MECH_ALL_IN
 //                        GamePlan.BANSHEE,
 //                        GamePlan.BANSHEE_CYCLONE,
 //                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
@@ -454,16 +454,16 @@ public class Strategy {
                 ));
             default:
                 return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE,
-//                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.BC_RUSH
-//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-//                        GamePlan.MARINE_RUSH,
-////                        GamePlan.SCV_RUSH,
-//                        GamePlan.BUNKER_CONTAIN_WEAK,
-//                        GamePlan.BUNKER_CONTAIN_STRONG,
-//                        GamePlan.MECH_ALL_IN,
-//                        GamePlan.RAVEN
+                        GamePlan.BANSHEE,
+                        GamePlan.BANSHEE_CYCLONE,
+                        GamePlan.BC_RUSH,
+                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+                        GamePlan.MARINE_RUSH,
+//                        GamePlan.SCV_RUSH,
+                        GamePlan.BUNKER_CONTAIN_WEAK,
+                        GamePlan.BUNKER_CONTAIN_STRONG,
+                        GamePlan.MECH_ALL_IN,
+                        GamePlan.RAVEN
                 ));
         }
     }
@@ -499,15 +499,15 @@ public class Strategy {
 //            return humansGamePlans;
         }
         switch (Bot.opponentId) {
-            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-            case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
-                 if (PosConstants.MAP.contains("Inside") ||
-                         PosConstants.MAP.contains("Stargazer")) {
-                     return new HashSet<>(Set.of(GamePlan.RAVEN));
-                 }
-                 else {
-                     return new HashSet<>(Set.of(GamePlan.BC_RUSH));
-                 }
+//            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+//            case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
+//                 if (PosConstants.MAP.contains("Inside") ||
+//                         PosConstants.MAP.contains("Stargazer")) {
+//                     return new HashSet<>(Set.of(GamePlan.RAVEN));
+//                 }
+//                 else {
+//                     return new HashSet<>(Set.of(GamePlan.BC_RUSH));
+//                 }
 //            return new HashSet<>(Set.of(
 ////                    GamePlan.BANSHEE,
 ////                    GamePlan.MASS_MINE_OPENER,
