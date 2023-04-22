@@ -62,7 +62,7 @@ public class WorkerManager {
     private static void preventMulesFromDyingWithMineralsInHand() {
         UnitUtils.myUnitsOfType(Units.TERRAN_MULE).stream()
                 .filter(mule -> UnitUtils.getOrder(mule) == Abilities.HARVEST_GATHER &&
-                        mule.getBuffDurationRemain().orElse(0) < 144 &&
+                        mule.getBuffDurationRemain().orElse(0) < 146 &&
                         UnitUtils.getDistance(mule,
                                 UnitUtils.getClosestUnitOfType(Alliance.SELF, UnitUtils.COMMAND_STRUCTURE_TYPE_TERRAN,
                                         mule.getPosition().toPoint2d())) < 3) //FIXME: throws exception when OC dies but mule is alive (not a big deal??)
@@ -425,7 +425,7 @@ public class WorkerManager {
     public static void sendScvsToMine(List<UnitInPool> idleScvs) {
         // saturate minerals
         while (!idleScvs.isEmpty()) {
-            MineralPatch closestUnderSaturatedMineral = Base.getClosestUnderSaturatedMineral(idleScvs.get(0).unit().getPosition().toPoint2d());
+            MineralPatch closestUnderSaturatedMineral = Base.getBestUnderSaturatedMineral(idleScvs.get(0).unit().getPosition().toPoint2d());
             if (closestUnderSaturatedMineral == null) {
                 break;
             }

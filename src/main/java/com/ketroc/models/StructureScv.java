@@ -334,7 +334,7 @@ public class StructureScv {
                 }
                 break;
             case TERRAN_FACTORY: case TERRAN_STARPORT:
-                index = Math.max(1, PosConstants._3x3AddonPosList.size());
+                index = Math.min(1, PosConstants._3x3AddonPosList.size());
                 PosConstants._3x3AddonPosList.add(index, structureScv.structurePos);
                 break;
             case TERRAN_BARRACKS:

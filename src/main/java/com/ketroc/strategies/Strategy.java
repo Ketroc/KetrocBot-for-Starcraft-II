@@ -41,7 +41,7 @@ public class Strategy {
     public static boolean DO_DIVE_MOBILE_DETECTORS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
-    public static boolean NO_TURRETS;
+    public static boolean NO_TURRETS = true;
 
     public static boolean DO_DEFENSIVE_TANKS;
     public static boolean DO_OFFENSIVE_TANKS;
@@ -1046,7 +1046,7 @@ public class Strategy {
         }
 
         //don't lose to worker rush twice
-        if (true) { // TOURNAMENT_MODE) {
+        if (TOURNAMENT_MODE) {
             GameResult prevGameResult = opponentRecords.getPrevGameResult();
             if (prevGameResult != null && prevGameResult.getTags().stream().anyMatch(t -> t.endsWith("VS_WORKER_RUSH"))) {
                 System.out.println("setting fast wall code");

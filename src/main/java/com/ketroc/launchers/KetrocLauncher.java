@@ -34,7 +34,7 @@ public class KetrocLauncher {
         Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.BC_RUSH;
+        Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -49,8 +49,8 @@ public class KetrocLauncher {
                 .setShowBurrowed(true)
                 .setRawAffectsSelection(true)
                 .setTimeoutMS(10 * 60000) //10min
-//                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
-//                .setEglPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
+                .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
+                .setEglPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
 //                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
@@ -64,8 +64,8 @@ public class KetrocLauncher {
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("InsideAndOutAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
-//                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
 
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));

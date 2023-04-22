@@ -414,6 +414,17 @@ public class KetrocBot extends Bot {
                         }
                     }
                     break;
+                case TERRAN_MULE:
+                    Base.getMyMinerals().stream()
+                            .filter(MineralPatch::isClosePatch)
+                            .filter(mineralPatch -> mineralPatch.getMule() == null)
+                            .filter(mineralPatch -> mineralPatch.getScvs().stream()
+                                    .filter(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.getNodePos()) < 5)
+                                    .count() >= 2)
+                            .filter(mineralPatch -> UnitUtils.getDistance(unit, mineralPatch.getByNodePos()) < 0.9f)
+                            .findFirst()
+                            .ifPresent(mineralPatch ->  mineralPatch.setMule(uip));
+                    break;
                 case TERRAN_BARRACKS:
                     if (Strategy.gamePlan != GamePlan.GHOST_HELLBAT) {
                         ActionHelper.unitCommand(unit, Abilities.RALLY_BUILDING, PosConstants.insideMainWall, false);
@@ -433,7 +444,7 @@ public class KetrocBot extends Bot {
     }
 
     @Override
-    public void onUnitDestroyed(UnitInPool uip) { //TODO: this is called for enemy player too
+    public void onUnitDestroyed(UnitInPool uip) { //this is called for enemy player too
         try {
             Unit unit = uip.unit();
             Alliance alliance = unit.getAlliance();
@@ -632,6 +643,7 @@ public class KetrocBot extends Bot {
             GameCache.allEnemiesMap.forEach((unitType, unitList) -> Print.print(unitType + ": " + unitList.size()));
             EnemyCache.print();
             control().saveReplay(Path.of("./data/" + System.currentTimeMillis() + ".SC2Replay"));
+            Print.print("Mule +25 rate: " + MineralPatch.muleSuccesses + "-" + MineralPatch.muleFails);
         } catch (Throwable e) {
             Error.onException(e);
         }

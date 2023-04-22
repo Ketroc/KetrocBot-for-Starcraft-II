@@ -605,7 +605,22 @@ public class BuildManager {
                                 GameCache.mineralBank < 3000 &&
                                 !Switches.hasCastOCSpellThisFrame &&
                                 UnitUtils.numScansAvailable() > Switches.numScansToSave) {
-                            //calldown mule
+
+                            // speed-mine mule
+                            Optional<MineralPatch> patchToMule = Base.getMyMinerals().stream()
+                                    .filter(MineralPatch::isClosePatch)
+                                    .filter(mineralPatch -> !mineralPatch.hasNewMule() && mineralPatch.getMule() == null)
+                                    .filter(mineralPatch -> mineralPatch.getScvs().stream()
+                                            .filter(scv -> UnitUtils.getDistance(scv.unit(), mineralPatch.getNodePos()) < 5)
+                                            .count() >= 2)
+                                    .max(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)));
+                            if (patchToMule.isPresent()) {
+                                patchToMule.get().setLastMuleAddedFrame(Time.nowFrames());
+                                ActionHelper.unitCommand(cc, Abilities.EFFECT_CALL_DOWN_MULE, patchToMule.get().getNode(), false);
+                                break;
+                            }
+
+                            // normal mule
                             boolean didMule = false;
                             for (int i = GameCache.baseList.size() - 1; i >= 0; i--) {
                                 Base base = GameCache.baseList.get(i);
@@ -633,7 +648,8 @@ public class BuildManager {
                                     }
                                 }
                             }
-                            //if no base minerals, then distance mule closest mineral patch
+
+                            // distance mule closest mineral patch
                             if (!didMule) {
                                 Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
                                         node.unit().getDisplayType() == DisplayType.VISIBLE)

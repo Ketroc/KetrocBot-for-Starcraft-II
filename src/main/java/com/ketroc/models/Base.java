@@ -267,13 +267,21 @@ public class Base {
     }
 
     public void onStepEnd() {
-        mineralPatches.forEach(mineralPatch -> {
+        for (MineralPatch mineralPatch : mineralPatches) {
             mineralPatch.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
 //                    DebugHelper.drawBox(mineralPatch.getByNodePos(), Color.RED, 0.2f);
 //                    DebugHelper.drawBox(mineralPatch.getByCCPos(), Color.RED, 0.2f);
+                    if (mineralPatch.isSpeedMineScv(scv.getTag())) {
+                        mineralPatch.endMuleSpeedMine();
+                    }
                     new BasicUnitMicro(scv, mineralPatch.getNodePos(), MicroPriority.SURVIVAL).onStep();
+                    return;
+                }
+
+                // scv is busy helping speed-mine the mule
+                if (mineralPatch.isSpeedMineScv(scv.getTag())) {
                     return;
                 }
 
@@ -298,20 +306,24 @@ public class Base {
                 if (UnitUtils.isCarryingResources(scv.unit())) { //return micro
                     if (isReadyForMining()) {
                         mineralPatch.returnMicro(scv.unit());
-                    } else {
+                    }
+                    else {
                         mineralPatch.distanceReturnMicro(scv.unit());
                     }
-                } else { //harvest micro
+                }
+                else { //harvest micro
                     if (isReadyForMining()) {
                         mineralPatch.harvestMicro(scv.unit());
-                    } else {
+                    }
+                    else {
                         mineralPatch.distanceHarvestMicro(scv.unit());
                     }
                 }
             });
-        });
+            mineralPatch.onStep();
+        }
 
-        gases.forEach(gas -> {
+        for (Gas gas : gases) {
             gas.getScvs().forEach(scv -> {
                 //detour if scv can be 2-shot
                 if (shouldFlee(scv)) {
@@ -342,7 +354,7 @@ public class Base {
                     gas.harvestMicro(scv.unit());
                 }
             });
-        });
+        }
     }
 
 
@@ -350,7 +362,8 @@ public class Base {
         //flee to any danger if distance mining
         if (!isReadyForMining() && InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundPlusBuffer, scv.unit().getPosition().toPoint2d())) {
             return true;
-        } else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
+        }
+        else if (UnitUtils.myUnitWithin2ShotThreat(scv.unit())) {
             List<UnitInPool> enemiesInAttackRange = Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                     UnitUtils.getAttackRange(enemy.unit(), Weapon.TargetType.GROUND) + Strategy.KITING_BUFFER >
                             UnitUtils.getDistance(scv.unit(), enemy.unit()));
@@ -373,7 +386,6 @@ public class Base {
 
             return true;
         }
-
         return false;
     }
 
@@ -769,7 +781,7 @@ public class Base {
 
     public Optional<UnitInPool> getScvFromSmallestPatch(Predicate<UnitInPool> scvFilter) {
         return getMineralPatches().stream()
-                .filter(mineralPatch -> !mineralPatch.getScvs().isEmpty())
+                .filter(mineralPatch -> !mineralPatch.getScvs().isEmpty() && !mineralPatch.hasNewMule())
                 .min(Comparator.comparing(mineralPatch -> mineralPatch.getNode().getMineralContents().orElse(0)))
                 .stream()
                 .flatMap(mineralPatch -> mineralPatch.getScvs().stream())
@@ -1098,12 +1110,16 @@ public class Base {
                 .collect(Collectors.toList());
     }
 
-    public static MineralPatch getClosestUnderSaturatedMineral(Point2d pos) {
+    public static MineralPatch getBestUnderSaturatedMineral(Point2d pos) {
         return GameCache.baseList.stream()
                 .filter(Base::isReadyForMining)
                 .flatMap(base -> base.mineralPatches.stream())
                 .filter(mineralPatch -> mineralPatch.getScvs().size() < 2)
-                .min(Comparator.comparing(mineralPatch -> mineralPatch.getByNodePos().distance(pos)))
+                .min(Comparator.comparing(mineralPatch ->
+                        mineralPatch.getByNodePos().distance(pos) -
+                        (mineralPatch.isClosePatch() ? 500 : 0) -
+                        mineralPatch.getNode().getMineralContents().orElse(500) / 2)
+                )
                 .orElse(null);
     }
 

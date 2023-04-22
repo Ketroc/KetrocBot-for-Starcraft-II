@@ -190,8 +190,8 @@ public class DebugHelper {
         if (!isDebugOn) {
             return;
         }
-        float z1 = Bot.OBS.terrainHeight(pos1) + 1f;
-        float z2 = Bot.OBS.terrainHeight(pos2) + 1f;
+        float z1 = Bot.OBS.terrainHeight(pos1) + 0.2f;
+        float z2 = Bot.OBS.terrainHeight(pos2) + 0.2f;
         Bot.DEBUG.debugLineOut(
                 Point.of(pos1.getX(), pos1.getY(), z1),
                 Point.of(pos2.getX(), pos2.getY(), z2),
