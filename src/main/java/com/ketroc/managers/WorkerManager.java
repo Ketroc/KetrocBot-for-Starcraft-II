@@ -41,6 +41,25 @@ public class WorkerManager {
         buildRefineryLogic();
         //defendWorkerHarass();
         preventMulesFromDyingWithMineralsInHand();
+        fixUntrackedMiners();
+    }
+
+    private static void fixUntrackedMiners() {
+        if (Time.periodic(1)) {
+            List<UnitInPool> scvsToFix = Bot.OBS.getUnits(Alliance.SELF, scv ->
+                    scv.unit().getType() == Units.TERRAN_SCV &&
+                    !Ignored.contains(scv.getTag()) && //ignore constructing scvs
+                    UnitUtils.getOrder(scv.unit()) != Abilities.EFFECT_REPAIR_SCV && //ignore repairing scvs
+                    UnitUtils.getOrder(scv.unit()) != Abilities.EFFECT_REPAIR &&
+                    !Base.isMining(scv)); //ignore tracked mining scvs
+            int numScvsToFix = scvsToFix.size();
+            if (numScvsToFix > 0) {
+                Print.print("Scvs to Fix: " + numScvsToFix);
+                scvsToFix.forEach(scv -> DebugHelper.boxUnit(scv.unit()));
+                Bot.DEBUG.sendDebug();
+                scvsToFix.forEach(scv -> UnitUtils.returnAndStopScv(scv));
+            }
+        }
     }
 
 //    private static void putIdleScvsToWork() {

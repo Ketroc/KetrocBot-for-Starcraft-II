@@ -34,7 +34,7 @@ public class KetrocLauncher {
         Race oppRace = Race.PROTOSS;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.BANSHEE_CYCLONE;
+        Strategy.gamePlan = GamePlan.RAVEN;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)

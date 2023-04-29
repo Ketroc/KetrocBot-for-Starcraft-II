@@ -896,7 +896,11 @@ public class UnitUtils {
     }
 
     public static Abilities getOrder(Unit unit) {
-        Ability curOrder = ActionIssued.getCurOrder(unit).map(actionIssued -> actionIssued.ability).orElse(null);
+        return getOrder(Bot.OBS.getUnit(unit.getTag()));
+    }
+
+    public static Abilities getOrder(UnitInPool uip) {
+        Ability curOrder = ActionIssued.getCurOrder(uip).map(actionIssued -> actionIssued.ability).orElse(null);
         if (curOrder instanceof Abilities) {
             return (Abilities) curOrder;
         }

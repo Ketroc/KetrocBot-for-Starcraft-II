@@ -76,7 +76,7 @@ public class PosConstants {
         setStructureLocations();
         setBaseLocations();
         setClockBaseLists();
-        createBaseList();
+        initBaseList();
         setEnemyTypes();
         mapMainAndNatBases();
         mainBaseMidPos = getMainBaseMidPoint(false);
@@ -170,12 +170,12 @@ public class PosConstants {
         ArmyManager.retreatPos = ArmyManager.attackGroundPos = ArmyManager.attackAirPos = REPAIR_BAY;
     }
 
-    private static void createBaseList() {
+    private static void initBaseList() {
         UnitInPool mainCC = Bot.OBS.getUnits(Alliance.SELF, structure -> UnitUtils.COMMAND_STRUCTURE_TYPE.contains(structure.unit().getType())).get(0);
         for (Point2d baseLocation : baseLocations) {
             Base newBase = new Base(baseLocation);
-            newBase.setMineralPatches(getMineralPatches(newBase));
-            newBase.setGases(getGases(newBase));
+            newBase.setMineralPatches(initMineralPatches(newBase));
+            newBase.setGases(initGases(newBase));
             newBase.setPocketBase(isPocketBase(baseLocation));
             GameCache.baseList.add(newBase);
         }
@@ -193,7 +193,7 @@ public class PosConstants {
         return false;
     }
 
-    private static List<MineralPatch> getMineralPatches(Base base) {
+    private static List<MineralPatch> initMineralPatches(Base base) {
         return Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.MINERAL_NODE_TYPE.contains(node.unit().getType()) &&
                 UnitUtils.getDistance(node.unit(), base.getCcPos()) < 10)
                 .stream()
@@ -201,7 +201,7 @@ public class PosConstants {
                 .collect(Collectors.toList());
     }
 
-    private static List<Gas> getGases(Base base) {
+    private static List<Gas> initGases(Base base) {
         return Bot.OBS.getUnits(Alliance.NEUTRAL, node -> UnitUtils.GAS_GEYSER_TYPE.contains(node.unit().getType()) &&
                 UnitUtils.getDistance(node.unit(), base.getCcPos()) < 10)
                 .stream()
