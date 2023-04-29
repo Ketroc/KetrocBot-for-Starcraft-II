@@ -689,6 +689,11 @@ public class KetrocBot extends Bot {
         Print.print("===================\n");
         Duration timeElapsed = Duration.ofMillis(System.currentTimeMillis() - startTime);
         Print.print("real time elapsed: " + timeElapsed.toMinutes() + ":" + timeElapsed.toSecondsPart());
+        Print.print("ArmyManager.doOffense = " + ArmyManager.doOffense);
+        Print.print("ArmyManager.attackGroundUnit = " + ArmyManager.attackGroundUnit);
+        Print.print("ArmyManager.attackGroundPos = " + ArmyManager.attackGroundPos);
+        Print.print("ArmyManager.attackAirPos = " + ArmyManager.attackAirPos);
+        Print.print("ArmyManager.attackEitherPos = " + ArmyManager.attackEitherPos);
         if (timeElapsed.toHours() >= 1) {
             Chat.tag("REALTIME_OVER_1HR");
         }

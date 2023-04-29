@@ -825,6 +825,7 @@ public class ArmyManager {
         if (closestEnemyGround != null) {
             attackGroundPos = closestEnemyGround.unit().getPosition().toPoint2d();
             attackUnit = closestEnemyGround.unit();
+            return;
         }
 
         //no enemy bases or ground units left
@@ -958,7 +959,7 @@ public class ArmyManager {
                         (!UnitUtils.IGNORED_TARGETS.contains(u.unit().getType()) ||
                                 u.unit().getType() == Units.PROTOSS_ADEPT_PHASE_SHIFT && AdeptShadeTracker.shouldTargetShade(u)) &&
                         u.unit().getType() != Units.ZERG_CHANGELING_MARINE && //ignore changelings
-                        !UnitUtils.CREEP_TUMOR_TYPES.contains(u.unit().getType()) && //FIXME: creep tumors turned off for probots
+                        //!UnitUtils.CREEP_TUMOR_TYPES.contains(u.unit().getType()) &&
                         !u.unit().getHallucination().orElse(false)) //ignore hallucs
                 .min(Comparator.comparing(u ->
                         UnitUtils.getDistance(u.unit(), PosConstants.baseLocations.get(0)) +
