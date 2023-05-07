@@ -27,7 +27,7 @@ public class MineralPatch {
     private Point2d initialMulePos;
     private UnitInPool speedMineScv1;
     private UnitInPool speedMineScv2;
-    private long lastMuleAddedFrame;
+    private long lastMuleAddedFrame = -999;
     private boolean isMuleSpeedMineNeeded;
     private Point2d ccPos;
     private Point2d byNodePos;

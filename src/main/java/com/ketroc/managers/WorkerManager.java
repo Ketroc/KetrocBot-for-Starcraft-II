@@ -45,7 +45,7 @@ public class WorkerManager {
     }
 
     private static void fixUntrackedMiners() {
-        if (Time.periodic(1)) {
+        if (Time.periodic(1) && BunkerContain.proxyBunkerLevel == 0) {
             List<UnitInPool> scvsToFix = Bot.OBS.getUnits(Alliance.SELF, scv ->
                     scv.unit().getType() == Units.TERRAN_SCV &&
                     !Ignored.contains(scv.getTag()) && //ignore constructing scvs
@@ -54,9 +54,8 @@ public class WorkerManager {
                     !Base.isMining(scv)); //ignore tracked mining scvs
             int numScvsToFix = scvsToFix.size();
             if (numScvsToFix > 0) {
+                Chat.tag("Mining_Fix");
                 Print.print("Scvs to Fix: " + numScvsToFix);
-                scvsToFix.forEach(scv -> DebugHelper.boxUnit(scv.unit()));
-                Bot.DEBUG.sendDebug();
                 scvsToFix.forEach(scv -> UnitUtils.returnAndStopScv(scv));
             }
         }

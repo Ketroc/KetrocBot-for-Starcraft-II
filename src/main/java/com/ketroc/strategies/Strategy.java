@@ -308,9 +308,11 @@ public class Strategy {
                 break;
             case RAVEN:
                 massRavenStrategy();
+                DO_DEFENSIVE_LIBS = false;
                 break;
             case RAVEN_CYCLONE:
                 massRavenStrategy();
+                DO_DEFENSIVE_LIBS = false;
                 useCyclonesAdjustments();
                 DO_MATRIX = true;
                 break;
@@ -1037,7 +1039,7 @@ public class Strategy {
         Opponent opponentRecords = JsonUtil.getOpponentRecords();
         opponentRecords.filterToGamePlans(gamePlans);
 
-        //play 4 games of each strategy first
+        //play # games of each strategy first
         GamePlan gamePlan = opponentRecords.getGamePlanNeedingMoreTests(2); //switch back to 4 or 5
 
         //pick the winningest strategy (exclude most recent loss strategy)
