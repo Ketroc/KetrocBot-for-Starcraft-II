@@ -215,13 +215,13 @@ public class Strategy {
                 DO_BANSHEE_HARASS = false;
                 BUILD_EXPANDS_IN_MAIN = true;
                 ENEMY_DOES_BANSHEE_HARASS = true;
-                Switches.enemyCanProduceAir = true;
-                BuildManager.openingStarportUnits.clear();
-                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
-                BuildManager.openingStarportUnits.add(Units.TERRAN_RAVEN);
-                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
-                BuildManager.openingFactoryUnits.clear();
-                BuildManager.openingFactoryUnits.add(Units.TERRAN_CYCLONE);
+//                Switches.enemyCanProduceAir = true;
+//                BuildManager.openingStarportUnits.clear();
+//                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
+//                BuildManager.openingStarportUnits.add(Units.TERRAN_RAVEN);
+//                BuildManager.openingStarportUnits.add(Units.TERRAN_VIKING_FIGHTER);
+//                BuildManager.openingFactoryUnits.clear();
+//                BuildManager.openingFactoryUnits.add(Units.TERRAN_CYCLONE);
                 break;
             case "54bca4a3-7539-4364-b84b-e918784b488a": //Jensiii
             case "2aa93279-f382-4e26-bfbb-6ef3cc6f9104": //TestBot (jensiiibot)
@@ -384,13 +384,13 @@ public class Strategy {
 //                        GamePlan.TANK_VIKING,
 //                        GamePlan.MARINE_RUSH
 //                ));
-            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
-            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
-                return new HashSet<>(Set.of(
-                        //GamePlan.TANK_VIKING,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH
-                ));
+//            case "3c78e739-5bc8-4b8b-b760-6dca0a88b33b": //Fidolina
+//            case "8f94d1fd-e5ee-4563-96d1-619c9d81290e": //DominionDog
+//                return new HashSet<>(Set.of(
+//                        //GamePlan.TANK_VIKING,
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.MARINE_RUSH
+//                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.ONE_BASE_TANK_VIKING,
