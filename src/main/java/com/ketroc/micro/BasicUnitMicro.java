@@ -15,6 +15,7 @@ import com.ketroc.models.Base;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.IgnoredUnit;
 import com.ketroc.models.StructureScv;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
 import java.util.Comparator;
@@ -519,18 +520,22 @@ public class BasicUnitMicro {
         return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
     }
 
+    protected Unit getClosestEnemyThreatToGround() {
+        return getClosestEnemyThreatToGround(enemyFilter -> true);
+    }
+
     //excludes reapers, hellions, adepts, oracles, when on offense, excludes structures FIXME: why?? this shouldn't be used for marine and hellbat, should it?
     //priority on overcharged batteries, then units that shoot ground, then everything else
-    protected Unit getClosestEnemyThreatToGround() {
+    protected Unit getClosestEnemyThreatToGround(Predicate<UnitInPool> enemyFilter) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                         !enemy.unit().getHallucination().orElse(false) &&
-                                !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
-                                (!ArmyManager.doOffense || !UnitUtils.DONT_CHASE_TYPES.contains(enemy.unit().getType())) &&
-                                enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
-                                (!UnitUtils.isSnapshot(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
-                                (UnitUtils.canAttackGround(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
-                                UnitUtils.getDistance(unit.unit(), enemy.unit()) < 15)
-                .stream()
+                        !UnitUtils.IGNORED_TARGETS.contains(enemy.unit().getType()) &&
+                        enemy.unit().getDisplayType() == DisplayType.VISIBLE &&
+                        (!UnitUtils.isSnapshot(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
+                        (UnitUtils.canAttackGround(enemy.unit()) || enemy.unit().getType() == Units.PROTOSS_PYLON) &&
+                        UnitUtils.getDistance(unit.unit(), enemy.unit()) < 15
+                ).stream()
+                .filter(enemyFilter)
                 .min(Comparator.comparing(enemy ->
                         UnitUtils.getDistance(unit.unit(), enemy.unit()) +
                         (!enemy.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE) ? 1000 : 0) +
@@ -538,6 +543,26 @@ public class BasicUnitMicro {
                 ))
                 .map(UnitInPool::unit)
                 .orElse(null);
+    }
+
+    protected boolean isStaticDefenseThreat(Unit enemy) {
+        //complete static d structures only
+        if (enemy == null || !UnitUtils.STATIC_DEFENSE.contains(enemy.getType()) || enemy.getBuildProgress() < 0.97f) {
+            return false;
+        }
+        switch (PosConstants.opponentRace) {
+            case TERRAN:
+                return (isGround && enemy.getType() == Units.TERRAN_PLANETARY_FORTRESS) ||
+                        (!isGround && enemy.getType() == Units.TERRAN_MISSILE_TURRET) ||
+                        enemy.getType() == Units.TERRAN_AUTO_TURRET ||
+                        enemy.getType() == Units.TERRAN_BUNKER && !Strategy.DO_IGNORE_BUNKERS;
+            case PROTOSS:
+                return enemy.getPowered().orElse(false);
+            case ZERG:
+                return (isGround && enemy.getType() == Units.ZERG_SPINE_CRAWLER) ||
+                        (!isGround && enemy.getType() == Units.ZERG_SPORE_CRAWLER);
+        }
+        return false;
     }
 
     protected boolean doStutterForward(Unit attackUnit, Unit closestEnemyThreat) {

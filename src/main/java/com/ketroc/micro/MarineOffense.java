@@ -1,15 +1,21 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Weapon;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.managers.ArmyManager;
+import com.ketroc.strategies.GamePlan;
+import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.PosConstants;
 import com.ketroc.utils.UnitUtils;
+
+import java.util.function.Predicate;
 
 public class MarineOffense extends Marine {
     private Unit closestEnemyThreat;
     private boolean doStutterForward;
+    private boolean inStaticDefenseRange;
 
     public MarineOffense(Unit unit, Point2d targetPos) {
         super(unit, targetPos, MicroPriority.DPS);
@@ -21,7 +27,15 @@ public class MarineOffense extends Marine {
 
     @Override
     public void onStep() {
-        closestEnemyThreat = getClosestEnemyThreatToGround();
+        inStaticDefenseRange = false;
+        Predicate<UnitInPool> marineAllInFilter = enemy -> Strategy.gamePlan == GamePlan.MARINE_RUSH &&
+                ArmyManager.doOffense &&
+                !UnitUtils.DONT_CHASE_TYPES.contains(enemy.unit().getType());
+        closestEnemyThreat = getClosestEnemyThreatToGround(marineAllInFilter);
+        if (isStaticDefenseThreat(closestEnemyThreat)) {
+            inStaticDefenseRange = UnitUtils.getDistance(unit.unit(), closestEnemyThreat) < UnitUtils.getAttackRange(closestEnemyThreat, Weapon.TargetType.GROUND) + unit.unit().getRadius() + 1;
+            closestEnemyThreat = getClosestEnemyThreatToGround(enemy -> !isStaticDefenseThreat(enemy.unit()));
+        }
         doStutterForward = doStutterForward(unit.unit(), closestEnemyThreat);
         setTargetPos();
         super.onStep();
@@ -29,7 +43,7 @@ public class MarineOffense extends Marine {
 
     @Override
     public boolean isSafe(Point2d pos) {
-        return doStutterForward && !isInSplashDamage(pos);
+        return !inStaticDefenseRange && doStutterForward && !isInSplashDamage(pos);
     }
 
     @Override

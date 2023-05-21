@@ -229,6 +229,11 @@ public class UnitUtils {
             Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_BL_UR, Units.NEUTRAL_DESTRUCTIBLE_DEBRIS_RAMP_DIAGONAL_HUGE_UL_BR,
             Units.NEUTRAL_DESTRUCTIBLE_ROCK_EX1_DIAGONAL_HUGE_BL_UR));
 
+    public static final Set<Units> STATIC_DEFENSE = new HashSet<>(Set.of(
+            Units.PROTOSS_PHOTON_CANNON,
+            Units.ZERG_SPINE_CRAWLER, Units.ZERG_SPORE_CRAWLER,
+            Units.TERRAN_MISSILE_TURRET, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_BUNKER, Units.TERRAN_AUTO_TURRET));
+
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
 

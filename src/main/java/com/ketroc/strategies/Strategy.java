@@ -775,7 +775,6 @@ public class Strategy {
     }
 
     private static void massRavenStrategy() {
-        MASS_RAVENS = true;
         UpgradeManager.starportUpgradeList = new ArrayList<>(List.of(Upgrades.RAVEN_CORVID_REACTOR));
 
         //get 2 banshees and +1attack for creep clearing and early defense
@@ -792,6 +791,8 @@ public class Strategy {
             UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
         }
 
+        MASS_RAVENS = true;
+        NO_TURRETS = false;
         DO_BANSHEE_HARASS = false;
         DO_DEFENSIVE_LIBS = true;
         DO_DEFENSIVE_TANKS = true;
