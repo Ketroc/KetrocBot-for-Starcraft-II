@@ -34,19 +34,19 @@ public class MarineOffense extends Marine {
 
     @Override
     protected void setTargetPos() {
-        //attack any threats within 15 range (army, workers, pylons -- excluding reapers/hellions/oracles/adepts)
+        // attack any threats within 15 range (army, workers, pylons -- excluding reapers/hellions/oracles/adepts)
         if (closestEnemyThreat != null) {
             targetPos = closestEnemyThreat.getPosition().toPoint2d();
         }
-        //search and destroy when all known enemy units/bases are gone
+        // search and destroy when all known enemy units/bases are gone
         else if (ArmyManager.attackEitherPos == null) {
             setFinishHimTarget();
         }
-        //kill any known enemy when enemy bases are gone
+        // kill any known enemy when enemy bases are gone
         else if (PosConstants.nextEnemyBase == null) {
             targetPos = ArmyManager.attackEitherPos;
         }
-        //prefer heading towards next base, but double back for enemy army if 3x closer
+        // prefer heading towards next base, but double back for enemy army if 3x closer
         else {
             Point2d nextEnemyBasePos = PosConstants.nextEnemyBase.getResourceMidPoint();
             float distToNextBase = UnitUtils.getDistance(unit.unit(), nextEnemyBasePos);

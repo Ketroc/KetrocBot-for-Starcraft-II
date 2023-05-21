@@ -269,41 +269,10 @@ public class GameCache {
                     }
 
                     //check if enemy can create air units
-                    if (!Switches.enemyCanProduceAir &&
-                            UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
-                        Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
-                        Switches.enemyCanProduceAir = true;
-                        if (!Strategy.gamePlan.toString().contains("RAVEN") && !Strategy.gamePlan.toString().contains("TURTLE")) {
-                            Strategy.DO_DEFENSIVE_TANKS = false;
-                            Strategy.DO_DEFENSIVE_LIBS = false;
-                        }
-                        if (PosConstants.opponentRace != Race.TERRAN) {
-                            Strategy.DO_OFFENSIVE_TANKS = false;
-                        }
-                    }
+                    setEnemyCanProduceAir(unitType);
 
                     //set enemy cloaked variable
-                    if (!Switches.doNeedDetection) {
-                        switch (unitType) {
-                            case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
-                            case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG:
-                            case ZERG_LURKER_MP_BURROWED: case TERRAN_BANSHEE: case TERRAN_WIDOWMINE:
-                            case TERRAN_WIDOWMINE_BURROWED: case TERRAN_GHOST: case TERRAN_GHOST_ACADEMY:
-                            case ZERG_INFESTOR_BURROWED: case ZERG_BANELING_BURROWED: case ZERG_DRONE_BURROWED:
-                            case ZERG_HYDRALISK_BURROWED: case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP:
-                            case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED: case ZERG_RAVAGER_BURROWED:
-                            case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
-                                Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
-                                Switches.doNeedDetection = true;
-                                //if burrowed unit, or cloaked unit without ghosts available
-                                if (Strategy.gamePlan != GamePlan.BC_RUSH &&
-                                        (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
-                                        PosConstants.opponentRace == Race.ZERG ||
-                                        UnitUtils.WIDOW_MINE_TYPE.contains(unitType))) {
-                                    purchaseEmergencyRaven();
-                                }
-                        }
-                    }
+                    setDoNeedDetection(unitType);
 
                     switch (unitType) {
                         //change base viking:banshee ratio once tempests hit the field
@@ -504,6 +473,44 @@ public class GameCache {
 
         //update lists of vikings and banshees that are to dive on detectors
         updateDiverStatus();
+    }
+
+    private static void setEnemyCanProduceAir(Units unitType) {
+        if (!Switches.enemyCanProduceAir && UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
+            Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
+            Switches.enemyCanProduceAir = true;
+            if (!Strategy.gamePlan.toString().contains("RAVEN") && !Strategy.gamePlan.toString().contains("TURTLE")) {
+                Strategy.DO_DEFENSIVE_TANKS = false;
+                Strategy.DO_DEFENSIVE_LIBS = false;
+            }
+            if (PosConstants.opponentRace != Race.TERRAN) {
+                Strategy.DO_OFFENSIVE_TANKS = false;
+            }
+        }
+    }
+
+    private static void setDoNeedDetection(Units unitType) {
+        if (!Switches.doNeedDetection) {
+            switch (unitType) {
+                case PROTOSS_DARK_TEMPLAR: case PROTOSS_DARK_SHRINE: case PROTOSS_MOTHERSHIP:
+                case ZERG_LURKER_DEN_MP: case ZERG_LURKER_MP: case ZERG_LURKER_MP_EGG:
+                case ZERG_LURKER_MP_BURROWED: case TERRAN_BANSHEE: case TERRAN_WIDOWMINE:
+                case TERRAN_WIDOWMINE_BURROWED: case TERRAN_GHOST: case TERRAN_GHOST_ACADEMY:
+                case ZERG_INFESTOR_BURROWED: case ZERG_BANELING_BURROWED: case ZERG_DRONE_BURROWED:
+                case ZERG_HYDRALISK_BURROWED: case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP:
+                case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED: case ZERG_RAVAGER_BURROWED:
+                case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
+                    Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
+                    Switches.doNeedDetection = true;
+                    //if burrowed unit, or cloaked unit without ghosts available
+                    if (Strategy.gamePlan != GamePlan.BC_RUSH &&
+                            (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
+                            PosConstants.opponentRace == Race.ZERG ||
+                            UnitUtils.WIDOW_MINE_TYPE.contains(unitType))) {
+                        purchaseEmergencyRaven();
+                    }
+            }
+        }
     }
 
     private static void updateDiverStatus() { //TODO: make method callable with unit type rather than hardcoded viking and banshee

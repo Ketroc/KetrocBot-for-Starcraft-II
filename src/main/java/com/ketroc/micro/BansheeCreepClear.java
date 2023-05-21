@@ -13,6 +13,8 @@ import com.ketroc.managers.ArmyManager;
 import com.ketroc.strategies.Strategy;
 import com.ketroc.utils.*;
 
+import java.util.Comparator;
+
 public class BansheeCreepClear extends Banshee {
     protected float prevAngle;
     private int tumorCount;
@@ -65,7 +67,7 @@ public class BansheeCreepClear extends Banshee {
         //priority on creep tumors
         UnitInPool targetUnit =  UnitUtils.getEnemyTargetsInRange(unit.unit(), target -> UnitUtils.CREEP_TUMOR_TYPES.contains(target.unit().getType()))
                 .stream()
-                .findFirst()
+                .min(Comparator.comparing(tumour -> tumour.unit().getHealth().orElse(500f)))
                 .orElse(null);
 
         //otherwise, pick a target in range
@@ -101,11 +103,6 @@ public class BansheeCreepClear extends Banshee {
             return;
         }
 
-        //attack if available
-        if (attackIfAvailable()) {
-            return;
-        }
-
         //flee from closest cyclone, if locked on
         if (hasLockOnBuff()) {
             Unit nearestCyclone = UnitUtils.getClosestEnemyOfType(Units.TERRAN_CYCLONE, unit.unit().getPosition().toPoint2d());
@@ -113,6 +110,11 @@ public class BansheeCreepClear extends Banshee {
                 targetPos = Position.towards(unit.unit().getPosition().toPoint2d(), nearestCyclone.getPosition().toPoint2d(), -4);
                 return;
             }
+        }
+
+        //attack if available and safe
+        if (attackIfAvailable() && isSafe()) {
+            return;
         }
 
         //movement
@@ -126,12 +128,9 @@ public class BansheeCreepClear extends Banshee {
         ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, movePos, false);
     }
 
-    @Override
-    protected boolean isSafe(Point2d pos) {
-        //TODO: if not on creep or if I can see a creep tumor
-        return super.isSafe(pos) &&
-                //((!Bot.OBS.hasCreep(pos) && Bot.OBS.isPathable(pos, false)) ||
-                (!Bot.OBS.hasCreep(pos) || isCreepTumorInRange());
+    // safe and stay near edge of creep
+    protected boolean isGoodNextPos(Point2d pos) {
+        return isSafe(pos) && (!Bot.OBS.hasCreep(pos) || isCreepTumorInRange());
     }
 
     private boolean isCreepTumorInRange() {
@@ -142,7 +141,7 @@ public class BansheeCreepClear extends Banshee {
         }
         return UnitUtils.getDistance(closestTumor, unit.unit()) < 11.5f &&
                 !Bot.OBS.hasCreep(Position.towards(closestTumor.getPosition().toPoint2d(), bansheePos, 11.5f)) &&
-                super.isSafe(Position.towards(closestTumor.getPosition().toPoint2d(), bansheePos, 6));
+                isSafe(Position.towards(closestTumor.getPosition().toPoint2d(), bansheePos, 6));
     }
 
     //tries to go around the threat
@@ -168,13 +167,12 @@ public class BansheeCreepClear extends Banshee {
             if (detourPos == null) {
                 continue;
             }
-            if (isSafe(detourPos)) {
+            if (isGoodNextPos(detourPos)) {
                 Color color = Color.GREEN;
                 if (!changedDirectionRecently() && Position.isNearMapBorder(unit.unit().getPosition().toPoint2d(), 8)) {
                     toggleDodgeClockwise();
                     color = Color.BLUE;
                 }
-                //add 1degree more angle as buffer, to account for chasing units
                 DebugHelper.drawBox(detourPos, color, 0.2f);
                 DebugHelper.drawBox(detourPos, color, 0.1f);
                 return detourPos;
