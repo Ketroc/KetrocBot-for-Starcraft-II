@@ -81,6 +81,7 @@ public class KetrocBot extends Bot {
             DebugHelper.onGameStart();
 
             //set main midpoint (must be done after GameState.onStep())
+            GameCache.baseList.forEach(Base::setTurretInFrontPositions);
             PlacementMap.onGameStart();
 
             //build unit lists

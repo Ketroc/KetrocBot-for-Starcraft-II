@@ -928,12 +928,7 @@ public class Base {
     // ======= STATIC METHODS ========
 
     public static void onGameStart() {
-        GameCache.baseList.forEach(base -> {
-            base.setTurretInMineralLinePositions();
-            base.getInMineralLinePositions().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.YELLOW, 1));
-            base.setTurretInFrontPositions();
-            base.getInFrontPositions().stream().forEach(tur -> DebugHelper.drawBox(tur.getPos(), Color.PURPLE, 1));
-        });
+        GameCache.baseList.forEach(Base::setTurretInMineralLinePositions);
     }
 
     public static float getLibDistanceFromCC() {

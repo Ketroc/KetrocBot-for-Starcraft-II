@@ -67,7 +67,7 @@ public class PosConstants {
     public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
     public static Race opponentRace;
-    public static List<Point2d> exposedMacroOcList;
+    public static List<Point2d> exposedMacroOcList = new ArrayList<>();
 
     public static void onGameStart() {
         if (MAP.contains("Golden Wall") || MAP.contains("Blackburn") || MAP.contains("Stargazers")) { //isTopSpawn == the left spawn for this map

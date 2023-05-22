@@ -10,6 +10,7 @@ import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
 import com.ketroc.gamestate.GameCache;
 import com.ketroc.geometry.Position;
+import com.ketroc.models.DefenseUnitPositions;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 
@@ -284,6 +285,14 @@ public class PlacementMap {
         if (Strategy.DO_WALL_NAT) {
             PosConstants.natWallDepots.forEach(p -> makeUnavailable2x2(p));
             PosConstants.natWall3x3s.forEach(p -> makeUnavailable3x3(p));
+        }
+
+        //remove turret positions in front of PFs
+        if (Strategy.DO_DEFENSIVE_TANKS && !Strategy.NO_TURRETS) {
+            GameCache.baseList.stream()
+                    .flatMap(base -> base.getInFrontPositions().stream())
+                    .map(DefenseUnitPositions::getPos)
+                    .forEach(p -> makeUnavailable2x2(p));
         }
     }
 
