@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class Base {
     public long lastScoutedFrame;
     public boolean isEnemyBase;
-    private boolean isDriedUp;
+    public boolean isDriedUp;
     private boolean isPocketBase;
     private Point2d ccPos;
     private UnitInPool cc;
@@ -134,18 +134,20 @@ public class Base {
     }
 
     public boolean requiresDefense() {
-        return isMyBase() && !isMyMainBase() && !isDriedUp() && !isPocketBase();
+        return isMyBase() && !isMyMainBase() && !isDriedUp && !isPocketBase();
     }
 
-    public boolean isDriedUp() {
+    public void setIsDriedUp() {
         //once dried up, it will remain dried up
         if (isDriedUp) {
-            return isDriedUp;
+            return;
         }
 
         //check if gas and minerals are all empty TODO: another method to check if it's worth expanding to with the remaining resources
         isDriedUp = getMineralPatchUnits().isEmpty() && gases.stream().allMatch(Gas::isDriedUp);
-        return isDriedUp;
+        if (isDriedUp) {
+            continueUnsieging = true;
+        }
     }
 
     public List<DefenseUnitPositions> getLiberatorPositions() {
@@ -234,6 +236,7 @@ public class Base {
     // ============ METHODS ==============
 
     public void onStep() {
+        setIsDriedUp();
         if (onMyBaseDeath) {
             onMyBaseDeath();
             onMyBaseDeath = false;
@@ -621,10 +624,6 @@ public class Base {
                 p -> p instanceof PurchaseStructure &&
                         ((PurchaseStructure) p).getStructureType() == Units.TERRAN_MISSILE_TURRET &&
                         ((PurchaseStructure) p).getPosition().distance(ccPos) < 10);
-
-        //TODO: cancel tanks and liberators (send on offense?  send back to main base?  need arrivalRange, and 2nd onCompletion option in micro classes)
-
-
     }
 
     //make this bases liberators aa mode and idle so they can be picked up for a new base TODO: time delay this
@@ -993,7 +992,7 @@ public class Base {
 
     public static Base getNextBase() {
         return GameCache.baseList.stream()
-                .filter(base -> !base.isDriedUp() && !base.isMyBase())
+                .filter(base -> !base.isDriedUp && !base.isMyBase())
                 .findFirst()
                 .orElse(null);
     }

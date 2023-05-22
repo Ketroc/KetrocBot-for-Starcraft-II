@@ -49,7 +49,7 @@ public class WidowMine extends BasicUnitMicro {
     }
 
     @Override
-    protected void updateTargetPos() {
+    protected void setTargetPos() {
         if (unit.unit().getHealth().orElse(0f) < REPAIR_AT ||
                 getCooldownRemaining() > 250 ||
                 isUnderRepair()) {
@@ -72,7 +72,7 @@ public class WidowMine extends BasicUnitMicro {
                 return;
             }
         }
-        super.updateTargetPos();
+        super.setTargetPos();
 
         //adjustment to be in front of bunker instead of behind
         if (!ArmyManager.doOffense && targetPos.equals(UnitUtils.getBehindBunkerPos())) {
@@ -97,7 +97,7 @@ public class WidowMine extends BasicUnitMicro {
             return;
         }
 
-        updateTargetPos();
+        setTargetPos();
         updateCooldown();
 
         //search for final structures

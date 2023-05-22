@@ -36,7 +36,7 @@ public class ScvDefender extends Scv {
             return;
         }
 
-        updateTargetPos();
+        setTargetPos();
 
         //return cargo
         if (UnitUtils.isCarryingResources(unit.unit())) {

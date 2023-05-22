@@ -18,12 +18,12 @@ public class Chaser extends BasicUnitMicro {
 
     @Override
     public void onStep() {
-        updateTargetPos();
+        setTargetPos();
         super.onStep();
     }
 
     @Override
-    protected void updateTargetPos() {
+    protected void setTargetPos() {
         targetPos = targetUnit.unit().getPosition().toPoint2d();
     }
 

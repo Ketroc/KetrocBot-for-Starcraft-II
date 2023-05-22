@@ -39,7 +39,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
     }
 
     @Override
-    protected void updateTargetPos() {
+    protected void setTargetPos() {
         //getting repaired
         if (!Cost.isGasBroke() && !Cost.isMineralBroke() && shouldRepair()) {
             targetUip = null;
@@ -93,7 +93,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
             return;
         }
 
-        updateTargetPos();
+        setTargetPos();
 
 
         if (isSafe()) {

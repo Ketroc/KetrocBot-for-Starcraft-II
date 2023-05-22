@@ -342,7 +342,7 @@ public class GameCache {
                     Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE &&
                     Bot.OBS.getVisibility(base.getResourceMidPoint()) != Visibility.VISIBLE &&
                     base.getMineralPatchUnits().stream().noneMatch(patch -> patch.getDisplayType() == DisplayType.VISIBLE) &&
-                    (base.lastScoutedFrame != 0 || !base.isDriedUp())) {
+                    (base.lastScoutedFrame != 0 || !base.isDriedUp)) {
                 continue;
             }
             if (Bot.OBS.getVisibility(base.getCcPos()) == Visibility.VISIBLE) {

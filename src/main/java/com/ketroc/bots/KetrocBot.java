@@ -732,7 +732,7 @@ public class KetrocBot extends Bot {
             if (base.isUntakenBase()) {
                 Print.print("isUntakenBase()");
             }
-            Print.print("base.isDryedUp() = " + base.isDriedUp());
+            Print.print("base.isDryedUp = " + base.isDriedUp);
             Print.print("Bot.QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()) = " + QUERY.placement(Abilities.BUILD_COMMAND_CENTER, base.getCcPos()));
             Print.print("base.lastScoutedFrame = " + base.lastScoutedFrame);
             Print.print("Bot.OBS.getVisibility(base.getCcPos()).toString() = " + OBS.getVisibility(base.getCcPos()).toString());

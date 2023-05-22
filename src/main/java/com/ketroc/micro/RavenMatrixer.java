@@ -23,13 +23,13 @@ public class RavenMatrixer extends Raven {
     }
 
     @Override
-    protected void updateTargetPos() {
+    protected void setTargetPos() {
         targetPos = matrixTarget.unit().getPosition().toPoint2d();
     }
 
     @Override
     public void onStep() {
-        updateTargetPos();
+        setTargetPos();
 
         //remove if raven dies, target dies, or raven gets matrixed/fungaled
         if (!isAlive() || !matrixTarget.isAlive() || !UnitUtils.canCast(unit.unit())) {

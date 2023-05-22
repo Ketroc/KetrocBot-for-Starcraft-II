@@ -33,7 +33,7 @@ public class TankOffense extends Tank {
         }
 
         //DebugHelper.boxUnit(unit.unit());
-        updateTargetPos();
+        setTargetPos();
 
         //tank vs tank special case
         Unit enemyTankToSiege = getEnemyTankToSiege();

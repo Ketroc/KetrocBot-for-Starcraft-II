@@ -70,7 +70,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         removeLockTarget();
-        updateTargetPos();
+        setTargetPos();
         visualizeLock();
         visualizeCooldown();
 
@@ -210,7 +210,7 @@ public class Cyclone extends BasicUnitMicro {
         return dmgAtLockPos < 40;
     }
 
-    protected void updateTargetPos() {
+    protected void setTargetPos() {
         //locked on
         if (lockTarget != null) {
             targetPos = Position.towards(unit.unit().getPosition().toPoint2d(),
@@ -232,7 +232,7 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //lock is off cooldown
-        super.updateTargetPos();
+        super.setTargetPos();
     }
 
     private boolean setLockTarget() {

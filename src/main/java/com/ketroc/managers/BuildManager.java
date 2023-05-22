@@ -1805,7 +1805,7 @@ public class BuildManager {
     public static Point2d getNextAvailableExpansionPosition() {
         List<Base> expansionOptions = GameCache.baseList.subList(0, GameCache.baseList.size() - getNumEnemyBasesIgnored()).stream()
                 .filter(base -> base.isUntakenBase() &&
-                        !base.isDriedUp() &&
+                        !base.isDriedUp &&
                         InfluenceMaps.getValue(InfluenceMaps.pointThreatToGroundValue, base.getCcPos()) == 0 &&
                         base.isReachable())
                 .collect(Collectors.toList());

@@ -459,23 +459,6 @@ public class BasicUnitMicro {
         return false;
     }
 
-    protected void updateTargetPos() {
-        if (ArmyManager.attackGroundPos != null) {
-            if (canAttackAir && canAttackGround) {
-                targetPos = ArmyManager.attackEitherPos;
-            } else if (canAttackGround) {
-                targetPos = ArmyManager.attackGroundPos;
-            } else {
-                targetPos = ArmyManager.attackAirPos;
-            }
-        //find last structures with random reachable positions
-        } else if (targetPos == null || UnitUtils.getDistance(unit.unit(), targetPos) < 3) { //switch positions when it arrives
-            do {
-                targetPos = Bot.OBS.getGameInfo().findRandomLocation();
-            } while (isGround && !Bot.OBS.isPathable(targetPos));
-        }
-    }
-
     protected boolean isMorphing() {
         return ActionIssued.getCurOrder(unit).stream()
                 .anyMatch(action -> action.ability.toString().contains("MORPH"));
