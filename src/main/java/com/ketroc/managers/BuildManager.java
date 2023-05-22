@@ -685,7 +685,7 @@ public class BuildManager {
 
     private static void floatCCToBase(Unit cc, Point2d basePos, boolean isEnemyBase) {
         UnitMicroList.add(new StructureFloaterExpansionCC(cc, basePos));
-        PosConstants.MACRO_OCS.add(cc.getPosition().toPoint2d());
+        PosConstants.addMacroOcPos(cc.getPosition().toPoint2d());
 
         //setCC in baseList
         if (!isEnemyBase) {
@@ -1633,7 +1633,7 @@ public class BuildManager {
         if (GameCache.mineralBank > mineralsRequired && !Purchase.isStructureQueued(Units.TERRAN_COMMAND_CENTER) &&
                 (Base.numMyBases() < PosConstants.baseLocations.size() - Strategy.NUM_DONT_EXPAND ||
                         !PosConstants.MACRO_OCS.isEmpty() ||
-                        !Placement.possibleCcPosList.isEmpty())) {
+                        !PosConstants.exposedMacroOcList.isEmpty())) {
             if ((GameCache.mineralBank > GameCache.gasBank && GameCache.gasBank > 2000) ||
                     Base.numAvailableBases() > 0 ||
                     UnitUtils.numMyUnits(UnitUtils.ORBITAL_COMMAND_TYPE, true) < Strategy.MAX_OCS) {
@@ -1777,7 +1777,7 @@ public class BuildManager {
 
     private static void purchaseExtraCC() {
         if (GameCache.mineralBank > 2000 && enemyHasMineralPatches()) {
-            Point2d ccPos = Placement.getNextExtraCCPos();
+            Point2d ccPos = PosConstants.getNextExtraCCPos();
             if (ccPos != null) {
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER, ccPos));
             }

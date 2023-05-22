@@ -75,9 +75,6 @@ public class KetrocBot extends Bot {
             //get map, get hardcoded map locations
             PosConstants.onGameStart();
 
-            //initialize list of extra cc positions
-            Placement.onGameStart();
-
             //choose strategy
             Strategy.onGameStart();
 
@@ -471,13 +468,13 @@ public class KetrocBot extends Bot {
                         switch ((Units) unit.getType()) {
                             case TERRAN_COMMAND_CENTER: //ignore CCs in enemy territory
                                 Point2d enemyNatPos = PosConstants.baseLocations.get(PosConstants.baseLocations.size() - 2);
-                                if (UnitUtils.getDistance(unit, enemyNatPos) <= Placement.MIN_DISTANCE_FROM_ENEMY_NAT){
+                                if (UnitUtils.getDistance(unit, enemyNatPos) <= PosConstants.minProductionDistanceFromEnemy) { //ignore offensive CCs
                                     break;
                                 }
                             case TERRAN_ORBITAL_COMMAND:
                                 //if macro OC
                                 if (GameCache.baseList.stream().noneMatch(base -> UnitUtils.getDistance(unit, base.getCcPos()) < 1)) {
-                                    Placement.possibleCcPosList.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
+                                    PosConstants.exposedMacroOcList.add(Position.toHalfPoint(unit.getPosition().toPoint2d()));
                                 }
                                 break;
                             case TERRAN_SUPPLY_DEPOT: //add this location to build new depot locations list

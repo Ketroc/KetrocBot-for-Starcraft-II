@@ -1,8 +1,10 @@
 package com.ketroc.utils;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.game.Race;
+import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.ketroc.gamestate.GameCache;
@@ -26,6 +28,7 @@ public class PosConstants {
     public static final List<Point2d> muleLetterPosList = new ArrayList<>();  //TODO: confirm top-left corner of letter
     public static Point2d myRampPos;
     public static Point2d enemyRampPos;
+    public static float minProductionDistanceFromEnemy;
 
 
     public static boolean isTopSpawn;
@@ -64,6 +67,7 @@ public class PosConstants {
     public static List<Point2d> counterClockBasePositions = new ArrayList<>();
 
     public static Race opponentRace;
+    public static List<Point2d> exposedMacroOcList;
 
     public static void onGameStart() {
         if (MAP.contains("Golden Wall") || MAP.contains("Blackburn") || MAP.contains("Stargazers")) { //isTopSpawn == the left spawn for this map
@@ -114,7 +118,7 @@ public class PosConstants {
         Point2d enemyNatPos = baseLocations.get(baseLocations.size() - 2);
         float enemyNatZ = Bot.OBS.terrainHeight(enemyNatPos);
         float rampZ = (homeZ + natZ) / 2;
-        float minProductionDistanceFromEnemy = (float)PosConstants.baseLocations.get(2).distance(enemyNatPos) - 10;
+        minProductionDistanceFromEnemy = (float)PosConstants.baseLocations.get(2).distance(enemyNatPos) - 10;
 
         for (int x = xMin; x <= xMax; x++) {
             for (int y = yMin; y <= yMax; y++) {
@@ -2116,5 +2120,33 @@ public class PosConstants {
 
     private static void setSpawnCorner() {
         spawnCorner = getBackCorner();
+    }
+
+    public static void addMacroOcPos(Point2d pos) {
+        if (UnitUtils.isInMyMainOrNat(pos)) {
+            PosConstants.MACRO_OCS.add(pos);
+        }
+        else {
+            exposedMacroOcList.add(pos);
+        }
+    }
+
+    public static Point2d getNextExtraCCPos() {
+        if (exposedMacroOcList.isEmpty()) {
+            return null;
+        }
+        List<QueryBuildingPlacement> queryList = exposedMacroOcList.stream()
+                .map(p -> QueryBuildingPlacement
+                        .placeBuilding()
+                        .useAbility(Abilities.BUILD_COMMAND_CENTER)
+                        .on(p).build())
+                .collect(Collectors.toList());
+        List<Boolean> placementList = Bot.QUERY.placement(queryList);
+        for (int i=0; i<placementList.size(); i++) {
+            if (!placementList.get(i).booleanValue()) {
+                return exposedMacroOcList.remove(i);
+            }
+        }
+        return null;
     }
 }

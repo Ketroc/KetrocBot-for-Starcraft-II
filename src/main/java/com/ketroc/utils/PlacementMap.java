@@ -4,7 +4,6 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.debug.Color;
 import com.github.ocraft.s2client.protocol.game.Race;
-import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -14,7 +13,6 @@ import com.ketroc.geometry.Position;
 import com.ketroc.strategies.GamePlan;
 import com.ketroc.strategies.Strategy;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -154,7 +152,7 @@ public class PlacementMap {
         ccsOutsideMain.forEach(ccPos -> {
             PosConstants.MACRO_OCS.remove(ccPos);
             makeAvailable(Units.TERRAN_COMMAND_CENTER, ccPos);
-            Placement.possibleCcPosList.add(0, ccPos);
+            PosConstants.exposedMacroOcList.add(0, ccPos);
         });
     }
 
@@ -209,7 +207,7 @@ public class PlacementMap {
                 makeAvailable(Units.TERRAN_STARPORT, aboveStarportPos);
                 makeAvailable(Units.TERRAN_TECHLAB, aboveStarportPos.add(2.5f, -0.5f));
                 Point2d ccPos = starportPos.add(1, 1);
-                PosConstants.MACRO_OCS.add(ccPos);
+                PosConstants.addMacroOcPos(ccPos);
                 makeUnavailable(Units.TERRAN_COMMAND_CENTER, ccPos);
                 return;
             }
@@ -778,8 +776,8 @@ public class PlacementMap {
             PosConstants._3x3AddonPosList.remove(botStarportPos);
             PosConstants._3x3AddonPosList.remove(midStarportPos);
             PosConstants._3x3AddonPosList.remove(topStarportPos);
-            PosConstants.MACRO_OCS.add(topCcPos);
-            PosConstants.MACRO_OCS.add(botCcPos);
+            PosConstants.addMacroOcPos(topCcPos);
+            PosConstants.addMacroOcPos(botCcPos);
             makeUnavailable(Units.TERRAN_COMMAND_CENTER, topCcPos);
             makeUnavailable(Units.TERRAN_COMMAND_CENTER, botCcPos);
             i -= 2;

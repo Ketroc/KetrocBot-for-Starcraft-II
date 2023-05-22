@@ -53,7 +53,7 @@ public class StructureFloater extends BasicUnitMicro {
         }
         switch ((Units)unit.unit().getType()) {
             case TERRAN_ORBITAL_COMMAND_FLYING: case TERRAN_COMMAND_CENTER_FLYING:
-                Placement.possibleCcPosList.add(targetPos);
+                PosConstants.exposedMacroOcList.add(targetPos);
                 break;
             case TERRAN_BARRACKS_FLYING:
                 PosConstants._3x3Structures.add(targetPos);

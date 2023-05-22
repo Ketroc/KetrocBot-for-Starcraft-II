@@ -366,7 +366,7 @@ public class PurchaseStructure implements Purchase { //TODO: add rally point
                 if (PosConstants.baseLocations.contains(pos)) {
                     return;
                 }
-                PosConstants.MACRO_OCS.add(pos);
+                PosConstants.addMacroOcPos(pos);
                 break;
             case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY:
                 if (UnitUtils.isWallingStructure(pos)) {

@@ -6,10 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.PosConstants;
-import com.ketroc.utils.PlacementMap;
+import com.ketroc.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +71,7 @@ public class FlyingCC {
             FlyingCC flyingCC = flyingCCs.get(i);
             //if cc died and was to become a macro OC
             if (flyingCC.hasDied() && flyingCC.makeMacroOC) {
-                PosConstants.MACRO_OCS.add(flyingCC.destination);
+                PosConstants.addMacroOcPos(flyingCC.destination);
             }
             if (flyingCC.hasDied() || flyingCC.hasLanded()) {
                 flyingCCs.remove(i--);
