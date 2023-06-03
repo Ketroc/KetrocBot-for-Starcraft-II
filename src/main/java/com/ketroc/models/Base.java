@@ -636,6 +636,7 @@ public class Base {
                 } else {
                     ActionHelper.unitCommand(baseLib, Abilities.STOP, false);
                 }
+                UnitMicroList.remove(libPos.getUnit().getTag());
                 libPos.setUnit(null, this);
             }
         }

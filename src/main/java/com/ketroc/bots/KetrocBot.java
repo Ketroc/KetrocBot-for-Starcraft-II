@@ -711,12 +711,11 @@ public class KetrocBot extends Bot {
         Print.print("Switches.bansheeDiveTarget == null? = " + Boolean.valueOf(Switches.bansheeDiveTarget == null).toString());
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER) = " + UnitUtils.getEnemyUnitsOfType(Units.TERRAN_VIKING_FIGHTER));
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
-        //Print.print("LocationConstants.FACTORIES.toString() = " + LocationConstants.FACTORIES.toString());
-        Print.print("LocationConstants.STARPORTS.toString() = " + PosConstants._3x3AddonPosList.toString());
-        Print.print("LocationConstants.MACRO_OCS.toString() = " + PosConstants.MACRO_OCS.toString());
-        Print.print("UpgradeManager.armoryArmorUpgrades.toString() = " + UpgradeManager.mechArmorUpgrades.toString());
-        Print.print("UpgradeManager.armoryAttackUpgrades.toString() = " + UpgradeManager.airAttackUpgrades.toString());
-        Print.print("BansheeBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
+        Print.print("PosConstants._3x3AddonPosList = " + PosConstants._3x3AddonPosList);
+        Print.print("PosConstants.MACRO_OCS.toString() = " + PosConstants.MACRO_OCS.toString());
+        Print.print("UpgradeManager.armoryArmorUpgrades = " + UpgradeManager.mechArmorUpgrades);
+        Print.print("UpgradeManager.armoryAttackUpgrades = " + UpgradeManager.airAttackUpgrades);
+        Print.print("KetrocBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
         Print.print("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);
