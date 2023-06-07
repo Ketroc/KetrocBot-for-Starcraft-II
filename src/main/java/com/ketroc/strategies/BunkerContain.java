@@ -533,7 +533,7 @@ public class BunkerContain {
                     .findFirst()
                     .map(UnitInPool::unit)
                     .orElse(null);
-            if (target != null && availableScvs.stream().allMatch(scv -> scv.getTag().equals(target.getTag()))) {
+            if (target != null && !availableScvs.isEmpty()) {
                 ActionHelper.unitCommand(availableScvs, Abilities.EFFECT_REPAIR, target, false);
                 return;
             }
