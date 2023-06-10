@@ -71,7 +71,13 @@ public class ScvDefender extends Scv {
 
         //when out of range, attack-move
         if (UnitUtils.getOrder(unit.unit()) != Abilities.ATTACK) {
-            ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, getLeadEnemyWorkerPos(), false);
+            Point2d leadEnemyWorkerPos = getLeadEnemyWorkerPos();
+            ActionHelper.unitCommand(
+                    unit.unit(),
+                    (UnitUtils.getDistance(unit.unit(), leadEnemyWorkerPos) > 3) ? Abilities.MOVE : Abilities.ATTACK,
+                    leadEnemyWorkerPos,
+                    false
+            );
         }
         return;
     }

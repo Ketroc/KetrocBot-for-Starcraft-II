@@ -211,7 +211,7 @@ public class MineralPatch {
         if (doTurboMine() && distToNode < 0.3f) {
             Unit otherScv = getOtherNodeScv(scv);
             if (UnitUtils.getDistance(scv, otherScv) < 0.2f &&
-                    UnitUtils.getDistance(otherScv, byCCPos) < UnitUtils.getDistance(scv, byCCPos) - 0.05f &&
+                    UnitUtils.getDistance(otherScv, byCCPos) < UnitUtils.getDistance(scv, byCCPos) - 0.15f &&
                     UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
                 if (UnitUtils.getOrder(scv) != Abilities.HOLD_POSITION) {
                     ActionHelper.unitCommand(scv, Abilities.HOLD_POSITION, false);

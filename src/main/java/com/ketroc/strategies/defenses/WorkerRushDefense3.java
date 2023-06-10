@@ -68,7 +68,7 @@ public class WorkerRushDefense3 {
         }
         int numAttackers = numEnemyWorkersAttacking();
         int numDefenders = UnitMicroList.numOfUnitClass(ScvDefender.class);
-        int numDefendersNeeded = (int)(numAttackers * 1.34) - numDefenders;
+        int numDefendersNeeded = (int)(numAttackers * 1.26) - numDefenders;
         if (numDefendersNeeded > 0) {
             Comparator<Unit> compareByHealth = Comparator.comparing(scv -> scv.getHealth().orElse(0f));
             UnitUtils.myUnitsOfType(Units.TERRAN_SCV).stream()
@@ -78,6 +78,7 @@ public class WorkerRushDefense3 {
                     .forEach(scv -> {
                         Base.releaseScv(scv);
                         UnitMicroList.add(new ScvDefender(scv));
+                        System.out.println("SCV Defender added.  Wanted: " + numDefendersNeeded);
                     });
         } else if (!isWorkerRushed && numDefendersNeeded < 0) {
             UnitMicroList.getUnitSubList(ScvDefender.class).stream()
@@ -86,6 +87,7 @@ public class WorkerRushDefense3 {
                     .forEach(scv -> {
                         UnitUtils.returnAndStopScv(scv.unit);
                         scv.removeMe = true;
+                        System.out.println("SCV Defender removed.  Wanted: " + numDefendersNeeded);
                     });
         }
     }
