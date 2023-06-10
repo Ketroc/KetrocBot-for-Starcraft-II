@@ -1338,7 +1338,7 @@ public class ArmyManager {
                     numVikings += 1.3;
                     break;
                 case PROTOSS_PHOENIX:
-                    numVikings += 2;
+                    numVikings += 1.67;
                     break;
                 case PROTOSS_VOIDRAY:
                     numVikings += 1.5;

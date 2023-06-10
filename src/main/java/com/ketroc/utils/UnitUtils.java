@@ -1948,4 +1948,12 @@ public class UnitUtils {
         return Base.getMyBases().stream()
                 .anyMatch(base -> base.enemySupplyNearBase(15) > Bot.OBS.getFoodArmy() * 0.9f);
     }
+
+    public static boolean hasOrder(Unit unit, Ability ability) {
+        if (ActionIssued.getCurOrder(unit).stream().anyMatch(order -> order.ability == ability)) {
+            return true;
+        }
+        //TODO: real-time unsafe (old orders may still be here)
+        return unit.getOrders().stream().anyMatch(order -> ability == order.getAbility());
+    }
 }

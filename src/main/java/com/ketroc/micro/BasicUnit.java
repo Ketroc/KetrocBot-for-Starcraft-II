@@ -6,6 +6,7 @@ import com.github.ocraft.s2client.protocol.data.Buff;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.github.ocraft.s2client.protocol.unit.UnitOrder;
+import com.ketroc.utils.UnitUtils;
 
 import java.util.List;
 
@@ -21,8 +22,7 @@ public class BasicUnit {
     }
 
     public boolean hasOrder(Ability ability) {
-        return uip.unit().getOrders().stream()
-                .anyMatch(order -> order.getAbility() == ability);
+        return UnitUtils.hasOrder(uip.unit(), ability);
     }
 
     public float distance(Point2d point2d) {

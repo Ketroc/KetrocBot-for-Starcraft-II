@@ -29,6 +29,7 @@ public class MineralPatch {
     private UnitInPool speedMineScv2;
     private long lastMuleAddedFrame = -999;
     private boolean isMuleSpeedMineNeeded;
+    private boolean isTurboMiningNeeded;
     private Point2d ccPos;
     private Point2d byNodePos;
     private Point2d nodePos;
@@ -52,6 +53,7 @@ public class MineralPatch {
         adjustForTanksAndTurrets();
         setIsClosePatch();
         byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
+        isTurboMiningNeeded = byCCPos.distance(byNodePos) > 2.2f;
     }
 
     private void setIsClosePatch() {
@@ -204,21 +206,46 @@ public class MineralPatch {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             return;
         }
+
         float distToNode = UnitUtils.getDistance(scv, byNodePos);
+        if (doTurboMine() && distToNode < 0.3f) {
+            Unit otherScv = getOtherNodeScv(scv);
+            if (UnitUtils.getDistance(scv, otherScv) < 0.2f &&
+                    UnitUtils.getDistance(otherScv, byCCPos) < UnitUtils.getDistance(scv, byCCPos) - 0.05f &&
+                    UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
+                if (UnitUtils.getOrder(scv) != Abilities.HOLD_POSITION) {
+                    ActionHelper.unitCommand(scv, Abilities.HOLD_POSITION, false);
+                }
+                return;
+            }
+        }
+
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_GATHER)) {
             //start speed MOVE
             if (distToNode < 2f && distToNode > 1f) {
                 ActionHelper.unitCommand(scv, Abilities.MOVE, byNodePos, false);
                 ActionHelper.unitCommand(scv, Abilities.SMART, node, true);
+                return;
             }
             //fix bounce
-            else if (!node.getTag().equals(UnitUtils.getTargetUnitTag(scv))) {
+            if (!node.getTag().equals(UnitUtils.getTargetUnitTag(scv))) {
                 ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
+                return;
             }
         }
-        else if (ActionIssued.getCurOrder(scv).isEmpty() || UnitUtils.isMiningScvStuck(scv)) {
-            //put wayward scv back to work
+
+        //put wayward scv back to work
+        if (ActionIssued.getCurOrder(scv).isEmpty() || UnitUtils.isMiningScvStuck(scv)) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
+            return;
+        }
+
+        //complete turbomine (when near node on move command, mine again when other scv is done)
+        if (distToNode < 1f &&
+                (!doTurboMine() || UnitUtils.getDistance(scv, getOtherNodeScv(scv)) > 0.5f) &&
+                UnitUtils.hasOrder(scv, Abilities.HOLD_POSITION)) {
+            ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
+            return;
         }
     }
 
@@ -239,24 +266,34 @@ public class MineralPatch {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
             return;
         }
+
         float distToByCCPos = UnitUtils.getDistance(scv, byCCPos);
         if (ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_RETURN)) {
-            //start speed MOVE
-            if (distToByCCPos < 2f && distToByCCPos > 1f) {
-                ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
+            // speed-mine
+            if (doTurboReturn(scv) || (distToByCCPos < 2f && distToByCCPos > 1f)) {
                 UnitInPool cc = getCC();
                 if (cc != null && cc.unit().getBuildProgress() >= 1f) {
+                    ActionHelper.unitCommand(scv, Abilities.MOVE, byCCPos, false);
                     ActionHelper.unitCommand(scv, Abilities.SMART, cc.unit(), true);
                 }
                 else {
                     ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
                 }
+                return;
             }
         }
-        //put wayward scv back to work
-        else if (ActionIssued.getCurOrder(scv).isEmpty()) {
+
+        // put wayward scv back to work
+        if (ActionIssued.getCurOrder(scv).isEmpty()) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_RETURN, false);
+            return;
         }
+    }
+
+    private boolean doTurboReturn(Unit scv) {
+        return doTurboMine() &&
+                UnitUtils.getDistance(scv, byNodePos) < 0.5f &&
+                UnitUtils.getOrder(getOtherNodeScv(scv)) == Abilities.HOLD_POSITION;
     }
 
     public void distanceReturnMicro(Unit scv) {
@@ -370,5 +407,31 @@ public class MineralPatch {
 
     public boolean shouldScvBeSet() {
         return Time.nowFrames() - lastMuleAddedFrame > 128;
+    }
+
+    private boolean doTurboMine() {
+        return isTurboMiningNeeded && getScvs().size() == 2;
+    }
+
+    private Unit getOtherNodeScv(Unit thisScv) {
+        return getScvs().stream()
+                .filter(scv -> !scv.getTag().equals(thisScv.getTag()))
+                .map(UnitInPool::unit)
+                .findFirst()
+                .orElse(null);
+    }
+    private boolean isMiningPatch(Unit scv) {
+        if (scv == null) {
+            return false;
+        }
+        return ActionIssued.getCurOrder(scv).stream().anyMatch(order -> order.ability == Abilities.HARVEST_GATHER) &&
+                UnitUtils.getDistance(scv, byNodePos) < 0.5f;
+    }
+
+    private boolean isTurboMineComplete(Unit scv) {
+        if (scv == null) {
+            return true;
+        }
+        return UnitUtils.getDistance(scv, byNodePos) > 0.5f;
     }
 }
