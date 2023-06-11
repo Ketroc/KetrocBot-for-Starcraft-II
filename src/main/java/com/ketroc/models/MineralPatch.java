@@ -1,5 +1,6 @@
 package com.ketroc.models;
 
+import SC2APIProtocol.Debug;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
@@ -210,7 +211,7 @@ public class MineralPatch {
         float distToNode = UnitUtils.getDistance(scv, byNodePos);
         if (doTurboMine() && distToNode < 0.3f) {
             Unit otherScv = getOtherNodeScv(scv);
-            if (UnitUtils.getDistance(scv, otherScv) < 0.2f &&
+            if (UnitUtils.getDistance(scv, otherScv) < 0.35f &&
                     UnitUtils.getDistance(otherScv, byCCPos) < UnitUtils.getDistance(scv, byCCPos) - 0.15f &&
                     UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
                 if (UnitUtils.getOrder(scv) != Abilities.HOLD_POSITION) {
