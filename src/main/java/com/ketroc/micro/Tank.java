@@ -186,7 +186,7 @@ public class Tank extends BasicUnitMicro {
 
         float distanceToEnemyTank = UnitUtils.getDistance(enemyTank, unit.unit());
         if (distanceToEnemyTank > 17 ||
-                (UnitUtils.isSnapshot(enemyTank) && UnitUtils.numScansAvailable() == 0)) {
+                (UnitUtils.isSnapshot(enemyTank) && UnitUtils.numScansAvailable() == 0 && Time.before(ArmyManager.prevScanFrame + 48))) {
             return null;
         }
 
@@ -211,7 +211,7 @@ public class Tank extends BasicUnitMicro {
 
     protected Unit getClosestEnemySiegedTank() {
         List<UnitInPool> enemyTankList = Bot.OBS.getUnits(Alliance.ENEMY, u -> u.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED);
-        if (UnitUtils.numScansAvailable() > 0) { //only check tanks in fog of war if scan is available
+        if (UnitUtils.numScansAvailable() > 0 || Time.before(ArmyManager.prevScanFrame + 48)) { //only check tanks in fog of war if scan is available
             enemyTankList.addAll(EnemyUnitMemory.getAllOfType(Units.TERRAN_SIEGE_TANK_SIEGED));
         }
         return enemyTankList.stream()
