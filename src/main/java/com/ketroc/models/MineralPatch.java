@@ -241,9 +241,8 @@ public class MineralPatch {
         }
 
         //complete turbomine (when near node on move command, mine again when other scv is done)
-        if (distToNode < 1f &&
-                (!doTurboMine() || UnitUtils.getDistance(scv, getOtherNodeScv(scv)) > 0.4f) &&
-                UnitUtils.hasOrder(scv, Abilities.HOLD_POSITION)) {
+        if (UnitUtils.hasOrder(scv, Abilities.HOLD_POSITION) &&
+                (!doTurboMine() || UnitUtils.getOrder(getOtherNodeScv(scv)) == Abilities.MOVE)) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             return;
         }
@@ -293,7 +292,7 @@ public class MineralPatch {
     private boolean doTurboReturn(Unit scv) {
         Unit otherScv = getOtherNodeScv(scv);
         return doTurboMine() &&
-                UnitUtils.getDistance(scv, byNodePos) < 0.4f &&
+                UnitUtils.getDistance(scv, byNodePos) < 0.3f &&
                 UnitUtils.getOrder(otherScv) == Abilities.HOLD_POSITION &&
                 UnitUtils.getDistance(otherScv, byCCPos) > UnitUtils.getDistance(scv, byCCPos) + 0.05f;
     }
