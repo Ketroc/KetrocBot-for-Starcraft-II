@@ -54,7 +54,7 @@ public class MineralPatch {
         adjustForTanksAndTurrets();
         setIsClosePatch();
         byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
-        isTurboMiningNeeded = byCCPos.distance(byNodePos) > 2.2f;
+        isTurboMiningNeeded = byCCPos.distance(byNodePos) > 2.6f;
     }
 
     private void setIsClosePatch() {
@@ -211,8 +211,7 @@ public class MineralPatch {
         float distToNode = UnitUtils.getDistance(scv, byNodePos);
         if (doTurboMine() && distToNode < 0.3f) {
             Unit otherScv = getOtherNodeScv(scv);
-            if (UnitUtils.getDistance(scv, otherScv) < 0.35f &&
-                    UnitUtils.getDistance(otherScv, byCCPos) < UnitUtils.getDistance(scv, byCCPos) - 0.05f &&
+            if (UnitUtils.getDistance(scv, otherScv) < 0.25f &&
                     UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
                 if (UnitUtils.getOrder(scv) != Abilities.HOLD_POSITION) {
                     ActionHelper.unitCommand(scv, Abilities.HOLD_POSITION, false);
@@ -243,7 +242,7 @@ public class MineralPatch {
 
         //complete turbomine (when near node on move command, mine again when other scv is done)
         if (distToNode < 1f &&
-                (!doTurboMine() || UnitUtils.getDistance(scv, getOtherNodeScv(scv)) > 0.5f) &&
+                (!doTurboMine() || UnitUtils.getDistance(scv, getOtherNodeScv(scv)) > 0.4f) &&
                 UnitUtils.hasOrder(scv, Abilities.HOLD_POSITION)) {
             ActionHelper.unitCommand(scv, Abilities.HARVEST_GATHER, node, false);
             return;
@@ -292,9 +291,11 @@ public class MineralPatch {
     }
 
     private boolean doTurboReturn(Unit scv) {
+        Unit otherScv = getOtherNodeScv(scv);
         return doTurboMine() &&
                 UnitUtils.getDistance(scv, byNodePos) < 0.4f &&
-                UnitUtils.getOrder(getOtherNodeScv(scv)) == Abilities.HOLD_POSITION;
+                UnitUtils.getOrder(otherScv) == Abilities.HOLD_POSITION &&
+                UnitUtils.getDistance(otherScv, byCCPos) > UnitUtils.getDistance(scv, byCCPos) + 0.05f;
     }
 
     public void distanceReturnMicro(Unit scv) {
