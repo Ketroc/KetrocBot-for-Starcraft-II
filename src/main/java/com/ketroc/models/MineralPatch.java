@@ -54,7 +54,7 @@ public class MineralPatch {
         adjustForTanksAndTurrets();
         setIsClosePatch();
         byCCPos = new Octagon(ccPos).intersection(new Line(byNodePos, ccPos)).iterator().next();
-        isTurboMiningNeeded = byCCPos.distance(byNodePos) > 2.6f;
+        isTurboMiningNeeded = byCCPos.distance(byNodePos) > 2.5f;
     }
 
     private void setIsClosePatch() {
@@ -209,10 +209,9 @@ public class MineralPatch {
         }
 
         float distToNode = UnitUtils.getDistance(scv, byNodePos);
-        if (doTurboMine() && distToNode < 0.3f) {
+        if (doTurboMine() && distToNode < 0.3f && scv.getTag().equals(scvs.get(0).getTag())) { //first scv only
             Unit otherScv = getOtherNodeScv(scv);
-            if (UnitUtils.getDistance(scv, otherScv) < 0.25f &&
-                    UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
+            if (UnitUtils.getDistance(scv, otherScv) < 0.25f && UnitUtils.getOrder(otherScv) == Abilities.HARVEST_RETURN) {
                 if (UnitUtils.getOrder(scv) != Abilities.HOLD_POSITION) {
                     ActionHelper.unitCommand(scv, Abilities.HOLD_POSITION, false);
                 }
@@ -292,6 +291,7 @@ public class MineralPatch {
     private boolean doTurboReturn(Unit scv) {
         Unit otherScv = getOtherNodeScv(scv);
         return doTurboMine() &&
+                scv.getTag().equals(scvs.get(1).getTag()) &&
                 UnitUtils.getDistance(scv, byNodePos) < 0.3f &&
                 UnitUtils.getOrder(otherScv) == Abilities.HOLD_POSITION &&
                 UnitUtils.getDistance(otherScv, byCCPos) > UnitUtils.getDistance(scv, byCCPos) + 0.05f;
@@ -411,7 +411,8 @@ public class MineralPatch {
     }
 
     private boolean doTurboMine() {
-        return isTurboMiningNeeded && getScvs().size() == 2;
+        return false;
+        //return isTurboMiningNeeded && getScvs().size() == 2;
     }
 
     private Unit getOtherNodeScv(Unit thisScv) {

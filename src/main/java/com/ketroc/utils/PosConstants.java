@@ -240,6 +240,9 @@ public class PosConstants {
             case MapNames.ACROPOLIS:
                 setLocationsForAcropolis(isTopSpawn);
                 break;
+            case MapNames.ANCIENT_CISTERN_AIE:
+                setLocationsForAncientCistern(isTopSpawn);
+                break;
             case MapNames.ASCENSION_TO_AIUR:
                 setLocationsForAscensionToAiur(isTopSpawn);
                 break;
@@ -263,6 +266,9 @@ public class PosConstants {
             case MapNames.DISCO_BLOODBATH:
                 setLocationsForDiscoBloodBath(isTopSpawn);
                 break;
+            case MapNames.DRAGON_SCALES_AIE:
+                setLocationsForDragonScales(isTopSpawn);
+                break;
             case MapNames.EPHEMERON:
             case MapNames.EPHEMERONLE:
                 setLocationsForEphemeron(isTopSpawn);
@@ -283,13 +289,22 @@ public class PosConstants {
             case MapNames.GLITTERING_ASHES_AIE:
                 setLocationsForGlitteringAshes(isTopSpawn);
                 break;
+            case MapNames.GOLDENAURA_AIE:
+                setLocationsForGoldenaura(isTopSpawn);
+                break;
             case MapNames.GOLDEN_WALL:
             case MapNames.GOLDEN_WALL505:
             case MapNames.GOLDEN_WALL506:
                 setLocationsForGoldenWall(isTopSpawn);
                 break;
+            case MapNames.GRESVAN_AIE:
+                setLocationsForGresvan(isTopSpawn);
+                break;
             case MapNames.HARDWIRE_AIE:
                 setLocationsForHardwire(isTopSpawn);
+                break;
+            case MapNames.INFESTATION_STATION_AIE:
+                setLocationsForInfestationStation(isTopSpawn);
                 break;
             case MapNames.INSIDE_AND_OUT_AIE:
                 setLocationsForInsideOrOut(isTopSpawn);
@@ -325,6 +340,9 @@ public class PosConstants {
             case MapNames.ROMANTICIDE:
             case MapNames.ROMANTICIDE_AIE:
                 setLocationsForRomanticide(isTopSpawn);
+                break;
+            case MapNames.ROYAL_BLOOD_AIE:
+                setLocationsForRoyalBlood(isTopSpawn);
                 break;
             case MapNames.SIMULACRUM:
                 setLocationsForSimulacrum(isTopSpawn);
@@ -392,7 +410,52 @@ public class PosConstants {
         }
     }
 
+    private static void setLocationsForAncientCistern(boolean isTopPos) {
+        muleLetterPosList.add(Point2d.of(82.5f, 80.5f));
+        muleLetterPosList.add(Point2d.of(89.5f, 80.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(129f, 150.5f);
+            enemyMineralPos = Point2d.of(31f, 19.5f);
 
+            proxyBarracksPos = Point2d.of(70.5f, 65.5f);
+            proxyBunkerPos = Point2d.of(35.5f, 56.5f);
+            proxyBunkerPos2 = Point2d.of(57.5f, 43.5f);
+
+            reaperBlockDepots.add(Point2d.of(108.0f, 135.0f));
+            reaperBlockDepots.add(Point2d.of(110.0f, 134.0f));
+            reaperBlock3x3s.add(Point2d.of(111.5f, 128.5f));
+            reaperBlock3x3s.add(Point2d.of(111.5f, 131.5f));
+
+            natWallDepots.add(Point2d.of(120.0f, 115.0f));
+            natWall3x3s.add(Point2d.of(124.5f, 110.5f));
+            natWall3x3s.add(Point2d.of(122.5f, 113.5f));
+            natWallDepots.add(Point2d.of(122.0f, 114.0f));
+            natWallDepots.add(Point2d.of(124.0f, 113.0f));
+
+            BUNKER_NATURAL = Point2d.of(122.5f, 113.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(31f, 19.5f);
+            enemyMineralPos = Point2d.of(129f, 150.5f);
+
+            proxyBarracksPos = Point2d.of(90.5f, 106.5f);
+            proxyBunkerPos = Point2d.of(123.5f, 113.5f);
+            proxyBunkerPos2 = Point2d.of(101.5f, 127.5f);
+
+            reaperBlockDepots.add(Point2d.of(52.0f, 35.0f));
+            reaperBlockDepots.add(Point2d.of(50.0f, 36.0f));
+            reaperBlock3x3s.add(Point2d.of(48.5f, 41.5f));
+            reaperBlock3x3s.add(Point2d.of(48.5f, 38.5f));
+
+            natWallDepots.add(Point2d.of(40.0f, 55.0f));
+            natWall3x3s.add(Point2d.of(34.5f, 58.5f));
+            natWall3x3s.add(Point2d.of(37.5f, 56.5f));
+            natWallDepots.add(Point2d.of(38.0f, 56.0f));
+            natWallDepots.add(Point2d.of(36.0f, 56.0f));
+
+            BUNKER_NATURAL = Point2d.of(37.5f, 56.5f);
+        }
+    }
 
     private static void setLocationsForAcropolis(boolean isTopPos) {
         if (isTopPos) {
@@ -639,6 +702,51 @@ public class PosConstants {
         }
     }
 
+    private static void setLocationsForDragonScales(boolean isTopPos) { //TODO: no pos set
+        muleLetterPosList.add(Point2d.of(115.5f, 109.5f));
+        muleLetterPosList.add(Point2d.of(124.5f, 109.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(69f, 155.5f);
+            enemyMineralPos = Point2d.of(179f, 56.5f);
+
+            proxyBarracksPos = Point2d.of(139.5f, 104.5f);
+            proxyBunkerPos = Point2d.of(136.5f, 58.5f);
+            proxyBunkerPos2 = Point2d.of(158.5f, 87.5f);
+
+            reaperBlockDepots.add(Point2d.of(80.0f, 131.0f));
+            reaperBlockDepots.add(Point2d.of(84.0f, 135.0f));
+            reaperBlock3x3s.add(Point2d.of(81.5f, 133.5f));
+
+            natWallDepots.add(Point2d.of(111.0f, 150.0f));
+            natWall3x3s.add(Point2d.of(115.5f, 155.5f));
+            natWall3x3s.add(Point2d.of(112.5f, 154.5f));
+            natWallDepots.add(Point2d.of(112.0f, 152.0f));
+            natWallDepots.add(Point2d.of(113.0f, 154.0f));
+
+            BUNKER_NATURAL = Point2d.of(112.5f, 154.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(179f, 56.5f);
+            enemyMineralPos = Point2d.of(69f, 155.5f);
+
+            proxyBarracksPos = Point2d.of(106.5f, 106.5f);
+            proxyBunkerPos = Point2d.of(112.5f, 154.5f);
+            proxyBunkerPos2 = Point2d.of(89.5f, 124.5f);
+
+            reaperBlockDepots.add(Point2d.of(168.0f, 81.0f));
+            reaperBlockDepots.add(Point2d.of(164.0f, 77.0f));
+            reaperBlock3x3s.add(Point2d.of(166.5f, 78.5f));
+
+            natWallDepots.add(Point2d.of(137.0f, 62.0f));
+            natWall3x3s.add(Point2d.of(132.5f, 56.5f));
+            natWall3x3s.add(Point2d.of(135.5f, 57.5f));
+            natWallDepots.add(Point2d.of(136.0f, 60.0f));
+            natWallDepots.add(Point2d.of(135.0f, 58.0f));
+
+            BUNKER_NATURAL = Point2d.of(135.5f, 57.5f);
+        }
+    }
+
     private static void setLocationsForEphemeron(boolean isTopPos) {
         if (isTopPos) {
             myMineralPos = Point2d.of(22.0f, 139.5f);
@@ -760,6 +868,51 @@ public class PosConstants {
         }
     }
 
+    private static void setLocationsForGoldenaura(boolean isTopPos) { //TODO: all pos not set
+        muleLetterPosList.add(Point2d.of(86.5f, 94.5f));
+        muleLetterPosList.add(Point2d.of(95.5f, 94.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(62f, 169.5f);
+            enemyMineralPos = Point2d.of(178f, 66.5f);
+
+            proxyBarracksPos = Point2d.of(131.5f, 115.5f);
+            proxyBunkerPos = Point2d.of(140.5f, 65.5f);
+            proxyBunkerPos2 = Point2d.of(145.5f, 88.5f);
+
+            reaperBlockDepots.add(Point2d.of(82.0f, 151.0f));
+            reaperBlockDepots.add(Point2d.of(86.0f, 155.0f));
+            reaperBlock3x3s.add(Point2d.of(83.5f, 153.5f));
+
+            natWallDepots.add(Point2d.of(70.0f, 141.0f));
+            natWall3x3s.add(Point2d.of(64.5f, 137.5f));
+            natWall3x3s.add(Point2d.of(67.5f, 139.5f));
+            natWallDepots.add(Point2d.of(68.0f, 140.0f));
+            natWallDepots.add(Point2d.of(66.0f, 140.0f));
+
+            BUNKER_NATURAL = Point2d.of(67.5f, 139.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(178f, 66.5f);
+            enemyMineralPos = Point2d.of(62f, 169.5f);
+
+            proxyBarracksPos = Point2d.of(118.5f, 127.5f);
+            proxyBunkerPos = Point2d.of(67.5f, 138.5f);
+            proxyBunkerPos2 = Point2d.of(89.5f, 143.5f);
+
+            reaperBlockDepots.add(Point2d.of(157.0f, 84.0f));
+            reaperBlockDepots.add(Point2d.of(153.0f, 80.0f));
+            reaperBlock3x3s.add(Point2d.of(155.5f, 81.5f));
+
+            natWallDepots.add(Point2d.of(143.0f, 68.0f));
+            natWall3x3s.add(Point2d.of(139.5f, 62.5f));
+            natWall3x3s.add(Point2d.of(141.5f, 65.5f));
+            natWallDepots.add(Point2d.of(142.0f, 66.0f));
+            natWallDepots.add(Point2d.of(142.0f, 64.0f));
+
+            BUNKER_NATURAL = Point2d.of(141.5f, 65.5f);
+        }
+    }
+
     private static void setLocationsForFlat48(boolean isTopPos) {
         if (isTopPos) {
             extraDepots.add(Point2d.of(23.0f, 51.0f));
@@ -798,6 +951,49 @@ public class PosConstants {
             reaperBlockDepots.add(Point2d.of(162.0f, 87.0f));
 
             BUNKER_NATURAL = Point2d.of(159.5f, 78.5f);
+        }
+    }
+
+    private static void setLocationsForGresvan(boolean isTopPos) { //TODO: no pos set
+        muleLetterPosList.add(Point2d.of(95.5f, 104.5f));
+        muleLetterPosList.add(Point2d.of(104.5f, 104.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(38f, 128.5f);
+            enemyMineralPos = Point2d.of(162f, 35.5f);
+
+            proxyBarracksPos = Point2d.of(101.5f, 57.5f);
+            proxyBunkerPos = Point2d.of(153.5f, 76.5f);
+            proxyBunkerPos2 = Point2d.of(138.5f, 63.5f);
+
+            reaperBlockDepots.add(Point2d.of(52.0f, 105.0f));
+            reaperBlockDepots.add(Point2d.of(56.0f, 109.0f));
+            reaperBlock3x3s.add(Point2d.of(53.5f, 107.5f));
+
+            natWallDepots.add(Point2d.of(48.0f, 91.0f));
+            natWallDepots.add(Point2d.of(47.0f, 89.0f));
+            natWall3x3s.add(Point2d.of(44.5f, 83.5f));
+            natWall3x3s.add(Point2d.of(45.5f, 86.5f));
+
+            BUNKER_NATURAL = Point2d.of(45.5f, 86.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(162f, 35.5f);
+            enemyMineralPos = Point2d.of(38f, 128.5f);
+
+            proxyBarracksPos = Point2d.of(96.5f, 105.5f);
+            proxyBunkerPos = Point2d.of(46.5f, 87.5f);
+            proxyBunkerPos2 = Point2d.of(61.5f, 100.5f);
+
+            reaperBlockDepots.add(Point2d.of(148.0f, 59.0f));
+            reaperBlockDepots.add(Point2d.of(144.0f, 55.0f));
+            reaperBlock3x3s.add(Point2d.of(146.5f, 56.5f));
+
+            natWallDepots.add(Point2d.of(152.0f, 73.0f));
+            natWallDepots.add(Point2d.of(153.0f, 75.0f));
+            natWall3x3s.add(Point2d.of(155.5f, 80.5f));
+            natWall3x3s.add(Point2d.of(154.5f, 77.5f));
+
+            BUNKER_NATURAL = Point2d.of(154.5f, 77.5f);
         }
     }
 
@@ -842,6 +1038,53 @@ public class PosConstants {
             natWall3x3s.add(Point2d.of(87.5f, 54.5f));
 
             BUNKER_NATURAL = Point2d.of(86.5f, 54.5f);
+        }
+    }
+
+    private static void setLocationsForInfestationStation(boolean isTopPos) { //TODO: all pos not set
+        muleLetterPosList.add(Point2d.of(117.5f, 69.5f));
+        muleLetterPosList.add(Point2d.of(125.5f, 69.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(140f, 132.5f);
+            enemyMineralPos = Point2d.of(36f, 39.5f);
+
+            proxyBarracksPos = Point2d.of(72.5f, 77.5f);
+            proxyBunkerPos = Point2d.of(75.5f, 42.5f);
+            proxyBunkerPos2 = Point2d.of(58.5f, 65.5f);
+
+            reaperBlockDepots.add(Point2d.of(129.0f, 114.0f));
+            reaperBlockDepots.add(Point2d.of(125.0f, 116.0f));
+            reaperBlock3x3s.add(Point2d.of(127.5f, 116.5f));
+
+            natWallDepots.add(Point2d.of(105.0f, 128.0f));
+            natWallDepots.add(Point2d.of(104.0f, 130.0f));
+            natWallDepots.add(Point2d.of(102.0f, 130.0f));
+            natWallDepots.add(Point2d.of(101.0f, 132.0f));
+            natWall3x3s.add(Point2d.of(98.5f, 132.5f));
+            natWall3x3s.add(Point2d.of(101.5f, 131.5f));
+
+            BUNKER_NATURAL = Point2d.of(101.5f, 131.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(36f, 39.5f);
+            enemyMineralPos = Point2d.of(140f, 132.5f);
+
+            proxyBarracksPos = Point2d.of(101.5f, 95.5f);
+            proxyBunkerPos = Point2d.of(100.5f, 130.5f);
+            proxyBunkerPos2 = Point2d.of(117.5f, 107.5f);
+
+            reaperBlockDepots.add(Point2d.of(47.0f, 58.0f));
+            reaperBlockDepots.add(Point2d.of(51.0f, 56.0f));
+            reaperBlock3x3s.add(Point2d.of(48.5f, 55.5f));
+
+            natWallDepots.add(Point2d.of(71.0f, 44.0f));
+            natWallDepots.add(Point2d.of(72.0f, 42.0f));
+            natWallDepots.add(Point2d.of(74.0f, 42.0f));
+            natWallDepots.add(Point2d.of(75.0f, 40.0f));
+            natWall3x3s.add(Point2d.of(77.5f, 39.5f));
+            natWall3x3s.add(Point2d.of(74.5f, 41.5f));
+
+            BUNKER_NATURAL = Point2d.of(74.5f, 41.5f);
         }
     }
 
@@ -1155,6 +1398,49 @@ public class PosConstants {
             enemyMineralPos = Point2d.of(34f, 136.5f);
 
             BUNKER_NATURAL = Point2d.of(143.5f, 63.5f);
+        }
+    }
+
+    private static void setLocationsForRoyalBlood(boolean isTopPos) { //TODO: all pos not set
+        muleLetterPosList.add(Point2d.of(118.5f, 76.5f));
+        muleLetterPosList.add(Point2d.of(125.5f, 76.5f));
+        if (isTopPos) {
+            myMineralPos = Point2d.of(149f, 123.5f);
+            enemyMineralPos = Point2d.of(35f, 32.5f);
+
+            proxyBarracksPos = Point2d.of(77.5f, 69.5f);
+            proxyBunkerPos = Point2d.of(74.5f, 35.5f);
+            proxyBunkerPos2 = Point2d.of(57.5f, 57.5f);
+
+            reaperBlockDepots.add(Point2d.of(136.0f, 105.0f));
+            reaperBlockDepots.add(Point2d.of(132.0f, 109.0f));
+            reaperBlock3x3s.add(Point2d.of(134.5f, 107.5f));
+
+            natWallDepots.add(Point2d.of(113.0f, 120.0f));
+            natWallDepots.add(Point2d.of(111.0f, 121.0f));
+            natWall3x3s.add(Point2d.of(108.5f, 122.5f));
+            natWall3x3s.add(Point2d.of(111.5f, 122.5f));
+
+            BUNKER_NATURAL = Point2d.of(111.5f, 122.5f);
+        }
+        else {
+            myMineralPos = Point2d.of(23f, 27.5f);
+            enemyMineralPos = Point2d.of(149f, 123.5f);
+
+            proxyBarracksPos = Point2d.of(103.5f, 87.5f);
+            proxyBunkerPos = Point2d.of(109.5f, 120.5f);
+            proxyBunkerPos2 = Point2d.of(127.5f, 98.5f);
+
+            reaperBlockDepots.add(Point2d.of(48.0f, 51.0f));
+            reaperBlockDepots.add(Point2d.of(49.5f, 48.5f));
+            reaperBlock3x3s.add(Point2d.of(52.0f, 47.0f));
+
+            natWallDepots.add(Point2d.of(71.0f, 36.0f));
+            natWallDepots.add(Point2d.of(73.0f, 35.0f));
+            natWall3x3s.add(Point2d.of(75.5f, 33.5f));
+            natWall3x3s.add(Point2d.of(72.5f, 33.5f));
+
+            BUNKER_NATURAL = Point2d.of(72.5f, 33.5f);
         }
     }
 
@@ -1495,6 +1781,24 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(149.5f, 23.5f));
                 break;
 
+            case MapNames.ANCIENT_CISTERN_AIE:
+                baseLocations.add(Point2d.of(128.5f, 143.5f));
+                baseLocations.add(Point2d.of(131.5f, 119.5f));
+                baseLocations.add(Point2d.of(98.5f, 124.5f));
+                baseLocations.add(Point2d.of(72.5f, 144.5f));
+                baseLocations.add(Point2d.of(74.5f, 120.5f));
+                baseLocations.add(Point2d.of(131.5f, 90.5f));
+                baseLocations.add(Point2d.of(131.5f, 59.5f));
+                baseLocations.add(Point2d.of(30.5f, 142.5f));
+                baseLocations.add(Point2d.of(28.5f, 110.5f));
+                baseLocations.add(Point2d.of(28.5f, 79.5f));
+                baseLocations.add(Point2d.of(85.5f, 49.5f));
+                baseLocations.add(Point2d.of(87.5f, 25.5f));
+                baseLocations.add(Point2d.of(61.5f, 45.5f));
+                baseLocations.add(Point2d.of(28.5f, 50.5f));
+                baseLocations.add(Point2d.of(31.5f, 26.5f));
+                break;
+
             case MapNames.BLACKBURN_AIE:
                 baseLocations.add(Point2d.of(36.5f, 31.5f));
                 baseLocations.add(Point2d.of(36.5f, 54.5f));
@@ -1599,6 +1903,23 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(160.5f, 64.5f));
                 break;
 
+            case MapNames.DRAGON_SCALES_AIE:
+                baseLocations.add(Point2d.of(76.5f, 154.5f));
+                baseLocations.add(Point2d.of(105.5f, 159.5f));
+                baseLocations.add(Point2d.of(97.5f, 130.5f));
+                baseLocations.add(Point2d.of(74.5f, 109.5f));
+                baseLocations.add(Point2d.of(134.5f, 160.5f));
+                baseLocations.add(Point2d.of(138.5f, 132.5f));
+                baseLocations.add(Point2d.of(170.5f, 159.5f));
+                baseLocations.add(Point2d.of(77.5f, 52.5f));
+                baseLocations.add(Point2d.of(109.5f, 79.5f));
+                baseLocations.add(Point2d.of(113.5f, 51.5f));
+                baseLocations.add(Point2d.of(173.5f, 102.5f));
+                baseLocations.add(Point2d.of(150.5f, 81.5f));
+                baseLocations.add(Point2d.of(142.5f, 52.5f));
+                baseLocations.add(Point2d.of(171.5f, 57.5f));
+                break;
+
             case MapNames.EPHEMERON:
             case MapNames.EPHEMERONLE:
                 baseLocations.add(Point2d.of(29.5f, 138.5f));
@@ -1680,6 +2001,23 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(48.5f, 54.5f));
                 break;
 
+            case MapNames.GOLDENAURA_AIE:
+                baseLocations.add(Point2d.of(69.5f, 168.5f));
+                baseLocations.add(Point2d.of(61.5f, 146.5f));
+                baseLocations.add(Point2d.of(91.5f, 140.5f));
+                baseLocations.add(Point2d.of(116.5f, 166.5f));
+                baseLocations.add(Point2d.of(57.5f, 121.5f));
+                baseLocations.add(Point2d.of(63.5f, 102.5f));
+                baseLocations.add(Point2d.of(167.5f, 165.5f));
+                baseLocations.add(Point2d.of(57.5f, 55.5f));
+                baseLocations.add(Point2d.of(104.5f, 61.5f));
+                baseLocations.add(Point2d.of(123.5f, 55.5f));
+                baseLocations.add(Point2d.of(168.5f, 114.5f));
+                baseLocations.add(Point2d.of(142.5f, 89.5f));
+                baseLocations.add(Point2d.of(148.5f, 59.5f));
+                baseLocations.add(Point2d.of(170.5f, 67.5f));
+                break;
+
             case MapNames.GOLDEN_WALL:
             case MapNames.GOLDEN_WALL505:
             case MapNames.GOLDEN_WALL506:
@@ -1701,6 +2039,25 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(175.5f, 50.5f));
                 break;
 
+            case MapNames.GRESVAN_AIE:
+                baseLocations.add(Point2d.of(38.5f, 121.5f));
+                baseLocations.add(Point2d.of(36.5f, 89.5f));
+                baseLocations.add(Point2d.of(62.5f, 99.5f));
+                baseLocations.add(Point2d.of(80.5f, 124.5f));
+                baseLocations.add(Point2d.of(36.5f, 64.5f));
+                baseLocations.add(Point2d.of(65.5f, 72.5f));
+                baseLocations.add(Point2d.of(54.5f, 39.5f));
+                baseLocations.add(Point2d.of(82.5f, 39.5f));
+                baseLocations.add(Point2d.of(117.5f, 124.5f));
+                baseLocations.add(Point2d.of(145.5f, 124.5f));
+                baseLocations.add(Point2d.of(134.5f, 91.5f));
+                baseLocations.add(Point2d.of(163.5f, 99.5f));
+                baseLocations.add(Point2d.of(119.5f, 39.5f));
+                baseLocations.add(Point2d.of(137.5f, 64.5f));
+                baseLocations.add(Point2d.of(163.5f, 74.5f));
+                baseLocations.add(Point2d.of(161.5f, 42.5f));
+                break;
+
             case MapNames.HARDWIRE_AIE:
                 baseLocations.add(Point2d.of(157.5f, 157.5f));
                 baseLocations.add(Point2d.of(135.5f, 167.5f));
@@ -1718,6 +2075,23 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(75.5f, 81.5f));
                 baseLocations.add(Point2d.of(80.5f, 48.5f));
                 baseLocations.add(Point2d.of(58.5f, 58.5f));
+                break;
+
+            case MapNames.INFESTATION_STATION_AIE:
+                baseLocations.add(Point2d.of(132.5f, 131.5f));
+                baseLocations.add(Point2d.of(106.5f, 137.5f));
+                baseLocations.add(Point2d.of(112.5f, 113.5f));
+                baseLocations.add(Point2d.of(135.5f, 90.5f));
+                baseLocations.add(Point2d.of(76.5f, 138.5f));
+                baseLocations.add(Point2d.of(75.5f, 112.5f));
+                baseLocations.add(Point2d.of(49.5f, 135.5f));
+                baseLocations.add(Point2d.of(126.5f, 36.5f));
+                baseLocations.add(Point2d.of(100.5f, 59.5f));
+                baseLocations.add(Point2d.of(99.5f, 33.5f));
+                baseLocations.add(Point2d.of(40.5f, 81.5f));
+                baseLocations.add(Point2d.of(63.5f, 58.5f));
+                baseLocations.add(Point2d.of(69.5f, 34.5f));
+                baseLocations.add(Point2d.of(43.5f, 40.5f));
                 break;
 
             case MapNames.ICE_AND_CHROME:
@@ -1885,6 +2259,25 @@ public class PosConstants {
                 baseLocations.add(Point2d.of(131.5f, 45.5f));
                 baseLocations.add(Point2d.of(153.5f, 68.5f));
                 baseLocations.add(Point2d.of(158.5f, 36.5f));
+                break;
+
+            case MapNames.ROYAL_BLOOD_AIE:
+                baseLocations.add(Point2d.of(141.5f, 122.5f));
+                baseLocations.add(Point2d.of(115.5f, 128.5f));
+                baseLocations.add(Point2d.of(123.5f, 101.5f));
+                baseLocations.add(Point2d.of(151.5f, 81.5f));
+                baseLocations.add(Point2d.of(84.5f, 129.5f));
+                baseLocations.add(Point2d.of(81.5f, 102.5f));
+                baseLocations.add(Point2d.of(47.5f, 130.5f));
+                baseLocations.add(Point2d.of(49.5f, 102.5f));
+                baseLocations.add(Point2d.of(134.5f, 53.5f));
+                baseLocations.add(Point2d.of(136.5f, 25.5f));
+                baseLocations.add(Point2d.of(102.5f, 53.5f));
+                baseLocations.add(Point2d.of(99.5f, 26.5f));
+                baseLocations.add(Point2d.of(32.5f, 74.5f));
+                baseLocations.add(Point2d.of(60.5f, 54.5f));
+                baseLocations.add(Point2d.of(68.5f, 27.5f));
+                baseLocations.add(Point2d.of(42.5f, 33.5f));
                 break;
 
             case MapNames.SIMULACRUM:
