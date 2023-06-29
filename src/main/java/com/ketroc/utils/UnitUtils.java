@@ -1956,4 +1956,40 @@ public class UnitUtils {
         //TODO: real-time unsafe (old orders may still be here)
         return unit.getOrders().stream().anyMatch(order -> ability == order.getAbility());
     }
+
+
+    //put structurePos back into PosConstants lists so that the pos can be used again
+    public static boolean addStructurePosBackToList(Units structureType, Point2d structurePos) {
+        if (PosConstants.baseLocations.get(1).distance(structurePos) > 50) {
+            return false;
+        }
+        switch (structureType) {
+            case TERRAN_SUPPLY_DEPOT:
+                PosConstants.extraDepots.add(
+                        UnitUtils.isWallingStructure(structurePos) ? 0 : Math.min(1, PosConstants.extraDepots.size()),
+                        structurePos
+                );
+                return true;
+            case TERRAN_BARRACKS:
+                if (UnitUtils.isWallingStructure(structurePos)) {
+                    PosConstants._3x3Structures.add(0, structurePos);
+                }
+                else {
+                    PosConstants._3x3AddonPosList.add(Math.min(1, PosConstants._3x3AddonPosList.size()), structurePos);
+                }
+                return true;
+            case TERRAN_ENGINEERING_BAY: case TERRAN_ARMORY: case TERRAN_FUSION_CORE: case TERRAN_GHOST_ACADEMY:
+                PosConstants._3x3Structures.add(Math.min(1, PosConstants._3x3Structures.size()), structurePos);
+                return true;
+            case TERRAN_FACTORY: case TERRAN_STARPORT:
+                PosConstants._3x3AddonPosList.add(Math.min(1, PosConstants._3x3AddonPosList.size()), structurePos);
+                return true;
+            case TERRAN_COMMAND_CENTER:
+                if (!PosConstants.baseLocations.contains(structurePos)) {
+                    PosConstants.MACRO_OCS.add(Math.min(1, PosConstants.MACRO_OCS.size()), structurePos);
+                }
+                return true;
+        }
+        return false;
+    }
 }

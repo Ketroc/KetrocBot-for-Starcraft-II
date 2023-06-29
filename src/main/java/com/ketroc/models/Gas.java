@@ -55,7 +55,7 @@ public class Gas {
 
         base.getInMineralLinePositions().stream()
                 .filter(defenseUnitPositions -> defenseUnitPositions.getUnit() != null)
-                .map(DefenseUnitPositions::getPos)
+                .map(DefenseUnitPosition::getPos)
                 .forEach(turretPos -> {
                     Rectangle turretRect = new Rectangle(turretPos, 1.4f);
 //                    turretRect.draw(Color.RED);

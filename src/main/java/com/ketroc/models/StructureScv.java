@@ -106,6 +106,7 @@ public class StructureScv {
             ActionHelper.unitCommand(getStructureUnit().unit(), Abilities.CANCEL_BUILD_IN_PROGRESS, false);
         }
         PlacementMap.makeAvailable(structureType, structurePos);
+        UnitUtils.addStructurePosBackToList(structureType, structurePos);
 
         //send scv to mineral patch
         if (scv.isAlive()) {

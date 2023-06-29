@@ -13,10 +13,7 @@ import com.ketroc.models.Base;
 import com.ketroc.models.StructureScv;
 import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
-import com.ketroc.utils.Chat;
-import com.ketroc.utils.PosConstants;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -78,16 +75,17 @@ public class WorkerRushDefense3 {
                     .forEach(scv -> {
                         Base.releaseScv(scv);
                         UnitMicroList.add(new ScvDefender(scv));
-                        System.out.println("SCV Defender added.  Wanted: " + numDefendersNeeded);
+                        Print.print("SCV Defender added. numAttackers: " + numAttackers + ", numDefenders: " + numDefenders + ", Wanted: " + numDefendersNeeded);
                     });
-        } else if (!isWorkerRushed && numDefendersNeeded < 0) {
+        }
+        else if (!isWorkerRushed || (numDefendersNeeded < -1 || numAttackers == 0)) {
             UnitMicroList.getUnitSubList(ScvDefender.class).stream()
                     .sorted(Comparator.comparing(scv -> scv.unit.unit().getHealth().orElse(0f)))
                     .limit(-numDefendersNeeded)
                     .forEach(scv -> {
                         UnitUtils.returnAndStopScv(scv.unit);
                         scv.removeMe = true;
-                        System.out.println("SCV Defender removed.  Wanted: " + numDefendersNeeded);
+                        Print.print("SCV Defender removed. numAttackers: " + numAttackers + ", numDefenders: " + numDefenders + ", Wanted: " + numDefendersNeeded);
                     });
         }
     }

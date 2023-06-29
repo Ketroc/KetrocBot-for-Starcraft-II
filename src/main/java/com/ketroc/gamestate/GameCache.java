@@ -385,12 +385,12 @@ public class GameCache {
             }
 
             //update turret/tank from inMineralPosition
-            for (DefenseUnitPositions unit : base.getInMineralLinePositions()) {
+            for (DefenseUnitPosition unit : base.getInMineralLinePositions()) {
                 unit.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, unit.getUnit(), unit.getPos()), base);
             }
 
             //update turret from inFrontPosition
-            for (DefenseUnitPositions turret : base.getInFrontPositions()) {
+            for (DefenseUnitPosition turret : base.getInFrontPositions()) {
                 turret.setUnit(base.getUpdatedUnit(Units.TERRAN_MISSILE_TURRET, turret.getUnit(), turret.getPos()), base);
             }
 

@@ -20,7 +20,8 @@ public class JsonUtil {
     public static final String DIRECTORY_PATH = "./data";
 
     public static void main(String[] args) {
-        resetWinRates(GamePlan.GHOST_HELLBAT);
+        resetWinRates(GamePlan.BUNKER_CONTAIN_WEAK);
+        resetWinRates(GamePlan.BUNKER_CONTAIN_STRONG);
     }
 
     private static String[] getAllJsonFilePaths() {

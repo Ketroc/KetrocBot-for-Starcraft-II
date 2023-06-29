@@ -55,13 +55,13 @@ public class Time {
     }
 
     //returns true if within first numFrames of any numMinutes period
-    public static boolean periodic(int numMinutes, int numFrames) {
-        long periodFrame = nowFrames() % (NUM_FRAMES_PER_MINUTE * numMinutes);
+    public static boolean periodic(float numMinutes, int numFrames) {
+        float periodFrame = nowFrames() % (NUM_FRAMES_PER_MINUTE * numMinutes);
         return periodFrame < numFrames;
     }
 
     //returns true if within first played frame of any numMinutes period
-    public static boolean periodic(int numMinutes) {
+    public static boolean periodic(float numMinutes) {
         return periodic(numMinutes, Launcher.STEP_SIZE);
     }
 

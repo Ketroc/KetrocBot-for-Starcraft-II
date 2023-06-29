@@ -4,13 +4,19 @@ import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 
-public class DefenseUnitPositions {
+public class DefenseUnitPosition {
     private Point2d pos; //TODO: this doesn't handle lib range upgrade
     private UnitInPool unit;
+    private Base base;
 
-    public DefenseUnitPositions(Point2d pos, UnitInPool unit) {
+    public DefenseUnitPosition(Point2d pos, UnitInPool unit, Base base) {
         this.pos = pos;
         this.unit = unit;
+        this.base = base;
+    }
+
+    public Base getBase() {
+        return base;
     }
 
     public Point2d getPos() {

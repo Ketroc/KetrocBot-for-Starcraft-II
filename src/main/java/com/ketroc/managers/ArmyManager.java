@@ -319,7 +319,7 @@ public class ArmyManager {
 
     private static void libTargetting() {
         for (Base base : GameCache.baseList) {
-            for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
+            for (DefenseUnitPosition libPos : base.getLiberatorPositions()) {
                 if (libPos.getUnit() != null && libPos.getUnit().isAlive()) {
                     Unit lib = libPos.getUnit().unit();
                     if (lib.getType() == Units.TERRAN_LIBERATOR_AG && UnitUtils.isWeaponAvailable(lib)) {
@@ -1163,7 +1163,7 @@ public class ArmyManager {
             }
             Base base = GameCache.baseList.get(BASE_DEFENSE_INDEX_ORDER[i]);
             if (base.requiresDefense()) { //my expansion bases only
-                for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
+                for (DefenseUnitPosition libPos : base.getLiberatorPositions()) {
                     if (libPos.getUnit() == null) {
                         libPos.setUnit(Bot.OBS.getUnit(idleLib.getTag()), base);
                         Point2d libZonePos = Position.towards(libPos.getPos(), base.getCcPos(), Liberator.castRange);
@@ -1189,7 +1189,7 @@ public class ArmyManager {
         if (Strategy.DO_DEFENSIVE_TANKS) {
             for (Base base : GameCache.baseList) {
                 if (base.requiresDefense()) {
-                    for (DefenseUnitPositions tankPos : base.getInMineralLinePositions()) {
+                    for (DefenseUnitPosition tankPos : base.getInMineralLinePositions()) {
                         if (tankPos.getUnit() == null) {
                             tankPos.setUnit(Bot.OBS.getUnit(idleTank.getTag()), base);
                             UnitMicroList.add(new TankToPosition(tankPos.getUnit(), tankPos.getPos(), MicroPriority.SURVIVAL));

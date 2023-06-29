@@ -1,6 +1,5 @@
 package com.ketroc.models;
 
-import SC2APIProtocol.Debug;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
@@ -86,7 +85,7 @@ public class MineralPatch {
 
         base.getInMineralLinePositions().stream()
                 .filter(defenseUnitPositions -> defenseUnitPositions.getUnit() != null)
-                .map(DefenseUnitPositions::getPos)
+                .map(DefenseUnitPosition::getPos)
                 .forEach(turretPos -> {
                     Rectangle turretRect = new Rectangle(turretPos, 1.4f);
 //                    turretRect.draw(Color.RED);

@@ -16,7 +16,10 @@ import com.ketroc.geometry.Position;
 import com.ketroc.geometry.Rectangle;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.WorkerManager;
+import com.ketroc.micro.Cyclone;
 import com.ketroc.micro.ExpansionClearing;
+import com.ketroc.micro.UnitMicroList;
+import com.ketroc.models.Base;
 import com.ketroc.models.Ignored;
 import com.ketroc.models.StructureScv;
 import com.ketroc.strategies.Strategy;
@@ -64,18 +67,18 @@ public class DebugHelper {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
-//            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
-//            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
-//            UnitMicroList.getUnitSubList(Cyclone.class)
-//                    .forEach(cyclone -> {
-//                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
-//                    });
-//            GameCache.bansheeList
-//                    .forEach(banshee -> {
-//                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
-//                    });
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+            UnitMicroList.getUnitSubList(Cyclone.class)
+                    .forEach(cyclone -> {
+                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
+                    });
+            GameCache.bansheeList
+                    .forEach(banshee -> {
+                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
+                    });
         }
 
         if (Time.at(Time.toFrames(5))) {

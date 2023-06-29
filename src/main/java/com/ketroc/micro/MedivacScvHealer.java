@@ -145,7 +145,7 @@ public class MedivacScvHealer extends BasicUnitMicro {
     }
 
     @Override
-    protected boolean isMovingToTargetPos() {
+    public boolean isMovingToTargetPos() {
         Optional<ActionIssued> order = ActionIssued.getCurOrder(unit);
         return order.isPresent() &&
                 order.get().targetPos != null &&

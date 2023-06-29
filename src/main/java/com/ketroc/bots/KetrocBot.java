@@ -187,7 +187,7 @@ public class KetrocBot extends Bot {
             FlyingCC.onStep(); //move flying CCs
 
             //print report of current game state
-            if (Time.periodic(2)) { //every 2min
+            if (Time.periodic(0.5f)) {
                 printCurrentGameInfo();
             }
 
@@ -514,7 +514,7 @@ public class KetrocBot extends Bot {
                             case TERRAN_SIEGE_TANK: case TERRAN_SIEGE_TANK_SIEGED:
                                 //remove from base defense tank
                                 for (Base base : GameCache.baseList) {
-                                    for (DefenseUnitPositions unitPos : base.getInMineralLinePositions()) {
+                                    for (DefenseUnitPosition unitPos : base.getInMineralLinePositions()) {
                                         if (unitPos.getUnit() != null && unit.getTag().equals(unitPos.getUnit().getTag())) {
                                             unitPos.setUnit(null, base);
                                         }
@@ -524,7 +524,7 @@ public class KetrocBot extends Bot {
                             case TERRAN_LIBERATOR: case TERRAN_LIBERATOR_AG:
                                 //remove from base defense liberator
                                 for (Base base : GameCache.baseList) {
-                                    for (DefenseUnitPositions libPos : base.getLiberatorPositions()) {
+                                    for (DefenseUnitPosition libPos : base.getLiberatorPositions()) {
                                         if (libPos.getUnit() != null && unit.getTag().equals(libPos.getUnit().getTag())) {
                                             libPos.setUnit(null, base);
                                         }
@@ -715,7 +715,8 @@ public class KetrocBot extends Bot {
         Print.print("PosConstants.MACRO_OCS.toString() = " + PosConstants.MACRO_OCS.toString());
         Print.print("UpgradeManager.armoryArmorUpgrades = " + UpgradeManager.mechArmorUpgrades);
         Print.print("UpgradeManager.armoryAttackUpgrades = " + UpgradeManager.airAttackUpgrades);
-        Print.print("KetrocBot.purchaseQueue.size() = " + KetrocBot.purchaseQueue.size());
+        Print.print("KetrocBot.purchaseQueue contents:");
+        KetrocBot.purchaseQueue.forEach(purchase -> Print.print(purchase.getType()));
         Print.print("\n\n");
         for (int i=0; i<GameCache.baseList.size(); i++) {
             Base base = GameCache.baseList.get(i);

@@ -27,7 +27,7 @@ public class KetrocLauncher {
             e.printStackTrace();
         });
 
-        DebugHelper.doTestingSpawns = false;
+        DebugHelper.doTestingSpawns = true;
         DebugHelper.isDebugOn = true;
         Launcher.isRealTime = false;
         Launcher.STEP_SIZE = 2;
@@ -60,13 +60,20 @@ public class KetrocLauncher {
                 .launchStarcraft()
 
 
+                .startGame(LocalMap.of(Paths.get("AncientCisternAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("DragonScalesAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("GoldenauraAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("GresvanAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("InfestationStationAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("RoyalBloodAIE.SC2Map")));
+
+
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("InsideAndOutAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("MoondanceAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("StargazersAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
-
+//                .startGame(LocalMap.of(Paths.get("WaterfallAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("2000AtmospheresAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));

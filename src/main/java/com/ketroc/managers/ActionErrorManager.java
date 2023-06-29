@@ -10,12 +10,18 @@ import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.CloakState;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.Switches;
+import com.ketroc.geometry.Position;
 import com.ketroc.micro.StructureFloaterExpansionCC;
 import com.ketroc.bots.Bot;
 import com.ketroc.micro.ExpansionClearing;
+import com.ketroc.micro.TankToPosition;
 import com.ketroc.micro.UnitMicroList;
+import com.ketroc.models.Base;
+import com.ketroc.models.DefenseUnitPosition;
 import com.ketroc.models.FlyingCC;
 import com.ketroc.models.StructureScv;
+import com.ketroc.utils.ActionHelper;
+import com.ketroc.utils.Chat;
 import com.ketroc.utils.Print;
 import com.ketroc.utils.UnitUtils;
 
@@ -73,10 +79,33 @@ public class ActionErrorManager {
                 }
                 else if (isBlockedByUnit(actionResult)) {
                     //blocked by burrowed zerg unit
+                    Point2d finalPos = pos;
                     if ((ability == Abilities.BUILD_COMMAND_CENTER || ability == Abilities.LAND_COMMAND_CENTER) && // || ability == Abilities.BUILD_MISSILE_TURRET
                             numBlockingEnemyUnits(pos, Units.TERRAN_COMMAND_CENTER) == 0) {
                         Switches.doNeedDetection = true;
                         ExpansionClearing.add(pos);
+                    }
+                    //move TANK_DEFENDER from blocking gas geyser
+                    else if (ability == Abilities.BUILD_REFINERY) {
+                        int qwers=3437;
+                    }
+                    else if (ability == Abilities.BUILD_REFINERY &&
+                            numBlockingEnemyUnits(pos, Units.TERRAN_REFINERY) == 0 &&
+                            UnitMicroList.getUnitSubList(TankToPosition.class).stream()
+                                    .anyMatch(tank -> !tank.isMovingToTargetPos() &&
+                                            tank.unit.unit().getType() == Units.TERRAN_SIEGE_TANK_SIEGED &&
+                                            UnitUtils.getDistance(tank.unit.unit(), finalPos) < tank.unit.unit().getRadius() + 2.3f)) {
+                        UnitMicroList.getUnitSubList(TankToPosition.class).stream()
+                                .filter(tank -> UnitUtils.getDistance(tank.unit.unit(), finalPos) < 3.5f)
+                                .findFirst()
+                                .ifPresent(tank -> {
+                                    DefenseUnitPosition defPos = Base.getClosestDefensivePosition(finalPos);
+                                    defPos.setPos(Position.towards(defPos.getPos(), defPos.getBase().getCcPos(), 0.4f));
+                                    tank.targetPos = defPos.getPos();
+                                    tank.unsiege();
+                                    tank.removeMe = true;
+                                    Chat.tag("UNBLOCK_REFINERY");
+                                });
                     }
                     //blocked by visible unit, or not an expansion
                     else {

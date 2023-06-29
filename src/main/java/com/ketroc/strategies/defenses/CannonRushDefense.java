@@ -13,6 +13,7 @@ import com.ketroc.bots.KetrocBot;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.WorkerManager;
 import com.ketroc.models.StructureScv;
+import com.ketroc.purchases.Purchase;
 import com.ketroc.purchases.PurchaseStructure;
 import com.ketroc.strategies.ScvTarget;
 import com.ketroc.strategies.Strategy;
@@ -50,7 +51,9 @@ public class CannonRushDefense {
 
                 //add new probes, cannons, and pylons as targets
                 addNewTarget(Units.PROTOSS_PHOTON_CANNON);
-                addNewTarget(Units.PROTOSS_PROBE);
+                if (!WorkerRushDefense3.isWorkerRushed) {
+                    addNewTarget(Units.PROTOSS_PROBE);
+                }
                 addNewTarget(Units.PROTOSS_PYLON);
 
                 for (ScvTarget scvTarget : ScvTarget.targets) {
@@ -109,19 +112,35 @@ public class CannonRushDefense {
         }
     }
 
+    //cancel CC, replace with depot, put CC at end of production queue
     private static void cancelCCFirst() {
         Chat.chatInvisToHuman("cancelling CC First");
         Strategy.BUILD_EXPANDS_IN_MAIN = true;
-        StructureScv.cancelProduction(Units.TERRAN_COMMAND_CENTER, GameCache.baseList.get(1).getCcPos());
-        KetrocBot.purchaseQueue.removeIf(purchase -> purchase instanceof PurchaseStructure &&
-            ((PurchaseStructure) purchase).getStructureType() == Units.TERRAN_COMMAND_CENTER);
+
+        // early CC being built
+        if (StructureScv.cancelProduction(Units.TERRAN_COMMAND_CENTER, GameCache.baseList.get(1).getCcPos())) {
+            KetrocBot.purchaseQueue.add(Math.min(KetrocBot.purchaseQueue.size(), 1), new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+            return;
+        }
+
+        // early CC in production queue
+        for (int i=0; i<KetrocBot.purchaseQueue.size(); i++) {
+            Purchase purchase = KetrocBot.purchaseQueue.get(i);
+            if (purchase.getType().equals(Units.TERRAN_COMMAND_CENTER.toString())) {
+                KetrocBot.purchaseQueue.remove(i);
+                KetrocBot.purchaseQueue.add(i, new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_COMMAND_CENTER));
+                break;
+            }
+        }
     }
 
     private static boolean isAnyCannonComplete() {
         return UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_PHOTON_CANNON).stream()
                             .anyMatch(cannon -> cannon.unit().getBuildProgress() == 1 &&
                                     (cannon.unit().getShield().orElse(0f) > 1 ||
-                                            cannon.unit().getHealth().orElse(0f) > 20));
+                                            cannon.unit().getHealth().orElse(0f) > 40));
     }
 
     public static void cancelScvDefense() {
