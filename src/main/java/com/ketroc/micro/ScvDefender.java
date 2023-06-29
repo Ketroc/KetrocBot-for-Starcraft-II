@@ -52,20 +52,20 @@ public class ScvDefender extends Scv {
             return;
         }
 
-        //when in attack range, attack-move
-        if (!getScvAttackTargets().isEmpty()) {
-            if (UnitUtils.getOrder(unit.unit()) != Abilities.ATTACK) {
-                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, getLeadEnemyWorkerPos(), false);
-            }
-            return;
-        }
-
         //when low hp, mineral-walk back and release for mining
         if (getCenterMineral() != null &&
                 unit.unit().getHealth().orElse(45f) <= 15 &&
                 (!WorkerRushDefense3.isWorkerRushed || !WorkerRushDefense3.isEnemyWorkersDeep())) {
             ActionHelper.unitCommand(unit.unit(), Abilities.SMART, getCenterMineral(), false);
             removeMe = true;
+            return;
+        }
+
+        //when in attack range, attack-move
+        if (!getScvAttackTargets().isEmpty()) {
+            if (UnitUtils.getOrder(unit.unit()) != Abilities.ATTACK) {
+                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, getLeadEnemyWorkerPos(), false);
+            }
             return;
         }
 
