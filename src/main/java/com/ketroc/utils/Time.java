@@ -3,6 +3,7 @@ package com.ketroc.utils;
 import com.ketroc.bots.Bot;
 import com.ketroc.launchers.Launcher;
 
+//clock format is string of "mm:ss"
 public class Time {
     public static final double FRAMES_PER_SECOND = 22.4;
     public static final int NUM_FRAMES_PER_MINUTE = 1344;
@@ -17,13 +18,13 @@ public class Time {
         return frames;
     }
 
-    public static int toSeconds(String time) {
-        String[] arrTime = time.split(":");
+    public static int toSeconds(String clock) {
+        String[] arrTime = clock.split(":");
         return Integer.parseInt(arrTime[0])*60 + Integer.parseInt(arrTime[1]);
     }
 
-    public static long toFrames(String time) {
-        return toFrames(toSeconds(time));
+    public static long toFrames(String clock) {
+        return toFrames(toSeconds(clock));
     }
 
     public static String toClock(int seconds) {

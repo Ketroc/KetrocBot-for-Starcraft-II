@@ -409,8 +409,9 @@ public class Base {
 
     public boolean isUnderAttack(float range) {
         return isMyBase() &&
-                ArmyManager.attackUnit != null &&
-                UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < range;
+                (ArmyManager.attackUnit != null && UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < range) ||
+                (ArmyManager.attackGroundUnit != null && UnitUtils.getDistance(ArmyManager.attackGroundUnit, ccPos) < range) ||
+                (ArmyManager.attackAirUnit != null && UnitUtils.getDistance(ArmyManager.attackAirUnit, ccPos) < range);
     }
 
     public float enemySupplyNearBase(float rangeCheck) {
