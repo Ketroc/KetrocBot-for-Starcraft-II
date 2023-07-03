@@ -33,7 +33,7 @@ public class Infestor {
         //update prev energy & check if energy 74-75 less than prev frame
         for (Infestor inf : infestorList) {
             if (inf.prevEnergy - inf.infestor.unit().getEnergy().orElse(inf.prevEnergy) > 73 &&
-                    inf.prevEnergy - inf.infestor.unit().getEnergy().get() < 76) {
+                    inf.prevEnergy - inf.infestor.unit().getEnergy().get() <= 75) {
                 dodgefungal(inf.infestor.unit());
             }
             inf.prevEnergy = inf.infestor.unit().getEnergy().orElse(inf.prevEnergy);

@@ -1393,6 +1393,13 @@ public class UnitUtils {
                 .sum();
     }
 
+    public static float getEnemyArmySupply() {
+        return (float) GameCache.allEnemiesList.stream()
+                .filter(enemy -> !UnitUtils.WORKER_TYPE.contains(enemy.unit().getType()))
+                .mapToDouble(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getFoodRequired().orElse(0f))
+                .sum();
+    }
+
     public static float getVisibleEnemySupplyInMyMainorNat() {
         return (float) GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> UnitUtils.isInMyMainOrNat(enemy.unit()))

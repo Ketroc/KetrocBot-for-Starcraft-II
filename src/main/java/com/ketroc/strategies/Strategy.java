@@ -62,7 +62,7 @@ public class Strategy {
     public static int maxScvs = 90;
     public static final float KITING_BUFFER = 2.4f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
     public static final float STATIONARY_KITING_BUFFER = 1.55f + (Launcher.STEP_SIZE > 2 ? 0.3f : 0);
-    public static int RETREAT_HEALTH = 42; //% health of mech unit to go home to get repaired
+    public static int RETREAT_HEALTH = 42; // health% of mech unit to go home to get repaired
     public static final int NUM_DONT_EXPAND = 2; //number of bases to never try expanding to
     public static final float ENERGY_TO_SAVE = 80f; //don't cloak banshee if their energy is under this value
     public static final int NUM_SCVS_REPAIR_STATION = 5;
@@ -563,7 +563,7 @@ public class Strategy {
                         GamePlan.MARINE_RUSH,
 //                        GamePlan.SCV_RUSH,
                         GamePlan.BUNKER_CONTAIN_WEAK,
-                        GamePlan.RAVEN,
+                        GamePlan.RAVEN, //TODO: add BC_MACRO
                         GamePlan.RAVEN_CYCLONE,
                         GamePlan.GHOST_HELLBAT,
                         GamePlan.HELLBAT_ALL_IN
@@ -704,6 +704,17 @@ public class Strategy {
                 break;
             case RAVEN:
                 massRavenStrategy();
+                break;
+            case BC_MACRO:
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechArmorUpgrades);
+                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
+                NO_TURRETS = false;
+                DO_BANSHEE_HARASS = false;
+                DO_DEFENSIVE_TANKS = true;
+                EXPAND_SLOWLY = false;
+                DO_SEEKER_MISSILE = true;
+                DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BATTLECRUISER;
+                MIN_BANSHEES = 0;
                 break;
             case GHOST_HELLBAT:
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(

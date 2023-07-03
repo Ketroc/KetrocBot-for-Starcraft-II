@@ -537,6 +537,11 @@ public class ArmyManager {
             return;
         }
 
+        if (Strategy.gamePlan == GamePlan.BC_MACRO) {
+            doOffense = UnitMicroList.numOfUnitClass(BattlecruiserOffense.class) > 0;
+            return;
+        }
+
         if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
             int numHellions = UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, false);
             if (!doOffense &&
