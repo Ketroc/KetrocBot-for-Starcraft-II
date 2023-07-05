@@ -459,8 +459,6 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY));
-        KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY));
     }
 
     private static void ghostMarauderOpener() {

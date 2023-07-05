@@ -455,14 +455,16 @@ public class Strategy {
 //                        GamePlan.RAVEN
                 ));
             case "2540c0f3-238f-40a7-9c39-2e4f3dca2e2f": //sharkbot
+                RANDOM_STRATEGY_SELECTION = true;
+                MAX_BANSHEES = 6;
                 return new HashSet<>(Set.of(
-                        GamePlan.BC_RUSH,
+//                        GamePlan.BC_RUSH,
 //                        GamePlan.BUNKER_CONTAIN_STRONG,
                         GamePlan.MECH_ALL_IN,
                         GamePlan.BANSHEE,
-                        GamePlan.BANSHEE_CYCLONE,
-                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
-                        GamePlan.MARINE_RUSH,
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.ONE_BASE_BANSHEE_CYCLONE,
+//                        GamePlan.MARINE_RUSH,
 //                        GamePlan.SCV_RUSH,
 //                        GamePlan.BUNKER_CONTAIN_WEAK,
                         GamePlan.RAVEN

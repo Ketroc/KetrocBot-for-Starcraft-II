@@ -1216,7 +1216,7 @@ public class BuildManager {
                 continue;
             }
 
-            if (Purchase.isBuildOrderComplete() && UnitUtils.getAddOn(factoryUip.unit()).isEmpty()) {
+            if (UnitUtils.getAddOn(factoryUip.unit()).isEmpty()) {
                 if (!PurchaseStructureMorph.contains(factoryUip.unit()) && UnitUtils.canAfford(Units.TERRAN_FACTORY_TECHLAB, true)) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factoryUip));
                     Cost.updateBank(Units.TERRAN_FACTORY_TECHLAB);

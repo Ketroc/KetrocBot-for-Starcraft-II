@@ -5,6 +5,7 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Ability;
 import com.github.ocraft.s2client.protocol.data.UnitTypeData;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Tag;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -88,6 +89,11 @@ public class PurchaseStructureMorph implements Purchase {
         //if tech structure required
         if (isTechRequired(morphOrAddOn)) {
             Cost.updateBank(cost);
+            return PurchaseResult.WAITING;
+        }
+
+        //if add-on position is blocked
+        if (isBlocked()) {
             return PurchaseResult.WAITING;
         }
 
@@ -181,6 +187,13 @@ public class PurchaseStructureMorph implements Purchase {
                         UnitUtils.getAddOn(u.unit()).isEmpty())
                 .min(Comparator.comparing(u -> UnitUtils.secondsUntilAvailable(u.unit())))
                 .ifPresent(structure -> productionStructure = structure);
+    }
+
+    public boolean isBlocked() {
+        if (morphOrAddOn.toString().contains("MORPH")) {
+            return false;
+        }
+        return Bot.QUERY.placement(Abilities.BUILD_SUPPLY_DEPOT, UnitUtils.getAddonPos(productionStructure.unit()));
     }
 
 

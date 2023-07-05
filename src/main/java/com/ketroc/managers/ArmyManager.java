@@ -848,8 +848,8 @@ public class ArmyManager {
         float enemyBaseAttackRange = isAttackingEnemyBase ? 17 : 13;
         boolean isEnemyAttackingMyBase = closestEnemyAir != null && Base.nearOneOfMyBases(closestEnemyAir.unit(), 20);
 
-        // kill air near my bases
-        if (closestEnemyAir != null && isEnemyAttackingMyBase) {
+        // kill air near my bases (if not a tank-based offense)
+        if (closestEnemyAir != null && isEnemyAttackingMyBase && (!Strategy.DO_OFFENSIVE_TANKS || !doOffense)) {
             attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }
@@ -857,7 +857,7 @@ public class ArmyManager {
         // kill air near tanks
         if (closestEnemyAir != null &&
                 Strategy.DO_OFFENSIVE_TANKS &&
-                tankList.stream().anyMatch(tankOffense -> UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) < 20)) {
+                tankList.stream().anyMatch(tankOffense -> UnitUtils.getDistance(tankOffense.unit.unit(), closestEnemyAir.unit()) < 13)) {
             attackAirPos = closestEnemyAir.unit().getPosition().toPoint2d();
             return;
         }
