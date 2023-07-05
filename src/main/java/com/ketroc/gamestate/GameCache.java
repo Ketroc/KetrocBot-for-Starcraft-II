@@ -610,29 +610,32 @@ public class GameCache {
                 Switches.vikingDiveTarget = null;
             }
             else {
-                //if tempest target is dead or if vikings lost the target in the fog, get another
-                if (Switches.isDivingTempests) {
-                    if (!Switches.vikingDiveTarget.isAlive() ||
-                            (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget) &&
-                                    vikingList.stream().anyMatch(viking -> UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 1))) {
-                        Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
-                    }
+//                //if tempest target is dead or if vikings lost the target in the fog, get another
+//                if (Switches.isDivingTempests) {
+//                    if (!Switches.vikingDiveTarget.isAlive() ||
+//                            (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget) &&
+//                                    vikingList.stream().anyMatch(viking -> UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 1))) {
+//                        Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
+//                    }
+//                }
+//
+//                //build diverList
+//                if (Switches.vikingDiveTarget != null) {
+//                    for (int i = 0; i < vikingList.size(); i++) {
+//                        if (UnitUtils.getDistance(vikingList.get(i), Switches.vikingDiveTarget.unit()) < ((Switches.isDivingTempests) ? Strategy.TEMPEST_DIVE_RANGE : Strategy.DIVE_RANGE)) {
+//                            vikingDivers.add(vikingList.remove(i--));
+//                        }
+//                    }
+//                }
+//                //cancel if no vikings left nearby or no tempest left to target
+//                if (vikingDivers.isEmpty() || Switches.vikingDiveTarget == null) {
+//                    Switches.vikingDiveTarget = null;
+//                    Switches.isDivingTempests = false;
+//                }
 
-                }
-
-                //build diverList
-                if (Switches.vikingDiveTarget != null) {
-                    for (int i = 0; i < vikingList.size(); i++) {
-                        if (UnitUtils.getDistance(vikingList.get(i), Switches.vikingDiveTarget.unit()) < ((Switches.isDivingTempests) ? Strategy.TEMPEST_DIVE_RANGE : Strategy.DIVE_RANGE)) {
-                            vikingDivers.add(vikingList.remove(i--));
-                        }
-                    }
-                }
-                //cancel if no vikings left nearby or no tempest left to target
-                if (vikingDivers.isEmpty() || Switches.vikingDiveTarget == null) {
-                    Switches.vikingDiveTarget = null;
-                    Switches.isDivingTempests = false;
-                }
+                //FIXME: this is a test of cancelling dive after every kill
+                Switches.vikingDiveTarget = null;
+                Switches.isDivingTempests = false;
             }
         }
     }

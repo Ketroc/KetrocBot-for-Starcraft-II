@@ -493,18 +493,19 @@ public class ArmyManager {
     private static void vikingDiverMicro() {
         if (Switches.vikingDiveTarget != null) {
             if (Switches.isDivingTempests) {
-                List<Unit> moveVikings = new ArrayList<>();
                 List<Unit> attackVikings = new ArrayList<>();
-                if (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget)) { //TODO: handle it when vikings arrive at last known tempest location and still can't find the tempest
-                    moveVikings.addAll(GameCache.vikingDivers);
-                }
-                else {
-                    for (Unit viking : GameCache.vikingDivers) {
-                        if (UnitUtils.isWeaponAvailable(viking) && UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 8.5) {
-                            attackVikings.add(viking);
-                        } else {
-                            moveVikings.add(viking);
-                        }
+                boolean targetInFog = UnitUtils.isInFogOfWar(Switches.vikingDiveTarget);
+                for (Unit viking : GameCache.vikingDivers) {
+                    if (!targetInFog && UnitUtils.isWeaponAvailable(viking) && UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 8.5) {
+                        attackVikings.add(viking);
+                    }
+                    else {
+                        ActionHelper.unitCommand(
+                                viking,
+                                Abilities.MOVE,
+                                Position.towards(viking.getPosition().toPoint2d(), Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), 6.5f),
+                                false
+                        );
                     }
                 }
                 if (!attackVikings.isEmpty()) {
@@ -518,9 +519,6 @@ public class ArmyManager {
                     else {
                         ActionHelper.unitCommand(attackVikings, Abilities.ATTACK, Switches.vikingDiveTarget.unit(), false);
                     }
-                }
-                if (!moveVikings.isEmpty()) {
-                    ActionHelper.unitCommand(moveVikings, Abilities.MOVE, Switches.vikingDiveTarget.unit().getPosition().toPoint2d(), false);
                 }
             }
             else {
@@ -2013,6 +2011,12 @@ public class ArmyManager {
     }
 
     public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {
+        // don't dive skytoss near enemy cannons/batteries or any overcharged battery
+        List<UnitInPool> protossStaticDefense = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.STATIC_DEFENSE_PROTOSS, closestTempest, 11);
+        if (protossStaticDefense.size() >= 5 || protossStaticDefense.stream().anyMatch(staticD -> staticD.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE))) {
+            return false;
+        }
+
         //if not enough vikings to deal with the tempests
         if (numVikingsNearby < Math.min(Strategy.MAX_VIKINGS_TO_DIVE_TEMPESTS, (int)(ArmyManager.calcNumVikingsNeeded() * 0.75))) {
             return false;
@@ -2027,7 +2031,8 @@ public class ArmyManager {
         //TODO: change to include stalkers out of vision??
         List<UnitInPool> aaThreats = Bot.OBS.getUnits(Alliance.ENEMY, u ->
                 (u.unit().getType() == Units.PROTOSS_VOIDRAY || u.unit().getType() == Units.PROTOSS_STALKER ||
-                        u.unit().getType() == Units.PROTOSS_INTERCEPTOR || u.unit().getType() == Units.PROTOSS_PHOENIX) &&
+                        u.unit().getType() == Units.PROTOSS_INTERCEPTOR || u.unit().getType() == Units.PROTOSS_PHOENIX ||
+                        UnitUtils.STATIC_DEFENSE_PROTOSS.contains(u.unit().getType())) &&
                         UnitUtils.getDistance(u.unit(), closestTempest) < 15);
         int threatTotal = 0;
         for (UnitInPool u : aaThreats) {
@@ -2036,7 +2041,7 @@ public class ArmyManager {
                 case PROTOSS_VOIDRAY:
                     threatTotal += 4;
                     break;
-                case PROTOSS_PHOENIX: case PROTOSS_STALKER:
+                case PROTOSS_PHOENIX: case PROTOSS_STALKER: case PROTOSS_PHOTON_CANNON: case PROTOSS_SHIELD_BATTERY:
                     threatTotal += 2;
                     break;
                 case PROTOSS_INTERCEPTOR:

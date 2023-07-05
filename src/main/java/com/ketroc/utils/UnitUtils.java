@@ -234,6 +234,9 @@ public class UnitUtils {
             Units.ZERG_SPINE_CRAWLER, Units.ZERG_SPORE_CRAWLER,
             Units.TERRAN_MISSILE_TURRET, Units.TERRAN_PLANETARY_FORTRESS, Units.TERRAN_BUNKER, Units.TERRAN_AUTO_TURRET));
 
+    public static final Set<Units> STATIC_DEFENSE_PROTOSS = new HashSet<>(Set.of(
+            Units.PROTOSS_PHOTON_CANNON, Units.PROTOSS_SHIELD_BATTERY));
+
     public static Set<Units> enemyCommandStructures;
     public static Units enemyWorkerType;
 
