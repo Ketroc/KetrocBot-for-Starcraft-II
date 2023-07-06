@@ -190,10 +190,10 @@ public class PurchaseStructureMorph implements Purchase {
     }
 
     public boolean isBlocked() {
-        if (morphOrAddOn.toString().contains("MORPH")) {
+        if (productionStructure == null || morphOrAddOn.toString().contains("MORPH")) {
             return false;
         }
-        return Bot.QUERY.placement(Abilities.BUILD_SUPPLY_DEPOT, UnitUtils.getAddonPos(productionStructure.unit()));
+        return !Bot.QUERY.placement(Abilities.BUILD_SUPPLY_DEPOT, UnitUtils.getAddonPos(productionStructure.unit()));
     }
 
 
