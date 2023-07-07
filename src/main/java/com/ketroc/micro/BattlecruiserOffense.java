@@ -1,6 +1,7 @@
 package com.ketroc.micro;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Buffs;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.observation.raw.Visibility;
@@ -13,15 +14,11 @@ import com.ketroc.gamestate.GameCache;
 import com.ketroc.geometry.Position;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.models.Base;
-import com.ketroc.utils.InfluenceMaps;
-import com.ketroc.utils.PosConstants;
-import com.ketroc.utils.Time;
-import com.ketroc.utils.UnitUtils;
+import com.ketroc.utils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-// TODO: build this entire class
 public class BattlecruiserOffense extends Battlecruiser {
     public static boolean doJumpIn = false;
 
@@ -34,6 +31,13 @@ public class BattlecruiserOffense extends Battlecruiser {
 
     @Override
     public void onStep() {
+        if (!isAlive() ||
+                targetPos == PosConstants.REPAIR_BAY ||
+                !MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_TACTICAL_JUMP)) {
+            removeMe = true;
+            return;
+        }
+
         //TODO: map deadspace in InfluenceMaps
         if (isCasting()) {
             return;
@@ -58,9 +62,9 @@ public class BattlecruiserOffense extends Battlecruiser {
                         UnitUtils.canScan() &&
                         !UnitUtils.isInMyDetection(newTargetAttack.unit().getPosition().toPoint2d()) &&
                         UnitUtils.getEnemyTargetsNear(unit.unit(), 15).stream()
-                            .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
-                            .allMatch(target -> UnitUtils.isBurrowed(target.unit()) &&
-                                    !UnitUtils.isInMyDetection(target.unit().getPosition().toPoint2d()))) {
+                                .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
+                                .allMatch(target -> UnitUtils.isBurrowed(target.unit()) &&
+                                        !UnitUtils.isInMyDetection(target.unit().getPosition().toPoint2d()))) {
                     UnitUtils.scan(newTargetAttack.unit().getPosition().toPoint2d());
                 }
             }
@@ -240,14 +244,6 @@ public class BattlecruiserOffense extends Battlecruiser {
             return aaTechStructure.unit().getPosition().toPoint2d();
         }
 
-        // HYDRA DEN
-        aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
-                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
-                .orElse(null);
-        if (aaTechStructure != null) {
-            return aaTechStructure.unit().getPosition().toPoint2d();
-        }
-
         // OVERLORDS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
@@ -358,12 +354,10 @@ public class BattlecruiserOffense extends Battlecruiser {
             return bestTarget;
         }
 
-        // SPIRE or HYDRA DEN
+        // SPIRE
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
-                        target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
-                        (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
+                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE)
+                .findFirst()
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -593,30 +587,14 @@ public class BattlecruiserOffense extends Battlecruiser {
     }
 
     private Point2d selectTargetBase() {
-        //pick an enemy base that isn't currently visible
+        //pick first enemy base
         List<Base> reversedBaseList = new ArrayList<>(GameCache.baseList);
         Collections.reverse(reversedBaseList);
-        Point2d enemyBasePos = reversedBaseList.stream()
-                .filter(base -> base.isEnemyBase)
-                .filter(base -> Bot.OBS.getVisibility(base.getCcPos()) != Visibility.VISIBLE)
-                .findFirst()
-                .map(Base::getCcPos)
-                .orElse(null);
-        if (enemyBasePos != null) {
-            return enemyBasePos;
-        }
-
-        //otherwise pick 1st enemy base
-        enemyBasePos = reversedBaseList.stream()
+        return reversedBaseList.stream()
                 .filter(base -> base.isEnemyBase)
                 .findFirst()
                 .map(Base::getCcPos)
                 .orElse(null);
-        if (enemyBasePos != null) {
-            return enemyBasePos;
-        }
-
-        return null;
     }
 
     //TODO: all races

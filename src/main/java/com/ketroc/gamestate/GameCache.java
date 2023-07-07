@@ -548,24 +548,24 @@ public class GameCache {
         // === vikings ===
         //start viking dive vs tempests
         if (Switches.vikingDiveTarget == null && PosConstants.opponentRace == Race.PROTOSS && !GameCache.vikingList.isEmpty()) {
-            List<UnitInPool> tempests = getProtossCapitalShips();
-            if (!tempests.isEmpty()) {
-                UnitInPool closestTempest = tempests.stream()
+            List<UnitInPool> capitalShips = getProtossCapitalShips();
+            if (!capitalShips.isEmpty()) {
+                UnitInPool closestCapitalShip = capitalShips.stream()
                         .filter(u -> u.unit().getType() == Units.PROTOSS_MOTHERSHIP)
                         .findAny()
-                        .orElse(UnitUtils.getClosestUnitFromUnitList(tempests, Position.midPointUnitsMedian(GameCache.vikingList)));
-                if (tempests.stream().anyMatch(u -> u.unit().getType() == Units.PROTOSS_MOTHERSHIP)) {
+                        .orElse(UnitUtils.getClosestUnitFromUnitList(capitalShips, Position.midPointUnitsMedian(GameCache.vikingList)));
+                if (capitalShips.stream().anyMatch(u -> u.unit().getType() == Units.PROTOSS_MOTHERSHIP)) {
                     Chat.tag("VS_Mothership");
                 }
-                if (closestTempest != null) {
-                    Point2d closestTempestPos = closestTempest.unit().getPosition().toPoint2d();
+                if (closestCapitalShip != null) {
+                    Point2d closestCapitalShipPos = closestCapitalShip.unit().getPosition().toPoint2d();
                     List<UnitInPool> nearbyVikings = UnitUtils.getUnitsNearbyOfType(
-                            Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, closestTempestPos, Strategy.TEMPEST_DIVE_RANGE);
+                            Alliance.SELF, Units.TERRAN_VIKING_FIGHTER, closestCapitalShipPos, Strategy.TEMPEST_DIVE_RANGE);
                     List<UnitInPool> nearbyCyclones = UnitUtils.getUnitsNearbyOfType(
-                            Alliance.SELF, Units.TERRAN_CYCLONE, closestTempestPos, Strategy.TEMPEST_DIVE_RANGE);
-                    int numVikingsNearby = nearbyVikings.size() + nearbyCyclones.size() / 2; //include cyclones at half value in calculation
-                    if (ArmyManager.shouldDiveTempests(closestTempestPos, numVikingsNearby)) {
-                        Switches.vikingDiveTarget = closestTempest;
+                            Alliance.SELF, Units.TERRAN_CYCLONE, closestCapitalShipPos, Strategy.TEMPEST_DIVE_RANGE);
+                    int numVikingsNearby = nearbyVikings.size() + (nearbyCyclones.size() / 2); //include cyclones at half value in calculation
+                    if (ArmyManager.shouldDiveTempests(closestCapitalShip, numVikingsNearby)) {
+                        Switches.vikingDiveTarget = closestCapitalShip;
                         if (Switches.vikingDiveTarget != null) {
                             Switches.isDivingTempests = true;
                             Chat.chatWithoutSpam(Chat.VIKING_DIVE, 7);
@@ -610,32 +610,30 @@ public class GameCache {
                 Switches.vikingDiveTarget = null;
             }
             else {
-//                //if tempest target is dead or if vikings lost the target in the fog, get another
-//                if (Switches.isDivingTempests) {
-//                    if (!Switches.vikingDiveTarget.isAlive() ||
-//                            (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget) &&
-//                                    vikingList.stream().anyMatch(viking -> UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 1))) {
-//                        Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
-//                    }
-//                }
-//
-//                //build diverList
-//                if (Switches.vikingDiveTarget != null) {
-//                    for (int i = 0; i < vikingList.size(); i++) {
-//                        if (UnitUtils.getDistance(vikingList.get(i), Switches.vikingDiveTarget.unit()) < ((Switches.isDivingTempests) ? Strategy.TEMPEST_DIVE_RANGE : Strategy.DIVE_RANGE)) {
-//                            vikingDivers.add(vikingList.remove(i--));
-//                        }
-//                    }
-//                }
-//                //cancel if no vikings left nearby or no tempest left to target
-//                if (vikingDivers.isEmpty() || Switches.vikingDiveTarget == null) {
-//                    Switches.vikingDiveTarget = null;
-//                    Switches.isDivingTempests = false;
-//                }
+                //if tempest target is dead or if vikings lost the target in the fog, get another
+                if (Switches.isDivingTempests) {
+                    if (!Switches.vikingDiveTarget.isAlive() ||
+                            (UnitUtils.isInFogOfWar(Switches.vikingDiveTarget) &&
+                                    vikingList.stream().anyMatch(viking -> UnitUtils.getDistance(viking, Switches.vikingDiveTarget.unit()) < 1))) {
+                        // FIXME: trying cancelling charge after each kill
+                        //Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
+                        Switches.vikingDiveTarget = UnitUtils.getClosestUnitFromUnitList(getProtossCapitalShips(), Position.midPointUnitsMedian(vikingList));
+                    }
+                }
 
-                //FIXME: this is a test of cancelling dive after every kill
-                Switches.vikingDiveTarget = null;
-                Switches.isDivingTempests = false;
+                //build diverList
+                if (Switches.vikingDiveTarget != null) {
+                    for (int i = 0; i < vikingList.size(); i++) {
+                        if (UnitUtils.getDistance(vikingList.get(i), Switches.vikingDiveTarget.unit()) < ((Switches.isDivingTempests) ? Strategy.TEMPEST_DIVE_RANGE : Strategy.DIVE_RANGE)) {
+                            vikingDivers.add(vikingList.remove(i--));
+                        }
+                    }
+                }
+                //cancel if no vikings left nearby or no tempest left to target
+                if (vikingDivers.isEmpty() || Switches.vikingDiveTarget == null) {
+                    Switches.vikingDiveTarget = null;
+                    Switches.isDivingTempests = false;
+                }
             }
         }
     }

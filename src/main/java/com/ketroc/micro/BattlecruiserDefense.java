@@ -23,10 +23,6 @@ import java.util.stream.Collectors;
 
 //TODO: build this entire class
 public class BattlecruiserDefense extends Battlecruiser {
-    public static boolean doJumpIn = false;
-
-    Point2d curEnemyBasePos;
-
     public BattlecruiserDefense(Unit unit) {
         super(unit, ArmyManager.attackEitherPos, MicroPriority.SURVIVAL);
         doDetourAroundEnemy = true;
@@ -37,13 +33,6 @@ public class BattlecruiserDefense extends Battlecruiser {
         //TODO: map deadspace in InfluenceMaps
         if (isCasting()) {
             return;
-        }
-
-        if (curEnemyBasePos == null) {
-            Point2d enemyBasePos = selectTargetBase();
-            if (enemyBasePos != null) {
-                curEnemyBasePos = enemyBasePos;
-            }
         }
 
         // SELECT ATTACK TARGET
@@ -69,7 +58,7 @@ public class BattlecruiserDefense extends Battlecruiser {
         }
 
         //SET POSITIONS
-        posMoveTo = selectTargetMoveTo();
+        posMoveTo = selectTargetMoveTo(); //TODO: fix this method
 
         // YAMATO
         if (isYamatoAvailable()) {
@@ -88,9 +77,6 @@ public class BattlecruiserDefense extends Battlecruiser {
             //lowest threat pos within 3 range of BC and 7 range of target
             targetPos = findSafestPos(posMoveTo);
         }
-        else if (curEnemyBasePos != null) {
-            targetPos = curEnemyBasePos;
-        }
         else if (ArmyManager.attackEitherPos != null) {
             targetPos = ArmyManager.attackEitherPos;
         }
@@ -107,7 +93,7 @@ public class BattlecruiserDefense extends Battlecruiser {
         // JUMP TO FAR AWAY PLACES
         if (isJumpAvailable() &&
                 UnitUtils.getDistance(unit.unit(), targetPos) > 100 &&
-                (doJumpIn || targetPos.equals(PosConstants.REPAIR_BAY))) {
+                targetPos.equals(PosConstants.REPAIR_BAY)) {
             if (safeJump(targetPos.add(1, 1))) {
                 return;
             }
@@ -196,12 +182,6 @@ public class BattlecruiserDefense extends Battlecruiser {
                 .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
                 .collect(Collectors.toList());
         if (allTargets.isEmpty()) {
-            // SET NEW ENEMY BASE
-            Point2d newTargetBase = selectTargetBase();
-            if (newTargetBase != null) {
-                curEnemyBasePos = newTargetBase;
-                return null;
-            }
             allTargets = UnitUtils.getEnemyTargetsNear(unit.unit(), 999).stream()
                     .filter(target -> !UnitUtils.IGNORED_TARGETS.contains(target.unit().getType()))
                     .collect(Collectors.toList());
@@ -240,14 +220,6 @@ public class BattlecruiserDefense extends Battlecruiser {
             return aaTechStructure.unit().getPosition().toPoint2d();
         }
 
-        // HYDRA DEN
-        aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
-                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
-                .orElse(null);
-        if (aaTechStructure != null) {
-            return aaTechStructure.unit().getPosition().toPoint2d();
-        }
-
         // OVERLORDS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
@@ -274,18 +246,6 @@ public class BattlecruiserDefense extends Battlecruiser {
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget.unit().getPosition().toPoint2d();
-        }
-
-        // CONTINUE TO ENEMY BASE
-        if (curEnemyBasePos != null && UnitUtils.getDistance(unit.unit(), curEnemyBasePos) > 1) {
-            return curEnemyBasePos;
-        }
-
-        // NEXT BASE
-        Point2d newTargetBase = selectTargetBase();
-        if (newTargetBase != null) {
-            curEnemyBasePos = newTargetBase;
-            return curEnemyBasePos;
         }
 
         // NEXT STRUCTURE
@@ -358,12 +318,10 @@ public class BattlecruiserDefense extends Battlecruiser {
             return bestTarget;
         }
 
-        // SPIRE or HYDRA DEN
+        // SPIRE
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
-                        target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
-                        (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
+                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE)
+                .findFirst()
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -462,18 +420,6 @@ public class BattlecruiserDefense extends Battlecruiser {
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget.unit().getPosition().toPoint2d();
-        }
-
-        // CONTINUE TO ENEMY BASE
-        if (curEnemyBasePos != null && UnitUtils.getDistance(unit.unit(), curEnemyBasePos) > 1) {
-            return curEnemyBasePos;
-        }
-
-        // NEXT BASE
-        Point2d newTargetBase = selectTargetBase();
-        if (newTargetBase != null) {
-            curEnemyBasePos = newTargetBase;
-            return curEnemyBasePos;
         }
 
         // NEXT STRUCTURE

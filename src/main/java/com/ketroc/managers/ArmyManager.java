@@ -162,7 +162,22 @@ public class ArmyManager {
             UnitUtils.myUnitsOfType(Units.TERRAN_BATTLECRUISER).forEach(bc -> {
                 UnitMicroList.add(new BattlecruiserHarass(bc));
             });
-            //muleBCs();
+        }
+
+        if (Strategy.gamePlan == GamePlan.BC_MACRO) {
+            boolean readyToRelaunch = UnitMicroList.numOfUnitClass(Battlecruiser.class) == 0; //all BCs released
+            UnitUtils.myUnitsOfType(Units.TERRAN_BATTLECRUISER).forEach(bc -> {
+                if (doOffense &&
+                        MyUnitAbilities.isAbilityAvailable(bc, Abilities.EFFECT_TACTICAL_JUMP)) {
+                    UnitMicroList.add(new BattlecruiserOffense(bc));
+                }
+                else if (!doOffense && readyToRelaunch) {
+                    UnitMicroList.add(new BattlecruiserOffense(bc));
+                }
+                else {
+                    UnitMicroList.add(new BattlecruiserDefense(bc));
+                }
+            });
         }
 
         //repair station
@@ -536,7 +551,17 @@ public class ArmyManager {
         }
 
         if (Strategy.gamePlan == GamePlan.BC_MACRO) {
+            if (UnitUtils.numMyUnits(Units.TERRAN_BATTLECRUISER, false) == 0) {
+                doOffense = false;
+                return;
+            }
             doOffense = UnitMicroList.numOfUnitClass(BattlecruiserOffense.class) > 0;
+            if (!doOffense) {
+                List<BattlecruiserDefense> defenseBcs = UnitMicroList.getUnitSubList(BattlecruiserDefense.class);
+                if (defenseBcs.stream().allMatch(bc -> MyUnitAbilities.isAbilityAvailable(bc.unit.unit(), Abilities.EFFECT_TACTICAL_JUMP))) {
+                    defenseBcs.forEach(bc -> bc.removeMe = true);
+                }
+            }
             return;
         }
 
@@ -2010,9 +2035,9 @@ public class ArmyManager {
         return numAttackersNearby >= numNeededToDive(enemy, InfluenceMaps.pointThreatToAirValue[x][y]);
     }
 
-    public static boolean shouldDiveTempests(Point2d closestTempest, int numVikingsNearby) {
+    public static boolean shouldDiveTempests(UnitInPool capitalShip, int numVikingsNearby) {
         // don't dive skytoss near enemy cannons/batteries or any overcharged battery
-        List<UnitInPool> protossStaticDefense = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.STATIC_DEFENSE_PROTOSS, closestTempest, 11);
+        List<UnitInPool> protossStaticDefense = UnitUtils.getUnitsNearbyOfType(Alliance.ENEMY, UnitUtils.STATIC_DEFENSE_PROTOSS, capitalShip.unit().getPosition().toPoint2d(), 11);
         if (protossStaticDefense.size() >= 5 || protossStaticDefense.stream().anyMatch(staticD -> staticD.unit().getBuffs().contains(Buffs.BATTERY_OVERCHARGE))) {
             return false;
         }
@@ -2030,27 +2055,38 @@ public class ArmyManager {
         //check if too much support units
         //TODO: change to include stalkers out of vision??
         List<UnitInPool> aaThreats = Bot.OBS.getUnits(Alliance.ENEMY, u ->
-                (u.unit().getType() == Units.PROTOSS_VOIDRAY || u.unit().getType() == Units.PROTOSS_STALKER ||
-                        u.unit().getType() == Units.PROTOSS_INTERCEPTOR || u.unit().getType() == Units.PROTOSS_PHOENIX ||
-                        UnitUtils.STATIC_DEFENSE_PROTOSS.contains(u.unit().getType())) &&
-                        UnitUtils.getDistance(u.unit(), closestTempest) < 15);
+                (UnitUtils.canAttackAir(u.unit()) || u.unit().getType() == Units.PROTOSS_SHIELD_BATTERY) &&
+                UnitUtils.getDistance(u.unit(), capitalShip.unit()) < 10);
         int threatTotal = 0;
+        boolean hasBattery = false;
         for (UnitInPool u : aaThreats) {
             Unit threat = u.unit();
             switch ((Units)threat.getType()) {
                 case PROTOSS_VOIDRAY:
-                    threatTotal += 4;
+                    threatTotal += 3;
                     break;
-                case PROTOSS_PHOENIX: case PROTOSS_STALKER: case PROTOSS_PHOTON_CANNON: case PROTOSS_SHIELD_BATTERY:
+                case PROTOSS_SHIELD_BATTERY:
+                    hasBattery = true;
+                    //no break
+                case PROTOSS_PHOENIX: case PROTOSS_STALKER: case PROTOSS_PHOTON_CANNON:
+                case PROTOSS_TEMPEST: case PROTOSS_ARCHON:
                     threatTotal += 2;
+                    break;
+                case PROTOSS_HIGH_TEMPLAR:
+                    if (threat.getEnergy().orElse(0f) > 73f) {
+                        threatTotal += 4;
+                    }
                     break;
                 case PROTOSS_INTERCEPTOR:
                     threatTotal += 1;
                     break;
             }
         }
-        float ratio = (UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST).size() < 3) ? 0.65f : 1.2f;
-        return threatTotal < numVikingsNearby * ratio; //larger ratio = dive more frequently
+        float capitalShipHp = UnitUtils.getCurHp(capitalShip.unit());
+        boolean canOneShot = capitalShipHp != 0 &&
+                (numVikingsNearby * 19 >= capitalShipHp + (hasBattery ? 60 : 0));
+        float ratio = canOneShot ? 3f : 1f;
+        return numVikingsNearby * ratio > threatTotal; //larger ratio = dive more frequently
     }
 
     private static int numNeededToDive(Unit enemy, int threatLevel) {

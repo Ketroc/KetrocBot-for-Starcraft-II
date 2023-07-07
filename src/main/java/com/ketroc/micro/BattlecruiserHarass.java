@@ -239,14 +239,6 @@ public class BattlecruiserHarass extends Battlecruiser {
             return aaTechStructure.unit().getPosition().toPoint2d();
         }
 
-        // HYDRA DEN
-        aaTechStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> target.unit().getType() == Units.ZERG_HYDRALISK_DEN).stream()
-                .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())))
-                .orElse(null);
-        if (aaTechStructure != null) {
-            return aaTechStructure.unit().getPosition().toPoint2d();
-        }
-
         // OVERLORDS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
@@ -357,12 +349,10 @@ public class BattlecruiserHarass extends Battlecruiser {
             return bestTarget;
         }
 
-        // SPIRE or HYDRA DEN
+        // SPIRE
         bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE ||
-                        target.unit().getType() == Units.ZERG_HYDRALISK_DEN)
-                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f) +
-                        (target.unit().getType() == Units.ZERG_HYDRALISK_DEN ? 9999 : 0)))
+                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE)
+                .findFirst()
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
