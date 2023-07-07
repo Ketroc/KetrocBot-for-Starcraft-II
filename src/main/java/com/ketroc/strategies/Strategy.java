@@ -454,7 +454,8 @@ public class Strategy {
 //                        GamePlan.BUNKER_CONTAIN_WEAK,
 //                        GamePlan.RAVEN
                 ));
-            case "2540c0f3-238f-40a7-9c39-2e4f3dca2e2f": //sharkbot
+            case "2540c0f3-238f-40a7-9c39-2e4f3dca2e2f": //SharkBot
+            case "28f30b7e-e56b-4620-8d0f-cc28b3d6a53f": //SharkBotTest
                 RANDOM_STRATEGY_SELECTION = true;
                 MAX_BANSHEES = 6;
                 return new HashSet<>(Set.of(
