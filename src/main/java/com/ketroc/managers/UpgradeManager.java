@@ -23,13 +23,21 @@ import java.util.stream.Collectors;
 
 public class UpgradeManager {
 
-    public static final List<Upgrades> airUpgrades = new ArrayList<>(List.of(
+    public static final List<Upgrades> airUpgrades_armorPriority = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
             Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3));
+
+    public static final List<Upgrades> airUpgrades_attackPriority = new ArrayList<>(List.of(
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+            Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3));
 
     public static final List<Upgrades> structureUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_BUILDING_ARMOR,
@@ -99,7 +107,7 @@ public class UpgradeManager {
     public static List<Upgrades> ravenUpgradeList = new ArrayList<>(List.of(
             Upgrades.RAVEN_CORVID_REACTOR));
 
-    public static List<Upgrades> armoryUpgradeList = new ArrayList<>(airUpgrades);
+    public static List<Upgrades> armoryUpgradeList = new ArrayList<>(airUpgrades_armorPriority);
     public static List<Upgrades> engBayUpgradeList = new ArrayList<>(structureUpgrades);
 
     public static void onStep() {

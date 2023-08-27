@@ -155,7 +155,7 @@ public class BuildOrder {
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
                     ghostHellbatOpener();
                 }
-                else if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+                else if (Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_MACRO) {
                     if (Launcher.isRealTime) {
                         ccFirst2BaseBCs_Safe();
                     }

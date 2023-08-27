@@ -477,7 +477,7 @@ public class GameCache {
 
     private static void setEnemyCanProduceAir(Units unitType) {
         if (!Switches.enemyCanProduceAir && UnitUtils.EVIDENCE_OF_AIR.contains(unitType)) {
-            Bot.ACTION.sendChat("Wake up our viking pilots. Enemy is getting flyers.", ActionChat.Channel.BROADCAST);
+            Chat.chat("Enemy has " + unitType + ". Conditional viking production started");
             Switches.enemyCanProduceAir = true;
             if (!Strategy.gamePlan.toString().contains("RAVEN") && !Strategy.gamePlan.toString().contains("TURTLE")) {
                 Strategy.DO_DEFENSIVE_TANKS = false;
@@ -500,7 +500,7 @@ public class GameCache {
                 case ZERG_HYDRALISK_BURROWED: case ZERG_QUEEN_BURROWED: case ZERG_SWARM_HOST_BURROWED_MP:
                 case ZERG_ZERGLING_BURROWED: case ZERG_INFESTOR_TERRAN_BURROWED: case ZERG_RAVAGER_BURROWED:
                 case ZERG_ROACH_BURROWED: case ZERG_ULTRALISK_BURROWED:
-                    Chat.chatNeverRepeat("Sneaky boy. Looks like detection is needed.");
+                    Chat.chatNeverRepeat("Enemy has " + unitType + ". Prioritizing detection.");
                     Switches.doNeedDetection = true;
                     //if burrowed unit, or cloaked unit without ghosts available
                     if (Strategy.gamePlan != GamePlan.BC_RUSH &&

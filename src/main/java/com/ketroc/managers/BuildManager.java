@@ -84,7 +84,7 @@ public class BuildManager {
 
             trainStarportUnits_BcRush();
             upgradeYamato();
-            buildExtraStarports();
+            buildExtraStarports(3);
 
             //mineral sink (only spends minerals beyond what BC production can spend)
             if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
@@ -94,12 +94,42 @@ public class BuildManager {
             if (UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty()) {
                 return;
             }
-            buildExtraBunkers_BcRush();
+            buildExtraBunkers_BcRush(3);
             if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
                 getDetection_BcRush();
             }
             buildBarracksLogic_BcRush();
-            trainFactoryUnits_BcRush();
+            trainFactoryUnits_BcRush(0);
+
+            return;
+        }
+
+        if (Strategy.gamePlan == GamePlan.BC_MACRO) {
+            trainStarportUnits_BcRush();
+            upgradeYamato();
+            buildExtraStarports(Math.min(10, Base.numMyBases() + 1));
+
+            //mineral sink (only spends minerals beyond what BC production can spend)
+            if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
+                getDetection_BcRush();
+            }
+            trainBarracksUnits_ForBunkersOnly(4);
+            if (UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).isEmpty()) {
+                return;
+            }
+            buildExtraBunkers_BcRush(1);
+            if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
+                getDetection_BcRush();
+            }
+
+            //build command center logic
+            if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
+                buildCCLogic();
+            }
+            trainFactoryUnits_BcRush(Base.numAvailableBases() > 0 ? 400 : 0);
+
+            //no-gas left (marines&hellbats)
+            noGasProduction();
 
             return;
         }
@@ -174,14 +204,6 @@ public class BuildManager {
         if (Purchase.isBuildOrderComplete()) {
             buildStarportLogic();
         }
-
-        //build command center logic
-        if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
-            buildCCLogic();
-        }
-
-        //no-gas left (marines&hellbats)
-        noGasProduction();
     }
 
     private static void upgradeYamato() {
@@ -212,15 +234,16 @@ public class BuildManager {
         }
     }
 
-    private static void buildExtraStarports() {
+    private static void buildExtraStarports(int maxStarports) {
         //if starports are all building BCs, add 3rd starport and get yamato
         int numStarports = UnitUtils.numMyUnits(UnitUtils.STARPORT_TYPE, true);
-        if (numStarports < 3 &&
-                GameCache.gasBank > numStarports * 350 &&
+        if (numStarports < maxStarports &&
+                GameCache.gasBank > (numStarports * 200) + 300 &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT) &&
                 Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_STARPORT).stream()
-                        .allMatch(starport -> UnitUtils.getOrder(starport.unit()) == Abilities.TRAIN_BATTLECRUISER)) {
+                        .allMatch(starport -> UnitUtils.getOrder(starport.unit()) == Abilities.TRAIN_BATTLECRUISER ||
+                                UnitUtils.getOrder(starport.unit()) == Abilities.TRAIN_RAVEN)) {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             Cost.updateBank(Units.TERRAN_STARPORT);
         }
@@ -230,15 +253,14 @@ public class BuildManager {
         Strategy.MAX_MARINES = (ArmyManager.doOffense || GameCache.mineralBank >= 500) ? 50 : 4;
     }
 
-    private static void trainFactoryUnits_BcRush() {
-        if (GameCache.factoryList.isEmpty() || GameCache.mineralBank/4 < GameCache.gasBank/3) {
+    private static void trainFactoryUnits_BcRush(int mineralsToSave) {
+        if (GameCache.factoryList.isEmpty() || GameCache.mineralBank/4 + mineralsToSave < GameCache.gasBank/3) {
             return;
         }
 
         Unit factory = GameCache.factoryList.get(0).unit();
         if (UnitUtils.canStructureProduce(factory) &&
-                UnitUtils.canAfford(Units.TERRAN_HELLION, true) &&
-                GameCache.mineralBank/4 > GameCache.gasBank/3) {
+                UnitUtils.canAfford(Units.TERRAN_HELLION, true)) {
             ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
         }
     }
@@ -252,14 +274,13 @@ public class BuildManager {
         }
     }
 
-    private static void buildExtraBunkers_BcRush() {
+    private static void buildExtraBunkers_BcRush(int maxBunkers) {
         if (GameCache.mineralBank/4 <= GameCache.gasBank/3 || !UnitUtils.canAfford(Units.TERRAN_BUNKER)) {
             return;
         }
 
-        //max 3 bunkers
         int numBunkers = UnitUtils.numMyUnits(Units.TERRAN_BUNKER, true);
-        if (numBunkers >= 3) {
+        if (numBunkers >= maxBunkers) {
             return;
         }
         int numMarines = UnitUtils.numMyUnits(Units.TERRAN_MARINE, true);
@@ -1024,6 +1045,23 @@ public class BuildManager {
         }
     }
 
+    private static void trainBarracksUnits_ForBunkersOnly(int minMarines) {
+        for (UnitInPool barracksUip : GameCache.barracksList) {
+            if (!UnitUtils.canStructureProduce(barracksUip.unit()) ||
+                    !UnitUtils.isStructureAvailableForProduction(barracksUip.unit())) {
+                continue;
+            }
+
+            //build marines to fill bunkers and reach minMarines total
+            if (UnitUtils.canAfford(Units.TERRAN_MARINE, true) &&
+                    (UnitUtils.numMyUnits(Units.TERRAN_MARINE, true) <
+                            Math.max(minMarines, (4 * UnitUtils.numMyUnits(Units.TERRAN_BUNKER, true))))) {
+                ActionHelper.unitCommand(barracksUip.unit(), Abilities.TRAIN_MARINE, false);
+                Cost.updateBank(Units.TERRAN_MARINE);
+            }
+        }
+    }
+
     private static void getDetection_BcRush() {
         if (GameCache.mineralBank/4 < GameCache.gasBank/3) {
             return;
@@ -1187,14 +1225,13 @@ public class BuildManager {
             if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
                 continue;
             }
-            Units unitToProduce = Units.TERRAN_BATTLECRUISER;
-            if (unitToProduce == null) {
-                return;
-            }
+            Units unitToProduce = (Switches.doNeedDetection && UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) == 0)
+                    ? Units.TERRAN_RAVEN
+                    : Units.TERRAN_BATTLECRUISER;
 
             //get add-on if required
             if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
-                    (Bot.OBS.getFoodUsed() > 198 || UnitUtils.isTechLabRequired(unitToProduce))) {
+                    (Bot.OBS.getFoodUsed() > 194 || UnitUtils.isTechLabRequired(unitToProduce))) {
                 KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
                 continue;
             }

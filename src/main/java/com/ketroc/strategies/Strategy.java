@@ -516,51 +516,43 @@ public class Strategy {
 //            return humansGamePlans;
         }
         switch (Bot.opponentId) {
-//            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
-//            case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
-//                 if (PosConstants.MAP.contains("Inside")) {
-//                     return new HashSet<>(Set.of(GamePlan.BC_RUSH));
-//                 }
-//                 else if (PosConstants.MAP.contains("Berlin")) {
-//                     return new HashSet<>(Set.of(GamePlan.MARINE_RUSH));
-//                 }
-//                 else if (PosConstants.MAP.contains("Moon")) {
-//                     return new HashSet<>(Set.of(GamePlan.HELLBAT_ALL_IN));
-//                 }
-//                 else {
-//                     return new HashSet<>(Set.of(GamePlan.MECH_ALL_IN));
-//                 }
-//            return new HashSet<>(Set.of(
-////                    GamePlan.BANSHEE,
-////                    GamePlan.MASS_MINE_OPENER,
-////                    GamePlan.BC_RUSH,
-////                    GamePlan.MARINE_RUSH,
-////                    GamePlan.SCV_RUSH,
-////                    GamePlan.BUNKER_CONTAIN_WEAK,
-////                    GamePlan.RAVEN_CYCLONE,
-////                    GamePlan.GHOST_HELLBAT
-////                    GamePlan.BANSHEE_CYCLONE,
-//                    GamePlan.RAVEN,
-//                    GamePlan.BC_RUSH
-//            ));
-//            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
-//            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
-//                return new HashSet<>(Set.of(
-////                        GamePlan.BANSHEE,
-////                        GamePlan.MASS_MINE_OPENER,
-//                        GamePlan.BC_RUSH
-////                        GamePlan.BANSHEE_CYCLONE,
-////                        GamePlan.MARINE_RUSH,
-////                        //GamePlan.SCV_RUSH,
-////                        GamePlan.BUNKER_CONTAIN_WEAK,
-////                        GamePlan.RAVEN,
-////                        GamePlan.RAVEN_CYCLONE,
-////                        GamePlan.GHOST_HELLBAT
-//                ));
-//            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
-//                return new HashSet<>(Set.of(
-//                        GamePlan.BANSHEE
-//                ));
+            case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
+            case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
+                if (PosConstants.MAP.contains("Inside")) {
+                    return new HashSet<>(Set.of(GamePlan.BC_RUSH));
+                }
+                else if (PosConstants.MAP.contains("Berlin")) {
+                    return new HashSet<>(Set.of(GamePlan.MARINE_RUSH));
+                }
+                else if (PosConstants.MAP.contains("Moon")) {
+                    return new HashSet<>(Set.of(GamePlan.HELLBAT_ALL_IN));
+                }
+                else {
+                    return new HashSet<>(Set.of(GamePlan.MECH_ALL_IN));
+                }
+            case "60337090-fa15-485d-9497-d9b1c28a86b5": //Caninana
+                return new HashSet<>(Set.of(
+                        GamePlan.HELLBAT_ALL_IN,
+                        GamePlan.GHOST_HELLBAT
+                ));
+            case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
+            case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
+                return new HashSet<>(Set.of(
+//                        GamePlan.BANSHEE,
+//                        GamePlan.MASS_MINE_OPENER,
+                        GamePlan.BC_RUSH
+//                        GamePlan.BANSHEE_CYCLONE,
+//                        GamePlan.MARINE_RUSH,
+//                        //GamePlan.SCV_RUSH,
+//                        GamePlan.BUNKER_CONTAIN_WEAK,
+//                        GamePlan.RAVEN,
+//                        GamePlan.RAVEN_CYCLONE,
+//                        GamePlan.GHOST_HELLBAT
+                ));
+            case "5e14c537-b8e7-4cd8-8aa4-1d6fcdb376cd": //Dovahkiin
+                return new HashSet<>(Set.of(
+                        GamePlan.BANSHEE
+                ));
             default:
                 return new HashSet<>(Set.of(
                         GamePlan.BANSHEE,
@@ -713,11 +705,11 @@ public class Strategy {
                 massRavenStrategy();
                 break;
             case BC_MACRO:
-                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechArmorUpgrades);
-                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
-                NO_TURRETS = false;
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airUpgrades_attackPriority);
+                UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
                 DO_BANSHEE_HARASS = false;
-                DO_DEFENSIVE_TANKS = true;
+                DO_DEFENSIVE_TANKS = false;
+                DO_USE_HELLIONS = true;
                 EXPAND_SLOWLY = false;
                 DO_SEEKER_MISSILE = true;
                 DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BATTLECRUISER;
@@ -824,7 +816,7 @@ public class Strategy {
         }
         else {
             UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechArmorUpgrades);
-            UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades);
+            UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.airUpgrades_armorPriority);
         }
 
         MASS_RAVENS = true;

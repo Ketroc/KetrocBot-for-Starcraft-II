@@ -225,7 +225,7 @@ public class ArmyManager {
         sendMarinesHellbats();
     }
 
-    private static void muleBCs() { //TODO
+    private static void muleBCs() { //TODO: BC_MACRO and BC_RUSH turn on when not mineral strapped
         callDownNewMules();
         giveMulesRepairTarget();
     }
