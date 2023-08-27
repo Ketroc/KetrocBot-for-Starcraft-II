@@ -1216,7 +1216,10 @@ public class BuildManager {
                 continue;
             }
 
-            if (UnitUtils.getAddOn(factoryUip.unit()).isEmpty()) {
+            //build add-on unless under attack by non-stalkers
+            if (UnitUtils.getAddOn(factoryUip.unit()).isEmpty() &&
+                    !GameCache.baseList.get(0).isUnderAttack() &&
+                    UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_STALKER).isEmpty()) {
                 if (!PurchaseStructureMorph.contains(factoryUip.unit()) && UnitUtils.canAfford(Units.TERRAN_FACTORY_TECHLAB, true)) {
                     KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_FACTORY, factoryUip));
                     Cost.updateBank(Units.TERRAN_FACTORY_TECHLAB);
@@ -1233,6 +1236,10 @@ public class BuildManager {
     }
 
     private static Units chooseFactoryUnitMechAllIn() {
+        if (GameCache.baseList.get(0).isUnderAttack() && UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_STALKER).isEmpty()) {
+            return Units.TERRAN_HELLION;
+        }
+
         //hellion when gas starved
         if (GameCache.gasBank < 100 && GameCache.mineralBank > 200) {
             return Units.TERRAN_HELLION;

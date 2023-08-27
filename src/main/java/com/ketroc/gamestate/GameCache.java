@@ -568,7 +568,7 @@ public class GameCache {
                         Switches.vikingDiveTarget = closestCapitalShip;
                         if (Switches.vikingDiveTarget != null) {
                             Switches.isDivingTempests = true;
-                            Chat.chatWithoutSpam(Chat.VIKING_DIVE, 7);
+                            //Chat.chatWithoutSpam(Chat.VIKING_DIVE, 7);
                         }
                     }
                 }

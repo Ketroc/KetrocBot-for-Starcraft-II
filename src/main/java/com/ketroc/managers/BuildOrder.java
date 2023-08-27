@@ -149,6 +149,9 @@ public class BuildOrder {
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
                 }
+                else if (Strategy.gamePlan == GamePlan.MECH_ALL_IN) {
+                    mechAllIn();
+                }
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
                     ghostHellbatOpener();
                 }
