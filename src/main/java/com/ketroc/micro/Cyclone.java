@@ -22,26 +22,21 @@ import java.util.*;
 public class Cyclone extends BasicUnitMicro {
     //list of unit types to never lock-on to TODO: check if KD8Charge unit ever exists
     public static final Set<Units> NEVER_LOCK_TYPES = new HashSet<>(Set.of(
-            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.ZERG_PARASITIC_BOMB_DUMMY,
-            Units.ZERG_CREEP_TUMOR, Units.ZERG_CREEP_TUMOR_BURROWED, Units.ZERG_CREEP_TUMOR_QUEEN,
-            Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE, Units.ZERG_CHANGELING_MARINE_SHIELD,
-            Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_ADEPT_PHASE_SHIFT, Units.PROTOSS_DISRUPTOR_PHASED,
-            Units.TERRAN_KD8CHARGE, Units.TERRAN_MULE));
+            Units.ZERG_PARASITIC_BOMB_DUMMY, Units.PROTOSS_INTERCEPTOR, Units.PROTOSS_ADEPT_PHASE_SHIFT,
+            Units.PROTOSS_DISRUPTOR_PHASED, Units.TERRAN_KD8CHARGE));
     //list of units to soft-lock-on (keep reassessing)
     public static final Set<Units> SOFT_LOCK_TYPES = new HashSet<>(Set.of(
-            Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.TERRAN_MARINE,
-            Units.ZERG_ZERGLING, Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED,
-            Units.PROTOSS_PROBE));
+            Units.ZERG_LARVA, Units.ZERG_EGG, Units.ZERG_BROODLING, Units.ZERG_CHANGELING, Units.ZERG_CHANGELING_MARINE,
+            Units.ZERG_CHANGELING_MARINE_SHIELD, Units.ZERG_LOCUS_TMP, Units.ZERG_LOCUS_TMP_FLYING, Units.TERRAN_SCV,
+            Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE, Units.TERRAN_MULE));
 
-    public static final Set<Units> AUTOATTACK_WHEN_UNSAFE = new HashSet<>(Set.of(
-            Units.ZERG_ZERGLING, Units.TERRAN_REAPER, Units.TERRAN_HELLION,
-            Units.ZERG_MUTALISK, Units.PROTOSS_PHOENIX, //Units.PROTOSS_INTERCEPTOR,
-            Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE));
+//    public static final Set<Units> AUTOATTACK_WHEN_UNSAFE = new HashSet<>(Set.of(
+//            Units.ZERG_ZERGLING, Units.TERRAN_REAPER, Units.TERRAN_HELLION,
+//            Units.ZERG_MUTALISK, Units.PROTOSS_PHOENIX, //Units.PROTOSS_INTERCEPTOR,
+//            Units.TERRAN_SCV, Units.ZERG_DRONE, Units.ZERG_DRONE_BURROWED, Units.PROTOSS_PROBE));
 
     public static Map<Tag, CycloneKillTracker> cycloneKillTracker = new HashMap<>();
     private UnitInPool lockTarget;
-    private long cooldownStartFrame;
-    private static final long COOLDOWN_DURATION = 100;
 
     public Cyclone(Unit unit, Point2d targetPos, MicroPriority priority) {
         super(unit, targetPos, priority);
@@ -72,7 +67,6 @@ public class Cyclone extends BasicUnitMicro {
         removeLockTarget();
         setTargetPos();
         visualizeLock();
-        visualizeCooldown();
 
         //if currently trying to lock on
         if (lockTarget != null && UnitUtils.getOrder(unit.unit()) == Abilities.EFFECT_LOCK_ON) {
@@ -90,26 +84,26 @@ public class Cyclone extends BasicUnitMicro {
         }
 
         //find new target for lock
-        if (lockTarget == null && !isLockOnCooldown()) {
+        if (lockTarget == null) {
             if (setLockTarget()) {
                 return;
             }
         }
 
-        //use basic attack
-        if (lockTarget == null && UnitUtils.isWeaponAvailable(unit.unit())) {
-            if (UnitUtils.isAttacking(unit.unit())) { //allow attack animation to complete
-                return;
-            }
-            Optional<Unit> autoAttackTarget = getAutoAttackTarget();
-            if (autoAttackTarget.isPresent()) {
-                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, autoAttackTarget.get(), false);
-                return;
-            }
-        }
+//        //use basic attack
+//        if (lockTarget == null && UnitUtils.isWeaponAvailable(unit.unit())) {
+//            if (UnitUtils.isAttacking(unit.unit())) { //allow attack animation to complete
+//                return;
+//            }
+//            Optional<Unit> autoAttackTarget = getAutoAttackTarget();
+//            if (autoAttackTarget.isPresent()) {
+//                ActionHelper.unitCommand(unit.unit(), Abilities.ATTACK, autoAttackTarget.get(), false);
+//                return;
+//            }
+//        }
 
         //detour if unsafe
-        if (!isSafe() && !stayInDamageRange()) {
+        if ((!isSafe() || isWithinRangeOfLockTarget(6)) && !stayInDamageRange()) {
             Point2d towardsRetreatPos = Position.towards(unit.unit(), ArmyManager.retreatPos, 2);
             if (isSafe(towardsRetreatPos)) { //first try going straight back
                 ActionHelper.unitCommand(unit.unit(), Abilities.MOVE, ArmyManager.retreatPos, false);
@@ -128,6 +122,10 @@ public class Cyclone extends BasicUnitMicro {
         //super.onStep();
     }
 
+    private boolean isWithinRangeOfLockTarget(float range) {
+        return lockTarget != null && UnitUtils.getDistance(unit.unit(), lockTarget.unit()) < range;
+    }
+
     private boolean stayInDamageRange() {
         //no lock on
         if (lockTarget == null) {
@@ -136,6 +134,11 @@ public class Cyclone extends BasicUnitMicro {
 
         //not about to lose lock
         if (!aboutToLoseLock()) {
+            return false;
+        }
+
+        //not about to lose lock
+        if (SOFT_LOCK_TYPES.contains(lockTarget.unit().getType())) {
             return false;
         }
 
@@ -155,7 +158,7 @@ public class Cyclone extends BasicUnitMicro {
 
     //enemy near maxed lock range of about to step into fog of war
     private boolean aboutToLoseLock() {
-        return UnitUtils.getRange(lockTarget.unit(), unit.unit()) > 13f ||
+        return UnitUtils.getRange(lockTarget.unit(), unit.unit()) > 8.3f ||
                 Bot.OBS.getVisibility(
                         Position.towards(lockTarget.unit().getPosition().toPoint2d(),
                                 unit.unit().getPosition().toPoint2d(),
@@ -168,46 +171,46 @@ public class Cyclone extends BasicUnitMicro {
             return false;
         }
         int hpThreshold = (UnitUtils.hasUpgrade(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE) &&
-                UnitUtils.getAttributes(lockTarget.unit()).contains(UnitAttribute.ARMORED)) ? 80 : 40;
+                UnitUtils.getAttributes(lockTarget.unit()).contains(UnitAttribute.MECHANICAL)) ? 27 : 21;
         return lockTarget.unit().getHealth().orElse(9999f) < hpThreshold;
     }
 
     //choose targets to auto-attack
-    private Optional<Unit> getAutoAttackTarget() {
-        //if unsafe, attack fast units like zerglings/workers/hellions/reapers/etc, or 1shot kills
-        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsInRange(unit.unit(), enemy -> (
-                        enemy.unit().getType() != Units.ZERG_ROACH && //animation takes too long to kite these
-                        enemy.unit().getType() != Units.PROTOSS_ARCHON && //animation takes too long to kite these
-                        enemy.unit().getType() != Units.ZERG_ULTRALISK //animation takes too long to kite these
-                ) || UnitUtils.canOneShotEnemy(unit.unit(), enemy.unit())
-        );
-        if (!isSafe()) {
-            return enemiesInRange.stream()
-                    .filter(enemyInRange -> AUTOATTACK_WHEN_UNSAFE.contains(enemyInRange.unit().getType()) ||
-                            UnitUtils.canOneShotEnemy(unit.unit(), enemyInRange.unit()))
-                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
-                    .map(UnitInPool::unit);
-        }
-        //if safe, attack any unit within range TODO: include destructible neutral units??
-        else {
-            return enemiesInRange.stream()
-                    .filter(enemyInRange -> !UnitUtils.IGNORED_TARGETS.contains(enemyInRange.unit().getType()))
-                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
-                    .map(UnitInPool::unit);
-        }
-    }
+//    private Optional<Unit> getAutoAttackTarget() {
+//        //if unsafe, attack fast units like zerglings/workers/hellions/reapers/etc, or 1shot kills
+//        List<UnitInPool> enemiesInRange = UnitUtils.getEnemyTargetsInRange(unit.unit(), enemy -> (
+//                        enemy.unit().getType() != Units.ZERG_ROACH && //animation takes too long to kite these
+//                        enemy.unit().getType() != Units.PROTOSS_ARCHON && //animation takes too long to kite these
+//                        enemy.unit().getType() != Units.ZERG_ULTRALISK //animation takes too long to kite these
+//                ) || UnitUtils.canOneShotEnemy(unit.unit(), enemy.unit())
+//        );
+//        if (!isSafe()) {
+//            return enemiesInRange.stream()
+//                    .filter(enemyInRange -> AUTOATTACK_WHEN_UNSAFE.contains(enemyInRange.unit().getType()) ||
+//                            UnitUtils.canOneShotEnemy(unit.unit(), enemyInRange.unit()))
+//                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
+//                    .map(UnitInPool::unit);
+//        }
+//        //if safe, attack any unit within range TODO: include destructible neutral units??
+//        else {
+//            return enemiesInRange.stream()
+//                    .filter(enemyInRange -> !UnitUtils.IGNORED_TARGETS.contains(enemyInRange.unit().getType()))
+//                    .min(Comparator.comparing(enemyInRange -> enemyInRange.unit().getHealth().orElse(9999f)))
+//                    .map(UnitInPool::unit);
+//        }
+//    }
 
     private boolean isSafeToAttemptLock(UnitInPool lockTarget) {
         if (Switches.isDivingTempests ||
                 lockTarget.unit().getType() == Units.PROTOSS_TEMPEST ||
                 UnitUtils.THOR_TYPE.contains(lockTarget.unit().getType()) ||
                 UnitUtils.getDistance(lockTarget.unit(), unit.unit()) +
-                        lockTarget.unit().getRadius() + unit.unit().getRadius() <= 7) {
+                        lockTarget.unit().getRadius() + unit.unit().getRadius() <= 6) {
             return true;
         }
         Point2d posForLock = getPosForLock(lockTarget.unit());
         int dmgAtLockPos = InfluenceMaps.getValue(InfluenceMaps.pointDamageToGroundValue, posForLock);
-        return dmgAtLockPos < 40;
+        return dmgAtLockPos < unit.unit().getHealth().orElse(0f);
     }
 
     protected void setTargetPos() {
@@ -220,14 +223,8 @@ public class Cyclone extends BasicUnitMicro {
 
         //go to a repair bay
         Optional<Point2d> closestRepairBay = getClosestRepairBay();
-        if (closestRepairBay.isPresent() && (requiresRepairs(60) || underRepair(closestRepairBay.get()))) {
+        if (closestRepairBay.isPresent() && (requiresRepairs(50) || underRepair(closestRepairBay.get()))) {
             targetPos = closestRepairBay.get();
-            return;
-        }
-
-        //lock is on cooldown
-        if (isLockOnCooldown()) {
-            targetPos = PosConstants.insideMainWall;
             return;
         }
 
@@ -254,7 +251,6 @@ public class Cyclone extends BasicUnitMicro {
                             (!UnitUtils.isStructure(enemy.unit().getType()) || UnitUtils.canAttack(enemy.unit())) && //units or attacking structures
                             UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <=
                                     getRangeToCheck((Units) enemy.unit().getType()) &&
-                            targetAcceptingMoreLocks(enemy) &&
                             isSafeToAttemptLock(enemy))
                     .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                     .orElse(null);
@@ -266,7 +262,6 @@ public class Cyclone extends BasicUnitMicro {
                             !UnitUtils.isSnapshot(enemy.unit()) &&
                             UnitUtils.getDistance(enemy.unit(), unit.unit()) - enemy.unit().getRadius() <=
                                     getRangeToCheck((Units) enemy.unit().getType()) &&
-                            targetAcceptingMoreLocks(enemy) &&
                             isSafeToAttemptLock(enemy))
                     .min(Comparator.comparing(enemy -> UnitUtils.getDistance(enemy.unit(), unit.unit())))
                     .orElse(null);
@@ -277,7 +272,7 @@ public class Cyclone extends BasicUnitMicro {
 
         //give lock command
         if (!SOFT_LOCK_TYPES.contains(target.unit().getType()) ||
-                UnitUtils.getDistance(target.unit(), unit.unit()) < 7.1) {
+                UnitUtils.getDistance(target.unit(), unit.unit()) < 6) {
             lockOn(target);
         }
         else { //move towards soft target but reassess every frame
@@ -290,41 +285,28 @@ public class Cyclone extends BasicUnitMicro {
     }
 
     private float getRangeToCheck(Units type) {
-        return (Switches.isDivingTempests || type == Units.PROTOSS_TEMPEST) ? 15 : 10;
+        return (Switches.isDivingTempests || type == Units.PROTOSS_TEMPEST) ? 15 : 9;
     }
 
-    //nothing locked on yet, or armored attack unit with > 100hp, or armored structure with > 300hp
-    private boolean targetAcceptingMoreLocks(UnitInPool enemy) {
-        if (enemy.unit().getType() == Units.PROTOSS_TEMPEST) { //max locks for tempests
-            return true;
-        }
-        int numLocks = Cyclone.numLocks(enemy.getTag());
-        return numLocks == 0 || (
-                UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.ARMORED) && (
-                        UnitUtils.getCurHp(enemy.unit())/numLocks > 900 || ( //1:pylon/extractor, 2:gateway/barracks/cc, 3:nexus/lair/hive
-                                UnitUtils.canAttack(enemy.unit()) &&
-                                UnitUtils.getCurHp(enemy.unit())/numLocks > 160 //1:stalker/ravager, 2:tempest/tank, 3:BC/thor
-                        )
-                )
-        );
-    }
+//    //nothing locked on yet, or armored attack unit with > 100hp, or armored structure with > 300hp
+//    private boolean targetAcceptingMoreLocks(UnitInPool enemy) {
+//        if (enemy.unit().getType() == Units.PROTOSS_TEMPEST) { //max locks for tempests
+//            return true;
+//        }
+//        int numLocks = Cyclone.numLocks(enemy.getTag());
+//        return numLocks == 0 || (
+//                UnitUtils.getAttributes(enemy.unit()).contains(UnitAttribute.MECHANICAL) && (
+//                        UnitUtils.getCurHp(enemy.unit())/numLocks > 900 || ( //1:pylon/extractor, 2:gateway/barracks/cc, 3:nexus/lair/hive
+//                                UnitUtils.canAttack(enemy.unit()) &&
+//                                UnitUtils.getCurHp(enemy.unit())/numLocks > 160 //1:stalker/ravager, 2:tempest/tank, 3:BC/thor
+//                        )
+//                )
+//        );
+//    }
 
     private void lockOn(UnitInPool lockTarget) {
         this.lockTarget = lockTarget;
         ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_LOCK_ON, lockTarget.unit(), false);
-    }
-
-    private boolean isLockOnCooldown() {
-        return !MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_LOCK_ON);
-    }
-
-    private void visualizeCooldown() {
-        long cooldownInSeconds = COOLDOWN_DURATION - (Time.nowFrames() - cooldownStartFrame);
-        if (cooldownInSeconds >= 0) {
-            DebugHelper.drawText(cooldownInSeconds + "",
-                    unit.unit().getPosition().toPoint2d(),
-                    Color.BLUE);
-        }
     }
 
     private void visualizeLock() {
@@ -346,7 +328,6 @@ public class Cyclone extends BasicUnitMicro {
                 }
 
                 lockTarget = null;
-                cooldownStartFrame = Time.nowFrames();
             }
         }
     }
@@ -359,11 +340,10 @@ public class Cyclone extends BasicUnitMicro {
     public boolean isLockedOn() {
         return lockTarget != null &&
                 lockTarget.isAlive() &&
-                lockTarget.unit().getBuffs().contains(Buffs.LOCK_ON) &&
+                lockTarget.unit().getBuffs().contains(Buffs.LOCK_ON) && //TODO: switch to checking lock_on ability status
                 lockTarget.getLastSeenGameLoop() == Time.nowFrames() &&
                 lockTarget.unit().getDisplayType() == DisplayType.VISIBLE &&
-                UnitUtils.getDistance(unit.unit(), lockTarget.unit()) -
-                        unit.unit().getRadius() - lockTarget.unit().getRadius() <= 15;
+                UnitUtils.getDistance(unit.unit(), lockTarget.unit()) - unit.unit().getRadius() - lockTarget.unit().getRadius() <= 10;
     }
 
     //TODO: move this???
@@ -415,6 +395,6 @@ public class Cyclone extends BasicUnitMicro {
     private Point2d getPosForLock(Unit targetUnit) {
         return Position.towards(targetUnit.getPosition().toPoint2d(), //tank pos
                 unit.unit().getPosition().toPoint2d(), //cyclone pos
-                8.5f + targetUnit.getRadius()); //7 lock range + 1.5 buffer + cyclone radius
+                7.5f + targetUnit.getRadius()); //6 lock range + 1.5 buffer + cyclone radius
     }
 }

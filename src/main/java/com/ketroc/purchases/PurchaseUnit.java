@@ -1,6 +1,7 @@
 package com.ketroc.purchases;
 
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
+import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.unit.Alliance;
 import com.github.ocraft.s2client.protocol.unit.Unit;
@@ -75,7 +76,7 @@ public class PurchaseUnit implements Purchase {
                     productionStructure.unit().getBuildProgress() == 1 &&
                     UnitUtils.getOrder(productionStructure.unit()) == null &&
                     (!UnitUtils.isTechLabRequired(unitType) || isAddOnComplete())) {
-                ActionHelper.unitCommand(productionStructure.unit(), Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
+                ActionHelper.unitCommand(productionStructure.unit(), (Abilities)Bot.OBS.getUnitTypeData(false).get(unitType).getAbility().get(), false);
                 Cost.updateBank(cost);
                 return PurchaseResult.SUCCESS;
             }

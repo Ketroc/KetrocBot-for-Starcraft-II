@@ -19,14 +19,14 @@ public class CreepClearManager {
     public static boolean doCreepClear;
 
     public static void onGameStart() {
-        if (PosConstants.opponentRace == Race.ZERG && Strategy.gamePlan != GamePlan.BC_RUSH) {
+        if (PosConstants.opponentRace == Race.ZERG && Strategy.gamePlan != GamePlan.BC_RUSH && Strategy.gamePlan != GamePlan.BC_MACRO) {
             UpgradeManager.armoryUpgradeList.remove(Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
             UpgradeManager.armoryUpgradeList.add(0, Upgrades.TERRAN_SHIP_WEAPONS_LEVEL1);
         }
     }
 
     public static void onStep() {
-        if (PosConstants.opponentRace == Race.ZERG && Strategy.gamePlan != GamePlan.BC_RUSH) {
+        if (PosConstants.opponentRace == Race.ZERG && Strategy.gamePlan != GamePlan.BC_RUSH && Strategy.gamePlan != GamePlan.BC_MACRO) {
             doCreepClear = true;
             Strategy.MIN_BANSHEES = Math.max(1, Strategy.MIN_BANSHEES);
         }

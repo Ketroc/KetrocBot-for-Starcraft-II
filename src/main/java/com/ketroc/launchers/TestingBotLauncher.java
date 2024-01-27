@@ -21,16 +21,16 @@ S2Coordinator s2Coordinator = S2Coordinator.setup()
         .setRawAffectsSelection(false)
         .setTimeoutMS(600 * 1000)
         .setParticipants(
-                S2Coordinator.createParticipant(Race.TERRAN, new TestingBot("")),
+                S2Coordinator.createParticipant(Race.PROTOSS, new TestingBot("")),
                 S2Coordinator.createComputer(Race.PROTOSS, Difficulty.VERY_EASY, AiBuild.MACRO))
         .launchStarcraft()
 
-//                .startGame(LocalMap.of(Paths.get("AncientCisternAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("AncientCisternLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DragonScalesAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GoldenauraAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GresvanAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("InfestationStationAIE.SC2Map")));
-                .startGame(LocalMap.of(Paths.get("RoyalBloodAIE.SC2Map")));
+//                .startGame(LocalMap.of(Paths.get("EquilibriumAIE.SC2Map")));
 
 //                .startGame(LocalMap.of(Paths.get("BerlingradAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("HardwireAIE.SC2Map")));

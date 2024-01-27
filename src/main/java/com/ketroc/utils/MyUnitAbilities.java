@@ -20,14 +20,25 @@ public class MyUnitAbilities {
     public static void onStepStart() {
         List<Unit> myUnits = Bot.OBS.getUnits(Alliance.SELF).stream().map(UnitInPool::unit).collect(Collectors.toList());
         map.clear();
-        Bot.QUERY.getAbilitiesForUnits(myUnits, false).forEach(unitAbils ->
-                map.put(
-                        unitAbils.getUnitTag(),
-                        unitAbils.getAbilities().stream()
-                                .map(availAbility -> (Abilities) availAbility.getAbility())
-                                .collect(Collectors.toSet())
-                )
-        );
+        Bot.QUERY.getAbilitiesForUnits(myUnits, false).forEach(unitAbils -> {
+            //TODO: remove for loop
+            for (AvailableAbility availAbility : unitAbils.getAbilities()) {
+                try {
+                    Abilities ability = (Abilities) availAbility.getAbility();
+                } catch (Exception e) {
+                    System.out.println("unit type = " + unitAbils.getUnitType().toString());
+                    System.out.println("ability id = " + availAbility.getAbility().getAbilityId());
+                    return;
+                }
+            }
+
+            map.put(
+                    unitAbils.getUnitTag(),
+                    unitAbils.getAbilities().stream()
+                            .map(availAbility -> (Abilities) availAbility.getAbility())
+                            .collect(Collectors.toSet())
+            );
+        });
     }
 
     public static boolean isAbilityAvailable(Unit myUnit, Abilities ability) {

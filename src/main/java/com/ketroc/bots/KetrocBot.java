@@ -78,8 +78,6 @@ public class KetrocBot extends Bot {
             //choose strategy
             Strategy.onGameStart();
 
-            DebugHelper.onGameStart();
-
             //set main midpoint (must be done after GameState.onStep())
             GameCache.baseList.forEach(Base::setTurretInFrontPositions);
             PlacementMap.onGameStart();
@@ -124,6 +122,8 @@ public class KetrocBot extends Bot {
                 JsonUtil.chatTotalWinLossRecord(true);
             }
 
+            printCurrentGameInfo();
+
             DEBUG.sendDebug();
             ACTION.sendActions();
         }
@@ -153,6 +153,7 @@ public class KetrocBot extends Bot {
             EnemyCache.onStepStart();
             TurretingRaven.onStepStart();
             MyUnitAbilities.onStepStart();
+            FutureDamageMap.onStep(); //calculate future damage vs enemy units
             Ignored.onStepStart(); //free up ignored units
             EnemyScan.onStepStart(); //remove expired enemy scans
             GameCache.onStepStart(); //rebuild unit cache every frame
@@ -306,12 +307,6 @@ public class KetrocBot extends Bot {
                             if (!nearbyMarines.isEmpty()) {
                                 ActionHelper.unitCommand(UnitUtils.toUnitList(nearbyMarines), Abilities.SMART, unit, false);
                             }
-                        }
-                        break;
-                    case TERRAN_FACTORY_TECHLAB:
-                        //TODO: testing cyclones
-                        if (Strategy.DO_USE_CYCLONES) {
-                            PurchaseUpgrade.add(Upgrades.CYCLONE_LOCK_ON_DAMAGE_UPGRADE);
                         }
                         break;
                     case TERRAN_STARPORT:
@@ -678,7 +673,7 @@ public class KetrocBot extends Bot {
 //            Error.onException(e);
 //        }
         Print.print("==========================");
-        Print.print("  Result: " + result.toString());
+        Print.print("  Result: " + result);
         Print.print("==========================");
     }
 
@@ -713,6 +708,7 @@ public class KetrocBot extends Bot {
         Print.print("UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST) = " + UnitUtils.getEnemyUnitsOfType(Units.PROTOSS_TEMPEST));
         Print.print("PosConstants._3x3AddonPosList = " + PosConstants._3x3AddonPosList);
         Print.print("PosConstants.MACRO_OCS.toString() = " + PosConstants.MACRO_OCS.toString());
+        Print.print("PosConstants.exposedMacroOcList.toString() = " + PosConstants.exposedMacroOcList.toString());
         Print.print("UpgradeManager.armoryArmorUpgrades = " + UpgradeManager.mechArmorUpgrades);
         Print.print("UpgradeManager.armoryAttackUpgrades = " + UpgradeManager.airAttackUpgrades);
         Print.print("KetrocBot.purchaseQueue contents:");

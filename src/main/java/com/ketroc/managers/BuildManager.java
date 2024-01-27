@@ -84,7 +84,7 @@ public class BuildManager {
 
             trainStarportUnits_BcRush();
             upgradeYamato();
-            buildExtraStarports(3);
+            buildStarports_BcMacro(3);
 
             //mineral sink (only spends minerals beyond what BC production can spend)
             if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
@@ -107,7 +107,7 @@ public class BuildManager {
         if (Strategy.gamePlan == GamePlan.BC_MACRO) {
             trainStarportUnits_BcRush();
             upgradeYamato();
-            buildExtraStarports(Math.min(10, Base.numMyBases() + 1));
+            buildStarports_BcMacro(Math.min(10, Base.numMyBases() + 1));
 
             //mineral sink (only spends minerals beyond what BC production can spend)
             if (!Switches.doNeedDetection && PosConstants.opponentRace != Race.PROTOSS) {
@@ -126,7 +126,35 @@ public class BuildManager {
             if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
                 buildCCLogic();
             }
-            trainFactoryUnits_BcRush(Base.numAvailableBases() > 0 ? 400 : 0);
+            if (Base.numMyBases() >= 3) {
+                trainFactoryUnits_BcRush(Base.numAvailableBases() > 0 ? 100 : 0);
+            }
+
+            //no-gas left (marines&hellbats)
+            noGasProduction();
+
+            return;
+        }
+
+        if (Strategy.gamePlan == GamePlan.MASS_CYCLONE) {
+            //starport stuff
+            buildStarports_MassCyclone(1);
+            trainStarportUnits_MassCyclone();
+
+            //upgrades / tech
+            getHurricaneThrusters_MassCyclone();
+
+            //expansions
+            if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
+                buildCCLogic();
+            }
+
+            //factory stuff
+            trainFactoryUnits_MassCyclone();
+            buildFactories_MassCyclone(15);
+
+            //marines
+            buildBarracksUnitsLogic();
 
             //no-gas left (marines&hellbats)
             noGasProduction();
@@ -204,6 +232,39 @@ public class BuildManager {
         if (Purchase.isBuildOrderComplete()) {
             buildStarportLogic();
         }
+
+        //build command center logic
+        if (!Strategy.EXPAND_SLOWLY || Purchase.isBuildOrderComplete()) {
+            buildCCLogic();
+        }
+
+        //no-gas left (marines&hellbats)
+        noGasProduction();
+    }
+
+    private static void buildStarports_MassCyclone(int maxStarports) {
+        if (UnitUtils.numMyUnits(Units.TERRAN_STARPORT, true) < maxStarports &&
+                (Base.numMyBases() >= 3 || Switches.doNeedDetection)) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+        }
+    }
+
+    private static void getHurricaneThrusters_MassCyclone() {
+        //TODO: uncomment when hurricane thrusters are in framework
+        if (UnitUtils.hasUpgrade(Upgrades.HURRICANE_THRUSTERS) ||
+                Purchase.isUpgradeQueued(Upgrades.HURRICANE_THRUSTERS) ||
+                !UnitUtils.canAfford(Upgrades.HURRICANE_THRUSTERS)) {
+            return;
+        }
+        GameCache.factoryList.stream()
+                .filter(factoryUip -> UnitUtils.hasTechLab(factoryUip.unit()))
+                .filter(factoryUip -> UnitUtils.getAddOn(factoryUip.unit()).get().unit().getBuildProgress() == 1)
+                .filter(factoryUip -> UnitUtils.getAddOn(factoryUip.unit()).get().unit().getOrders().isEmpty())
+                .findFirst()
+                .ifPresent(factoryUip -> {
+                    KetrocBot.purchaseQueue.add(new PurchaseUpgrade(Upgrades.HURRICANE_THRUSTERS, UnitUtils.getAddOn(factoryUip.unit()).get()));
+                    Cost.updateBank(Abilities.RESEARCH_HURRICANE_THRUSTERS);
+                });
     }
 
     private static void upgradeYamato() {
@@ -234,11 +295,16 @@ public class BuildManager {
         }
     }
 
-    private static void buildExtraStarports(int maxStarports) {
+    private static void buildStarports_BcMacro(int maxStarports) {
         //if starports are all building BCs, add 3rd starport and get yamato
         int numStarports = UnitUtils.numMyUnits(UnitUtils.STARPORT_TYPE, true);
+        if (numStarports < Base.numMyBases() && GameCache.gasBank > 400) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
+            Cost.updateBank(Units.TERRAN_STARPORT);
+            return;
+        }
         if (numStarports < maxStarports &&
-                GameCache.gasBank > (numStarports * 200) + 300 &&
+                GameCache.gasBank > (numStarports * 100) + 500 &&
                 UnitUtils.canAfford(Units.TERRAN_STARPORT) &&
                 !PurchaseStructure.isTechRequired(Units.TERRAN_STARPORT) &&
                 Bot.OBS.getUnits(Alliance.SELF, u -> u.unit().getType() == Units.TERRAN_STARPORT).stream()
@@ -247,6 +313,22 @@ public class BuildManager {
             KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
             Cost.updateBank(Units.TERRAN_STARPORT);
         }
+    }
+
+    private static void buildFactories_MassCyclone(int maxFactories) {
+        int numFactories = UnitUtils.numMyUnits(UnitUtils.FACTORY_TYPE, true);
+        int factoryLimit = GameCache.mineralBank > 700 ? Integer.MAX_VALUE : (Base.numMyBases()-1)*2;
+        factoryLimit = Math.min(maxFactories, factoryLimit);
+        if (!Purchase.isBuildOrderComplete() ||
+                !UnitUtils.canAfford(Units.TERRAN_FACTORY, false) ||
+                GameCache.gasBank <= 125 ||
+                numFactories >= factoryLimit ||
+                PurchaseStructure.isTechRequired(Units.TERRAN_FACTORY) ||
+                UnitUtils.numStructuresProducingOrQueued(Units.TERRAN_FACTORY) >= 2 ||
+                isAllProductionStructuresActive(Units.TERRAN_FACTORY)) {
+            return;
+        }
+        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY));
     }
 
     private static void setMaxMarineCount_HellbatAllIn() {
@@ -262,6 +344,44 @@ public class BuildManager {
         if (UnitUtils.canStructureProduce(factory) &&
                 UnitUtils.canAfford(Units.TERRAN_HELLION, true)) {
             ActionHelper.unitCommand(factory, Abilities.TRAIN_HELLION, false);
+        }
+    }
+
+    private static void trainFactoryUnits_MassCyclone() {
+        boolean doNeedFactoryTechLab = !Bot.OBS.getUpgrades().contains(Upgrades.Other.of(296)) &&
+                !Purchase.isAddOnQueued(Abilities.BUILD_TECHLAB_FACTORY) &&
+                GameCache.factoryList.stream().anyMatch(factory -> UnitUtils.hasReactor(factory.unit())) &&
+                GameCache.factoryList.stream().noneMatch(factory -> UnitUtils.hasTechLab(factory.unit()));
+        for (UnitInPool factoryUip : GameCache.factoryList) {
+            //skip if busy
+            if (!UnitUtils.canStructureProduce(factoryUip.unit()) || PurchaseUnit.contains(factoryUip)) {
+                continue;
+            }
+
+            //get add-on if required
+            if (factoryUip.unit().getAddOnTag().isEmpty()) {
+                if (!Purchase.isAddOnQueued(factoryUip.unit())) {
+                    Abilities addOn = doNeedFactoryTechLab ? Abilities.BUILD_TECHLAB_FACTORY : Abilities.BUILD_REACTOR_FACTORY;
+                    KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(addOn, factoryUip));
+                }
+                continue;
+            }
+
+            //build siege tank or cyclone
+            Units unitType;
+            Abilities trainCmd;
+            if (UnitUtils.hasTechLab(factoryUip.unit())) {
+                unitType = Units.TERRAN_SIEGE_TANK;
+                trainCmd = Abilities.TRAIN_SIEGE_TANK;
+            }
+            else {
+                unitType = Units.TERRAN_CYCLONE;
+                trainCmd = Abilities.TRAIN_CYCLONE;
+            }
+            if (UnitUtils.canAfford(unitType, false) && MyUnitAbilities.isAbilityAvailable(factoryUip.unit(), trainCmd)) {
+                ActionHelper.unitCommand(factoryUip.unit(), trainCmd, false);
+                Cost.updateBank(unitType);
+            }
         }
     }
 
@@ -457,6 +577,26 @@ public class BuildManager {
             if (Switches.enemyCanProduceAir) {
                 Strategy.techBuilt = true;
                 KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY, PosConstants._3x3Structures.remove(0)));
+            }
+            return;
+        }
+
+        if (Strategy.gamePlan == GamePlan.MASS_CYCLONE) {
+            int numArmories = UnitUtils.numMyUnits(Units.TERRAN_ARMORY, true);
+            int numEngBays = UnitUtils.numMyUnits(Units.TERRAN_ENGINEERING_BAY, true);
+            //get eng bay after taking a 3rd base or when detection required
+            if (numEngBays < 1 && (Switches.doNeedDetection || Base.numMyBases() >= 3)) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ENGINEERING_BAY));
+                Cost.updateBank(Units.TERRAN_ENGINEERING_BAY);
+            }
+
+            //get armories after taking a 3rd base
+            if (numArmories < 2 && Base.numMyBases() >= 3) {
+                KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_ARMORY));
+                Cost.updateBank(Units.TERRAN_ARMORY);
+            }
+            if (numArmories + numEngBays >= 3) {
+                Strategy.techBuilt = true;
             }
             return;
         }
@@ -854,7 +994,7 @@ public class BuildManager {
 
             //purchase factory unit
             else if (unitToProduce != null && UnitUtils.canAfford(unitToProduce)) {
-                ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
+                ActionHelper.unitCommand(factory, (Abilities) Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
                 Cost.updateBank(unitToProduce);
                 openingFactoryUnits.remove(unitToProduce);
             }
@@ -1003,19 +1143,6 @@ public class BuildManager {
                     !UnitUtils.isStructureAvailableForProduction(barracksUip.unit())) {
                 continue;
             }
-
-//            if (Purchase.isBuildOrderComplete() &&
-//                    UnitUtils.getAddOn(barracksUip.unit()).isEmpty() &&
-//                    UnitUtils.numMyUnits(Units.TERRAN_BARRACKS_REACTOR, true) == 0) {
-//                if (!PurchaseStructureMorph.contains(barracksUip.unit()) &&
-//                        UnitUtils.canAfford(Units.TERRAN_BARRACKS_REACTOR, true)) {
-//                    KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.BUILD_REACTOR_BARRACKS, barracksUip));
-//                    Cost.updateBank(Units.TERRAN_BARRACKS_REACTOR);
-//                }
-//                continue;
-//            }
-
-
             Units unitType = Units.TERRAN_MARINE;
 
             if (UnitUtils.canAfford(unitType, true) &&
@@ -1225,9 +1352,42 @@ public class BuildManager {
             if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
                 continue;
             }
-            Units unitToProduce = (Switches.doNeedDetection && UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) == 0)
+
+            //build a raven if detection is needed or starting to expand beyond 2 bases
+            Units unitToProduce = (UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) == 0 && (Switches.doNeedDetection || UnitUtils.numMyUnits(UnitUtils.COMMAND_CENTER_TYPE, true) >= 3))
                     ? Units.TERRAN_RAVEN
                     : Units.TERRAN_BATTLECRUISER;
+
+            //get add-on if required
+            if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
+                    (Bot.OBS.getFoodUsed() > 194 || UnitUtils.isTechLabRequired(unitToProduce))) {
+                KetrocBot.purchaseQueue.addFirst(new PurchaseStructureMorph(Abilities.BUILD_TECHLAB_STARPORT, starportUip));
+                continue;
+            }
+
+            Abilities trainCmd = (Abilities)Bot.OBS.getUnitTypeData(false).get(unitToProduce)
+                    .getAbility()
+                    .orElse(Abilities.INVALID);
+            if (UnitUtils.canAfford(unitToProduce) && MyUnitAbilities.isAbilityAvailable(starportUip.unit(), trainCmd)) {
+                ActionHelper.unitCommand(starportUip.unit(), trainCmd, false);
+            }
+            Cost.updateBank(unitToProduce);
+        }
+    }
+
+    private static void trainStarportUnits_MassCyclone() {
+        //build 2 ravens if detection is needed or starting to expand beyond 2 bases
+        if (UnitUtils.numMyUnits(Units.TERRAN_RAVEN, true) >= 2 ||
+                (!Switches.doNeedDetection && Base.numMyBases() < 3)) {
+            return;
+        }
+
+        for (UnitInPool starportUip : GameCache.starportList) {
+            if (!UnitUtils.canStructureProduce(starportUip.unit()) || PurchaseUnit.contains(starportUip)) {
+                continue;
+            }
+
+            Units unitToProduce = Units.TERRAN_RAVEN;
 
             //get add-on if required
             if (starportUip.unit().getAddOnTag().isEmpty() && !Purchase.isAddOnQueued(starportUip.unit()) &&
@@ -1266,7 +1426,7 @@ public class BuildManager {
 
             Units unitToProduce = chooseFactoryUnitMechAllIn();
             if (UnitUtils.canAfford(unitToProduce, true)) {
-                ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
+                ActionHelper.unitCommand(factory, (Abilities) Bot.OBS.getUnitTypeData(false).get(unitToProduce).getAbility().get(), false);
                 Cost.updateBank(unitToProduce);
             }
         }
@@ -1345,7 +1505,7 @@ public class BuildManager {
             }
 
             if (UnitUtils.canAfford(Units.TERRAN_HELLION_TANK)) {
-                ActionHelper.unitCommand(factory, Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_HELLION_TANK).getAbility().get(), false);
+                ActionHelper.unitCommand(factory, (Abilities)Bot.OBS.getUnitTypeData(false).get(Units.TERRAN_HELLION_TANK).getAbility().get(), false);
                 Cost.updateBank(Units.TERRAN_HELLION_TANK);
             }
         }
@@ -1910,9 +2070,9 @@ public class BuildManager {
     //total supply to be produced during the time it takes to make a supply depot
     private static int supplyPerProductionCycle() {
         return (int)(Math.min(Base.numMyBases(), Math.max(0, Strategy.maxScvs - UnitUtils.numScvs(true))) * 2.34 + //scvs (2.34 cuz 1 supply * 1/2 build time of depot)
-                UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT).size() * (Strategy.gamePlan == GamePlan.BC_RUSH ? 5 : 2.34) +
+                UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT).size() * ((Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_MACRO) ? 5 : 2.34) +
                 UnitUtils.myUnitsOfType(Units.TERRAN_STARPORT_REACTOR).size() * 2.34 +
-                (Strategy.gamePlan == GamePlan.BC_RUSH ? 0 : UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).size() * 3.34) +
+                ((Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_MACRO) ? 0 : UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).size() * 3.34) +
                 //UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY).size() * 3.34 +
                 UnitUtils.myUnitsOfType(Units.TERRAN_FACTORY_REACTOR).size() * 3.34 +
                 (Strategy.gamePlan == GamePlan.GHOST_HELLBAT || Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.MECH_ALL_IN ? UnitUtils.myUnitsOfType(Units.TERRAN_BARRACKS).size() * 3.34 : 0) +

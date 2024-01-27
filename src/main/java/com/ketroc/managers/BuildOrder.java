@@ -49,6 +49,9 @@ public class BuildOrder {
                 else if (Strategy.gamePlan == GamePlan.BUNKER_CONTAIN_STRONG) {
                     tvtBunkerContainStrong();
                 }
+                else if (Strategy.gamePlan == GamePlan.MASS_CYCLONE) {
+                    _2FactExpandOpener();
+                }
                 else if (Strategy.gamePlan == GamePlan.RAVEN_CYCLONE) {
                     _1base1Fact2StarportOpener();
                 }
@@ -108,7 +111,7 @@ public class BuildOrder {
                 if (Strategy.MARINE_ALLIN) {
                     marineAllInBuild();
                 }
-                else if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+                else if (Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_RUSH) {
                     ccFirst2BaseBCs_Safe();
                 }
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
@@ -138,6 +141,9 @@ public class BuildOrder {
                 else if (Strategy.gamePlan == GamePlan.BANSHEE_CYCLONE) {
                     _2FactExpandOpener();
                 }
+                else if (Strategy.gamePlan == GamePlan.MASS_CYCLONE) {
+                    _2FactExpandOpener();
+                }
                 else if (Strategy.EXPAND_SLOWLY) {
                     pfExpand2BaseMassGasOpener();
                 }
@@ -155,12 +161,15 @@ public class BuildOrder {
                 else if (Strategy.gamePlan == GamePlan.GHOST_HELLBAT) {
                     ghostHellbatOpener();
                 }
+                else if (Strategy.gamePlan == GamePlan.MASS_CYCLONE) {
+                    _2FactExpandOpener();
+                }
                 else if (Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_MACRO) {
-                    if (Launcher.isRealTime) {
+                    if (!Launcher.isRealTime) {
                         ccFirst2BaseBCs_Safe();
                     }
                     else {
-                        fastestBCs(); //ccFirst2BaseBCs();
+                        ccFirst2BaseBCs(); //fastestBCs();
                     }
                 }
                 else if (Strategy.gamePlan == GamePlan.HELLBAT_ALL_IN) {
@@ -314,13 +323,13 @@ public class BuildOrder {
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FACTORY, factoryPos));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructureMorph(Abilities.MORPH_ORBITAL_COMMAND, GameCache.baseList.get(1).getCc()));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        if (Strategy.gamePlan == GamePlan.BC_RUSH) {
+            KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BARRACKS));
+        }
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_SUPPLY_DEPOT));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_REFINERY));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_FUSION_CORE, hiddenFusionCorePos));
-        KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_BUNKER));
         KetrocBot.purchaseQueue.add(new PurchaseStructure(Units.TERRAN_STARPORT));
     }
 

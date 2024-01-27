@@ -72,6 +72,13 @@ public interface Purchase {
                         p.getProductionStructure().getTag().equals(structureUnit.getTag()));
     }
 
+    static boolean isAddOnQueued(Abilities addOnType) {
+        return KetrocBot.purchaseQueue.stream()
+                .filter(purchase -> purchase instanceof PurchaseStructureMorph)
+                .map(purchase -> (PurchaseStructureMorph)purchase)
+                .anyMatch(p -> p.getMorphOrAddOn() != addOnType);
+    }
+
     static boolean isStructureQueued(Units unitType, Point2d pos) {
         for (Purchase p : KetrocBot.purchaseQueue) {
             if (p instanceof PurchaseStructure &&

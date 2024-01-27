@@ -32,7 +32,9 @@ public class DebugHelper {
     private static int lineNum;
 
     public static void onGameStart() {
-        z = Bot.OBS.terrainHeight(PosConstants.baseLocations.get(0)) + 0.5f;
+        z = Bot.OBS.getStartLocation() != null
+                ? Bot.OBS.getStartLocation().getZ() + 0.5f
+                : Bot.OBS.terrainHeight(Point2d.of(5, 25)) + 0.5f;
     }
 
     public static void onStep() {
@@ -50,35 +52,34 @@ public class DebugHelper {
 
     private static void testingStuff() {
         //spawn at start
-        if (Time.at(1)) {
-           int i = 0;
-            while (i < 30) {
-                Point2d randomLocation = Bot.OBS.getGameInfo().findRandomLocation();
-                if (Bot.OBS.isPathable(randomLocation) &&
-                        randomLocation.distance(PosConstants.enemyMainBaseMidPos) < 70) {
-                    i++;
-                    Bot.DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_QUEEN, randomLocation, Bot.enemyId, 1);
-                }
-            }
-        }
+//        if (Time.at(1)) {
+//           int i = 0;
+//            while (i < 30) {
+//                Point2d randomLocation = Bot.OBS.getGameInfo().findRandomLocation();
+//                if (Bot.OBS.isPathable(randomLocation) &&
+//                        randomLocation.distance(PosConstants.enemyMainBaseMidPos) < 70) {
+//                    i++;
+//                    Bot.DEBUG.debugCreateUnit(Units.ZERG_CREEP_TUMOR_QUEEN, randomLocation, Bot.enemyId, 1);
+//                }
+//            }
+//        }
 
         //spawn every minute
-        if (Time.nowFrames() > Time.toFrames("2:00") && Time.periodic(1)) {
+        if (Time.nowFrames() > Time.toFrames("6:00") && Time.periodic(1)) {
 //            GameCache.baseList.stream().filter(Base::isMyBase).forEach(base ->
 //                    Bot.DEBUG.debugCreateUnit(Units.TERRAN_WIDOWMINE_BURROWED, base.getResourceMidPoint(), Bot.enemyId, 1));
 //            Bot.DEBUG.debugCreateUnit(Units.TERRAN_GHOST, PosConstants.BUNKER_NATURAL, Bot.myId, 5);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_HIGH_TEMPLAR, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-            Bot.DEBUG.debugCreateUnit(Units.PROTOSS_SENTRY, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 14);
-            Bot.DEBUG.debugCreateUnit(Units.ZERG_VIPER, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_OVERLORD, PosConstants.enemyMainBaseMidPos, Bot.enemyId, 1);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_HYDRALISK, PosConstants.proxyBarracksPos, Bot.enemyId, 2);
+            Bot.DEBUG.debugCreateUnit(Units.ZERG_ROACH, PosConstants.proxyBarracksPos, Bot.enemyId, 1);
             UnitMicroList.getUnitSubList(Cyclone.class)
                     .forEach(cyclone -> {
-                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
+                        if (Math.random() > 0.75) Bot.DEBUG.debugKillUnit(cyclone.unit.unit());
                     });
-            GameCache.bansheeList
-                    .forEach(banshee -> {
-                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
-                    });
+//            GameCache.bansheeList
+//                    .forEach(banshee -> {
+//                        if (Math.random() > 0.35) Bot.DEBUG.debugKillUnit(banshee);
+//                    });
         }
 
         if (Time.at(Time.toFrames(5))) {

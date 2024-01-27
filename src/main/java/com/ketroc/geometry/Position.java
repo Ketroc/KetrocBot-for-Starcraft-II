@@ -454,7 +454,7 @@ public class Position {
         float difference = Math.abs(angle1 - angle2) % 360;
         difference = (difference > 180) ? 360 - difference : difference;
         if (isSigned &&
-                !((angle1 - angle2 >= 0 && angle1 - angle2 <= 180) || (angle1 - angle2 <= -180 && angle1 - angle2 >= -360))){
+                !((angle1 - angle2 >= 0 && angle1 - angle2 <= 180) || (angle1 - angle2 <= -180 && angle1 - angle2 >= -360))) {
             difference = -difference;
         }
         return difference;

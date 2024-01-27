@@ -41,7 +41,7 @@ public class Strategy {
     public static boolean DO_DIVE_MOBILE_DETECTORS = true;
     public static boolean EARLY_BANSHEE_SPEED;
     public static boolean DO_LEAVE_UP_BUNKER;
-    public static boolean NO_TURRETS = true;
+    public static boolean NO_TURRETS;
 
     public static boolean DO_DEFENSIVE_TANKS;
     public static boolean DO_OFFENSIVE_TANKS;
@@ -134,6 +134,7 @@ public class Strategy {
     }
 
     private static void getGameStrategyChoice() {
+        gamePlan = GamePlan.MASS_CYCLONE; //TODO delete
         setRaceStrategies();
         if (TOURNAMENT_MODE) {
             gamePlan = getTournamentGamePlan();
@@ -305,6 +306,15 @@ public class Strategy {
             case SCV_RUSH:
                 Switches.scvRushComplete = false;
                 break;
+            case MASS_CYCLONE:
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechUpgrades);
+                MAX_MARINES = Math.min(2, MAX_MARINES);
+                NUM_BASES_TO_OC = 2;
+                MIN_BANSHEES = 0;
+                DO_LEAVE_UP_BUNKER = true;
+                DO_USE_CYCLONES = true;
+                DO_DEFENSIVE_TANKS = false;
+                break;
             case RAVEN:
                 massRavenStrategy();
                 DO_DEFENSIVE_LIBS = false;
@@ -324,8 +334,7 @@ public class Strategy {
     private static HashSet<GamePlan> getAvailableTvTGamePlans() {
         if (Launcher.isRealTime) { // TvT vs Humans
             HashSet<GamePlan> humansGamePlans = new HashSet<>(Set.of(
-                    GamePlan.TANK_VIKING,
-                    GamePlan.BANSHEE_CYCLONE
+                    GamePlan.MASS_CYCLONE
             ));
             return humansGamePlans;
 
@@ -375,8 +384,7 @@ public class Strategy {
             case "ff9d6962-5b31-4dd0-9352-c8a157117dde": //MMTest
             case "1e0db23f174f455": //MM local
                 return new HashSet<>(Set.of(
-                        GamePlan.TANK_VIKING,
-                        GamePlan.BUNKER_CONTAIN_STRONG
+                        GamePlan.TANK_VIKING
                 ));
 //            case "4fd044d8-909c-4624-bdf3-0378ea9c5ea1": //VeTerran
 //                return new HashSet<>(Set.of(
@@ -518,23 +526,17 @@ public class Strategy {
         switch (Bot.opponentId) {
             case "6bcce16a-8139-4dc0-8e72-b7ee8b3da1d8": //Eris
             case "5b5220da-cc18-4c2e-acdf-68752a3701c3": //ErisTest
-                if (PosConstants.MAP.contains("Inside")) {
-                    return new HashSet<>(Set.of(GamePlan.BC_RUSH));
-                }
-                else if (PosConstants.MAP.contains("Berlin")) {
+                if (PosConstants.MAP.contains("Royal")) {
                     return new HashSet<>(Set.of(GamePlan.MARINE_RUSH));
                 }
-                else if (PosConstants.MAP.contains("Moon")) {
-                    return new HashSet<>(Set.of(GamePlan.HELLBAT_ALL_IN));
-                }
-                else {
-                    return new HashSet<>(Set.of(GamePlan.MECH_ALL_IN));
-                }
-            case "60337090-fa15-485d-9497-d9b1c28a86b5": //Caninana
                 return new HashSet<>(Set.of(
-                        GamePlan.HELLBAT_ALL_IN,
-                        GamePlan.GHOST_HELLBAT
+                        GamePlan.MECH_ALL_IN,
+                        GamePlan.BC_MACRO
                 ));
+//            case "60337090-fa15-485d-9497-d9b1c28a86b5": //Caninana
+//                return new HashSet<>(Set.of(
+//                        GamePlan.BC_MACRO
+//                ));
             case "9cfcf297-5345-4987-a9f4-87162ebfa6b9": //EvilZoe
             case "841b33a8-e530-40f5-8778-4a2f8716095d": //Zoe
                 return new HashSet<>(Set.of(
@@ -600,6 +602,15 @@ public class Strategy {
                 BuildManager.openingFactoryUnits.add(Units.TERRAN_SIEGE_TANK);
                 MAX_MARINES = 4;
                 NUM_BASES_TO_OC = 2;
+                break;
+            case MASS_CYCLONE:
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechUpgrades);
+                MAX_MARINES = Math.min(2, MAX_MARINES);
+                MIN_BANSHEES = 0;
+                NUM_BASES_TO_OC = 2;
+                DO_LEAVE_UP_BUNKER = true;
+                DO_USE_CYCLONES = true;
+                DO_DEFENSIVE_TANKS = false;
                 break;
             case BC_RUSH:
                 NUM_BASES_TO_OC = PosConstants.baseLocations.size();
@@ -676,6 +687,15 @@ public class Strategy {
                 PRIORITIZE_EXPANDING = true;
                 DO_BANSHEE_HARASS = false; //TODO: remove me
                 break;
+            case MASS_CYCLONE:
+                UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.mechUpgrades);
+                MAX_MARINES = Math.min(2, MAX_MARINES);
+                MIN_BANSHEES = 0;
+                NUM_BASES_TO_OC = 2;
+                DO_LEAVE_UP_BUNKER = true;
+                DO_USE_CYCLONES = true;
+                DO_DEFENSIVE_TANKS = false;
+                break;
             case BC_RUSH:
                 NUM_BASES_TO_OC = PosConstants.baseLocations.size();
                 DO_WALL_NAT = true;
@@ -707,11 +727,16 @@ public class Strategy {
             case BC_MACRO:
                 UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airUpgrades_attackPriority);
                 UpgradeManager.armoryUpgradeList.addAll(UpgradeManager.mechAttackUpgrades);
+                NUM_BASES_TO_OC = 2;
+                NO_TURRETS = false;
+                DO_WALL_NAT = true;
+                BUILD_EXPANDS_IN_MAIN = true;
                 DO_BANSHEE_HARASS = false;
                 DO_DEFENSIVE_TANKS = false;
                 DO_USE_HELLIONS = true;
                 EXPAND_SLOWLY = false;
                 DO_SEEKER_MISSILE = true;
+                DO_LEAVE_UP_BUNKER = true;
                 DEFAULT_STARPORT_UNIT = Abilities.TRAIN_BATTLECRUISER;
                 MIN_BANSHEES = 0;
                 break;
@@ -990,7 +1015,7 @@ public class Strategy {
     public static void useTankVikingAdjustments() {
         UpgradeManager.armoryUpgradeList = new ArrayList<>(UpgradeManager.airThenMechUpgrades);
 
-        MAX_MARINES = 4;
+        MAX_MARINES = 10;
         DO_OFFENSIVE_TANKS = true;
         DO_SEEKER_MISSILE = true;
         MIN_BANSHEES = 0;

@@ -81,6 +81,14 @@ public class UpgradeManager {
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3,
             Upgrades.TERRAN_SHIP_WEAPONS_LEVEL3));
 
+    public static final List<Upgrades> mechUpgrades = new ArrayList<>(List.of(
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL1,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL2,
+            Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL3,
+            Upgrades.TERRAN_VEHICLE_AND_SHIP_ARMORS_LEVEL3));
+
     public static final List<Upgrades> mechAttackUpgrades = new ArrayList<>(List.of(
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL1,
             Upgrades.TERRAN_VEHICLE_WEAPONS_LEVEL2,

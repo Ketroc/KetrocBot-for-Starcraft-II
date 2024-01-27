@@ -13,6 +13,7 @@ import com.ketroc.geometry.Position;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ArmyManager;
 import com.ketroc.managers.BuildManager;
+import com.ketroc.managers.FutureDamageMap;
 import com.ketroc.managers.StructureSize;
 import com.ketroc.micro.StructureFloater;
 import com.ketroc.micro.TankOffense;
@@ -454,12 +455,7 @@ public class UnitUtils {
                 }
                 break;
             default:
-                attackRange = Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
-                        .filter(weapon -> weapon.getTargetType() == targetType ||
-                                weapon.getTargetType() == Weapon.TargetType.ANY)
-                        .findFirst()
-                        .map(Weapon::getRange)
-                        .orElse(0f);
+                attackRange = getAttackRange_NoRadius(unit, targetType);
                 break;
         }
         //make melee units 1.5 range
@@ -470,6 +466,21 @@ public class UnitUtils {
             attackRange += unit.getRadius();
         }
         return attackRange;
+    }
+
+    public static float getAttackRange_NoRadius(Unit unit, Unit target) {
+        Weapon.TargetType targetType = target.getFlying().orElse(false) ?
+                Weapon.TargetType.AIR :
+                Weapon.TargetType.GROUND;
+        return getAttackRange_NoRadius(unit, targetType);
+    }
+    public static float getAttackRange_NoRadius(Unit unit, Weapon.TargetType targetType) {
+        return Bot.OBS.getUnitTypeData(false).get(unit.getType()).getWeapons().stream()
+                .filter(weapon -> weapon.getTargetType() == targetType ||
+                        weapon.getTargetType() == Weapon.TargetType.ANY)
+                .findFirst()
+                .map(Weapon::getRange)
+                .orElse(0f);
     }
 
     public static float getDistance(Unit unit1, Unit unit2) {
@@ -1204,7 +1215,9 @@ public class UnitUtils {
     }
 
     public static float getCurHp(Unit unit) {
-        return unit.getHealth().orElse(0f) + unit.getShield().orElse(0f);
+        return unit.getHealth().orElse(0f) +
+                unit.getShield().orElse(0f) -
+                FutureDamageMap.get(unit.getTag());
     }
 
     //just checks placement grid and creep in observation()
@@ -1403,6 +1416,14 @@ public class UnitUtils {
                 .sum();
     }
 
+    public static float getEnemyAaArmySupply() {
+        return (float) GameCache.allEnemiesList.stream()
+                .filter(enemy -> !UnitUtils.WORKER_TYPE.contains(enemy.unit().getType()))
+                .filter(enemy -> UnitUtils.canAttackAir(enemy.unit()) || enemy.unit().getEnergyMax().orElse(0f) > 0f)
+                .mapToDouble(u -> Bot.OBS.getUnitTypeData(false).get(u.unit().getType()).getFoodRequired().orElse(0f))
+                .sum();
+    }
+
     public static float getVisibleEnemySupplyInMyMainorNat() {
         return (float) GameCache.allVisibleEnemiesList.stream()
                 .filter(enemy -> UnitUtils.isInMyMainOrNat(enemy.unit()))
@@ -1452,6 +1473,10 @@ public class UnitUtils {
 
     public static boolean isOutOfGas() {
         return Cost.isGasBroke(25) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
+    }
+
+    public static boolean isOutOfMinerals() {
+        return Cost.isMineralBroke(99) && !Strategy.MARINE_ALLIN && Time.nowFrames() > Time.toFrames("12:00");
     }
 
     //time (s) until a structure is available
@@ -1664,7 +1689,7 @@ public class UnitUtils {
     }
 
     public static Point2d getBehindBunkerPos() {
-        float distance = (Strategy.gamePlan == GamePlan.BC_RUSH) ? 4 : 1.9f;
+        float distance = (Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_RUSH) ? 4 : 1.9f;
         return Position.towards(PosConstants.BUNKER_NATURAL, GameCache.baseList.get(1).getCcPos(), distance);
     }
 

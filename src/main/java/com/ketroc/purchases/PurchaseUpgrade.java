@@ -93,7 +93,7 @@ public class PurchaseUpgrade implements Purchase {
             //if structure not producing upgrade
             if (UnitUtils.getOrder(productionStructure.unit()) == null && productionStructure.unit().getBuildProgress() == 1) {
                 Print.print("sending action " + upgrade);
-                Ability upgradeAbility = getUpgradeAbility();
+                Abilities upgradeAbility = getUpgradeAbility();
                 ActionHelper.unitCommand(productionStructure.unit(), upgradeAbility, false);
                 Cost.updateBank(cost);
                 return PurchaseResult.SUCCESS;
@@ -114,7 +114,7 @@ public class PurchaseUpgrade implements Purchase {
 
     private boolean hasEnoughRelatedArmyUnits() {
         switch (upgrade) { //TODO: complete for all upgrades (that I don't currently use)
-            case CYCLONE_LOCK_ON_DAMAGE_UPGRADE:
+            case HURRICANE_THRUSTERS:
                 return UnitUtils.numMyUnits(Units.TERRAN_CYCLONE, true) >= 2;
             case INFERNAL_PRE_IGNITERS:
                 return UnitUtils.numMyUnits(UnitUtils.HELLION_TYPE, true) >= 5;
@@ -130,28 +130,23 @@ public class PurchaseUpgrade implements Purchase {
         return true;
     }
 
-    private Ability getUpgradeAbility() {
+    private Abilities getUpgradeAbility() {
         if (upgrade == Upgrades.INFERNAL_PRE_IGNITERS) {
             return Abilities.RESEARCH_INFERNAL_PREIGNITER;
         }
 
-        Ability upgradeAbility = Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
-        if (upgradeAbility instanceof Abilities) {
-            switch ((Abilities) upgradeAbility) {
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL2_V2:
-                case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3_V2:
-                    upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING;
-                    break;
-                case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL1:
-                case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL2:
-                case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL3:
-                    upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_WEAPONS;
-                    break;
-            }
-        }
-        else { //missing Abilities enum
-            Print.print("Unknown Ability: " + upgradeAbility.getAbilityId() + " for upgrade: " + upgrade);
+        Abilities upgradeAbility = (Abilities)Bot.OBS.getUpgradeData(false).get(upgrade).getAbility().orElse(Abilities.INVALID);
+        switch (upgradeAbility) {
+            case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL1_V2:
+            case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL2_V2:
+            case RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING_LEVEL3_V2:
+                upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_AND_SHIP_PLATING;
+                break;
+            case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL1:
+            case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL2:
+            case RESEARCH_TERRAN_VEHICLE_WEAPONS_LEVEL3:
+                upgradeAbility = Abilities.RESEARCH_TERRAN_VEHICLE_WEAPONS;
+                break;
         }
         return upgradeAbility;
     }

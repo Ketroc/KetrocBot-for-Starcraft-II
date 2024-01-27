@@ -37,7 +37,7 @@ public class Switches {
         if (!UnitUtils.getEnemyUnitsOfType(UnitUtils.OBSERVER_TYPE).isEmpty() ||
                 !UnitUtils.getEnemyUnitsOfType(Units.TERRAN_BANSHEE).isEmpty() ||
                 (Strategy.DO_OFFENSIVE_TANKS && !UnitUtils.getEnemyUnitsOfType(UnitUtils.SIEGE_TANK_TYPE).isEmpty()) ||
-                (Strategy.gamePlan == GamePlan.BC_RUSH && EnemyCache.enemyUpgrades.contains(Upgrades.BURROW))) {
+                ((Strategy.gamePlan == GamePlan.BC_RUSH || Strategy.gamePlan == GamePlan.BC_MACRO) && EnemyCache.enemyUpgrades.contains(Upgrades.BURROW))) {
             numScansToSave = 2;
         }
     }

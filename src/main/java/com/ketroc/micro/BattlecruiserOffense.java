@@ -43,11 +43,9 @@ public class BattlecruiserOffense extends Battlecruiser {
             return;
         }
 
-        if (curEnemyBasePos == null) {
-            Point2d enemyBasePos = selectTargetBase();
-            if (enemyBasePos != null) {
-                curEnemyBasePos = enemyBasePos;
-            }
+        Point2d enemyBasePos = selectTargetBase();
+        if (enemyBasePos != null) {
+            curEnemyBasePos = ArmyManager.attackEitherPos; //TODO fix this
         }
 
         // SELECT ATTACK TARGET
@@ -277,13 +275,6 @@ public class BattlecruiserOffense extends Battlecruiser {
             return curEnemyBasePos;
         }
 
-        // NEXT BASE
-        Point2d newTargetBase = selectTargetBase();
-        if (newTargetBase != null) {
-            curEnemyBasePos = newTargetBase;
-            return curEnemyBasePos;
-        }
-
         // NEXT STRUCTURE
         Optional<UnitInPool> closestEnemyStructure = Bot.OBS.getUnits(Alliance.ENEMY, target -> UnitUtils.isStructure(target.unit().getType())).stream()
                 .min(Comparator.comparing(target -> UnitUtils.getDistance(unit.unit(), target.unit())));
@@ -324,6 +315,16 @@ public class BattlecruiserOffense extends Battlecruiser {
             return bestTarget;
         }
 
+        // INFESTORS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_INFESTOR ||
+                        target.unit().getType() == Units.ZERG_INFESTOR_BURROWED)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(90f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
         // QUEENS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_QUEEN ||
@@ -331,6 +332,15 @@ public class BattlecruiserOffense extends Battlecruiser {
                 .max(Comparator.comparing(target ->
                         (target.unit().getHealthMax().orElse(175f) - target.unit().getHealth().orElse(175f)) +
                                 ((int)(target.unit().getEnergy().orElse(0f)/50))*75))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // VIPERS
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_VIPER)
+                .min(Comparator.comparing(target -> target.unit().getHealth().orElse(150f)))
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -354,20 +364,20 @@ public class BattlecruiserOffense extends Battlecruiser {
             return bestTarget;
         }
 
-        // SPIRE
-        bestTarget = allTargets.stream()
-                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE)
-                .findFirst()
-                .orElse(null);
-        if (bestTarget != null) {
-            return bestTarget;
-        }
-
         // OVERLORDS
         bestTarget = allTargets.stream()
                 .filter(target -> target.unit().getType() == Units.ZERG_OVERLORD ||
                         target.unit().getType() == Units.ZERG_OVERLORD_TRANSPORT)
                 .min(Comparator.comparing(target -> target.unit().getHealth().orElse(9999f)))
+                .orElse(null);
+        if (bestTarget != null) {
+            return bestTarget;
+        }
+
+        // SPIRE
+        bestTarget = allTargets.stream()
+                .filter(target -> target.unit().getType() == Units.ZERG_SPIRE)
+                .findFirst()
                 .orElse(null);
         if (bestTarget != null) {
             return bestTarget;
@@ -460,13 +470,6 @@ public class BattlecruiserOffense extends Battlecruiser {
 
         // CONTINUE TO ENEMY BASE
         if (curEnemyBasePos != null && UnitUtils.getDistance(unit.unit(), curEnemyBasePos) > 1) {
-            return curEnemyBasePos;
-        }
-
-        // NEXT BASE
-        Point2d newTargetBase = selectTargetBase();
-        if (newTargetBase != null) {
-            curEnemyBasePos = newTargetBase;
             return curEnemyBasePos;
         }
 
@@ -587,10 +590,8 @@ public class BattlecruiserOffense extends Battlecruiser {
     }
 
     private Point2d selectTargetBase() {
-        //pick first enemy base
-        List<Base> reversedBaseList = new ArrayList<>(GameCache.baseList);
-        Collections.reverse(reversedBaseList);
-        return reversedBaseList.stream()
+        //pick newest enemy expansion base
+        return GameCache.baseList.stream()
                 .filter(base -> base.isEnemyBase)
                 .findFirst()
                 .map(Base::getCcPos)
@@ -600,14 +601,21 @@ public class BattlecruiserOffense extends Battlecruiser {
     //TODO: all races
     protected boolean isYamatoWorthy(Unit enemyUnit) {
         Units enemyType = (Units)enemyUnit.getType();
+        List<Units> saveYamatoFor = new ArrayList<>();
         if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.ZERG_CORRUPTOR)) {
-            return enemyType == Units.ZERG_CORRUPTOR;
+            saveYamatoFor.add(Units.ZERG_CORRUPTOR);
+        }
+        if (EnemyCache.enemyList.stream().anyMatch(enemy -> UnitUtils.INFESTOR_TYPE.contains(enemy.getType()))) {
+            saveYamatoFor.addAll(UnitUtils.INFESTOR_TYPE);
         }
         if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.PROTOSS_TEMPEST)) {
-            return enemyType == Units.PROTOSS_TEMPEST;
+            saveYamatoFor.add(Units.PROTOSS_TEMPEST);
         }
         if (EnemyCache.enemyList.stream().anyMatch(enemy -> enemy.getType() == Units.PROTOSS_VOIDRAY)) {
-            return enemyType == Units.PROTOSS_VOIDRAY;
+            saveYamatoFor.add(Units.PROTOSS_VOIDRAY);
+        }
+        if (!saveYamatoFor.isEmpty()) {
+            return saveYamatoFor.contains(enemyType);
         }
 
         switch (enemyType) {

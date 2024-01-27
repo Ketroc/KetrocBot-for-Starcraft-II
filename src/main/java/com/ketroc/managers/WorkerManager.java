@@ -566,6 +566,12 @@ public class WorkerManager {
             return;
         }
 
+        //max gas with BC MACRO prior to 3 base
+        if (Strategy.gamePlan == GamePlan.BC_MACRO && Base.numMyBases() < 3) {
+            numScvsPerGas = UnitUtils.myUnitsOfType(Units.TERRAN_FUSION_CORE).stream().anyMatch(u -> u.getBuildProgress() >= 1) ? 3 : 2;
+            return;
+        }
+
         //max gas with Tank_Viking and BunkerContain TvT
         if ((Strategy.gamePlan == GamePlan.TANK_VIKING ||
                 Strategy.gamePlan == GamePlan.MECH_ALL_IN ||
@@ -624,7 +630,7 @@ public class WorkerManager {
                         minerals < 2750 &&
                         gas > 100 * (GameCache.starportList.size() + GameCache.factoryList.size()) &&
                         gasBankRatio() > 0.5 &&
-                        !StructureScv.isAlreadyInProduction(Units.TERRAN_COMMAND_CENTER)
+                        StructureScv.isAlreadyInProduction(Units.TERRAN_COMMAND_CENTER)
                 )) {
                     numScvsPerGas = 2;
                 }

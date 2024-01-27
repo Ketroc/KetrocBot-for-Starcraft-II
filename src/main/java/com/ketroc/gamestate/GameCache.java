@@ -504,6 +504,7 @@ public class GameCache {
                     Switches.doNeedDetection = true;
                     //if burrowed unit, or cloaked unit without ghosts available
                     if (Strategy.gamePlan != GamePlan.BC_RUSH &&
+                            Strategy.gamePlan != GamePlan.BC_MACRO &&
                             (Strategy.gamePlan != GamePlan.GHOST_HELLBAT ||
                             PosConstants.opponentRace == Race.ZERG ||
                             UnitUtils.WIDOW_MINE_TYPE.contains(unitType))) {

@@ -3,6 +3,8 @@ package com.ketroc.bots;
 import com.github.ocraft.s2client.bot.gateway.UnitInPool;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
+import com.github.ocraft.s2client.protocol.data.Upgrades;
+import com.github.ocraft.s2client.protocol.query.AvailableAbilities;
 import com.github.ocraft.s2client.protocol.query.QueryBuildingPlacement;
 import com.github.ocraft.s2client.protocol.spatial.Point;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
@@ -78,7 +80,7 @@ public class TestingBot extends Bot {
 //        PosConstants.onGameStart(OBS.getUnits(Alliance.SELF, cc -> cc.unit().getType() == Units.TERRAN_COMMAND_CENTER).get(0));
 //
 ////        DebugHelper.onGameStart();
-        debug().debugGiveAllResources().debugFastBuild().debugGiveAllTech();
+        debug().debugGiveAllResources().debugFastBuild();//.debugGiveAllTech();
 ////        MannerMule.doTrollMule = true;
 //
 //        broodlingPos = Position.towards(mySpawnPos, PosConstants.myRampPos, 9);
@@ -104,6 +106,10 @@ public class TestingBot extends Bot {
 
     @Override
     public void onStep() {
+//        if (Time.nowFrames() == 30) {
+//            debug().debugCreateUnit(Units.TERRAN_STARPORT, observation().getStartLocation().toPoint2d(), myId, 1);
+//            debug().sendDebug();
+//        }
 //        //build unit lists
 //        try {
 //            GameCache.onStepStart();

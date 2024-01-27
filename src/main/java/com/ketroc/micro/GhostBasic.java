@@ -59,13 +59,6 @@ public class GhostBasic extends Ghost {
             UnitInPool snipeTarget = selectSnipeTarget();
             if (snipeTarget != null) {
                 snipe(snipeTarget.unit());
-//                System.out.println("snipeTarget.getTag() = " + snipeTarget.getTag());
-//                System.out.println("snipeTarget.unit().getDisplayType() = " + snipeTarget.unit().getDisplayType());
-//                System.out.println("UnitUtils.getCurHp(snipeTarget.unit()) = " + UnitUtils.getCurHp(snipeTarget.unit()));
-//                System.out.println("Ghost.prevSnipeFrame (before) = " + Ghost.prevSnipeFrame);
-//                System.out.println("numSnipesInProgress(snipeTarget.unit()) = " + numSnipesInProgress(snipeTarget.unit()));
-//                System.out.println("Time.nowFrames() = " + Time.nowFrames());
-//                System.out.println("Ghost.prevSnipeFrame (after) = " + Ghost.prevSnipeFrame);
                 return;
             }
         }

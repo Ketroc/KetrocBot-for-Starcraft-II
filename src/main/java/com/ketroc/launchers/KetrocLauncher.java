@@ -34,7 +34,7 @@ public class KetrocLauncher {
         Race oppRace = Race.ZERG;
         Difficulty oppDiff = Difficulty.CHEAT_INSANE;
         AiBuild oppBuild = AiBuild.MACRO;
-        Strategy.gamePlan = GamePlan.RAVEN;
+        Strategy.gamePlan = GamePlan.MASS_CYCLONE;
 
         S2Coordinator s2Coordinator = S2Coordinator.setup()
                 .loadSettings(args)
@@ -50,7 +50,6 @@ public class KetrocLauncher {
                 .setRawAffectsSelection(true)
                 .setTimeoutMS(10 * 60000) //10min
                 .setProcessPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
-                .setEglPath(Paths.get("C:\\Program Files (x86)\\StarCraft II\\Versions\\Base75689\\SC2_x64.exe"))
                 .setParticipants(
 //                        S2Coordinator.createParticipant(Race.TERRAN, new EnemyDebugTestBot()),
                         S2Coordinator.createParticipant(Race.TERRAN, new KetrocBot("")),
@@ -60,7 +59,7 @@ public class KetrocLauncher {
                 .launchStarcraft()
 
 
-                .startGame(LocalMap.of(Paths.get("AncientCisternAIE.SC2Map")));
+                .startGame(LocalMap.of(Paths.get("AncientCisternLE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("DragonScalesAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GoldenauraAIE.SC2Map")));
 //                .startGame(LocalMap.of(Paths.get("GresvanAIE.SC2Map")));

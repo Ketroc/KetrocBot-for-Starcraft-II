@@ -86,9 +86,6 @@ public class ActionErrorManager {
                         ExpansionClearing.add(pos);
                     }
                     //move TANK_DEFENDER from blocking gas geyser
-                    else if (ability == Abilities.BUILD_REFINERY) {
-                        int qwers=3437;
-                    }
                     else if (ability == Abilities.BUILD_REFINERY &&
                             numBlockingEnemyUnits(pos, Units.TERRAN_REFINERY) == 0 &&
                             UnitMicroList.getUnitSubList(TankToPosition.class).stream()
@@ -141,7 +138,6 @@ public class ActionErrorManager {
         return r == ActionResult.CANT_BUILD_TOO_CLOSE_TO_CREEP_SOURCE || r == ActionResult.CANT_LAND_TOO_CLOSE_TO_CREEP_SOURCE;
     }
 
-    //TODO: enemy structure blocking == COULDN'T REACH TARGET
     private static boolean isBlockedByUnit(ActionResult r) {
         return r == ActionResult.CANT_BUILD_LOCATION_INVALID || r == ActionResult.CANT_LAND_LOCATION_INVALID;
     }

@@ -3,6 +3,7 @@ package com.ketroc.strategies;
 public enum GamePlan {
     BANSHEE,
     BANSHEE_CYCLONE,
+    MASS_CYCLONE,
     ONE_BASE_BANSHEE_CYCLONE,
     BANSHEE_TANK,
     TANK_VIKING,

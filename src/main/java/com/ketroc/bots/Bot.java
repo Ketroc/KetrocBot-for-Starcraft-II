@@ -7,8 +7,11 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
 import com.github.ocraft.s2client.protocol.game.PlayerInfo;
+import com.github.ocraft.s2client.protocol.spatial.Point;
+import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.ketroc.launchers.Launcher;
 import com.ketroc.managers.ActionErrorManager;
+import com.ketroc.utils.DebugHelper;
 import com.ketroc.utils.Error;
 import com.ketroc.utils.Print;
 import com.ketroc.utils.Time;
@@ -31,14 +34,12 @@ public class Bot extends S2Agent {
     public static long[] prevGameFrames = new long[]{1, 1};
     public static int myId;
     public static int enemyId;
-    public static int maxSkippedFrames = 3; //number of frames to save prev actions
     public static long startTime;
 
     protected boolean doSkipFrame;
 
     public Bot(String opponentId) {
         this.opponentId = (!opponentId.equals("")) ? opponentId : "BlizzAI";
-        //this.opponentId = TournyIdUtil.getMappedId(opponentId);
     }
 
     @Override
@@ -87,24 +88,11 @@ public class Bot extends S2Agent {
                 }
             });
         });
+        DebugHelper.onGameStart();
     }
 
     @Override
     public void onStep() {
-        //end date for bot functioning
-//        if (LocalDate.now().isAfter(LocalDate.parse("2021-10-10"))) {
-//            return;
-//        }
-
-//        //missed a frame
-//        int skippedFrames = (int)(OBS.getGameLoop() - (gameFrame + 1));
-//        if (skippedFrames > 0) {
-//            Print.print(gameFrame + " - " + skippedFrames + "frames skipped.");
-//            if (OBS.getGameLoop() > 20 && skippedFrames > maxSkippedFrames) {
-//                maxSkippedFrames = skippedFrames;
-//            }
-//        }
-
         //repeating same frame
         if (OBS.getGameLoop() == prevGameFrames[0]) {
             Print.print("gameFrame repeated = " + OBS.getGameLoop());
@@ -122,12 +110,13 @@ public class Bot extends S2Agent {
         //save prev 2 frames
         prevGameFrames[1] = prevGameFrames[0];
         prevGameFrames[0] = OBS.getGameLoop();
-
     }
 
     public void updateIds() {
         int baseBuild = control().proto().getBaseBuild();
+        System.out.println("baseBuild = " + baseBuild);
         String mapName = observation().getGameInfo().getMapName();
+        System.out.println("mapName = " + mapName);
         if (baseBuild >= 81009 ||
                 (!mapName.endsWith("AIE") && !mapName.matches("^.*\\d{1,2}\\.\\d{1,2}\\.\\d{1,2}$"))) {
             return;

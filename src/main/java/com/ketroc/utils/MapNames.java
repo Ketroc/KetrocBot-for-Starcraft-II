@@ -4,6 +4,7 @@ public final class MapNames {
     public static final String _2000_ATMOSPHERES_AIE = "2000 Atmospheres AIE";
     public static final String ACROPOLIS = "Acropolis LE";
     public static final String ANCIENT_CISTERN_AIE = "Ancient CisternAIE";
+    public static final String ANCIENT_CISTERN_LE = "Ancient Cistern LE";
     public static final String ASCENSION_TO_AIUR = "Ascension to Aiur LE";
     public static final String CATALYST = "Catalyst LE";
     public static final String CURIOUS_MINDS_AIE = "Curious Minds AIE";
@@ -14,6 +15,7 @@ public final class MapNames {
     public static final String DEATH_AURA506 = "Deathaura 5.0.6";
     public static final String DISCO_BLOODBATH = "Disco Bloodbath LE";
     public static final String DRAGON_SCALES_AIE = "Dragon ScalesAIE";
+    public static final String DRAGON_SCALES_LE = "Dragon Scales LE";
     public static final String EPHEMERON = "[TLMC12] Ephemeron";
     public static final String EPHEMERONLE = "Ephemeron LE";
     public static final String ETERNAL_EMPIRE = "Eternal Empire LE";
@@ -28,6 +30,7 @@ public final class MapNames {
     public static final String GOLDEN_WALL505 = "Golden Wall 5.0.5";
     public static final String GOLDEN_WALL506 = "Golden Wall 5.0.6";
     public static final String GOLDENAURA_AIE = "GoldenauraAIE";
+    public static final String GRESVAN_LE = "Gresvan LE";
     public static final String GRESVAN_AIE = "GresvanAIE";
     public static final String HARDWIRE_AIE = "Hardwire AIE";
     public static final String ICE_AND_CHROME = "Ice and Chrome LE";
@@ -49,6 +52,7 @@ public final class MapNames {
     public static final String ROMANTICIDE = "Romanticide LE";
     public static final String ROMANTICIDE_AIE = "Romanticide AIE";
     public static final String ROYAL_BLOOD_AIE = "Royal BloodAIE";
+    public static final String ROYAL_BLOOD_LE = "Royal Blood LE";
     public static final String SIMULACRUM = "Simulacrum LE";
     public static final String STARGAZERS_AIE = "StargazersAIE";
     public static final String SUBMARINE = "Submarine LE";

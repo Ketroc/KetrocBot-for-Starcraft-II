@@ -61,7 +61,7 @@ public class Thor extends BasicUnitMicro {
 
     @Override
     protected void setTargetPos() {
-        targetPos = ArmyManager.attackAirPos;
+        targetPos = ArmyManager.attackEitherPos;
     }
 
     @Override

@@ -54,7 +54,6 @@ public class ArmyManager {
     public static long prevScanFrame;
     public static int numAutoturretsAvailable;
     public static int turretsCast;
-    public static int queriesMade;
 
     public static final int[] BASE_DEFENSE_INDEX_ORDER = {2, 4, 1, 3, 5, 6, 7, 8, 9, 10, 11};
 
@@ -165,19 +164,19 @@ public class ArmyManager {
         }
 
         if (Strategy.gamePlan == GamePlan.BC_MACRO) {
-            boolean readyToRelaunch = UnitMicroList.numOfUnitClass(Battlecruiser.class) == 0; //all BCs released
-            UnitUtils.myUnitsOfType(Units.TERRAN_BATTLECRUISER).forEach(bc -> {
-                if (doOffense &&
-                        MyUnitAbilities.isAbilityAvailable(bc, Abilities.EFFECT_TACTICAL_JUMP)) {
-                    UnitMicroList.add(new BattlecruiserOffense(bc));
-                }
-                else if (!doOffense && readyToRelaunch) {
-                    UnitMicroList.add(new BattlecruiserOffense(bc));
-                }
-                else {
-                    UnitMicroList.add(new BattlecruiserDefense(bc));
-                }
-            });
+            List<Battlecruiser> bcMicroList = UnitMicroList.getUnitSubList(Battlecruiser.class);
+            if (bcMicroList.isEmpty() || bcMicroList.stream().noneMatch(bc -> bc.removeMe)) {
+                boolean readyToRelaunch = !isEnemyAaTooStrongForBcs() && UnitMicroList.numOfUnitClass(Battlecruiser.class) == 0; //all BCs released
+                UnitUtils.myUnitsOfType(Units.TERRAN_BATTLECRUISER).forEach(bc -> {
+                    if (doOffense && MyUnitAbilities.isAbilityAvailable(bc, Abilities.EFFECT_TACTICAL_JUMP)) {
+                        UnitMicroList.add(new BattlecruiserOffense(bc));
+                    } else if (!doOffense && readyToRelaunch) {
+                        UnitMicroList.add(new BattlecruiserOffense(bc));
+                    } else {
+                        UnitMicroList.add(new BattlecruiserDefense(bc));
+                    }
+                });
+            }
         }
 
         //repair station
@@ -544,6 +543,11 @@ public class ArmyManager {
         }
     }
 
+    public static boolean isEnemyAaTooStrongForBcs() {
+        int curBcCount = UnitUtils.numMyUnits(Units.TERRAN_BATTLECRUISER, false);
+        return curBcCount < 2 || curBcCount * 8 < UnitUtils.getEnemyAaArmySupply();
+    }
+
     private static void setDoOffense() {
         if (Strategy.gamePlan == GamePlan.BC_RUSH) {
             doOffense = Bot.OBS.getFoodUsed() > 170 || Base.numEnemyBases() == 0;
@@ -551,8 +555,15 @@ public class ArmyManager {
         }
 
         if (Strategy.gamePlan == GamePlan.BC_MACRO) {
-            if (UnitUtils.numMyUnits(Units.TERRAN_BATTLECRUISER, false) == 0) {
+            boolean was = doOffense;
+            int curBcCount = UnitUtils.numMyUnits(Units.TERRAN_BATTLECRUISER, false);
+            if (curBcCount == 0) {
                 doOffense = false;
+                return;
+            }
+            if (isEnemyAaTooStrongForBcs()) {
+                doOffense = false;
+                UnitMicroList.getUnitSubList(BattlecruiserOffense.class).forEach(bc -> bc.removeMe = true);
                 return;
             }
             doOffense = UnitMicroList.numOfUnitClass(BattlecruiserOffense.class) > 0;
@@ -582,12 +593,14 @@ public class ArmyManager {
             int numHellbats = UnitUtils.numMyUnits(Units.TERRAN_HELLION_TANK, false);
             if (doOffense &&
                     Bot.OBS.getFoodUsed() < 190 &&
-                    (numHellbats < 6 || Ghost.numSnipesAvailable() == 0)) {
+                    !UnitUtils.isOutOfMinerals() &&
+                    (numHellbats < 6 || Ghost.numSnipesAvailable() <= 2)) {
                 doOffense = false;
             }
             else if (!doOffense &&
                     (Bot.OBS.getFoodUsed() > 190 ||
-                            (numHellbats >= 6 && Ghost.numSnipesAvailable() >= 10))) {
+                            UnitUtils.isOutOfMinerals() ||
+                                    (numHellbats >= 6 && Ghost.numSnipesAvailable() >= 10))) {
                 doOffense = true;
             }
             return;
@@ -673,19 +686,19 @@ public class ArmyManager {
 
     private static void ravenMicro() {
         turretsCast = 0;
-        queriesMade = 0;
 
         //give ravens their commands
         for (Unit raven : GameCache.ravenList) {
-            giveRavenCommand(raven, queriesMade <= 6);
+            giveRavenCommand(raven);
         }
     }
 
     //set defensePos to closestEnemy to an injured base cc
     private static void setDefensePosition() {
-        Predicate<UnitInPool> enemyTargetFilter = u -> GameCache.baseList.stream()
-                .filter(base -> base.isMyBase() || base.isNatBaseAndHasBunker())
-                .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 25) && //close to any of my bases
+        Predicate<UnitInPool> enemyTargetFilter = u ->
+                GameCache.baseList.stream()
+                        .filter(base -> base.isMyBase() || base.isNatBaseAndHasBunker())
+                        .anyMatch(base -> UnitUtils.getDistance(u.unit(), base.getCcPos()) < 20) && //close to any of my bases
                 !UnitUtils.NO_THREAT_ENEMY_AIR.contains(u.unit().getType()) &&
                 u.unit().getCloakState().orElse(CloakState.NOT_CLOAKED) != CloakState.CLOAKED && //ignore cloaked units
                 u.unit().getDisplayType() != DisplayType.HIDDEN && //ignore undetected cloaked/burrowed units
@@ -721,6 +734,11 @@ public class ArmyManager {
             );
         }
 
+        //protect new base in production
+        Optional<Base> baseInProduction = Base.getBaseInProduction();
+        if (baseInProduction.isPresent()) {
+            return baseInProduction.get().inFrontPos();
+        }
         //protect forward base
         Base forwardBase = getForwardBase();
         if (forwardBase.isMyBase()) {
@@ -1727,7 +1745,7 @@ public class ArmyManager {
     }
 
     //return true if autoturret cast
-    private static void giveRavenCommand(Unit raven, boolean doCastTurrets) {
+    private static void giveRavenCommand(Unit raven) {
 
         //wait for raven to auto-turret before giving a new command, if auto-turret pos is still in range of enemies
         Optional<ActionIssued> curOrder = ActionIssued.getCurOrder(raven);
@@ -1796,7 +1814,7 @@ public class ArmyManager {
         if (Strategy.DO_MATRIX && castMatrix(raven)) {
             return;
         }
-        if (doCastTurrets && inRange && doAutoTurret(raven, turretTarget, autoturretAtEnergy)) {
+        if (Strategy.gamePlan != GamePlan.BC_MACRO && inRange && doAutoTurret(raven, turretTarget, autoturretAtEnergy)) {
             return;
         }
 

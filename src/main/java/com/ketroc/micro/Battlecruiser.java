@@ -5,13 +5,9 @@ import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
 import com.ketroc.bots.Bot;
-import com.ketroc.utils.ActionHelper;
-import com.ketroc.utils.ActionIssued;
-import com.ketroc.utils.MyUnitAbilities;
-import com.ketroc.utils.Time;
+import com.ketroc.utils.*;
 
 public class Battlecruiser extends BasicUnitMicro {
-    public static long prevYamatoFrame;
     public static final float RADIUS = 1.25f;
     public static final float ATTACK_RANGE = 7.5f;
     public static final long COOLDOWN_JUMP = 1590;
@@ -34,12 +30,10 @@ public class Battlecruiser extends BasicUnitMicro {
     }
 
     protected boolean isYamatoAvailable() {
-        return prevYamatoFrame + 72 < Bot.OBS.getGameLoop() && // 1 yamato from any BC every 3 seconds
-                MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_YAMATO_GUN);
+        return MyUnitAbilities.isAbilityAvailable(unit.unit(), Abilities.EFFECT_YAMATO_GUN);
     }
 
     protected void yamato(Unit target) {
-        prevYamatoFrame = Bot.OBS.getGameLoop();
         ActionHelper.unitCommand(unit.unit(), Abilities.EFFECT_YAMATO_GUN, target, false);
     }
 

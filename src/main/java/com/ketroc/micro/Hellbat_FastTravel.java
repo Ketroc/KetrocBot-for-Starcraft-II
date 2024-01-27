@@ -3,14 +3,9 @@ package com.ketroc.micro;
 import com.github.ocraft.s2client.protocol.data.Abilities;
 import com.github.ocraft.s2client.protocol.data.Units;
 import com.github.ocraft.s2client.protocol.data.Upgrades;
-import com.github.ocraft.s2client.protocol.spatial.Point2d;
 import com.github.ocraft.s2client.protocol.unit.Unit;
-import com.ketroc.bots.Bot;
-import com.ketroc.managers.ArmyManager;
-import com.ketroc.managers.UpgradeManager;
 import com.ketroc.utils.*;
 
-import java.util.Collections;
 import java.util.Set;
 
 //travels far distances as a hellion
@@ -37,7 +32,8 @@ public class Hellbat_FastTravel extends Hellbat {
     }
 
     public boolean canMorph() {
-        return MyUnitAbilities.map.getOrDefault(unit.getTag(), Collections.EMPTY_SET).stream().anyMatch(ability -> ability.toString().startsWith("MORPH"));
+        Set<Abilities> myUnitAbilities = MyUnitAbilities.map.get(unit.getTag());
+        return myUnitAbilities != null && myUnitAbilities.stream().anyMatch(ability -> ability.toString().startsWith("MORPH"));
     }
 
     public static int getToHellionDistance() {

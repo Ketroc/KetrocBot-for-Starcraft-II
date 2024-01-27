@@ -92,6 +92,11 @@ public class PurchaseStructureMorph implements Purchase {
             return PurchaseResult.WAITING;
         }
 
+        //if structure already has an add-on
+        if (productionStructure != null && productionStructure.unit().getAddOnTag().isPresent()) {
+            return PurchaseResult.CANCEL;
+        }
+
         //if add-on position is blocked
         if (isBlocked()) {
             return PurchaseResult.WAITING;

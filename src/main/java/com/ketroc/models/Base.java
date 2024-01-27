@@ -408,7 +408,7 @@ public class Base {
     }
 
     public boolean isUnderAttack(float range) {
-        return isMyBase() &&
+        return (isMyBase() || isNatBaseAndHasBunker()) &&
                 (ArmyManager.attackUnit != null && UnitUtils.getDistance(ArmyManager.attackUnit, ccPos) < range) ||
                 (ArmyManager.attackGroundUnit != null && UnitUtils.getDistance(ArmyManager.attackGroundUnit, ccPos) < range) ||
                 (ArmyManager.attackAirUnit != null && UnitUtils.getDistance(ArmyManager.attackAirUnit, ccPos) < range);
@@ -1233,12 +1233,19 @@ public class Base {
                 .anyMatch(base -> base.isMyBase() && UnitUtils.getDistance(unit, base.ccPos) < distance);
     }
 
-
     public static Optional<Base> getAvailablePocketBase() {
         return GameCache.baseList.stream()
                 .filter(Base::isPocketBase)
                 .filter(base -> base.getCcPos().distance(PosConstants.mainBaseMidPos) < 50)
                 .filter(base -> !base.isMyBase())
+                .findFirst();
+    }
+
+    public static Optional<Base> getBaseInProduction() {
+        return GameCache.baseList.stream()
+                .filter(base -> base.isMyBase())
+                .filter(base -> !base.isMyMainBase() || !base.isMyNatBase() || !base.isPocketBase())
+                .filter(base -> base.getCc() == null || base.getCc().unit().getBuildProgress() < 0.99f || base.getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER || base.getCc().unit().getType() == Units.TERRAN_COMMAND_CENTER_FLYING)
                 .findFirst();
     }
 

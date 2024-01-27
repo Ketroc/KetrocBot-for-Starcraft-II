@@ -39,7 +39,6 @@ public class PosConstants {
     public static Point2d myMineralPos;
     public static Point2d enemyMineralPos;
     public static Point2d REPAIR_BAY;
-    public static Point2d REAPER_JUMP2;
     public static Point2d BUNKER_NATURAL;
     public static Point2d WALL_2x2;
     public static Point2d WALL_3x3;
@@ -53,9 +52,7 @@ public class PosConstants {
 
     public static List<Point2d> _3x3Structures = new ArrayList<>(); //barracks, engbay, and armory x2
     public static List<Point2d> extraDepots = new ArrayList<>();
-    public static List<Point2d> FACTORIES = new ArrayList<>();
     public static List<Point2d> _3x3AddonPosList = new ArrayList<>();
-    public static List<Point2d> TURRETS = new ArrayList<>();
     public static List<Point2d> MACRO_OCS = new ArrayList<>();
     public static Point2d proxyBarracksPos;
     public static Point2d proxyBunkerPos;
@@ -241,6 +238,7 @@ public class PosConstants {
                 setLocationsForAcropolis(isTopSpawn);
                 break;
             case MapNames.ANCIENT_CISTERN_AIE:
+            case MapNames.ANCIENT_CISTERN_LE:
                 setLocationsForAncientCistern(isTopSpawn);
                 break;
             case MapNames.ASCENSION_TO_AIUR:
@@ -267,6 +265,7 @@ public class PosConstants {
                 setLocationsForDiscoBloodBath(isTopSpawn);
                 break;
             case MapNames.DRAGON_SCALES_AIE:
+            case MapNames.DRAGON_SCALES_LE:
                 setLocationsForDragonScales(isTopSpawn);
                 break;
             case MapNames.EPHEMERON:
@@ -298,6 +297,7 @@ public class PosConstants {
                 setLocationsForGoldenWall(isTopSpawn);
                 break;
             case MapNames.GRESVAN_AIE:
+            case MapNames.GRESVAN_LE:
                 setLocationsForGresvan(isTopSpawn);
                 break;
             case MapNames.HARDWIRE_AIE:
@@ -342,6 +342,7 @@ public class PosConstants {
                 setLocationsForRomanticide(isTopSpawn);
                 break;
             case MapNames.ROYAL_BLOOD_AIE:
+            case MapNames.ROYAL_BLOOD_LE:
                 setLocationsForRoyalBlood(isTopSpawn);
                 break;
             case MapNames.SIMULACRUM:
@@ -1782,6 +1783,7 @@ public class PosConstants {
                 break;
 
             case MapNames.ANCIENT_CISTERN_AIE:
+            case MapNames.ANCIENT_CISTERN_LE:
                 baseLocations.add(Point2d.of(128.5f, 143.5f));
                 baseLocations.add(Point2d.of(131.5f, 119.5f));
                 baseLocations.add(Point2d.of(98.5f, 124.5f));
@@ -1904,6 +1906,7 @@ public class PosConstants {
                 break;
 
             case MapNames.DRAGON_SCALES_AIE:
+            case MapNames.DRAGON_SCALES_LE:
                 baseLocations.add(Point2d.of(76.5f, 154.5f));
                 baseLocations.add(Point2d.of(105.5f, 159.5f));
                 baseLocations.add(Point2d.of(97.5f, 130.5f));
@@ -2040,6 +2043,7 @@ public class PosConstants {
                 break;
 
             case MapNames.GRESVAN_AIE:
+            case MapNames.GRESVAN_LE:
                 baseLocations.add(Point2d.of(38.5f, 121.5f));
                 baseLocations.add(Point2d.of(36.5f, 89.5f));
                 baseLocations.add(Point2d.of(62.5f, 99.5f));
@@ -2262,6 +2266,7 @@ public class PosConstants {
                 break;
 
             case MapNames.ROYAL_BLOOD_AIE:
+            case MapNames.ROYAL_BLOOD_LE:
                 baseLocations.add(Point2d.of(141.5f, 122.5f));
                 baseLocations.add(Point2d.of(115.5f, 128.5f));
                 baseLocations.add(Point2d.of(123.5f, 101.5f));

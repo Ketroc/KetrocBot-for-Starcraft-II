@@ -269,7 +269,7 @@ public class BasicUnitMicro {
         return bestTargetUip;
     }
 
-    private List<UnitInPool> getValidTargetList(boolean includeIgnoredTargets) {
+    protected List<UnitInPool> getValidTargetList(boolean includeIgnoredTargets) {
         return Bot.OBS.getUnits(Alliance.ENEMY, enemy ->
                 ((isAir(enemy) && canAttackAir) || (!isAir(enemy) && canAttackGround)) && //can attack ground/air
                 UnitUtils.getDistance(enemy.unit(), unit.unit()) <=
@@ -490,8 +490,8 @@ public class BasicUnitMicro {
                         !base.isMyMainBase() &&
                         base.numMineralScvs() + base.numScvRepairers() >= 4 &&
                         !base.isUnderAttack())
-                .map(Base::inFrontPos)
-                .min(Comparator.comparing(pos -> pos.distance(unitPos)));
+                .min(Comparator.comparing(base -> base.inFrontPos().distance(unitPos) + (base.getRepairBayTargets().size()*15)))
+                .map(Base::inFrontPos);
     }
 
     protected boolean underRepair(Point2d repairBayPos) {
@@ -500,7 +500,7 @@ public class BasicUnitMicro {
     }
 
     protected boolean requiresRepairs(int healthToRepairAt) {
-        return unit.unit().getHealth().orElse(120f) <= healthToRepairAt;
+        return unit.unit().getHealth().orElse(110f) <= healthToRepairAt;
     }
 
     protected Unit getClosestEnemyThreatToGround() {
@@ -553,11 +553,13 @@ public class BasicUnitMicro {
             return true;
         }
         //doStutterForward if enemy outranges me (or is weaponless)
-        double myAttackRange = UnitUtils.getAttackRange(attackUnit, closestEnemyThreat);
-        double enemyAttackRange = UnitUtils.getAttackRange(closestEnemyThreat, attackUnit);
+        double myAttackRange = UnitUtils.getAttackRange_NoRadius(attackUnit, closestEnemyThreat);
+        double enemyAttackRange = UnitUtils.getAttackRange_NoRadius(closestEnemyThreat, attackUnit);
+
         return enemyAttackRange == 0 ||
                 myAttackRange < enemyAttackRange ||
-                myAttackRange + closestEnemyThreat.getRadius() < UnitUtils.getDistance(attackUnit, closestEnemyThreat);
+                myAttackRange + attackUnit.getRadius() + closestEnemyThreat.getRadius() - 0.3f < UnitUtils.getDistance(attackUnit, closestEnemyThreat) ||
+                UnitUtils.isEnemyRetreating(closestEnemyThreat, attackUnit.getPosition().toPoint2d());
     }
 
     protected boolean isFlying() {
